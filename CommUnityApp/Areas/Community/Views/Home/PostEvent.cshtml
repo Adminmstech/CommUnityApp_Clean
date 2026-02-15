@@ -1,0 +1,91 @@
+﻿@{
+    ViewData["Title"] = "Post Event to Groups";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+}
+
+<input type="hidden" id="EventId" value="@Context.Request.Query["eventId"]" />
+
+<div class="card">
+    <div class="card-body">
+
+        <h5>Select Groups to Post Event</h5>
+
+        <div id="groupsContainer"></div>
+
+        <button class="btn btn-primary mt-3" onclick="postEvent()">
+            Post Event
+        </button>
+
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        loadGroups();
+    });
+
+    function loadGroups() {
+
+        const communityId = "@Context.Session.GetString("CommunityId")";
+
+        $.get(`/api/Community/GetByCommunity/${communityId}`, function (res) {
+
+            let html = "";
+
+            res.forEach(g => {
+                html += `
+                  <div class="form-check mb-2">
+                    <input class="form-check-input grp"
+                           type="checkbox"
+                           value="${g.groupId}" />
+                    <label class="form-check-label">
+                        ${g.groupName}
+                    </label>
+                  </div>`;
+            });
+
+            $("#groupsContainer").html(html);
+        })
+            .fail(function (xhr) {
+                alert(xhr.responseText || "Failed to load groups");
+            });
+    }
+
+
+    function postEvent() {
+
+        let selected = $(".grp:checked")
+            .map(function () { return this.value; })
+            .get()
+            .join(",");
+
+        if (!selected) {
+            alert("Please select at least one group");
+            return;
+        }
+
+        let payload = {
+            communityId: "@Context.Session.GetString("CommunityId")",
+            eventId: $("#EventId").val(),
+            groupIds: selected,
+            postedBy: "@Context.Session.GetString("CommunityId")"
+        };
+
+        $.ajax({
+            url: "/api/Event/PostEvent",
+            type: "POST",
+            contentType: "application/json",
+            data: JSON.stringify(payload),
+            success: function (res) {
+                alert(res.resultMessage);
+                window.location.href = "/Community/Home/Index";
+            },
+            error: function (xhr) {
+                alert(xhr.responseText || "Failed to post event");
+            }
+        });
+    }
+
+</script>

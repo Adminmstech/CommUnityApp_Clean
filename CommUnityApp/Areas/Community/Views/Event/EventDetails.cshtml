@@ -1,0 +1,311 @@
+﻿@{
+    ViewData["Title"] = "Event Details";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Event Details</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet" />
+
+    <style>
+
+        body {
+            background: linear-gradient(180deg, #f8fafc, #eef2ff);
+            font-family: "Inter", "Segoe UI", sans-serif;
+            padding-bottom: 110px;
+        }
+
+        /* ===== Main Card ===== */
+        .event-card {
+            border: none;
+            border-radius: 22px;
+            box-shadow: 0 25px 50px rgba(0,0,0,.08);
+            overflow: hidden;
+            background: #ffffff;
+        }
+
+        .event-image {
+            border-radius: 18px;
+            box-shadow: 0 12px 30px rgba(0,0,0,.15);
+            transition: transform .3s ease;
+        }
+
+        .event-image:hover {
+            transform: scale(1.02);
+        }
+
+        h3 {
+            font-weight: 700;
+            color: #0f172a;
+            margin-bottom: 15px;
+        }
+
+        .event-meta {
+            font-size: 15px;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+
+        .event-meta strong {
+            color: #1e293b;
+        }
+
+        #description {
+            margin-top: 15px;
+            font-size: 15px;
+            line-height: 1.6;
+            color: #334155;
+        }
+
+        hr {
+            border-top: 1px solid #e2e8f0;
+            margin: 20px 0;
+        }
+
+        /* ===== Sticky Register Button ===== */
+        .register-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #ffffff;
+            padding: 18px 25px;
+            box-shadow: 0 -8px 25px rgba(0,0,0,.08);
+        }
+
+        .btn-register {
+            width: 100%;
+            border-radius: 40px;
+            padding: 14px;
+            font-weight: 700;
+            font-size: 16px;
+            background: linear-gradient(135deg, #9ca3af, #6b7280);
+            border: none;
+            color: #ffffff;
+            margin-top: 20px;
+            transition: all .3s ease;
+        }
+
+            .btn-register:hover {
+                background: linear-gradient(135deg, #6b7280, #4b5563);
+                box-shadow: 0 12px 30px rgba(107,114,128,.35);
+                transform: translateY(-2px);
+            }
+
+    </style>
+</head>
+
+<body>
+
+<div class="container mt-4">
+
+    <input type="hidden" id="EventId" value="@ViewBag.EventId" />
+
+    <div class="card event-card mb-4">
+        <div class="card-body">
+                <div class="mb-4 text-center">
+                    <h3 class="fw-bold">Event Details</h3>
+                    <hr style="width:80px; margin:auto; border:2px solid #0d6efd;">
+                </div>
+
+            <div class="row">
+
+                <div class="col-md-4 text-center mb-3 mb-md-0">
+                    <img id="eventImage"
+                         src="/content/images/noimage.png"
+                         class="img-fluid event-image"
+                         style="max-height:260px; object-fit:cover;" />
+                </div>
+
+                <div class="col-md-8">
+
+                    <h3 id="eventName">Loading event...</h3>
+
+                    <p class="event-meta">
+                        <strong>Category:</strong>
+                        <span id="categoryName"></span>
+                    </p>
+
+                    <p class="event-meta">
+                        <strong>Date:</strong>
+                        <span id="eventDate"></span>
+                    </p>
+
+                    <p class="event-meta">
+                        <strong>Location:</strong>
+                        <span id="location"></span>
+                    </p>
+
+                    <p id="description"></p>
+                        <hr />
+
+                        <div id="ticketSection" class="mb-3"></div>
+
+                        <div class="event-meta">
+                            <strong>Total Seats:</strong>
+                            <span id="totalSeats"></span>
+                        </div>
+
+                        <div class="event-meta">
+                            <strong>Remaining Seats:</strong>
+                            <span id="remainingSeats"></span>
+                        </div>
+
+                        <div class="event-meta">
+                            <strong>Max Tickets Per User:</strong>
+                            <span id="maxTickets"></span>
+                        </div>
+
+                        <div class="event-meta">
+                            <strong>Registration Window:</strong>
+                            <span id="registrationWindow"></span>
+                        </div>
+
+                        <div class="event-meta">
+                            <strong>Event Status:</strong>
+                            <span id="eventStatus"></span>
+                        </div>
+
+                        <div class="event-meta">
+                            <strong>Access:</strong>
+                            <span id="eventAccess"></span>
+                        </div>
+
+                        <div class="event-meta">
+                            <strong>Sponsors:</strong>
+                            <span id="sponsors"></span>
+                        </div>
+
+                    <hr />
+
+                    <p class="event-meta">
+                        <strong>Contact:</strong>
+                        <span id="contact"></span>
+                    </p>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- ===== Sticky Register Button ===== -->
+<div class="register-footer">
+    <button class="btn btn-register"
+            onclick="goToRegister()">
+        Register Now
+    </button>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+
+$(document).ready(function () {
+    loadEventDetails();
+});
+
+        function loadEventDetails() {
+
+            let eventId = $("#EventId").val();
+            if (!eventId) return;
+
+            $.get(`/api/Event/GetEventDetails/${eventId}`, function (res) {
+
+                $("#eventName").text(res.eventName);
+                $("#categoryName").text(res.categoryName ?? "-");
+                $("#location").text(res.location ?? "-");
+                $("#description").text(res.description ?? "");
+
+                $("#eventDate").text(
+                    formatDate(res.startDate) + " - " +
+                    formatDate(res.endDate)
+                );
+
+                $("#contact").text(
+                    (res.contactName ?? "") + " | " +
+                    (res.contactPhone ?? "") + " | " +
+                    (res.contactEmail ?? "")
+                );
+
+                if (res.eventImage) {
+                    $("#eventImage").attr("src", res.eventImage);
+                }
+
+                // ===== Ticket Info =====
+                if (res.isPaidEvent) {
+                    $("#ticketSection").html(
+                        `<span class="badge bg-danger">Paid Event</span>
+                         <div class="mt-2"><strong>Price:</strong> $${res.ticketPrice}</div>`
+                    );
+                } else {
+                    $("#ticketSection").html(
+                        `<span class="badge bg-success">Free Event</span>`
+                    );
+                }
+
+                $("#totalSeats").text(res.totalSeats ?? "-");
+                $("#remainingSeats").text(res.remainingSeats ?? "-");
+                $("#maxTickets").text(res.maxTicketsPerUser ?? "-");
+
+                if (res.registrationStartDate && res.registrationEndDate) {
+                    $("#registrationWindow").text(
+                        formatDate(res.registrationStartDate) + " - " +
+                        formatDate(res.registrationEndDate)
+                    );
+                } else {
+                    $("#registrationWindow").text("Not Required");
+                }
+
+
+                $("#eventStatus").text(res.eventStatus ?? "-");
+                $("#eventAccess").text(res.eventAcess ?? "Public");
+                $("#sponsors").text(res.sponsors ?? "-");
+
+                if (res.eventStatus === "Registration Closed"
+                    || res.eventStatus === "Sold Out") {
+
+                    $(".btn-register")
+                        .prop("disabled", true)
+                        .text("Registration Closed");
+                }
+                else {
+                    $(".btn-register")
+                        .prop("disabled", false)
+                        .text("Register Now");
+                }
+
+
+            });
+        }
+
+
+function formatDate(date) {
+    return new Date(date).toLocaleDateString();
+}
+
+        function goToRegister() {
+
+            const eventId = $("#EventId").val();
+
+            if (!eventId || eventId <= 0) {
+                alert("Invalid event.");
+                return;
+            }
+
+            window.location.href =
+                "/Community/Event/Register?eventId=" + eventId;
+        }
+
+
+</script>
+
+</body>
+</html>

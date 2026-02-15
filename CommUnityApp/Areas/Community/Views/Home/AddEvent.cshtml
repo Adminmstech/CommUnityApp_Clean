@@ -1,0 +1,223 @@
+﻿@{
+    ViewData["Title"] = "Add / Update Event";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+}
+
+<input type="hidden" id="EventId" value="0" />
+
+<div class="card">
+    <div class="card-body">
+
+        <div class="row g-3">
+
+            <div class="col-md-6">
+                <label>Event Name</label>
+                <input type="text" id="EventName" class="form-control" />
+            </div>
+
+            <div class="col-md-6">
+                <label>Event Category</label>
+                <select id="CategoryId" class="form-control"></select>
+            </div>
+
+            <div class="col-md-6">
+                <label>Start Date</label>
+                <input type="datetime-local" id="StartDate" class="form-control" />
+            </div>
+
+            <div class="col-md-6">
+                <label>End Date</label>
+                <input type="datetime-local" id="EndDate" class="form-control" />
+            </div>
+
+            <div class="col-md-12">
+                <label>Location</label>
+                <input type="text" id="Location" class="form-control" />
+            </div>
+
+            <div class="col-md-12">
+                <label>Description</label>
+                <textarea id="Description" class="form-control"></textarea>
+            </div>
+
+            <div class="col-md-6">
+                <label>Contact Name</label>
+                <input type="text" id="ContactName" class="form-control" />
+            </div>
+
+            <div class="col-md-6">
+                <label>Contact Email</label>
+                <input type="email" id="ContactEmail" class="form-control" />
+            </div>
+
+            <div class="col-md-6">
+                <label>Contact Phone</label>
+                <input type="text" id="ContactPhone" class="form-control" />
+            </div>
+
+            <div class="col-md-6">
+                <label>Event Image</label>
+                <input type="file" id="EventImage" class="form-control" accept="image/*" />
+
+                <div class="mt-2">
+                    <img id="imagePreview"
+                         src="/content/images/noimage.png"
+                         style="width:120px;height:120px;
+                         object-fit:contain;
+                         border:1px solid #ddd;
+                         padding:5px;
+                         background:#fff" />
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <label>Fund Raising</label>
+                <select id="IsFundRaising" class="form-control">
+                    <option value="0">No</option>
+                    <option value="1">Yes</option>
+                </select>
+            </div>
+
+        </div>
+        <div class="col-md-6">
+            <label>Event QR Code</label>
+
+            <div class="mt-2">
+                <img id="qrPreview"
+                     src="/content/images/noimage.png"
+                     style="width:150px;height:150px;
+                    border:1px solid #ddd;
+                    padding:5px;
+                    background:#fff" />
+
+                <div class="small text-muted mt-1">
+                    Scan to register for this event
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button class="btn btn-primary" onclick="saveEvent()">Save</button>
+            <a href="/Admin/Home/ViewEvents" class="btn btn-secondary">Cancel</a>
+        </div>
+
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const editEventId = urlParams.get("eventId");
+
+    $(document).ready(function () {
+
+        loadCategories();
+
+        if (editEventId && parseInt(editEventId) > 0) {
+            loadEvent(editEventId);
+        } else {
+            $("#qrPreview").hide();
+        }
+    });
+
+    function loadCategories() {
+        $.get("/api/Event/GetCategories", function (res) {
+
+            $("#CategoryId").empty();
+            $("#CategoryId").append(`<option value="">Select Category</option>`);
+
+            res.forEach(c => {
+                $("#CategoryId").append(
+                    `<option value="${c.categoryId}">${c.categoryName}</option>`
+                );
+            });
+        });
+    }
+
+    function loadEvent(id) {
+
+        $.get("/api/Event/GetEventById?eventId=" + id, function (res) {
+
+            $("#EventId").val(res.eventId);
+            $("#EventName").val(res.eventName);
+            $("#CategoryId").val(res.categoryId);
+            $("#StartDate").val(res.startDate?.replace(" ", "T"));
+            $("#EndDate").val(res.endDate?.replace(" ", "T"));
+            $("#Location").val(res.location);
+            $("#Description").val(res.description);
+            $("#ContactName").val(res.contactName);
+            $("#ContactEmail").val(res.contactEmail);
+            $("#ContactPhone").val(res.contactPhone);
+            $("#IsFundRaising").val(res.isFundRaising);
+
+            if (res.eventImage) {
+                $("#imagePreview").attr("src", res.eventImage);
+            }
+
+            if (res.qrCodeImage) {
+                $("#qrPreview").attr("src", res.qrCodeImage).show();
+            }
+        });
+    }
+
+    function saveEvent() {
+
+        if (!$("#CategoryId").val()) {
+            alert("Please select event category");
+            return;
+        }
+
+        let formData = new FormData();
+
+        formData.append("EventId", $("#EventId").val());
+        formData.append("CommunityId", "@Context.Session.GetString("CommunityId")");
+        formData.append("EventName", $("#EventName").val());
+        formData.append("CategoryId", $("#CategoryId").val());
+
+        formData.append(
+            "StartDate",
+            new Date($("#StartDate").val()).toISOString()
+        );
+        formData.append(
+            "EndDate",
+            new Date($("#EndDate").val()).toISOString()
+        );
+
+        formData.append("Location", $("#Location").val());
+        formData.append("Description", $("#Description").val());
+        formData.append("ContactName", $("#ContactName").val());
+        formData.append("ContactEmail", $("#ContactEmail").val());
+        formData.append("ContactPhone", $("#ContactPhone").val());
+        formData.append("IsFundRaising", $("#IsFundRaising").val());
+
+        let image = $("#EventImage")[0].files[0];
+        if (image) {
+            formData.append("EventImage", image);
+        }
+
+        $.ajax({
+            url: "/api/Event/AddUpdateEvent",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                alert(res.resultMessage);
+                if (res.resultId > 0) {
+                    window.location.href = "/Community/Home/ViewEvents";
+                }
+            },
+            error: function (xhr) {
+                alert(xhr.responseText || "Error saving event");
+            }
+        });
+    }
+
+    $("#EventImage").on("change", function () {
+        const file = this.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = e => $("#imagePreview").attr("src", e.target.result);
+        reader.readAsDataURL(file);
+    });
+</script>

@@ -1,0 +1,222 @@
+﻿@{
+    ViewData["Title"] = "Indian Community Network – Australia";
+    Layout = null;   // Standalone page
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #ff9933, #ffffff, #138808);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* MAIN CARD */
+        .container {
+            background: #fff;
+            width: 100%;
+            max-width: 520px;
+            padding: 40px;
+            border-radius: 18px;
+            box-shadow: 0 15px 40px rgba(0,0,0,.15);
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            font-size: 26px;
+        }
+
+        .tagline {
+            color: #555;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        /* BUTTONS */
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            text-decoration: none;
+            color: #fff;
+            transition: .3s;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-member {
+            background: #2563eb;
+        }
+
+        .btn-org {
+            background: #16a34a;
+        }
+
+        .btn-business {
+            background: #f97316;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,.15);
+        }
+
+        /* MODAL OVERLAY */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.45);
+            backdrop-filter: blur(2px);
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        /* MODAL BOX */
+        .modal-box {
+            background: #fff;
+            width: 100%;
+            max-width: 420px;
+            padding: 35px;
+            border-radius: 18px;
+            box-shadow: 0 20px 50px rgba(0,0,0,.25);
+            text-align: center;
+            position: relative;
+            animation: pop .25s ease;
+        }
+
+        @@keyframes pop {
+            from {
+                transform: scale(.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-box h3 {
+            margin-bottom: 25px;
+            font-size: 20px;
+        }
+
+        /* CLOSE BUTTON */
+        .close-btn {
+            position: absolute;
+            top: 16px;
+            right: 18px;
+            font-size: 22px;
+            font-weight: bold;
+            color: #555;
+            cursor: pointer;
+        }
+
+            .close-btn:hover {
+                color: #000;
+            }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Join the Indian Community Network – Australia</h1>
+        <div class="tagline">Connecting Hearts, Cultures, and Communities</div>
+
+        <button class="btn btn-business" onclick="openModal('business')">
+            💼 Business Login / Register
+        </button>
+
+        <button class="btn btn-member" onclick="openModal('member')">
+            👥 Member Login / Register
+        </button>
+
+        <button class="btn btn-org" onclick="openModal('org')">
+            🏛️ Organization Login / Register
+        </button>
+
+
+    </div>
+
+    <!-- MODAL -->
+    <div class="modal" id="authModal" onclick="outsideClose(event)">
+        <div class="modal-box">
+            <div class="close-btn" onclick="closeModal()">✕</div>
+
+            <h3 id="modalTitle">Member Access</h3>
+
+            <a id="loginBtn" class="btn btn-member">Login</a>
+            <a id="registerBtn" class="btn btn-member">Register</a>
+        </div>
+    </div>
+
+    <script>
+        function openModal(type) {
+            const modal = document.getElementById("authModal");
+            const title = document.getElementById("modalTitle");
+            const login = document.getElementById("loginBtn");
+            const register = document.getElementById("registerBtn");
+
+            modal.style.display = "flex";
+
+            if (type === "member") {
+                title.innerText = "👥 Member Access";
+                login.href = "@Url.Content("~/home/memberlogin")";
+                register.href = "@Url.Content("~/home/memberregister")";
+                login.className = "btn btn-member";
+                register.className = "btn btn-member";
+            }
+
+            if (type === "org") {
+                title.innerText = "🏛️ Organization Access";
+                login.href = "@Url.Content("~/home/Organizationlogin")";
+                register.href = "@Url.Content("~/home/Organizationregister")";
+                login.className = "btn btn-org";
+                register.className = "btn btn-org";
+            }
+
+            if (type === "business") {
+                title.innerText = "💼 Business Access";
+                login.href = "@Url.Content("~/home/Businesslogin")";
+                register.href = "@Url.Content("~/home/Businessregister")";
+                login.className = "btn btn-business";
+                register.className = "btn btn-business";
+            }
+        }
+
+        function closeModal() {
+            document.getElementById("authModal").style.display = "none";
+        }
+
+        function outsideClose(e) {
+            if (e.target.id === "authModal") closeModal();
+        }
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") closeModal();
+        });
+    </script>
+
+</body>
+</html>

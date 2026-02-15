@@ -1,0 +1,117 @@
+﻿@{
+    ViewData["Title"] = "Community Events";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+}
+<div class="card">
+    <div class="card-body">
+        <h5 class="mb-3">Community Events</h5>
+
+        <table class="table table-bordered table-striped align-middle">
+            <thead>
+                <tr>
+                    <th style="width:60px;">#</th>
+                    <th style="width:90px;">Image</th>
+                    <th>Event</th>
+                    <th>Category</th>
+                    <th>Date</th>
+                    <th>Location</th>
+                    <th>Fundraising</th>
+                    <th style="width:100px;">QR Code</th>
+
+                    <th style="width:160px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="eventTable"></tbody>
+        </table>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        loadEvents();
+    });
+
+    function loadEvents() {
+
+        const communityId = "@Context.Session.GetString("CommunityId")";
+
+        $.get(`/api/Event/GetByCommunity/${communityId}`, function (res) {
+
+            let rows = "";
+            let index = 1;
+
+            res.forEach(e => {
+
+                let imageUrl = e.eventImage
+                    ? e.eventImage
+                    : "/content/images/noimage.png";
+
+                let qrHtml = e.qrCodeImage
+                    ? `<img src="${e.qrCodeImage}"
+                     style="width:70px;height:70px;
+                            border:1px solid #ddd;
+                            padding:4px;
+                            background:#fff;" />`
+                    : '-';
+
+                rows += `
+            <tr>
+                <td class="text-center">${index++}</td>
+
+                <td class="text-center">
+                    <img src="${imageUrl}"
+                         style="width:70px;height:50px;
+                                object-fit:cover;
+                                border-radius:6px;
+                                border:1px solid #ddd;" />
+                </td>
+
+                <td>${e.eventName}</td>
+
+                <td>${e.categoryName}</td>
+
+                <td>
+                    ${formatDate(e.startDate)}<br/>
+                    <small class="text-muted">
+                        to ${formatDate(e.endDate)}
+                    </small>
+                </td>
+
+                <td>${e.location ?? '-'}</td>
+
+                <td>
+                    <span class="badge ${e.isFundRaising == 1 ? 'bg-success' : 'bg-secondary'}">
+                        ${e.isFundRaising == 1 ? 'Yes' : 'No'}
+                    </span>
+                </td>
+
+                <td class="text-center">
+                    ${qrHtml}
+                </td>
+
+                <td>
+                       <a href="/Community/Home/AddEvent?eventId=${e.eventId}"
+       class="btn btn-sm btn-primary mb-1">
+        Edit
+    </a>
+
+                    <a href="/Community/Home/PostEvent?eventId=${e.eventId}"
+                       class="btn btn-sm btn-success mb-1">
+                        Post
+                    </a>
+                </td>
+            </tr>`;
+            });
+
+
+            $("#eventTable").html(rows);
+        });
+    }
+
+    function formatDate(date) {
+        return new Date(date).toLocaleDateString();
+    }
+</script>
