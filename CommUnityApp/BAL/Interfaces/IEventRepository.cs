@@ -1,4 +1,5 @@
 ﻿using CommUnityApp.Models;
+using System.Threading.Tasks;
 
 namespace CommUnityApp.BAL.Interfaces
 {
@@ -20,5 +21,9 @@ namespace CommUnityApp.BAL.Interfaces
         Task<BaseResponse> RegisterEventAsync(
     EventRegistrationRequest model);
         Task<EventDto> GetEventByIdAsync(int eventId);
+
+        Task<EventRegistrationModel?> GetRegistrationByIdAsync(long id);
+
+        Task<IEnumerable<EventRegistrationModel>> GetRegistrationsByEventAsync(long eventId);
     }
 }

@@ -1,0 +1,74 @@
+﻿@{
+    ViewData["Title"] = "Event Registrations";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+}
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="mb-3">Event Registrations</h5>
+
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Mobile</th>
+                    <th>Adults</th>
+                    <th>Children</th>
+                    <th>Total Tickets</th>
+                    <th>Total Amount</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th>Check-In</th>
+                </tr>
+            </thead>
+            <tbody id="registrationTable"></tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('eventId');
+
+        console.log("EventId:", eventId); 
+
+        if (!eventId) {
+            $("#registrationTable").html(
+                "<tr><td colspan='11' class='text-danger text-center'>Invalid Event</td></tr>"
+            );
+            return;
+        }
+
+        $.get("/api/Event/GetRegistrationsByEvent/" + eventId, function (res) {
+
+            let rows = "";
+            let index = 1;
+
+            res.forEach(r => {
+
+                rows += `
+                <tr>
+                    <td>${index++}</td>
+                    <td>${r.name}</td>
+                    <td>${r.email}</td>
+                    <td>${r.mobile}</td>
+                    <td>${r.noOfAdults}</td>
+                    <td>${r.noOfChildren}</td>
+                    <td>${r.totalTickets}</td>
+                    <td>$${r.totalAmount}</td>
+                    <td>${r.paymentStatus ?? '-'}</td>
+                    <td>${r.bookingStatus}</td>
+                </tr>`;
+            });
+
+            $("#registrationTable").html(rows);
+        });
+    });
+
+</script>

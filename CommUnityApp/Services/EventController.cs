@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using QRCoder;
 using System.Drawing.Imaging;
 using System.Drawing;
+using Microsoft.Data.SqlClient;
+using Dapper;
 
 namespace CommUnityApp.Services
 {
@@ -20,6 +22,7 @@ namespace CommUnityApp.Services
         {
             _repository = repository;
             _env = env;
+
         }
 
         [HttpPost("AddUpdateEvent")]
@@ -167,6 +170,26 @@ namespace CommUnityApp.Services
             var result = await _repository.GetEventByIdAsync(eventId);
             return Ok(result);
         }
+
+
+        [HttpGet("GetRegistrationById/{id}")]
+        public async Task<IActionResult> GetRegistrationById(long id)
+        {
+            var registration = await _repository.GetRegistrationByIdAsync(id);
+
+            if (registration == null)
+                return NotFound();
+
+            return Ok(registration);
+        }
+
+        [HttpGet("GetRegistrationsByEvent/{eventId}")]
+        public async Task<IActionResult> GetRegistrationsByEvent(long eventId)
+        {
+            var registrations = await _repository.GetRegistrationsByEventAsync(eventId);
+            return Ok(registrations);
+        }
+
 
 
     }

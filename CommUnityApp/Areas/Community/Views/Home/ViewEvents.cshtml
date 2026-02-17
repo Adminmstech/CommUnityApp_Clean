@@ -92,17 +92,23 @@
                     ${qrHtml}
                 </td>
 
-                <td>
-                       <a href="/Community/Home/AddEvent?eventId=${e.eventId}"
-       class="btn btn-sm btn-primary mb-1">
-        Edit
-    </a>
+                    <<td>
+        <a href="/Community/Home/AddEvent?eventId=${e.eventId}"
+           class="btn btn-sm btn-primary mb-1">
+            Edit
+        </a>
 
-                    <a href="/Community/Home/PostEvent?eventId=${e.eventId}"
-                       class="btn btn-sm btn-success mb-1">
-                        Post
-                    </a>
-                </td>
+        <a href="/Community/Home/PostEvent?eventId=${e.eventId}"
+           class="btn btn-sm btn-success mb-1">
+            Post
+        </a>
+
+        <a href="/Community/Home/ViewRegistrations?eventId=${e.eventId}"
+           class="btn btn-sm btn-warning mb-1">
+            View Registrations
+        </a>
+    </td>
+
             </tr>`;
             });
 

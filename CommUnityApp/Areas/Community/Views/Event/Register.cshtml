@@ -172,7 +172,11 @@
                 <button class="counter-btn" onclick="changeCount('child', 1)">+</button>
             </div>
         </div>
-
+                    <div class="mb-3">
+                        <label>Special Request</label>
+                        <textarea id="SpecialRequest" class="form-control"
+                                  placeholder="Any special requirements?"></textarea>
+                    </div>
         <!-- SUMMARY BOX -->
         <div class="card p-3 bg-light mt-3">
             <div><strong>Total Tickets:</strong> <span id="TotalTickets">1</span></div>
@@ -260,6 +264,7 @@
             let name = $("#Name").val().trim();
             let mobile = $("#Mobile").val().trim();
             let email = $("#Email").val().trim();
+            let specialRequest = $("#SpecialRequest").val();
 
             if (!name || !mobile) {
                 alert("Name and Mobile are required");
@@ -267,12 +272,13 @@
             }
 
             let data = {
-                eventId: Number(eventIdVal),  
+                eventId: Number(eventIdVal),
                 name: name,
                 email: email,
                 mobile: mobile,
                 noOfAdults: adults,
-                noOfChildren: children
+                noOfChildren: children,
+                specialRequest: specialRequest
             };
 
             $.ajax({
@@ -280,36 +286,55 @@
                 type: "POST",
                 contentType: "application/json",
                 data: JSON.stringify(data),
+
                 success: function (res) {
 
                     if (res.resultId > 0) {
-                        $("#msg").html(
-                            `<div class="alert alert-success">
-                                ${res.resultMessage}
-                             </div>`
-                        );
-                    } else {
-                        $("#msg").html(
-                            `<div class="alert alert-warning">
-                                ${res.resultMessage}
-                             </div>`
-                        );
+
+                        let qrImagePath = "/EventQRCodes/" + res.resultId + "/QRCode.png";
+
+                        $("#msg").html(`
+                                <div class="alert alert-success text-center">
+                                    <h5>${res.resultMessage}</h5>
+                                    <p><strong>Registration ID:</strong> ${res.resultId}</p>
+                                    <p><strong>Total Tickets:</strong> ${adults + children}</p>
+
+                                    <div class="mt-3">
+                                        <img src="${qrImagePath}" width="220"/>
+                                    </div>
+
+                                    <p class="mt-2 text-muted">
+                                        Show this QR code at event entry
+                                    </p>
+                                </div>
+                            `);
+
+                        $("#Name").val("");
+                        $("#Email").val("");
+                        $("#Mobile").val("");
+                        $("#SpecialRequest").val("");
+                    }
+                    else {
+                        $("#msg").html(`
+                                <div class="alert alert-warning">
+                                    ${res.resultMessage}
+                                </div>
+                            `);
                     }
                 },
-                error: function (xhr) {
 
-                    console.log(xhr.responseText);
-
-                    $("#msg").html(
-                        `<div class="alert alert-danger">
-                            Registration failed
-                         </div>`
-                    );
+                error: function () {
+                    $("#msg").html(`
+                            <div class="alert alert-danger">
+                                Registration failed. Please try again.
+                            </div>
+                        `);
                 }
             });
         }
 
     </script>
+
 
 
 </body>
