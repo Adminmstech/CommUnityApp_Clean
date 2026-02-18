@@ -29,6 +29,16 @@ namespace CommUnityApp.Areas.Community.Controllers
 
             return View();
         }
+        public IActionResult RegistrationDetails(long id)
+        {
+            if (id <= 0)
+                return BadRequest("Invalid registration");
+
+            ViewBag.RegistrationId = id;
+            return View();
+        }
+
+
 
     }
 

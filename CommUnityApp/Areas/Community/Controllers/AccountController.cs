@@ -53,7 +53,7 @@ namespace CommUnityApp.Areas.Community.Controllers
                             reader["CommunityName"].ToString());
 
                     return RedirectToAction(
-                 "AddEvent",
+                 "ViewEvents",
                  "Home",
                  new { area = "Community" });
                 }

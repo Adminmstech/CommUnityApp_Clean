@@ -16,6 +16,9 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddTransient<ICommunityRepository, CommunityRepository>();
 builder.Services.AddTransient<IEventRepository, EventRepository>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddHttpContextAccessor();
+
 
 builder.Services.AddSession();
 

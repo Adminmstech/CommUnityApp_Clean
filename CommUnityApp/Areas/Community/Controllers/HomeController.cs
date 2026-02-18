@@ -26,5 +26,10 @@ namespace CommUnityApp.Areas.Community.Controllers
         {
             return View();
         }
+
+        public IActionResult ViewRegistrations()
+        {
+            return View();
+        }
     }
 }
