@@ -1,6 +1,5 @@
-﻿using CommUnityApp.BAL.Interfaces;
-using CommUnityApp.DAL;
-using CommUnityApp.Models;
+﻿using CommUnityApp.ApplicationCore.Interfaces;
+using CommUnityApp.ApplicationCore.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CommUnityApp.Services

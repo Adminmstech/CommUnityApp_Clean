@@ -17,4 +17,9 @@
     <PackageReference Include="Syncfusion.EJ2.AspNet.Core" Version="32.2.3" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Application\CommUnityApp.Application.csproj" />
+    <ProjectReference Include="..\Infrastructure\CommUnityApp.Infrastructure.csproj" />
+  </ItemGroup>
+
 </Project>

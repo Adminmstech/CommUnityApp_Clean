@@ -1,12 +1,11 @@
-﻿using CommUnityApp.BAL.Interfaces;
+using CommUnityApp.ApplicationCore.Interfaces;
+using Microsoft.Extensions.Configuration;
 using System.Net;
 using System.Net.Mail;
 using System.Net.Mime;
 
-
-namespace CommUnityApp.DAL
+namespace CommUnityApp.InfrastructureLayer.Services
 {
-  
     public class EmailService : IEmailService
     {
         private readonly IConfiguration _configuration;
@@ -46,14 +45,12 @@ namespace CommUnityApp.DAL
 
             mail.To.Add(toEmail);
 
-            // Embed QR image inside email
             var qrAttachment = new Attachment(qrImagePath);
             qrAttachment.ContentId = "qrCodeImage";
             qrAttachment.ContentDisposition.Inline = true;
             qrAttachment.ContentDisposition.DispositionType = DispositionTypeNames.Inline;
             mail.Attachments.Add(qrAttachment);
 
-            // Beautiful HTML Template
             mail.Body = $@"
         <div style='font-family: Arial; background:#f4f6f9; padding:20px;'>
             <div style='max-width:600px; margin:auto; background:#ffffff;
@@ -80,8 +77,8 @@ namespace CommUnityApp.DAL
                 <p>
                     <a href='{registrationUrl}' 
                        style='background:#007bff; color:#ffffff; 
-                              padding:10px 20px; text-decoration:none; 
-                              border-radius:5px;'>
+                               padding:10px 20px; text-decoration:none; 
+                               border-radius:5px;'>
                         View Registration Details
                     </a>
                 </p>
@@ -98,5 +95,4 @@ namespace CommUnityApp.DAL
             await client.SendMailAsync(mail);
         }
     }
-
 }

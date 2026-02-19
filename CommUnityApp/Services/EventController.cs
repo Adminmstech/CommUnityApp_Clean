@@ -1,5 +1,6 @@
-﻿using CommUnityApp.BAL.Interfaces;
-using CommUnityApp.Models;
+﻿using CommUnityApp.ApplicationCore.Interfaces;
+using CommUnityApp.ApplicationCore.Models;
+using CommUnityApp.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using QRCoder;
 using System.Drawing.Imaging;
@@ -72,7 +73,7 @@ namespace CommUnityApp.Services
                     string qrFileName = "event_qr.png";
                     string qrFullPath = Path.Combine(qrFolder, qrFileName);
 
-                    Models.QRCodeHelper.GenerateQRCode(
+                    CommUnityApp.ApplicationCore.Models.QRCodeHelper.GenerateQRCode(
                         registerUrl,
                         qrFullPath);
 

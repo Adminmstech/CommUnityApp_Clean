@@ -1,123 +1,63 @@
-﻿using CommUnityApp.Models;
+﻿using CommUnityApp.ApplicationCore.Interfaces;
+using CommUnityApp.ApplicationCore.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using Microsoft.Extensions.Configuration;
-using System.Data;
-using System.Net.Http;
 
 namespace CommUnityApp.Areas.Community.Controllers
 {
     [Area("Community")]
-
     public class AccountController : Controller
     {
-        private readonly IConfiguration _configuration;
+        private readonly ICommunityRepository _communityRepository;
 
-        public AccountController(IConfiguration configuration)
+        public AccountController(ICommunityRepository communityRepository)
         {
-            _configuration = configuration;
+            _communityRepository = communityRepository;
         }
 
         public IActionResult Login()
         {
             return View();
         }
+
         [HttpPost]
         public async Task<IActionResult> Login(string userName, string password)
         {
-           using var con = new SqlConnection(
-                    _configuration.GetConnectionString("DefaultConnection"));
+            var request = new CommunityLoginRequest { UserName = userName, Password = password };
+            var response = await _communityRepository.LoginAsync(request);
 
-                using var cmd = new SqlCommand("sp_CommunityLogin", con);
-                cmd.CommandType = CommandType.StoredProcedure;
+            if (response != null && response.CommunityId > 0)
+            {
+                HttpContext.Session.SetString("CommunityId", response.CommunityId.ToString());
+                HttpContext.Session.SetString("CommunityName", response.CommunityName);
 
-                cmd.Parameters.AddWithValue("@UserName", userName);
-                cmd.Parameters.AddWithValue("@Password", password);
-
-                con.Open();
-
-                using var reader = cmd.ExecuteReader();
-
-                if (reader.Read())
-                {
-                    long resultId = Convert.ToInt64(reader["ResultId"]);
-
-                    if (resultId > 0)
-                    {
-                        HttpContext.Session.SetString(
-                            "CommunityId",
-                            reader["CommunityId"].ToString());
-
-                        HttpContext.Session.SetString(
-                            "CommunityName",
-                            reader["CommunityName"].ToString());
-
-                    return RedirectToAction(
-                 "ViewEvents",
-                 "Home",
-                 new { area = "Community" });
-                }
-
-             
-
-                ViewBag.Error = reader["ResultMessage"].ToString();
-                    return View();
-                }
-
-                ViewBag.Error = "Invalid username or password";
-                return View();
+                return RedirectToAction("ViewEvents", "Home", new { area = "Community" });
             }
+
+            ViewBag.Error = response?.ResultMessage ?? "Invalid username or password";
+            return View();
+        }
+
         public IActionResult CommunityLogin()
         {
             return View();
         }
+
         [HttpPost]
-        public IActionResult CommunityLogin(string userName, string password)
+        public async Task<IActionResult> CommunityLogin(string userName, string password)
         {
-            using var con = new SqlConnection(
-                     _configuration.GetConnectionString("DefaultConnection"));
+            var request = new CommunityLoginRequest { UserName = userName, Password = password };
+            var response = await _communityRepository.LoginAsync(request);
 
-            using var cmd = new SqlCommand("sp_CommunityLogin", con);
-            cmd.CommandType = CommandType.StoredProcedure;
-
-            cmd.Parameters.AddWithValue("@UserName", userName);
-            cmd.Parameters.AddWithValue("@Password", password);
-
-            con.Open();
-
-            using var reader = cmd.ExecuteReader();
-
-            if (reader.Read())
+            if (response != null && response.CommunityId > 0)
             {
-                long resultId = Convert.ToInt64(reader["ResultId"]);
+                HttpContext.Session.SetString("CommunityId", response.CommunityId.ToString());
+                HttpContext.Session.SetString("CommunityName", response.CommunityName);
 
-                if (resultId > 0)
-                {
-                    HttpContext.Session.SetString(
-                        "CommunityId",
-                        reader["CommunityId"].ToString());
-
-                    HttpContext.Session.SetString(
-                        "CommunityName",
-                        reader["CommunityName"].ToString());
-
-                    return RedirectToAction(
-                 "AddEvent",
-                 "Home",
-                 new { area = "Community" });
-                }
-
-
-
-                ViewBag.Error = reader["ResultMessage"].ToString();
-                return View();
+                return RedirectToAction("AddEvent", "Home", new { area = "Community" });
             }
 
-            ViewBag.Error = "Invalid username or password";
+            ViewBag.Error = response?.ResultMessage ?? "Invalid username or password";
             return View();
         }
     }
-
-
-    }
-
+}

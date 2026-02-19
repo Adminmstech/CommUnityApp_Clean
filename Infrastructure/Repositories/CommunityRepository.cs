@@ -1,10 +1,11 @@
-﻿using CommUnityApp.BAL.Interfaces;
-using CommUnityApp.Models;
+using CommUnityApp.ApplicationCore.Interfaces;
+using CommUnityApp.ApplicationCore.Models;
 using Dapper;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using System.Data;
 
-namespace CommUnityApp.DAL
+namespace CommUnityApp.InfrastructureLayer.Repositories
 {
     public class CommunityRepository : ICommunityRepository
     {
@@ -15,11 +16,9 @@ namespace CommUnityApp.DAL
             _configuration = configuration;
         }
 
-
         public async Task<CommunityLoginResponse> LoginAsync(CommunityLoginRequest request)
         {
-            using var connection =
-     new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
             return await connection.QueryFirstOrDefaultAsync<CommunityLoginResponse>(
                 "sp_CommunityLogin",
@@ -34,8 +33,7 @@ namespace CommUnityApp.DAL
 
         public async Task<List<GroupDto>> GetGroupsByCommunityAsync(long communityId)
         {
-            using var con = new SqlConnection(
-                _configuration.GetConnectionString("DefaultConnection"));
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
             return (await con.QueryAsync<GroupDto>(
                 "sp_GetGroupsByCommunity",
@@ -43,8 +41,5 @@ namespace CommUnityApp.DAL
                 commandType: CommandType.StoredProcedure
             )).ToList();
         }
-
     }
-
 }
-

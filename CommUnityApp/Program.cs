@@ -1,5 +1,6 @@
-using CommUnityApp.BAL.Interfaces;
-using CommUnityApp.DAL;
+using CommUnityApp.ApplicationCore.Interfaces;
+using CommUnityApp.InfrastructureLayer.Repositories;
+using CommUnityApp.InfrastructureLayer.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,14 +18,9 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<ICommunityRepository, CommunityRepository>();
 builder.Services.AddTransient<IEventRepository, EventRepository>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddHttpContextAccessor();
 
 
 builder.Services.AddSession();
-
-
-
-builder.Services.AddControllersWithViews();
 
 
 var app = builder.Build();

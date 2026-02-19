@@ -1,16 +1,16 @@
-﻿using CommUnityApp.BAL.Interfaces;
-using CommUnityApp.Models;
+using CommUnityApp.ApplicationCore.Interfaces;
+using CommUnityApp.ApplicationCore.Models;
+using CommUnityApp.Domain.Entities;
 using Dapper;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using QRCoder;
 using System.Data;
-using System.Drawing.Imaging;
 using System.Drawing;
-using Syncfusion.EJ2.ImageEditor;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Http;
+using System.Drawing.Imaging;
 
-namespace CommUnityApp.DAL
+namespace CommUnityApp.InfrastructureLayer.Repositories
 {
     public class EventRepository : IEventRepository
     {
@@ -27,12 +27,7 @@ namespace CommUnityApp.DAL
             _httpContextAccessor = httpContextAccessor;
             _emailService = emailService;
         }
-        public EventRepository(IConfiguration configuration,
-                               IHttpContextAccessor httpContextAccessor)
-        {
-            _configuration = configuration;
-            _httpContextAccessor = httpContextAccessor;
-        }
+
         public async Task<BaseResponse> AddUpdateEventAsync(
             AddUpdateEventRequest model,
             string imagePath)
@@ -41,29 +36,27 @@ namespace CommUnityApp.DAL
                 _configuration.GetConnectionString("DefaultConnection"));
 
             return await con.QueryFirstOrDefaultAsync<BaseResponse>(
-    "sp_AddUpdateEvent",
-    new
-    {
-        model.EventId,
-        model.CommunityId,
-        model.CategoryId,
-        model.EventName,
-        EventImage = imagePath,
-        model.Description,
-        model.Location,
-
-        Latitude = model.Latitude ?? 0,  
-        Longitude = model.Longitude ?? 0,
-
-        model.ContactName,
-        model.ContactEmail,
-        model.ContactPhone,
-        model.StartDate,
-        model.EndDate,
-        model.IsFundRaising
-    },
-    commandType: CommandType.StoredProcedure
-);
+                "sp_AddUpdateEvent",
+                new
+                {
+                    model.EventId,
+                    model.CommunityId,
+                    model.CategoryId,
+                    model.EventName,
+                    EventImage = imagePath,
+                    model.Description,
+                    model.Location,
+                    Latitude = model.Latitude ?? 0,
+                    Longitude = model.Longitude ?? 0,
+                    model.ContactName,
+                    model.ContactEmail,
+                    model.ContactPhone,
+                    model.StartDate,
+                    model.EndDate,
+                    model.IsFundRaising
+                },
+                commandType: CommandType.StoredProcedure
+            );
         }
 
         public async Task<List<EventCategory>> GetCategoriesAsync()
@@ -77,6 +70,7 @@ namespace CommUnityApp.DAL
 
             return (await con.QueryAsync<EventCategory>(sql)).ToList();
         }
+
         public async Task<BaseResponse> PostEventToGroupsAsync(PostEventToGroupsRequest model)
         {
             using var con = new SqlConnection(
@@ -101,36 +95,9 @@ namespace CommUnityApp.DAL
             )).ToList();
         }
 
-        public static string GenerateQRCode(
-        string qrText,
-        string folderPath,
-        string fileName)
-        {
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-
-            string fullPath = Path.Combine(folderPath, fileName);
-
-            QRCodeGenerator generator = new QRCodeGenerator();
-            QRCodeData data = generator.CreateQrCode(
-                qrText,
-                QRCodeGenerator.ECCLevel.Q);
-
-            QRCode qrCode = new QRCode(data);
-
-            using (Bitmap bitmap = qrCode.GetGraphic(20))
-            {
-                bitmap.Save(fullPath, ImageFormat.Png);
-            }
-
-            return fullPath;
-        }
-
         public async Task UpdateEventQRCodeAsync(
-    long eventId,
-    string qrPath)
+            long eventId,
+            string qrPath)
         {
             using var con = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection"));
@@ -144,6 +111,7 @@ namespace CommUnityApp.DAL
                 },
                 commandType: CommandType.StoredProcedure);
         }
+
         public async Task<BaseResponse> RegisterEventAsync(EventRegistrationRequest model)
         {
             using var con = new SqlConnection(
@@ -183,9 +151,9 @@ namespace CommUnityApp.DAL
             if (!Directory.Exists(folderPath))
                 Directory.CreateDirectory(folderPath);
 
-            using var qrGenerator = new QRCoder.QRCodeGenerator();
-            var qrData = qrGenerator.CreateQrCode(registrationUrl, QRCoder.QRCodeGenerator.ECCLevel.Q);
-            var qrCode = new QRCoder.PngByteQRCode(qrData);
+            using var qrGenerator = new QRCodeGenerator();
+            var qrData = qrGenerator.CreateQrCode(registrationUrl, QRCodeGenerator.ECCLevel.Q);
+            var qrCode = new PngByteQRCode(qrData);
             byte[] qrBytes = qrCode.GetGraphic(20);
 
             string filePath = Path.Combine(folderPath, "QRCode.png");
@@ -210,10 +178,6 @@ namespace CommUnityApp.DAL
             return response;
         }
 
-
-
-
-
         public async Task<EventDto> GetEventByIdAsync(int eventId)
         {
             using var con = new SqlConnection(
@@ -236,6 +200,7 @@ namespace CommUnityApp.DAL
                 "SELECT * FROM EventRegistration WHERE RegistrationId = @Id",
                 new { Id = id });
         }
+
         public async Task<IEnumerable<EventRegistrationModel>> GetRegistrationsByEventAsync(long eventId)
         {
             using var con = new SqlConnection(
@@ -250,6 +215,5 @@ namespace CommUnityApp.DAL
           ORDER BY CreatedDate DESC",
                 new { EventId = eventId });
         }
-
     }
 }

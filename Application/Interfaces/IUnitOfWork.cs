@@ -1,4 +1,4 @@
-﻿namespace CommUnityApp.BAL.Interfaces
+namespace CommUnityApp.ApplicationCore.Interfaces
 {
     public interface IUnitOfWork
     {
