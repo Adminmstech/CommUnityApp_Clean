@@ -1,0 +1,166 @@
+@{
+    ViewData["Title"] = "Dashboard";
+    Layout = "_BusinessLayout";
+}
+
+<div class="container-fluid p-0">
+    <div class="row g-4 mb-4">
+        <!-- Stats Cards -->
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary bg-opacity-10 text-primary rounded-3 p-3">
+                        <i class="fa-solid fa-gamepad fa-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-bold uppercase">Active Games</div>
+                        <h4 class="mb-0 fw-800">12</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-success bg-opacity-10 text-success rounded-3 p-3">
+                        <i class="fa-solid fa-users fa-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-bold uppercase">Total Players</div>
+                        <h4 class="mb-0 fw-800">1,284</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-warning bg-opacity-10 text-warning rounded-3 p-3">
+                        <i class="fa-solid fa-qrcode fa-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-bold uppercase">QR Scans</div>
+                        <h4 class="mb-0 fw-800">8,542</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-info bg-opacity-10 text-info rounded-3 p-3">
+                        <i class="fa-solid fa-trophy fa-xl"></i>
+                    </div>
+                    <div>
+                        <div class="text-muted small fw-bold uppercase">Prizes Awarded</div>
+                        <h4 class="mb-0 fw-800">342</h4>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-700">Recent Game Activity</h5>
+                    <a href="@Url.Action("Index", "Game", new { area = "Business" })" class="btn btn-sm btn-outline-primary rounded-pill px-3">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4 border-0">Game Name</th>
+                                <th class="border-0">StartDate</th>
+                                <th class="border-0">Status</th>
+                                <th class="border-0">Total Plays</th>
+                                <th class="border-0 pe-4 text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-secondary rounded-2" style="width:32px; height:32px;"></div>
+                                        <span class="fw-600">Weekend Bingo</span>
+                                    </div>
+                                </td>
+                                <td>Feb 20, 2026</td>
+                                <td><span class="badge bg-success-subtle text-success rounded-pill px-3">Active</span></td>
+                                <td>432</td>
+                                <td class="pe-4 text-end">
+                                    <button class="btn btn-icon btn-light rounded-circle"><i class="fa-solid fa-ellipsis-v"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-secondary rounded-2" style="width:32px; height:32px;"></div>
+                                        <span class="fw-600">Spin & Win Rewards</span>
+                                    </div>
+                                </td>
+                                <td>Feb 15, 2026</td>
+                                <td><span class="badge bg-success-subtle text-success rounded-pill px-3">Active</span></td>
+                                <td>1,120</td>
+                                <td class="pe-4 text-end">
+                                    <button class="btn btn-icon btn-light rounded-circle"><i class="fa-solid fa-ellipsis-v"></i></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="bg-secondary rounded-2" style="width:32px; height:32px;"></div>
+                                        <span class="fw-600">Summer Scratch</span>
+                                    </div>
+                                </td>
+                                <td>Jan 10, 2026</td>
+                                <td><span class="badge bg-secondary-subtle text-muted rounded-pill px-3">Completed</span></td>
+                                <td>3,400</td>
+                                <td class="pe-4 text-end">
+                                    <button class="btn btn-icon btn-light rounded-circle"><i class="fa-solid fa-ellipsis-v"></i></button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-primary text-white">
+                <h5 class="fw-700 mb-3">Upgrade Your Plan</h5>
+                <p class="small opacity-75 mb-4">Get access to custom branding, advanced analytics, and priority support.</p>
+                <button class="btn btn-light text-primary fw-bold w-100 rounded-3">Go Premium</button>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-4">
+                <h5 class="fw-700 mb-4">Quick Actions</h5>
+                <div class="d-grid gap-3">
+                    <a href="@Url.Action("Create", "Game", new { area = "Business" })" class="btn btn-light text-start p-3 rounded-3 d-flex align-items-center gap-3 text-decoration-none">
+                        <div class="bg-primary bg-opacity-10 text-primary rounded-circle d-flex align-items-center justify-content-center" style="width:32px; height:32px;">
+                            <i class="fa-solid fa-plus tiny"></i>
+                        </div>
+                        <span class="fw-600">Create New Brand Game</span>
+                    </a>
+                    <button class="btn btn-light text-start p-3 rounded-3 d-flex align-items-center gap-3">
+                        <div class="bg-success bg-opacity-10 text-success rounded-circle d-flex align-items-center justify-content-center" style="width:32px; height:32px;">
+                            <i class="fa-solid fa-download tiny"></i>
+                        </div>
+                        <span class="fw-600">Export Reports</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-700 { font-weight: 700; }
+    .fw-800 { font-weight: 800; }
+    .uppercase { text-transform: uppercase; letter-spacing: 0.5px; }
+    .bg-success-subtle { background-color: #dcfce7 !important; }
+    .bg-secondary-subtle { background-color: #f1f5f9 !important; }
+    .tiny { font-size: 12px; }
+</style>

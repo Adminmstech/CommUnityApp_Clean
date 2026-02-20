@@ -1,0 +1,150 @@
+@model IEnumerable<CommUnityApp.ApplicationCore.Models.BrandGameDto>
+@{
+    ViewData["Title"] = "My Brand Games";
+    Layout = "_BusinessLayout";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-800 mb-1">My Brand Games</h2>
+            <p class="text-muted">Manage and monitor your active and past game campaigns.</p>
+        </div>
+        <a href="@Url.Action("Create", "Game")" class="btn btn-primary rounded-pill px-4 fw-600 shadow-sm">
+            <i class="fa-solid fa-plus me-2"></i> Create New Game
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success rounded-4 shadow-sm mb-4 border-0 bg-success bg-opacity-10 text-success">
+            <i class="fa-solid fa-circle-check me-2"></i> @TempData["Success"]
+        </div>
+    }
+
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="bg-light">
+                    <tr>
+                        <th class="ps-4 border-0">Game Info</th>
+                        <th class="border-0">Duration</th>
+                        <th class="border-0">Prizes</th>
+                        <th class="border-0">Performance</th>
+                        <th class="border-0">Status</th>
+                        <th class="border-0 pe-4 text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var game in Model)
+                        {
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="bg-secondary rounded-3 d-flex align-items-center justify-content-center overflow-hidden" 
+                                             style="width:48px; height:48px;">
+                                            @if (!string.IsNullOrEmpty(game.BrandGameImage))
+                                            {
+                                                <img src="/@game.BrandGameImage" class="img-fluid" style="object-fit:cover; width:100%; height:100%;" />
+                                            }
+                                            else
+                                            {
+                                                <i class="fa-solid fa-image text-white opacity-20"></i>
+                                            }
+                                        </div>
+                                        <div>
+                                            <div class="fw-700 text-dark">@game.BrandGameName</div>
+                                            <div class="text-muted small">@game.BrandGameTitle</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="small fw-600 text-dark">@game.DateStart?.ToString("MMM dd") - @game.DateEnd?.ToString("MMM dd, yyyy")</div>
+                                    <div class="text-muted tiny mt-1">
+                                        <i class="fa-regular fa-calendar-days me-1"></i> 
+                                        @{
+                                            var days = (game.DateEnd - game.DateStart)?.Days ?? 0;
+                                            @days @(days == 1 ? "day" : "days")
+                                        }
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex flex-column gap-1">
+                                        <span class="badge bg-primary-subtle text-primary rounded-pill small-badge">
+                                            <i class="fa-solid fa-star me-1"></i> @(game.PrimaryPrizeCount ?? 0) Primary
+                                        </span>
+                                        <span class="badge bg-info-subtle text-info rounded-pill small-badge">
+                                            <i class="fa-solid fa-award me-1"></i> @(game.SecondaryPrizeCount ?? 0) Secondary
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="small fw-700 text-dark">
+                                        <i class="fa-solid fa-users text-muted me-1"></i> @(game.TotalEntries ?? 0) <span class="text-muted fw-400">Plays</span>
+                                    </div>
+                                    <div class="small fw-700 text-dark mt-1">
+                                        <i class="fa-solid fa-qrcode text-muted me-1"></i> 342 <span class="text-muted fw-400">Scans</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (game.Status == 1)
+                                    {
+                                        <span class="badge bg-success-subtle text-success rounded-pill px-3">Active</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-muted rounded-pill px-3">Inactive</span>
+                                    }
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <div class="dropdown">
+                                        <button class="btn btn-icon btn-light rounded-circle" data-bs-toggle="dropdown">
+                                            <i class="fa-solid fa-ellipsis-vertical"></i>
+                                        </button>
+                                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3">
+                                            <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-chart-simple me-2 text-primary"></i> Analytics</a></li>
+                                            <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-pen-to-square me-2 text-info"></i> Edit Details</a></li>
+                                            <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-share-nodes me-2 text-success"></i> Get QR Code</a></li>
+                                            <li><hr class="dropdown-divider"></li>
+                                            <li><a class="dropdown-item py-2 text-danger" href="#"><i class="fa-solid fa-trash-can me-2"></i> Archive Game</a></li>
+                                        </ul>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="py-5 text-center">
+                                <div class="opacity-40 mb-3">
+                                    <i class="fa-solid fa-gamepad fa-3x"></i>
+                                </div>
+                                <h5 class="fw-700 text-muted">No Games found</h5>
+                                <p class="text-muted mb-4">Start your first campaign by clicking the button below.</p>
+                                <a href="@Url.Action("Create", "Game")" class="btn btn-primary rounded-pill px-4 fw-600">Create New Game</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .fw-400 { font-weight: 400; }
+    .fw-600 { font-weight: 600; }
+    .fw-700 { font-weight: 700; }
+    .fw-800 { font-weight: 800; }
+    .tiny { font-size: 11px; }
+    .bg-primary-subtle { background-color: #dbeafe !important; }
+    .bg-info-subtle { background-color: #e0f2fe !important; }
+    .bg-success-subtle { background-color: #dcfce7 !important; }
+    .bg-secondary-subtle { background-color: #f1f5f9 !important; }
+    .small-badge { font-size: 10px; padding: 4px 10px; text-transform: uppercase; font-weight: 700; }
+    .btn-icon { width: 36px; height: 36px; padding: 0; display: flex; align-items: center; justify-content: center; }
+    .dropdown-item i { width: 20px; text-align: center; }
+</style>
