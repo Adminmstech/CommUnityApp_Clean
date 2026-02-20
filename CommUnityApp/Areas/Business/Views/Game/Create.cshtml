@@ -4,6 +4,9 @@
     Layout = "_BusinessLayout";
 }
 
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+
 <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
@@ -50,12 +53,19 @@
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="consolation-tab" data-bs-toggle="pill" data-bs-target="#consolation" type="button" role="tab">
+                        <button class="nav-link" id="consolation-tab"
+                                data-bs-toggle="pill"
+                                data-bs-target="#consolation"
+                                type="button" role="tab">
                             <i class="fa-solid fa-gift me-2"></i> Consolation
                         </button>
                     </li>
+
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="media-tab" data-bs-toggle="pill" data-bs-target="#media" type="button" role="tab">
+                        <button class="nav-link" id="media-tab"
+                                data-bs-toggle="pill"
+                                data-bs-target="#media"
+                                type="button" role="tab">
                             <i class="fa-solid fa-palette me-2"></i> Media & Style
                         </button>
                     </li>
@@ -77,10 +87,7 @@
                                 <label asp-for="BrandGameTitle" class="form-label fw-600">Game Subtitle</label>
                                 <input asp-for="BrandGameTitle" class="form-control" placeholder="Short catchy phrase" />
                             </div>
-                            <div class="col-12">
-                                <label asp-for="BrandGameDesc" class="form-label fw-600">Description</label>
-                                <textarea asp-for="BrandGameDesc" class="form-control" rows="3" placeholder="Explain the game to users..."></textarea>
-                            </div>
+                           
                             <div class="col-md-6">
                                 <label asp-for="DateStart" class="form-label fw-600">Start Date</label>
                                 <input asp-for="DateStart" type="date" class="form-control" required />
@@ -89,6 +96,23 @@
                                 <label asp-for="DateEnd" class="form-label fw-600">End Date</label>
                                 <input asp-for="DateEnd" type="date" class="form-control" required />
                             </div>
+                            <div class="col-12">
+                                <label asp-for="BrandGameDesc" class="form-label fw-600">Description</label>
+                                <textarea asp-for="BrandGameDesc" class="form-control" rows="3" placeholder="Explain the game to users..."></textarea>
+                            </div>
+
+                           
+                        </div>
+                        <div class="wizard-footer">
+                            <button type="button" class="btn btn-link cancel-btn"
+                                    onclick="window.location.href='@Url.Action("Index", "Home")'">
+                                Cancel
+                            </button>
+
+                            <button type="button" class="btn btn-next"
+                                    onclick="goToTab('config')">
+                                Next <i class="fa-solid fa-chevron-right ms-1"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -121,6 +145,19 @@
                                 <label asp-for="PromotionalCode" class="form-label fw-600">Promo Code (If any)</label>
                                 <input asp-for="PromotionalCode" class="form-control" />
                             </div>
+
+                          
+                        </div>
+                        <div class="wizard-footer">
+                            <button type="button" class="btn btn-back"
+                                    onclick="goToTab('general')">
+                                <i class="fa-solid fa-chevron-left me-1"></i> Back
+                            </button>
+
+                            <button type="button" class="btn btn-next"
+                                    onclick="goToTab('primary')">
+                                Next <i class="fa-solid fa-chevron-right ms-1"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -138,7 +175,7 @@
                                 <label asp-for="PrimaryPrizeCount" class="form-label fw-600">Total Available Prizes</label>
                                 <input asp-for="PrimaryPrizeCount" type="number" class="form-control" min="0" />
                             </div>
-                            <div class="col-12">
+                            <div class="col-6">
                                 <label asp-for="PrimaryWinMessage" class="form-label fw-600">Success Message</label>
                                 <textarea asp-for="PrimaryWinMessage" class="form-control" rows="2" placeholder="Congratulations! You won the grand prize!"></textarea>
                             </div>
@@ -146,7 +183,21 @@
                                 <label asp-for="PrimaryPrizePromotionId" class="form-label fw-600">Promotion Linked ID</label>
                                 <input asp-for="PrimaryPrizePromotionId" type="number" class="form-control" />
                             </div>
+
+                           
                         </div>
+                        <div class="wizard-footer">
+                            <button type="button" class="btn btn-back"
+                                    onclick="goToTab('config')">
+                                <i class="fa-solid fa-chevron-left me-1"></i> Back
+                            </button>
+
+                            <button type="button" class="btn btn-next"
+                                    onclick="goToTab('secondary')">
+                                Next <i class="fa-solid fa-chevron-right ms-1"></i>
+                            </button>
+                        </div>
+
                     </div>
 
                     <!-- 4. Secondary Prize -->
@@ -164,6 +215,19 @@
                                 <label asp-for="SecondaryWinMessage" class="form-label fw-600">Success Message</label>
                                 <textarea asp-for="SecondaryWinMessage" class="form-control" rows="2" placeholder="Great job! You won a secondary prize!"></textarea>
                             </div>
+
+                        </div>
+
+                        <div class="wizard-footer">
+                            <button type="button" class="btn btn-back"
+                                    onclick="goToTab('primary')">
+                                <i class="fa-solid fa-chevron-left me-1"></i> Back
+                            </button>
+
+                            <button type="button" class="btn btn-next"
+                                    onclick="goToTab('consolation')">
+                                Next <i class="fa-solid fa-chevron-right ms-1"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -182,6 +246,19 @@
                                 <label asp-for="ConsolationMessage" class="form-label fw-600">Consolation Message</label>
                                 <textarea asp-for="ConsolationMessage" class="form-control" rows="2" placeholder="Better luck next time! Here's a small gift..."></textarea>
                             </div>
+
+                           
+                        </div>
+                        <div class="wizard-footer">
+                            <button type="button" class="btn btn-back"
+                                    onclick="goToTab('secondary')">
+                                <i class="fa-solid fa-chevron-left me-1"></i> Back
+                            </button>
+
+                            <button type="button" class="btn btn-next"
+                                    onclick="goToTab('media')">
+                                Next <i class="fa-solid fa-chevron-right ms-1"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -199,22 +276,25 @@
                             </div>
                             <div class="col-md-6">
                                 <div class="p-3 rounded-4 border bg-white shadow-sm">
-                                    <label asp-for="FormColor" class="form-label fw-600 d-block">Form Theme Color</label>
+                                    <label asp-for="FormColor" class="form-labels fw-600 d-block">Form Theme Color</label>
                                     <input asp-for="FormColor" type="color" class="form-control form-control-color w-100 border-0" value="#2563eb" />
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="p-3 rounded-4 border bg-white shadow-sm">
-                                    <label asp-for="TextColor" class="form-label fw-600 d-block">Primary Text Color</label>
+                                    <label asp-for="TextColor" class="form-labels fw-600 d-block">Primary Text Color</label>
                                     <input asp-for="TextColor" type="color" class="form-control form-control-color w-100 border-0" value="#0f172a" />
                                 </div>
                             </div>
-                            <div class="col-12 mt-4 text-end">
-                                <hr class="my-4 opacity-5" />
-                                <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-800">
-                                    <i class="fa-solid fa-rocket me-2"></i> Launch Brand Game
-                                </button>
-                            </div>
+                           
+                        </div>
+                        <div class="wizard-footer">
+                            <button type="button" class="btn btn-back"
+                                    onclick="goToTab('consolation')">
+                                <i class="fa-solid fa-chevron-left me-1"></i> Back
+                            </button>
+
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-800"> <i class="fa-solid fa-rocket me-2"></i> Launch Brand Game </button>
                         </div>
                     </div>
 
@@ -227,47 +307,213 @@
 @section Scripts {
     <style>
         .custom-tabs {
-            padding: 10px 20px;
-            background: #f8fafc;
-            gap: 10px;
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            align-items: center;
+            overflow-x: auto;
+            white-space: nowrap;
+            gap: 12px;
+            padding: 15px 20px;
+            background: #212f50;
+            border-bottom: 1px solid #e2e8f0;
+            
         }
-        .custom-tabs .nav-link {
-            border-radius: 999px;
-            font-weight: 700;
-            color: #64748b;
-            padding: 10px 20px;
-            transition: all 0.2s;
-            border: 2px solid transparent;
+
+            
+            .custom-tabs::-webkit-scrollbar {
+                display: none;
+                height: 6px;
+            }
+
+        .custom-tabs {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
         }
-        .custom-tabs .nav-link:hover {
-            color: var(--primary);
-            background: rgba(37, 99, 235, 0.05);
-        }
-        .custom-tabs .nav-link.active {
-            background: #ffffff !important;
-            color: var(--primary) !important;
-            border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
-        }
+
+          
+            .custom-tabs .nav-item {
+                flex: 0 0 auto;
+            }
+
+          
+            .custom-tabs .nav-link {
+                border-radius: 999px;
+                font-weight: 600;
+                color: #fff;
+                padding: 10px 22px;
+                transition: all 0.2s ease;
+                border: 2px solid transparent;
+                background: transparent;
+            }
+
+                .custom-tabs .nav-link:hover {
+                    background: rgba(37, 99, 235, 0.08);
+                    color: #14b8a6;
+                }
+
+                .custom-tabs .nav-link.active {
+                    background: #EDF2FF !important;
+                    color: #000 !important;
+                    border-color: #14b8a6;
+                    box-shadow: 0 6px 15px rgba(37, 99, 235, 0.15);
+                }
+            .custom-tabs .nav-item {
+                flex: 0 0 auto !important;
+            }
+
+           
+            .custom-tabs::-webkit-scrollbar-thumb {
+                background: #d1d5db;
+                border-radius: 10px;
+            }
+
         .form-label {
             margin-bottom: 8px;
-            color: #334155;
+            color: #fffefe;
+            font-size:17px;
+            font-weight:800;
+            font-family:'Leelawadee UI';
+
+        }
+        .form-labels {
+            margin-bottom: 8px;
+            color: #000;
+            font-size: 17px;
+            font-weight: 800;
+            font-family: 'Leelawadee UI';
+        }
+
+        .form-text {
+            margin-top: .25rem;
+            font-size: .875em;
+            color: #9ea9b3;
         }
         .form-control, .form-select {
             border-radius: 12px;
             padding: 12px 16px;
-            border: 1px solid #e2e8f0;
-            background: #ffffff;
+            border: 1px solid #171c24;
+            background: #cfd6e7;
         }
         .form-control:focus {
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-            border-color: var(--primary);
+                border-color: #14b8a6;
         }
         .fw-600 { font-weight: 600; }
-        .fw-800 { font-weight: 800; }
+        .fw-800 { font-weight: 800;
+            color: #263149;
+        }
+        .card{
+     position: relative;
+    display: flex;
+    flex-direction: column;
+  
+    word-wrap: break-word;
+            background-color: #212f50;
+    background-clip: border-box;
+    border: 1px solid rgba(0, 0, 0, .125);
+    border-radius: .25rem;
+            border-radius: 20px;
+}
+
+        .btn-primary {
+            color: #fff;
+            background-color: #14b8a6;
+            border-color: #14b8a6;
+        }
+         
+            .btn-primary:hover {
+                background-color: #0d9488; 
+                border-color: #0d9488;
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(20, 184, 166, 0.35);
+            }
+
+        .input-group-text {
+            display: flex;
+            align-items: center;
+            padding: .375rem .75rem;
+            font-size: 1rem;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            text-align: center;
+            white-space: nowrap;
+            background-color: #e9ecef;
+            border: 1px solid #2f3c48;
+            border-radius: .25rem;
+        }
+        .form-control::placeholder {
+            color: #1f2937 !important; 
+            opacity: 1;
+        }
+
+    
+        .wizard-footer {
+            margin-top: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+     
+        .wizard-actions {
+            display: flex;
+            gap: 15px;
+        }
+
+        .cancel-btn {
+            color: #0ea5e9;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .wizard-footer {
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cancel-btn {
+            color: #0ea5e9;
+            font-weight: 600;
+        }
+
+        .btn-back {
+            background: #e5e7eb;
+            border-radius: 30px;
+            padding: 10px 28px;
+            font-weight: 600;
+        }
+
+        .btn-next {
+            background: #fff;
+            color: #000;
+            border-radius: 30px;
+            padding: 10px 32px;
+            font-weight: 600;
+            transition: 0.3s ease;
+        }
+
+            .btn-next:hover {
+                background: #fff;
+                transform: translateY(-2px);
+            }
     </style>
 
     <script>
         // Optional: Client-side validation for tab completion or required fields
+
+              function goToTab(tabId) {
+            var triggerEl = document.querySelector('[data-bs-target="#' + tabId + '"]');
+            if (triggerEl) {
+                var tab = new bootstrap.Tab(triggerEl);
+                tab.show();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        }
     </script>
 }
