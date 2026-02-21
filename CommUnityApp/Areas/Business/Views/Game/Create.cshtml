@@ -1,4 +1,4 @@
-@model CommUnityApp.ApplicationCore.Models.AddUpdateBrandGameRequest
+﻿@model CommUnityApp.ApplicationCore.Models.AddUpdateBrandGameRequest
 @{
     ViewData["Title"] = "Create Brand Game";
     Layout = "_BusinessLayout";
@@ -7,15 +7,29 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<div class="container-xxl px-3 px-md-4">
+    
+    <div class="d-flex align-items-center mb-4">
+
+        <!-- Image -->
         <div>
-            <h2 class="fw-800 mb-1">Create New Brand Game</h2>
-            <p class="text-muted">Set up your interactive game and configure prizes.</p>
+            <img src="~/img/gameimage.png"
+                 class="brand-image img-fluid me-4"
+                 alt="Game Icon" />
         </div>
-        <a href="@Url.Action("Index", "Home")" class="btn btn-light rounded-pill px-4 fw-600">
+
+        <!-- Title Section -->
+        <div class="me-auto">
+            <h2 class="fw-800 mb-1 ms-2">Create New Brand Game</h2>
+            <p class="text-muted ms-2">Set up your interactive game and configure prizes.</p>
+        </div>
+
+        <!-- Back Button -->
+        <a href="@Url.Action("Index", "Home")"
+           class="btn btn-light rounded-pill px-4 fw-600">
             <i class="fa-solid fa-arrow-left me-2"></i> Back to Dashboard
         </a>
+
     </div>
 
     @if (ViewBag.Error != null)
@@ -306,6 +320,22 @@
 
 @section Scripts {
     <style>
+        body {
+            overflow-x: hidden;
+        }
+        .layout {
+            display: flex;
+        }
+
+        .main {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .content {
+            min-width: 100px; 
+            overflow-x: auto;
+        }
         .custom-tabs {
             display: flex !important;
             flex-direction: row !important;
@@ -313,8 +343,8 @@
             align-items: center;
             overflow-x: auto;
             white-space: nowrap;
-            gap: 12px;
-            padding: 15px 20px;
+            gap: 10px;
+            padding: 15px 10px;
             background: #212f50;
             border-bottom: 1px solid #e2e8f0;
             
@@ -341,7 +371,7 @@
                 border-radius: 999px;
                 font-weight: 600;
                 color: #fff;
-                padding: 10px 22px;
+                padding: 10px 15px;
                 transition: all 0.2s ease;
                 border: 2px solid transparent;
                 background: transparent;
@@ -502,6 +532,32 @@
                 background: #fff;
                 transform: translateY(-2px);
             }
+
+        .brand-header {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            padding: 40px;
+            border-radius: 20px;
+            color: white;
+        }
+
+        .brand-title {
+            font-size: 42px;
+            font-weight: 800;
+            color: #e7b549;
+        }
+
+        .brand-subtitle {
+            font-size: 18px;
+            color: #cbd5e1;
+        }
+
+        .brand-image {
+            max-height: 100px;
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        }
+
+     
     </style>
 
     <script>
