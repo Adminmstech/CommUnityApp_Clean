@@ -1,6 +1,7 @@
 using CommUnityApp.ApplicationCore.Models;
 using CommUnityApp.Domain.Entities;
-
+using System.Collections.Generic;
+using System.Threading.Tasks;
 namespace CommUnityApp.ApplicationCore.Interfaces
 {
     public interface IEventRepository

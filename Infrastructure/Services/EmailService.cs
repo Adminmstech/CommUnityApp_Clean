@@ -15,6 +15,16 @@ namespace CommUnityApp.InfrastructureLayer.Services
             _configuration = configuration;
         }
 
+        public Task SendPasswordResetEmailAsync(string toEmail, string otp)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task SendPasswordResetSuccessEmailAsync(string toEmail)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task SendRegistrationEmailAsync(
             string toEmail,
             string name,
@@ -93,6 +103,11 @@ namespace CommUnityApp.InfrastructureLayer.Services
         </div>";
 
             await client.SendMailAsync(mail);
+        }
+
+        public Task SendWelcomeEmailAsync(string toEmail, string fullName, string password)
+        {
+            throw new NotImplementedException();
         }
     }
 }

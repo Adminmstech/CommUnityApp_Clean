@@ -1,0 +1,405 @@
+﻿@using System.Security.Claims
+@{
+    ViewData["Title"] = "Bid Item Enrolment";
+    Layout = null;
+
+    // 🔹 Get UserId from Cookie Claim
+    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ✅ UI NOT CHANGED */
+        span {
+            color: #ef4444; /* red color */
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter',sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 60px 20px;
+            background: linear-gradient(rgba(10,15,35,.92),rgba(10,15,35,.92)), url('https://images.unsplash.com/photo-1609947017136-9daf32a5eb16');
+            background-size: cover;
+            background-position: center;
+            color: #fff;
+        }
+
+        .form-wrapper {
+            max-width: 1000px;
+            margin: auto;
+            background: linear-gradient(135deg,#0f172a,#1e293b);
+            border-radius: 28px;
+            padding: 50px;
+            border: 1px solid rgba(212,175,55,.3);
+            box-shadow: 0 40px 80px rgba(0,0,0,.7);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 38px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #facc15;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #cbd5e1;
+            margin-bottom: 40px;
+        }
+
+        section {
+            background: rgba(255,255,255,.03);
+            border-radius: 22px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+            section h2 {
+                font-size: 18px;
+                margin-bottom: 20px;
+                color: #facc15;
+            }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        input, select, textarea {
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,.15);
+            background: rgba(255,255,255,.05);
+            color: #fff;
+            font-size: 14px;
+        }
+
+        select {
+            background-color: #1e293b;
+            color: #fff;
+        }
+
+            select option {
+                background-color: #1e293b;
+                color: #fff;
+            }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+            gap: 20px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 14px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .primary {
+            padding: 14px 32px;
+            border-radius: 999px;
+            font-weight: 700;
+            background: linear-gradient(135deg,#d4af37,#facc15);
+            color: #111;
+            border: none;
+            cursor: pointer;
+        }
+
+        .duration-display {
+            color: #22c55e;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="form-wrapper">
+
+        <h1>BID ITEM ENROLMENT FORM</h1>
+        <p class="subtitle">Seller Side – Submit item for auction review</p>
+
+        <form id="auctionForm">
+
+            <input type="hidden" id="BusinessId" value="1">
+
+            <!-- ✅ UserId comes from Cookie -->
+            <input type="hidden" id="UserId" value="@userId">
+
+            <input type="hidden" id="AuctionStatus" value="1">
+            <input type="hidden" id="CreatedBy" value="admin">
+
+            <!-- ✅ REST OF YOUR UI EXACTLY SAME -->
+
+            <section>
+                <h2>1. Item Basic Details</h2>
+                <div class="grid-2">
+                    <div class="field">
+                        <label>Item Title<span>*</span></label>
+                        <input type="text" id="ItemTitle" required>
+                    </div>
+                    <div class="field">
+                        <label>Item Categories<span>*</span></label>
+                        <select id="ItemTypeId" required>
+                            <option value="">Loading categories...</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Item Description<span>*</span></label>
+                    <textarea id="ItemDescription" rows="5" required></textarea>
+                </div>
+            </section>
+
+            <section>
+                <h2>2. Item Condition<span>*</span></h2>
+                <div class="field">
+                    <textarea id="ItemCondition" rows="5" required></textarea>
+                </div>
+            </section>
+
+            <section>
+                <h2>3. Item Images<span>*</span></h2>
+                <div class="field">
+                    <input type="file" id="Images" multiple required>
+                </div>
+            </section>
+
+            <section>
+                <h2>4. Pricing</h2>
+                <div class="grid-2">
+                    <div class="field">
+                        <label>Price Increment<span>*</span></label>
+                        <input type="number" id="PriceIncrement" required>
+                    </div>
+                    <div class="field">
+                        <label>Reserve Price<span>*</span></label>
+                        <input type="number" id="ReservePrice" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label>Minimum Deposit<span>*</span></label>
+                    <input type="number" id="MinDeposite" required>
+                </div>
+            </section>
+
+            <section>
+                <h2>5. Auction Schedule</h2>
+                <div class="grid-2">
+                    <div class="field">
+                        <label>Start Time<span>*</span></label>
+                        <input type="datetime-local" id="StartDate" required>
+                    </div>
+                    <div class="field">
+                        <label>End Time<span>*</span></label>
+                        <input type="datetime-local" id="EndDate" required>
+                    </div>
+                </div>
+                <div class="duration-display" id="DurationDisplay"></div>
+            </section>
+
+            <section>
+                <h2>6. Registration Schedule</h2>
+                <div class="grid-2">
+                    <div class="field">
+                        <label>Start Date<span>*</span></label>
+                        <input type="datetime-local" id="RegistrationstartDate" required>
+                    </div>
+                    <div class="field">
+                        <label>End Date<span>*</span></label>
+                        <input type="datetime-local" id="RegistrationEndDate" required>
+                    </div>
+                </div>
+                <div class="duration-display" id="RegistrationDurationDisplay"></div>
+
+            </section>
+
+            <section>
+                <h2>7. Delivery & Location</h2>
+                <div class="field">
+                    <label>Item Location<span>*</span></label>
+                    <input type="text" id="ItemLocation" required>
+                </div>
+                <div class="radio-group">
+                    <label><input type="checkbox" class="delivery" value="1"> Pickup Only</label>
+                    <label><input type="checkbox" class="delivery" value="2"> Local Delivery</label>
+                </div>
+            </section>
+
+            <div class="actions">
+                <button type="submit" class="primary">Submit for Auction</button>
+            </div>
+
+        </form>
+    </div>
+
+
+    <script>
+
+                // 🔹 Load Categories from API
+        async function loadCategories() {
+
+            try {
+                const response = await fetch("/api/Auction/Get_ItemType");
+                const categories = await response.json();
+
+                const dropdown = document.getElementById("ItemTypeId");
+                dropdown.innerHTML = '<option value="">Select Category</option>';
+
+                categories
+                    .filter(cat => cat.isActive === true)
+                    .forEach(cat => {
+
+                        const option = document.createElement("option");
+                        option.value = cat.itemTypeId;
+                        option.textContent = cat.itemTypeName;
+
+                        dropdown.appendChild(option);
+                    });
+
+            } catch (error) {
+                console.error("Failed to load categories", error);
+            }
+        }
+
+        // 🔹 Duration Calculation (Supports minutes like 1.5 hrs properly)
+        function calculateDuration() {
+
+            const startVal = document.getElementById("StartDate").value;
+            const endVal = document.getElementById("EndDate").value;
+
+            if (!startVal || !endVal) return;
+
+            const start = new Date(startVal);
+            const end = new Date(endVal);
+
+            if (end <= start) {
+                document.getElementById("DurationDisplay").innerText =
+                    "End time must be greater than Start time";
+                return;
+            }
+
+            const diffMs = end - start;
+            const diffMinutes = diffMs / (1000 * 60);
+            const hours = Math.floor(diffMinutes / 60);
+            const minutes = diffMinutes % 60;
+
+            document.getElementById("DurationDisplay").innerText =
+                `Auction Duration: ${hours} hour(s) ${minutes} minute(s)`;
+        }
+                document.addEventListener("DOMContentLoaded", function () {
+            loadCategories();
+        });
+        document.getElementById("StartDate").addEventListener("change", calculateDuration);
+        document.getElementById("EndDate").addEventListener("change", calculateDuration);
+
+        // 🔹 Submit
+        document.getElementById("auctionForm").addEventListener("submit", async function (e) {
+
+            e.preventDefault();
+
+            try {
+
+                const start = document.getElementById("StartDate").value;
+                const end = document.getElementById("EndDate").value;
+
+                const checked = document.querySelectorAll(".delivery:checked");
+                let deliveryId = 0;
+                if (checked.length === 1) deliveryId = parseInt(checked[0].value);
+                if (checked.length === 2) deliveryId = 3;
+
+                const files = document.getElementById("Images").files;
+                let images = [];
+
+                for (let file of files) {
+                    const base64 = await toBase64(file);
+                    images.push({
+                        imageBase64: base64.split(',')[1],
+                        isPrimary: images.length === 0
+                    });
+                }
+
+                const requestData = {
+                    auction: {
+                        auctionId: 0,
+                        businessId: parseInt(document.getElementById("BusinessId").value),
+                        userId: document.getElementById("UserId").value,
+                        itemTypeId: parseInt(document.getElementById("ItemTypeId").value),
+                        itemTitle: document.getElementById("ItemTitle").value,
+                        itemDescription: document.getElementById("ItemDescription").value,
+                        itemCondition: document.getElementById("ItemCondition").value,
+                        priceIncrement: parseFloat(document.getElementById("PriceIncrement").value),
+                        reservePrice: parseFloat(document.getElementById("ReservePrice").value),
+                        minDeposite: parseFloat(document.getElementById("MinDeposite").value),
+                        startTime: start,
+                        endTime: end,
+                         registrationStartDate: document.getElementById("RegistrationstartDate").value,
+                         registrationEndDate: document.getElementById("RegistrationEndDate").value,
+
+                        itemLocation: document.getElementById("ItemLocation").value,
+                        deleveryMethodId: deliveryId,
+                        auctionStatus: parseInt(document.getElementById("AuctionStatus").value),
+                        createdBy: document.getElementById("CreatedBy").value
+                    },
+                    images: images
+                };
+
+                const response = await fetch("/api/Auction/UploadAuction", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(requestData)
+                });
+
+                const result = await response.json();
+
+                if (!response.ok || result.resultId <= 0) {
+                    alert("Failed to submit auction: " + (result.resultMessage || "Unknown error"));
+                    return;
+                }
+
+                alert("Auction Submitted Successfully");
+                location.reload();
+
+            } catch (error) {
+                console.error(error);
+                alert("Something went wrong. Check console.");
+            }
+        });
+
+
+        function toBase64(file) {
+            return new Promise((resolve,reject)=>{
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = error => reject(error);
+            });
+        }
+
+    </script>
+
+</body>
+</html>
