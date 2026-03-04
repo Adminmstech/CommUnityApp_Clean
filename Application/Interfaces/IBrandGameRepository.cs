@@ -11,6 +11,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BrandGameDto> GetBrandGameByIdAsync(int brandGameId);
         Task<IEnumerable<BrandGameDto>> GetAllBrandGamesAsync();
         Task<IEnumerable<BrandGameDto>> GetBrandGamesByMerchantAsync(int merchantId);
+        Task<PrizeConsumeResult> TryConsumePrizeAsync(int gameId, string prizeType);
+        Task<BaseResponse> TrackGameplayAsync(int gameId, long memberId, string prizeType, bool isWinner, int? attemptNumber);
         Task<BaseResponse> DeleteBrandGameAsync(int brandGameId);
     }
 }

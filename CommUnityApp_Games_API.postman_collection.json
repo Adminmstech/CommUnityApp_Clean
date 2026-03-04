@@ -1,0 +1,70 @@
+{
+    "info": {
+        "_postman_id": "e49e4be7-8e4f-4f5d-a3af-2e671341d2b8",
+        "name": "CommUnityApp Games API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+        "description": "Collection for mobile app game list endpoints."
+    },
+    "item": [
+        {
+            "name": "Games",
+            "item": [
+                {
+                    "name": "Get All Games",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/Game/GetAllGames",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Game",
+                                "GetAllGames"
+                            ]
+                        },
+                        "description": "Returns active games with basic details only: gameId, gameName, gameTitle, gameImage, dateStart, dateEnd, status."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Play Game",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"gameId\": 1,\n  \"memberId\": 1001,\n  \"attemptNumber\": 10\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/Game/PlayGame",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Game",
+                                "PlayGame"
+                            ]
+                        },
+                        "description": "Scratch play endpoint. Tracks by memberId, checks/decreases prize balance, and returns Primary/Secondary based on OnceIn + release; otherwise Consolation."
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "https://localhost:7176"
+        }
+    ]
+}

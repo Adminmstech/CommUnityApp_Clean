@@ -46,6 +46,9 @@ namespace CommUnityApp.ApplicationCore.Models
         public int? TotalBalCount { get; set; }
         public decimal? PaymentAmount { get; set; }
         public string UnSuccessfulImage { get; set; }
+        public string PrimaryPrizeImage { get; set; }
+        public string SecondaryPrizeImage { get; set; }
+        public string ConsolationPrizeImage { get; set; }
         public string ExpiryText { get; set; }
         public int? OnceIn { get; set; }
         public int? IsReleased { get; set; }
@@ -58,7 +61,12 @@ namespace CommUnityApp.ApplicationCore.Models
         public long? QRlinkedId { get; set; }
         public int? IsArchive { get; set; }
     }
-
+    public class PlayGameRequest
+    {
+        public int GameId { get; set; }
+        public long MemberId { get; set; }
+        public int? AttemptNumber { get; set; }
+    }
     public class AddUpdateBrandGameRequest
     {
         public int BrandGameID { get; set; }
@@ -147,16 +155,16 @@ namespace CommUnityApp.ApplicationCore.Models
         public decimal? PaymentAmount { get; set; } = 0;
         public IFormFile? UnSuccessfulImageFile { get; set; }
         public string? ExpiryText { get; set; }
-        
+
         [Display(Name = "Prize Frequency (1 in X)")]
         public int? OnceIn { get; set; } = 1;
-        
+
         [Display(Name = "Is Game Released")]
         public int? IsReleased { get; set; } = 0;
-        
+
         [Display(Name = "Is Prize Distribution Closed")]
         public int? IsPrizeClosed { get; set; } = 0;
-        
+
         public int? ReferaFriend { get; set; } = 0;
         public string? CurrentInterval { get; set; }
         public int? IntervalId { get; set; }
@@ -164,5 +172,14 @@ namespace CommUnityApp.ApplicationCore.Models
         public long? GroupId { get; set; }
         public long? QRlinkedId { get; set; }
         public int? IsArchive { get; set; } = 0;
+    }
+
+    public class PrizeConsumeResult
+    {
+        public bool IsConsumed { get; set; }
+        public int PrimaryPrizeBalCount { get; set; }
+        public int SecondaryPrizeBalCount { get; set; }
+        public int ConsolationPrizeBalCount { get; set; }
+        public int TotalEntries { get; set; }
     }
 }
