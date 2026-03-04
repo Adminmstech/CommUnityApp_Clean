@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace CommUnityApp.ApplicationCore.Models
 {
@@ -61,20 +62,39 @@ namespace CommUnityApp.ApplicationCore.Models
     public class AddUpdateBrandGameRequest
     {
         public int BrandGameID { get; set; }
-        public string BrandGameName { get; set; }
-        public string BrandGameTitle { get; set; }
+
+        [Display(Name = "Game Name")]
+        public string? BrandGameName { get; set; }
+
+        [Display(Name = "Game Subtitle")]
+        public string? BrandGameTitle { get; set; }
+
         public IFormFile? BrandGameImageFile { get; set; }
+
         public int? UserGroupId { get; set; }
         public int? BusinessId { get; set; }
-        public string BrandGameDesc { get; set; }
-        public string ConditionsApply { get; set; }
+
+        [Display(Name = "Description")]
+        public string? BrandGameDesc { get; set; }
+
+        public string? ConditionsApply { get; set; }
         public int? GameClassificationID { get; set; }
+
+        [Display(Name = "Start Date")]
         public DateTime? DateStart { get; set; }
+
+        [Display(Name = "End Date")]
         public DateTime? DateEnd { get; set; }
+
         public int PanelCount { get; set; } = 1;
+
         public int PanelOpeningLimit { get; set; } = 1;
+
         public int ChanceCount { get; set; } = 1;
-        public string DestinationUrl { get; set; }
+
+        [Display(Name = "Destination URL")]
+        public string? DestinationUrl { get; set; }
+
         public int Status { get; set; } = 1;
         public int? PrimaryWinImageId { get; set; }
         public int? SecondaryWinImageId { get; set; }
@@ -82,34 +102,57 @@ namespace CommUnityApp.ApplicationCore.Models
         public int? ScratchCoverImageId { get; set; }
         public string? QRImagePath { get; set; }
         public int? LimitCount { get; set; }
-        public string PrimaryOfferText { get; set; }
-        public string OfferText { get; set; }
-        public string PrimaryWinMessage { get; set; }
-        public string SecondaryWinMessage { get; set; }
-        public string ConsolationMessage { get; set; }
+
+        [Display(Name = "Primary Offer Label")]
+        public string? PrimaryOfferText { get; set; }
+
+        [Display(Name = "Secondary Offer Label")]
+        public string? OfferText { get; set; }
+
+        [Display(Name = "Primary Success Message")]
+        public string? PrimaryWinMessage { get; set; }
+
+        [Display(Name = "Secondary Success Message")]
+        public string? SecondaryWinMessage { get; set; }
+
+        [Display(Name = "Consolation Message")]
+        public string? ConsolationMessage { get; set; }
+
+        [Display(Name = "Points Awarded")]
         public int? PointsAwarded { get; set; } = 0;
-        public string PermitNumber { get; set; }
-        public string ClassNumber { get; set; }
-        public string FormColor { get; set; }
-        public string TextColor { get; set; }
-        public string PromotionalCode { get; set; }
+
+        public string? PermitNumber { get; set; }
+        public string? ClassNumber { get; set; }
+        public string? FormColor { get; set; }
+        public string? TextColor { get; set; }
+        public string? PromotionalCode { get; set; }
+
+        [Display(Name = "Primary Prize Count")]
         public int? PrimaryPrizeCount { get; set; } = 0;
+
+        [Display(Name = "Secondary Prize Count")]
         public int? SecondaryPrizeCount { get; set; } = 0;
+
+        [Display(Name = "Consolation Prize Count")]
         public int? ConsolationPrizeCount { get; set; } = 0;
+
         public int? TotalEntries { get; set; } = 0;
         public long? PrimaryPrizePromotionId { get; set; } = 0;
         public long? SecondaryPrizePromotionId { get; set; } = 0;
         public long? ConsolationPrizePromotionId { get; set; } = 0;
+        public IFormFile? PrimaryPrizeImageFile { get; set; }
+        public IFormFile? SecondaryPrizeImageFile { get; set; }
+        public IFormFile? ConsolationPrizeImageFile { get; set; }
         public int? IsPayment { get; set; } = 0;
         public decimal? PaymentAmount { get; set; } = 0;
         public IFormFile? UnSuccessfulImageFile { get; set; }
-        public string ExpiryText { get; set; }
+        public string? ExpiryText { get; set; }
         public int? OnceIn { get; set; } = 1;
         public int? IsReleased { get; set; } = 0;
         public int? ReferaFriend { get; set; } = 0;
-        public string CurrentInterval { get; set; }
+        public string? CurrentInterval { get; set; }
         public int? IntervalId { get; set; }
-        public string CustomTagIds { get; set; }
+        public string? CustomTagIds { get; set; }
         public long? GroupId { get; set; }
         public long? QRlinkedId { get; set; }
         public int? IsArchive { get; set; } = 0;

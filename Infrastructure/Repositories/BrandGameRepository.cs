@@ -22,7 +22,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
         private IDbConnection Connection => new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
-        public async Task<BaseResponse> AddUpdateBrandGameAsync(AddUpdateBrandGameRequest model, string brandGameImagePath, string unsuccessfulImagePath)
+        public async Task<BaseResponse> AddUpdateBrandGameAsync(AddUpdateBrandGameRequest model, string brandGameImagePath, string unsuccessfulImagePath, string primaryPrizeImagePath = "", string secondaryPrizeImagePath = "", string consolationPrizeImagePath = "")
         {
             using var con = Connection;
             return await con.QueryFirstOrDefaultAsync<BaseResponse>(
@@ -72,6 +72,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     model.IsPayment,
                     model.PaymentAmount,
                     UnSuccessfulImage = unsuccessfulImagePath,
+                    // Note: These need to be added to sp_AddUpdateBrandGame stored procedure if database support is added
+                    // PrimaryPrizeImage = primaryPrizeImagePath,
+                    // SecondaryPrizeImage = secondaryPrizeImagePath,
+                    // ConsolationPrizeImage = consolationPrizeImagePath,
                     model.ExpiryText,
                     model.OnceIn,
                     model.IsReleased,

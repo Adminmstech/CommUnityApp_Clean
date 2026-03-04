@@ -75,14 +75,6 @@
                         </button>
                     </li>
 
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="media-tab"
-                                data-bs-toggle="pill"
-                                data-bs-target="#media"
-                                type="button" role="tab">
-                            <i class="fa-solid fa-palette me-2"></i> Media & Style
-                        </button>
-                    </li>
                 </ul>
             </div>
 
@@ -94,25 +86,31 @@
                     <div class="tab-pane fade show active" id="general" role="tabpanel">
                         <div class="row g-4">
                             <div class="col-md-6">
-                                <label asp-for="BrandGame" class="form-label fw-600">Game Name</label>
-                                <input asp-for="BrandGame" class="form-control" placeholder="e.g. Summer Sensation" required />
+                                <label class="form-label fw-600">Game Name</label>
+                                <input asp-for="BrandGameName" name="BrandGameName" class="form-control" placeholder="e.g. Summer Sensation" />
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="BrandGameTitle" class="form-label fw-600">Game Subtitle</label>
-                                <input asp-for="BrandGameTitle" class="form-control" placeholder="Short catchy phrase" />
+                                <label class="form-label fw-600">Game Subtitle</label>
+                                <input asp-for="BrandGameTitle" name="BrandGameTitle" class="form-control" placeholder="Short catchy phrase" />
                             </div>
                            
                             <div class="col-md-6">
-                                <label asp-for="DateStart" class="form-label fw-600">Start Date</label>
-                                <input asp-for="DateStart" type="date" class="form-control" required />
+                                <label class="form-label fw-600">Start Date</label>
+                                <input asp-for="DateStart" name="DateStart" type="date" class="form-control" />
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="DateEnd" class="form-label fw-600">End Date</label>
-                                <input asp-for="DateEnd" type="date" class="form-control" required />
+                                <label class="form-label fw-600">End Date</label>
+                                <input asp-for="DateEnd" name="DateEnd" type="date" class="form-control" />
                             </div>
                             <div class="col-12">
-                                <label asp-for="BrandGameDesc" class="form-label fw-600">Description</label>
-                                <textarea asp-for="BrandGameDesc" class="form-control" rows="3" placeholder="Explain the game to users..."></textarea>
+                                <label class="form-label fw-600">Description</label>
+                                <textarea asp-for="BrandGameDesc" name="BrandGameDesc" class="form-control" rows="3" placeholder="Explain the game to users..."></textarea>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-600">Main Game Image</label>
+                                <input type="file" asp-for="BrandGameImageFile" name="BrandGameImageFile" class="form-control" accept="image/*" />
+                                <div class="form-text">Will be displayed on the game card.</div>
                             </div>
 
                            
@@ -133,31 +131,14 @@
                     <!-- 2. Game Config -->
                     <div class="tab-pane fade" id="config" role="tabpanel">
                         <div class="row g-4">
-                            <div class="col-md-4">
-                                <label asp-for="PanelCount" class="form-label fw-600">Panel Count</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-table-cells"></i></span>
-                                    <input asp-for="PanelCount" type="number" class="form-control" min="1" required />
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <label asp-for="ChanceCount" class="form-label fw-600">Chances per User</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-rotate-left"></i></span>
-                                    <input asp-for="ChanceCount" type="number" class="form-control" min="1" required />
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <label asp-for="PanelOpeningLimit" class="form-label fw-600">Max Openings</label>
-                                <input asp-for="PanelOpeningLimit" type="number" class="form-control" min="1" required />
-                            </div>
+
                             <div class="col-md-6">
-                                <label asp-for="DestinationUrl" class="form-label fw-600">Destination URL</label>
-                                <input asp-for="DestinationUrl" type="url" class="form-control" placeholder="https://yourwebsite.com/success" />
+                                <label class="form-label fw-600">Success Redirect URL</label>
+                                <input asp-for="DestinationUrl" name="DestinationUrl" type="url" class="form-control" placeholder="https://yourwebsite.com/success" />
                             </div>
                              <div class="col-md-6">
-                                <label asp-for="PromotionalCode" class="form-label fw-600">Promo Code (If any)</label>
-                                <input asp-for="PromotionalCode" class="form-control" />
+                                <label class="form-label fw-600">Promotional Code</label>
+                                <input asp-for="PromotionalCode" name="PromotionalCode" class="form-control" />
                             </div>
 
                           
@@ -182,20 +163,20 @@
                         </div>
                         <div class="row g-4">
                             <div class="col-md-6">
-                                <label asp-for="PrimaryOfferText" class="form-label fw-600">Primary Offer Label</label>
-                                <input asp-for="PrimaryOfferText" class="form-control" placeholder="e.g. 50% OFF" />
+                                <label class="form-label fw-600">Primary Offer Text</label>
+                                <input asp-for="PrimaryOfferText" name="PrimaryOfferText" class="form-control" placeholder="e.g. 50% OFF" />
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="PrimaryPrizeCount" class="form-label fw-600">Total Available Prizes</label>
-                                <input asp-for="PrimaryPrizeCount" type="number" class="form-control" min="0" />
+                                <label class="form-label fw-600">Total Available Prizes</label>
+                                <input asp-for="PrimaryPrizeCount" name="PrimaryPrizeCount" type="number" class="form-control" min="0" />
                             </div>
                             <div class="col-6">
-                                <label asp-for="PrimaryWinMessage" class="form-label fw-600">Success Message</label>
-                                <textarea asp-for="PrimaryWinMessage" class="form-control" rows="2" placeholder="Congratulations! You won the grand prize!"></textarea>
+                                <label class="form-label fw-600">Success Message</label>
+                                <textarea asp-for="PrimaryWinMessage" name="PrimaryWinMessage" class="form-control" rows="2" placeholder="Congratulations! You won the grand prize!"></textarea>
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="PrimaryPrizePromotionId" class="form-label fw-600">Promotion Linked ID</label>
-                                <input asp-for="PrimaryPrizePromotionId" type="number" class="form-control" />
+                                <label class="form-label fw-600">Promotion Linked ID</label>
+                                <input asp-for="PrimaryPrizePromotionId" name="PrimaryPrizePromotionId" type="number" class="form-control" />
                             </div>
 
                            
@@ -218,16 +199,16 @@
                     <div class="tab-pane fade" id="secondary" role="tabpanel">
                          <div class="row g-4">
                             <div class="col-md-6">
-                                <label asp-for="OfferText" class="form-label fw-600">Secondary Offer Label</label>
-                                <input asp-for="OfferText" class="form-control" placeholder="e.g. $10 Voucher" />
+                                <label class="form-label fw-600">Secondary Offer Text</label>
+                                <input asp-for="OfferText" name="OfferText" class="form-control" placeholder="e.g. $10 Voucher" />
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="SecondaryPrizeCount" class="form-label fw-600">Total Available Prizes</label>
-                                <input asp-for="SecondaryPrizeCount" type="number" class="form-control" min="0" />
+                                <label class="form-label fw-600">Total Available Prizes</label>
+                                <input asp-for="SecondaryPrizeCount" name="SecondaryPrizeCount" type="number" class="form-control" min="0" />
                             </div>
                             <div class="col-12">
-                                <label asp-for="SecondaryWinMessage" class="form-label fw-600">Success Message</label>
-                                <textarea asp-for="SecondaryWinMessage" class="form-control" rows="2" placeholder="Great job! You won a secondary prize!"></textarea>
+                                <label class="form-label fw-600">Success Message</label>
+                                <textarea asp-for="SecondaryWinMessage" name="SecondaryWinMessage" class="form-control" rows="2" placeholder="Great job! You won a secondary prize!"></textarea>
                             </div>
 
                         </div>
@@ -249,16 +230,16 @@
                     <div class="tab-pane fade" id="consolation" role="tabpanel">
                         <div class="row g-4">
                             <div class="col-md-6">
-                                <label asp-for="ConsolationPrizeCount" class="form-label fw-600">Total Consolation Count</label>
-                                <input asp-for="ConsolationPrizeCount" type="number" class="form-control" min="0" />
+                                <label class="form-label fw-600">Total Consolation Count</label>
+                                <input asp-for="ConsolationPrizeCount" name="ConsolationPrizeCount" type="number" class="form-control" min="0" />
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="PointsAwarded" class="form-label fw-600">Points Awarded</label>
-                                <input asp-for="PointsAwarded" type="number" class="form-control" min="0" />
+                                <label class="form-label fw-600">Points Awarded</label>
+                                <input asp-for="PointsAwarded" name="PointsAwarded" type="number" class="form-control" min="0" />
                             </div>
                             <div class="col-12">
-                                <label asp-for="ConsolationMessage" class="form-label fw-600">Consolation Message</label>
-                                <textarea asp-for="ConsolationMessage" class="form-control" rows="2" placeholder="Better luck next time! Here's a small gift..."></textarea>
+                                <label class="form-label fw-600">Consolation Message</label>
+                                <textarea asp-for="ConsolationMessage" name="ConsolationMessage" class="form-control" rows="2" placeholder="Better luck next time! Here's a small gift..."></textarea>
                             </div>
 
                            
@@ -269,48 +250,11 @@
                                 <i class="fa-solid fa-chevron-left me-1"></i> Back
                             </button>
 
-                            <button type="button" class="btn btn-next"
-                                    onclick="goToTab('media')">
-                                Next <i class="fa-solid fa-chevron-right ms-1"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- 6. Media & Style -->
-                    <div class="tab-pane fade" id="media" role="tabpanel">
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <label class="form-label fw-600">Main Game Image</label>
-                                <input type="file" asp-for="BrandGameImageFile" class="form-control" accept="image/*" />
-                                <div class="form-text">Will be displayed on the game card.</div>
-                            </div>
-                             <div class="col-md-6">
-                                <label class="form-label fw-600">Unsuccessful / Better Luck Image</label>
-                                <input type="file" asp-for="UnSuccessfulImageFile" class="form-control" accept="image/*" />
-                            </div>
-                            <div class="col-md-6">
-                                <div class="p-3 rounded-4 border bg-white shadow-sm">
-                                    <label asp-for="FormColor" class="form-labels fw-600 d-block">Form Theme Color</label>
-                                    <input asp-for="FormColor" type="color" class="form-control form-control-color w-100 border-0" value="#2563eb" />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="p-3 rounded-4 border bg-white shadow-sm">
-                                    <label asp-for="TextColor" class="form-labels fw-600 d-block">Primary Text Color</label>
-                                    <input asp-for="TextColor" type="color" class="form-control form-control-color w-100 border-0" value="#0f172a" />
-                                </div>
-                            </div>
-                           
-                        </div>
-                        <div class="wizard-footer">
-                            <button type="button" class="btn btn-back"
-                                    onclick="goToTab('consolation')">
-                                <i class="fa-solid fa-chevron-left me-1"></i> Back
-                            </button>
-
                             <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-800"> <i class="fa-solid fa-rocket me-2"></i> Launch Brand Game </button>
                         </div>
                     </div>
+
+
 
                 </div>
             </div>
@@ -400,11 +344,11 @@
 
         .form-label {
             margin-bottom: 8px;
-            color: #fffefe;
-            font-size:17px;
-            font-weight:800;
-            font-family:'Leelawadee UI';
-
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 700;
+            display: block;
+            letter-spacing: 0.5px;
         }
         .form-labels {
             margin-bottom: 8px;
@@ -429,6 +373,21 @@
             box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
                 border-color: #14b8a6;
         }
+
+        .error {
+            color: #ff4d4d !important;
+            font-size: 0.85rem !important;
+            margin-top: 5px !important;
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        input.error, textarea.error, select.error {
+            border-color: #ff4d4d !important;
+            background-color: #fff1f1 !important;
+        }
+
         .fw-600 { font-weight: 600; }
         .fw-800 { font-weight: 800;
             color: #263149;
@@ -560,16 +519,130 @@
      
     </style>
 
-    <script>
-        // Optional: Client-side validation for tab completion or required fields
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 
-              function goToTab(tabId) {
-            var triggerEl = document.querySelector('[data-bs-target="#' + tabId + '"]');
-            if (triggerEl) {
-                var tab = new bootstrap.Tab(triggerEl);
-                tab.show();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
+    <script>
+        $(document).ready(function() {
+            // Initializing manual jQuery validation with rules
+            $('.game-form').validate({
+                rules: {
+                    BrandGameName: { required: true },
+                    BrandGameTitle: { required: true },
+                    BrandGameDesc: { required: true },
+                    DateStart: { required: true },
+                    DateEnd: { required: true },
+
+                    DestinationUrl: { required: true, url: true },
+                    PromotionalCode: { required: true },
+                    PrimaryOfferText: { required: true },
+                    PrimaryPrizeCount: { required: true, min: 0 },
+                    PrimaryWinMessage: { required: true },
+                    PrimaryPrizePromotionId: { required: true },
+                    OfferText: { required: true },
+                    SecondaryPrizeCount: { required: true, min: 0 },
+                    SecondaryWinMessage: { required: true },
+                    ConsolationPrizeCount: { required: true, min: 0 },
+                    PointsAwarded: { required: true, min: 0 },
+                    ConsolationMessage: { required: true }
+                },
+                messages: {
+                    BrandGameName: "Game name is required",
+                    BrandGameTitle: "Subtitle is required",
+                    BrandGameDesc: "Description is required",
+                    DateStart: "Start date is required",
+                    DateEnd: "End date is required",
+
+                    DestinationUrl: {
+                        required: "Destination URL is required",
+                        url: "Please enter a valid URL"
+                    },
+                    PromotionalCode: "Required",
+                    PrimaryOfferText: "Required",
+                    PrimaryPrizeCount: "Required",
+                    PrimaryWinMessage: "Required",
+                    PrimaryPrizePromotionId: "Required",
+                    OfferText: "Required",
+                    SecondaryPrizeCount: "Required",
+                    SecondaryWinMessage: "Required",
+                    ConsolationPrizeCount: "Required",
+                    PointsAwarded: "Required",
+                    ConsolationMessage: "Required"
+                },
+                errorElement: 'span',
+                errorPlacement: function (error, element) {
+                    error.addClass('error');
+                    error.insertAfter(element);
+                },
+                highlight: function (element) {
+                    $(element).addClass('error');
+                },
+                unhighlight: function (element) {
+                    $(element).removeClass('error');
+                }
+            });
+
+            $('#DateEnd').on('change', function() {
+                var startVal = $('#DateStart').val();
+                if (startVal) {
+                    var start = new Date(startVal);
+                    var end = new Date($(this).val());
+                    if (end < start) {
+                        alert('End date cannot be before start date');
+                        $(this).val(startVal);
+                    }
+                }
+            });
+        });
+
+        function goToTab(nextTabId) {
+            var $form = $('.game-form');
+            var $currentTabPane = $('.tab-pane.show.active');
+            
+            // Validate only the inputs within the current tab
+            var isValid = true;
+            $currentTabPane.find('input, textarea, select').each(function() {
+                if ($(this).attr('name')) {
+                    if (!$form.validate().element(this)) {
+                        isValid = false;
+                    }
+                }
+            });
+
+            if (!isValid) return;
+
+            // Save progress via AJAX
+            var formData = new FormData($form[0]);
+            var $nextBtn = $currentTabPane.find('.btn-next');
+            var originalHtml = $nextBtn.html();
+            $nextBtn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...');
+
+            $.ajax({
+                url: '@Url.Action("AjaxSave", "Game")',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function(response) {
+                    $nextBtn.prop('disabled', false).html(originalHtml);
+                    if (response.success) {
+                        if (response.brandGameId) {
+                            $('input[name="BrandGameID"]').val(response.brandGameId);
+                        }
+                        
+                        var $nextTrigger = $('[data-bs-target="#' + nextTabId + '"]');
+                        if ($nextTrigger.length) {
+                            bootstrap.Tab.getOrCreateInstance($nextTrigger[0]).show();
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Error', text: response.message });
+                    }
+                },
+                error: function() {
+                    $nextBtn.prop('disabled', false).html(originalHtml);
+                    alert('Save failed.');
+                }
+            });
         }
     </script>
 }
