@@ -73,9 +73,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     model.PaymentAmount,
                     UnSuccessfulImage = unsuccessfulImagePath,
                     // Note: These need to be added to sp_AddUpdateBrandGame stored procedure if database support is added
-                    // PrimaryPrizeImage = primaryPrizeImagePath,
-                    // SecondaryPrizeImage = secondaryPrizeImagePath,
-                    // ConsolationPrizeImage = consolationPrizeImagePath,
+                    PrimaryPrizeImage = primaryPrizeImagePath,
+                    SecondaryPrizeImage = secondaryPrizeImagePath,
+                    ConsolationPrizeImage = consolationPrizeImagePath,
                     model.ExpiryText,
                     model.OnceIn,
                     model.IsReleased,

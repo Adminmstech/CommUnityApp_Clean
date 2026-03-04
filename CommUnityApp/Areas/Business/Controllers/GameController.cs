@@ -34,14 +34,19 @@ namespace CommUnityApp.Areas.Business.Controllers
             return View(games);
         }
 
-        public IActionResult Create()
+        public IActionResult Create(int? brandGameId = null)
         {
             var businessId = HttpContext.Session.GetString("BusinessId");
             if (string.IsNullOrEmpty(businessId))
             {
                 return RedirectToAction("Login", "Account");
             }
-            return View(new AddUpdateBrandGameRequest());
+
+            // If an id is provided, pass it through so the client script can hydrate the form for editing
+            return View(new AddUpdateBrandGameRequest
+            {
+                BrandGameID = brandGameId ?? 0
+            });
         }
 
         [HttpPost]
@@ -55,45 +60,137 @@ namespace CommUnityApp.Areas.Business.Controllers
 
             model.BusinessId = int.Parse(businessId);
 
+            // Log the received BrandGameID for debugging
+            System.Diagnostics.Debug.WriteLine($"Create POST received BrandGameID: {model.BrandGameID}");
+
             if (string.IsNullOrWhiteSpace(model.BrandGameName) || string.IsNullOrWhiteSpace(model.BrandGameTitle))
             {
                 ViewBag.Error = "Game Name and Subtitle are required.";
                 return View(model);
             }
 
+            // For new games, require uploads for all prize image slots. When editing, existing assets can be re-used.
+            var isNewGame = model.BrandGameID == 0;
+            if (isNewGame && (model.PrimaryPrizeImageFile == null || model.SecondaryPrizeImageFile == null || model.ConsolationPrizeImageFile == null))
+            {
+                ViewBag.Error = "Please upload images for all prize types (Primary, Secondary, and Consolation) before launching the game.";
+                return View(model);
+            }
+
             string brandGameImagePath = "";
             string unsuccessfulImagePath = "";
+            string primaryPrizeImagePath = "";
+            string secondaryPrizeImagePath = "";
+            string consolationPrizeImagePath = "";
 
-            if (model.BrandGameID > 0)
+            try
             {
-                var existing = await _unitOfWork.BrandGames.GetBrandGameByIdAsync(model.BrandGameID);
-                if (existing != null)
+                int brandGameId = model.BrandGameID;
+
+                // For existing games, preserve current image paths
+                if (brandGameId > 0)
                 {
-                    brandGameImagePath = existing.BrandGameImage;
-                    unsuccessfulImagePath = existing.UnSuccessfulImage;
+                    var existing = await _unitOfWork.BrandGames.GetBrandGameByIdAsync(brandGameId);
+                    if (existing != null)
+                    {
+                        brandGameImagePath = existing.BrandGameImage;
+                        unsuccessfulImagePath = existing.UnSuccessfulImage;
+                    }
                 }
-            }
+                else
+                {
+                    // For new games, create record first to get the ID
+                    model.Status = 0; // Draft initially
+                    model.IsReleased = 0;
+                    var createResponse = await _unitOfWork.BrandGames.AddUpdateBrandGameAsync(
+                        model, "", "", "", "", "");
+                    
+                    if (createResponse.ResultId <= 0)
+                    {
+                        ViewBag.Error = createResponse.ResultMessage ?? "Failed to create game record.";
+                        return View(model);
+                    }
+                    brandGameId = createResponse.ResultId;
+                    model.BrandGameID = brandGameId;
+                }
 
-            if (model.BrandGameImageFile != null && model.BrandGameImageFile.Length > 0)
+                // Now save images using the brandGameId
+                if (model.BrandGameImageFile != null && model.BrandGameImageFile.Length > 0)
+                {
+                    brandGameImagePath = await SaveFile(model.BrandGameImageFile, brandGameId, "main");
+                }
+
+                if (model.UnSuccessfulImageFile != null && model.UnSuccessfulImageFile.Length > 0)
+                {
+                    unsuccessfulImagePath = await SaveFile(model.UnSuccessfulImageFile, brandGameId, "unsuccessful");
+                }
+
+                if (model.PrimaryPrizeImageFile != null && model.PrimaryPrizeImageFile.Length > 0)
+                {
+                    primaryPrizeImagePath = await SaveFile(model.PrimaryPrizeImageFile, brandGameId, "primary");
+                }
+
+                if (model.SecondaryPrizeImageFile != null && model.SecondaryPrizeImageFile.Length > 0)
+                {
+                    secondaryPrizeImagePath = await SaveFile(model.SecondaryPrizeImageFile, brandGameId, "secondary");
+                }
+
+                if (model.ConsolationPrizeImageFile != null && model.ConsolationPrizeImageFile.Length > 0)
+                {
+                    consolationPrizeImagePath = await SaveFile(model.ConsolationPrizeImageFile, brandGameId, "consolation");
+                }
+
+                // Set the game status to active (1) since all images are uploaded
+                model.Status = 1;
+                model.IsReleased = 1;
+
+                var response = await _unitOfWork.BrandGames.AddUpdateBrandGameAsync(
+                    model,
+                    brandGameImagePath,
+                    unsuccessfulImagePath,
+                    primaryPrizeImagePath,
+                    secondaryPrizeImagePath,
+                    consolationPrizeImagePath
+                );
+
+                if (response.ResultId > 0)
+                {
+                    var actionVerb = isNewGame ? "created" : "updated";
+                    TempData["Success"] = $"Game {actionVerb} and activated successfully!";
+                    return RedirectToAction("Index");
+                }
+
+                ViewBag.Error = response.ResultMessage;
+                return View(model);
+            }
+            catch (Exception ex)
             {
-                brandGameImagePath = await SaveFile(model.BrandGameImageFile, "BrandGames");
+                ViewBag.Error = "Error uploading images: " + ex.Message;
+                return View(model);
             }
+        }
 
-            if (model.UnSuccessfulImageFile != null && model.UnSuccessfulImageFile.Length > 0)
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var businessId = HttpContext.Session.GetString("BusinessId");
+            if (string.IsNullOrEmpty(businessId))
             {
-                unsuccessfulImagePath = await SaveFile(model.UnSuccessfulImageFile, "BrandGames/Unsuccessful");
+                return Unauthorized();
             }
 
-            var response = await _unitOfWork.BrandGames.AddUpdateBrandGameAsync(model, brandGameImagePath, unsuccessfulImagePath);
-
-            if (response.ResultId > 0)
+            var game = await _unitOfWork.BrandGames.GetBrandGameByIdAsync(id);
+            if (game == null)
             {
-                TempData["Success"] = "Game saved successfully!";
-                return RedirectToAction("Index");
+                return NotFound();
             }
 
-            ViewBag.Error = response.ResultMessage;
-            return View(model);
+            if (game.BusinessId.HasValue && game.BusinessId.Value.ToString() != businessId)
+            {
+                return Forbid();
+            }
+
+            return Json(game);
         }
 
         [HttpPost]
@@ -126,40 +223,89 @@ namespace CommUnityApp.Areas.Business.Controllers
                 {
                     return Json(new { success = false, message = "Game Title is required and cannot be empty." });
                 }
-                
+
                 model.BusinessId = businessId;
 
                 string brandGameImagePath = "";
                 string unsuccessfulImagePath = "";
+                string primaryPrizeImagePath = "";
+                string secondaryPrizeImagePath = "";
+                string consolationPrizeImagePath = "";
 
-                if (model.BrandGameID > 0)
+                int brandGameId = model.BrandGameID;
+
+                // For existing games, preserve current image paths
+                if (brandGameId > 0)
                 {
-                    var existing = await _unitOfWork.BrandGames.GetBrandGameByIdAsync(model.BrandGameID);
+                    var existing = await _unitOfWork.BrandGames.GetBrandGameByIdAsync(brandGameId);
                     if (existing != null)
                     {
                         brandGameImagePath = existing.BrandGameImage;
                         unsuccessfulImagePath = existing.UnSuccessfulImage;
                     }
                 }
+                else
+                {
+                    // For new games, create record first to get the ID
+                    model.Status = 0;
+                    model.IsReleased = 0;
+                    var createResponse = await _unitOfWork.BrandGames.AddUpdateBrandGameAsync(
+                        model, "", "", "", "", "");
+                    
+                    if (createResponse == null || createResponse.ResultId <= 0)
+                    {
+                        return Json(new { success = false, message = createResponse?.ResultMessage ?? "Failed to create game record." });
+                    }
+                    brandGameId = createResponse.ResultId;
+                    model.BrandGameID = brandGameId;
+                }
 
+                // Now save images using the brandGameId
                 if (model.BrandGameImageFile != null && model.BrandGameImageFile.Length > 0)
                 {
-                    brandGameImagePath = await SaveFile(model.BrandGameImageFile, "BrandGames");
+                    brandGameImagePath = await SaveFile(model.BrandGameImageFile, brandGameId, "main");
                 }
 
                 if (model.UnSuccessfulImageFile != null && model.UnSuccessfulImageFile.Length > 0)
                 {
-                    unsuccessfulImagePath = await SaveFile(model.UnSuccessfulImageFile, "BrandGames/Unsuccessful");
+                    unsuccessfulImagePath = await SaveFile(model.UnSuccessfulImageFile, brandGameId, "unsuccessful");
                 }
 
-                var response = await _unitOfWork.BrandGames.AddUpdateBrandGameAsync(model, brandGameImagePath, unsuccessfulImagePath);
+                if (model.PrimaryPrizeImageFile != null && model.PrimaryPrizeImageFile.Length > 0)
+                {
+                    primaryPrizeImagePath = await SaveFile(model.PrimaryPrizeImageFile, brandGameId, "primary");
+                }
+
+                if (model.SecondaryPrizeImageFile != null && model.SecondaryPrizeImageFile.Length > 0)
+                {
+                    secondaryPrizeImagePath = await SaveFile(model.SecondaryPrizeImageFile, brandGameId, "secondary");
+                }
+
+                if (model.ConsolationPrizeImageFile != null && model.ConsolationPrizeImageFile.Length > 0)
+                {
+                    consolationPrizeImagePath = await SaveFile(model.ConsolationPrizeImageFile, brandGameId, "consolation");
+                }
+
+                // Keep status as draft (0) during AJAX saves
+                model.Status = 0;
+                model.IsReleased = 0;
+
+                var response = await _unitOfWork.BrandGames.AddUpdateBrandGameAsync(
+                    model,
+                    brandGameImagePath,
+                    unsuccessfulImagePath,
+                    primaryPrizeImagePath,
+                    secondaryPrizeImagePath,
+                    consolationPrizeImagePath
+                );
 
                 if (response != null && response.ResultId > 0)
                 {
-                    return Json(new { 
-                        success = true, 
-                        brandGameId = response.ResultId, 
-                        message = "Draft saved successfully."
+                    return Json(new
+                    {
+                        success = true,
+                        brandGameId = response.ResultId,
+                        message = "Draft saved successfully with uploaded images."
                     });
                 }
 
@@ -171,12 +317,29 @@ namespace CommUnityApp.Areas.Business.Controllers
             }
         }
 
-        private async Task<string> SaveFile(IFormFile file, string subFolder)
+        private async Task<string> SaveFile(IFormFile file, int brandGameId, string imageType)
         {
-            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads", subFolder);
+            // Validate file size (5MB limit)
+            if (file.Length > 5 * 1024 * 1024)
+            {
+                throw new InvalidOperationException("File size cannot exceed 5MB.");
+            }
+
+            // Validate file type
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+            var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+
+            if (!allowedExtensions.Contains(fileExtension))
+            {
+                throw new InvalidOperationException("Only JPG, PNG, and GIF files are allowed.");
+            }
+
+            // Save to wwwroot/Images/brandgames/{brandGameId}/
+            string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Images", "brandgames", brandGameId.ToString());
             if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
 
-            string uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
+            // Use image type as prefix for organization (e.g., main_, primary_, secondary_, consolation_, unsuccessful_)
+            string uniqueFileName = $"{imageType}_{Guid.NewGuid()}{fileExtension}";
             string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
             using (var fileStream = new FileStream(filePath, FileMode.Create))
@@ -184,7 +347,7 @@ namespace CommUnityApp.Areas.Business.Controllers
                 await file.CopyToAsync(fileStream);
             }
 
-            return Path.Combine("uploads", subFolder, uniqueFileName).Replace("\\", "/");
+            return $"Images/brandgames/{brandGameId}/{uniqueFileName}";
         }
     }
 }

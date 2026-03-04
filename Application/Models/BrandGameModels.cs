@@ -147,8 +147,16 @@ namespace CommUnityApp.ApplicationCore.Models
         public decimal? PaymentAmount { get; set; } = 0;
         public IFormFile? UnSuccessfulImageFile { get; set; }
         public string? ExpiryText { get; set; }
+        
+        [Display(Name = "Prize Frequency (1 in X)")]
         public int? OnceIn { get; set; } = 1;
+        
+        [Display(Name = "Is Game Released")]
         public int? IsReleased { get; set; } = 0;
+        
+        [Display(Name = "Is Prize Distribution Closed")]
+        public int? IsPrizeClosed { get; set; } = 0;
+        
         public int? ReferaFriend { get; set; } = 0;
         public string? CurrentInterval { get; set; }
         public int? IntervalId { get; set; }

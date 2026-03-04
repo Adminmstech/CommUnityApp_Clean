@@ -1,14 +1,15 @@
 ﻿@model CommUnityApp.ApplicationCore.Models.AddUpdateBrandGameRequest
 @{
-    ViewData["Title"] = "Create Brand Game";
+    var isEditMode = Model.BrandGameID > 0;
+    ViewData["Title"] = isEditMode ? "Edit Brand Game" : "Create Brand Game";
     Layout = "_BusinessLayout";
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-
+<link href="~/css/brandgame.css" rel="stylesheet" />
 
 <div class="container-xxl px-3 px-md-4">
-    
+
     <div class="d-flex align-items-center mb-4">
 
         <!-- Image -->
@@ -20,8 +21,8 @@
 
         <!-- Title Section -->
         <div class="me-auto">
-            <h2 class="fw-800 mb-1 ms-2">Create New Brand Game</h2>
-            <p class="text-muted ms-2">Set up your interactive game and configure prizes.</p>
+            <h2 class="fw-800 mb-1 ms-2" id="page-title">@(isEditMode ? "Edit Brand Game" : "Create New Brand Game")</h2>
+            <p class="text-muted ms-2" id="page-subtitle">@(isEditMode ? "Update your game details and prize settings." : "Set up your interactive game and configure prizes.")</p>
         </div>
 
         <!-- Back Button -->
@@ -81,7 +82,7 @@
             <!-- Tab Content -->
             <div class="card-body p-4">
                 <div class="tab-content" id="gameTabsContent">
-                    
+
                     <!-- 1. General Info -->
                     <div class="tab-pane fade show active" id="general" role="tabpanel">
                         <div class="row g-4">
@@ -93,7 +94,7 @@
                                 <label class="form-label fw-600">Game Subtitle</label>
                                 <input asp-for="BrandGameTitle" name="BrandGameTitle" class="form-control" placeholder="Short catchy phrase" />
                             </div>
-                           
+
                             <div class="col-md-6">
                                 <label class="form-label fw-600">Start Date</label>
                                 <input asp-for="DateStart" name="DateStart" type="date" class="form-control" />
@@ -111,9 +112,13 @@
                                 <label class="form-label fw-600">Main Game Image</label>
                                 <input type="file" asp-for="BrandGameImageFile" name="BrandGameImageFile" class="form-control" accept="image/*" />
                                 <div class="form-text">Will be displayed on the game card.</div>
+                                <div class="image-preview mt-2" id="main-image-preview" style="display: none;">
+                                    <img class="preview-img" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 2px solid #14b8a6;" />
+                                    <span class="ms-2 text-success fw-600"><i class="fa-solid fa-check-circle me-1"></i>Current Image</span>
+                                </div>
                             </div>
 
-                           
+
                         </div>
                         <div class="wizard-footer">
                             <button type="button" class="btn btn-link cancel-btn"
@@ -130,18 +135,76 @@
 
                     <!-- 2. Game Config -->
                     <div class="tab-pane fade" id="config" role="tabpanel">
+                        <div class="alert alert-info bg-opacity-10 border-0 rounded-3 mb-4">
+                            <i class="fa-solid fa-cog me-2"></i> Configure game settings, win frequency, and release options.
+                        </div>
                         <div class="row g-4">
 
                             <div class="col-md-6">
                                 <label class="form-label fw-600">Success Redirect URL</label>
                                 <input asp-for="DestinationUrl" name="DestinationUrl" type="url" class="form-control" placeholder="https://yourwebsite.com/success" />
+                                <div class="form-text">URL where users are redirected after playing</div>
                             </div>
-                             <div class="col-md-6">
+                            <div class="col-md-6">
                                 <label class="form-label fw-600">Promotional Code</label>
-                                <input asp-for="PromotionalCode" name="PromotionalCode" class="form-control" />
+                                <input asp-for="PromotionalCode" name="PromotionalCode" class="form-control" placeholder="Enter promo code" />
+                                <div class="form-text">Optional promotional code for tracking</div>
                             </div>
 
-                          
+                            <!-- Prize Frequency Configuration -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-600">Prize Frequency</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">1 in</span>
+                                    <input asp-for="OnceIn" name="OnceIn" type="number" class="form-control" min="1" max="1000" placeholder="10" />
+                                    <span class="input-group-text">wins</span>
+                                </div>
+                                <div class="form-text">How often should prizes be awarded (1 in X attempts)</div>
+                            </div>
+
+                            <!-- Game Release Status -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-600">Game Release Status</label>
+                                <select asp-for="IsReleased" name="IsReleased" class="form-select">
+                                    <option value="0">🔒 Draft (Not Released)</option>
+                                    <option value="1">🚀 Released (Live)</option>
+                                </select>
+                                <div class="form-text">Control whether the game is publicly available</div>
+                            </div>
+
+                            <!-- Prize Distribution Status -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-600">Prize Distribution</label>
+                                <select asp-for="IsPrizeClosed" name="IsPrizeClosed" class="form-select">
+                                    <option value="0">🎁 Open (Prizes Available)</option>
+                                    <option value="1">🔐 Closed (No More Prizes)</option>
+                                </select>
+                                <div class="form-text">Stop prize distribution while keeping game active</div>
+                            </div>
+
+                            <!-- Advanced Settings Section -->
+                            <div class="col-12" style="display:none;">
+                                <div class="card bg-light border-0 mt-3">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title text-dark mb-3">
+                                            <i class="fa-solid fa-sliders me-2"></i>Advanced Configuration
+                                        </h6>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label text-dark fw-600">Panel Count</label>
+                                                <input asp-for="PanelCount" name="PanelCount" type="number" class="form-control" min="1" max="20" value="9" />
+                                                <div class="form-text">Number of game panels/tiles</div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label text-dark fw-600">Opening Limit</label>
+                                                <input asp-for="PanelOpeningLimit" name="PanelOpeningLimit" type="number" class="form-control" min="1" max="10" value="3" />
+                                                <div class="form-text">Maximum panels a user can open</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
                         <div class="wizard-footer">
                             <button type="button" class="btn btn-back"
@@ -179,7 +242,19 @@
                                 <input asp-for="PrimaryPrizePromotionId" name="PrimaryPrizePromotionId" type="number" class="form-control" />
                             </div>
 
-                           
+                            <!-- Primary Prize Image Upload -->
+                            <div class="col-12">
+                                <label class="form-label fw-600">Primary Prize Image</label>
+                                <input type="file" asp-for="PrimaryPrizeImageFile" name="PrimaryPrizeImageFile" class="form-control prize-image-upload" accept="image/*" data-prize-type="primary" />
+                                <div class="form-text">Upload an image that represents your primary prize (JPG, PNG, GIF - Max 5MB)</div>
+                                <div class="image-preview mt-2" id="primary-preview" style="display: none;">
+                                    <img class="preview-img" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 2px solid #14b8a6;" />
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeImagePreview('primary')">
+                                        <i class="fa-solid fa-trash"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+
                         </div>
                         <div class="wizard-footer">
                             <button type="button" class="btn btn-back"
@@ -197,7 +272,7 @@
 
                     <!-- 4. Secondary Prize -->
                     <div class="tab-pane fade" id="secondary" role="tabpanel">
-                         <div class="row g-4">
+                        <div class="row g-4">
                             <div class="col-md-6">
                                 <label class="form-label fw-600">Secondary Offer Text</label>
                                 <input asp-for="OfferText" name="OfferText" class="form-control" placeholder="e.g. $10 Voucher" />
@@ -209,6 +284,19 @@
                             <div class="col-12">
                                 <label class="form-label fw-600">Success Message</label>
                                 <textarea asp-for="SecondaryWinMessage" name="SecondaryWinMessage" class="form-control" rows="2" placeholder="Great job! You won a secondary prize!"></textarea>
+                            </div>
+
+                            <!-- Secondary Prize Image Upload -->
+                            <div class="col-12">
+                                <label class="form-label fw-600">Secondary Prize Image</label>
+                                <input type="file" asp-for="SecondaryPrizeImageFile" name="SecondaryPrizeImageFile" class="form-control prize-image-upload" accept="image/*" data-prize-type="secondary" />
+                                <div class="form-text">Upload an image that represents your secondary prize (JPG, PNG, GIF - Max 5MB)</div>
+                                <div class="image-preview mt-2" id="secondary-preview" style="display: none;">
+                                    <img class="preview-img" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 2px solid #14b8a6;" />
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeImagePreview('secondary')">
+                                        <i class="fa-solid fa-trash"></i> Remove
+                                    </button>
+                                </div>
                             </div>
 
                         </div>
@@ -242,7 +330,20 @@
                                 <textarea asp-for="ConsolationMessage" name="ConsolationMessage" class="form-control" rows="2" placeholder="Better luck next time! Here's a small gift..."></textarea>
                             </div>
 
-                           
+                            <!-- Consolation Prize Image Upload -->
+                            <div class="col-12">
+                                <label class="form-label fw-600">Consolation Prize Image</label>
+                                <input type="file" asp-for="ConsolationPrizeImageFile" name="ConsolationPrizeImageFile" class="form-control prize-image-upload" accept="image/*" data-prize-type="consolation" />
+                                <div class="form-text">Upload an image that represents your consolation prize (JPG, PNG, GIF - Max 5MB)</div>
+                                <div class="image-preview mt-2" id="consolation-preview" style="display: none;">
+                                    <img class="preview-img" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 2px solid #14b8a6;" />
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeImagePreview('consolation')">
+                                        <i class="fa-solid fa-trash"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+
+
                         </div>
                         <div class="wizard-footer">
                             <button type="button" class="btn btn-back"
@@ -250,7 +351,10 @@
                                 <i class="fa-solid fa-chevron-left me-1"></i> Back
                             </button>
 
-                            <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-800"> <i class="fa-solid fa-rocket me-2"></i> Launch Brand Game </button>
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-800" id="launch-btn">
+                                <i class="fa-solid fa-@(isEditMode ? "floppy-disk" : "rocket") me-2"></i>
+                                <span id="launch-text">@(isEditMode ? "Update Brand Game" : "Launch Brand Game")</span>
+                            </button>
                         </div>
                     </div>
 
@@ -263,386 +367,6 @@
 </div>
 
 @section Scripts {
-    <style>
-        body {
-            overflow-x: hidden;
-        }
-        .layout {
-            display: flex;
-        }
-
-        .main {
-            flex: 1;
-            min-width: 100px;
-        }
-
-        .content {
-            min-width: 100px; 
-            overflow-x: auto;
-        }
-        .custom-tabs {
-            display: flex !important;
-            flex-direction: row !important;
-            flex-wrap: nowrap !important;
-            align-items: center;
-            overflow-x: auto;
-            white-space: nowrap;
-            gap: 10px;
-            padding: 15px 10px;
-            background: #212f50;
-            border-bottom: 1px solid #e2e8f0;
-            
-        }
-
-            
-            .custom-tabs::-webkit-scrollbar {
-                display: none;
-                height: 6px;
-            }
-
-        .custom-tabs {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-
-          
-            .custom-tabs .nav-item {
-                flex: 0 0 auto;
-            }
-
-          
-            .custom-tabs .nav-link {
-                border-radius: 999px;
-                font-weight: 600;
-                color: #fff;
-                padding: 10px 15px;
-                transition: all 0.2s ease;
-                border: 2px solid transparent;
-                background: transparent;
-            }
-
-                .custom-tabs .nav-link:hover {
-                    background: rgba(37, 99, 235, 0.08);
-                    color: #14b8a6;
-                }
-
-                .custom-tabs .nav-link.active {
-                    background: #EDF2FF !important;
-                    color: #000 !important;
-                    border-color: #14b8a6;
-                    box-shadow: 0 6px 15px rgba(37, 99, 235, 0.15);
-                }
-            .custom-tabs .nav-item {
-                flex: 0 0 auto !important;
-            }
-
-           
-            .custom-tabs::-webkit-scrollbar-thumb {
-                background: #d1d5db;
-                border-radius: 10px;
-            }
-
-        .form-label {
-            margin-bottom: 8px;
-            color: #ffffff;
-            font-size: 16px;
-            font-weight: 700;
-            display: block;
-            letter-spacing: 0.5px;
-        }
-        .form-labels {
-            margin-bottom: 8px;
-            color: #000;
-            font-size: 17px;
-            font-weight: 800;
-            font-family: 'Leelawadee UI';
-        }
-
-        .form-text {
-            margin-top: .25rem;
-            font-size: .875em;
-            color: #9ea9b3;
-        }
-        .form-control, .form-select {
-            border-radius: 12px;
-            padding: 12px 16px;
-            border: 1px solid #171c24;
-            background: #cfd6e7;
-        }
-        .form-control:focus {
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-                border-color: #14b8a6;
-        }
-
-        .error {
-            color: #ff4d4d !important;
-            font-size: 0.85rem !important;
-            margin-top: 5px !important;
-            display: block !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-        }
-
-        input.error, textarea.error, select.error {
-            border-color: #ff4d4d !important;
-            background-color: #fff1f1 !important;
-        }
-
-        .fw-600 { font-weight: 600; }
-        .fw-800 { font-weight: 800;
-            color: #263149;
-        }
-        .card{
-     position: relative;
-    display: flex;
-    flex-direction: column;
-  
-    word-wrap: break-word;
-            background-color: #212f50;
-    background-clip: border-box;
-    border: 1px solid rgba(0, 0, 0, .125);
-    border-radius: .25rem;
-            border-radius: 20px;
-}
-
-        .btn-primary {
-            color: #fff;
-            background-color: #14b8a6;
-            border-color: #14b8a6;
-        }
-         
-            .btn-primary:hover {
-                background-color: #0d9488; 
-                border-color: #0d9488;
-                transform: translateY(-2px);
-                box-shadow: 0 8px 20px rgba(20, 184, 166, 0.35);
-            }
-
-        .input-group-text {
-            display: flex;
-            align-items: center;
-            padding: .375rem .75rem;
-            font-size: 1rem;
-            font-weight: 400;
-            line-height: 1.5;
-            color: #212529;
-            text-align: center;
-            white-space: nowrap;
-            background-color: #e9ecef;
-            border: 1px solid #2f3c48;
-            border-radius: .25rem;
-        }
-        .form-control::placeholder {
-            color: #1f2937 !important; 
-            opacity: 1;
-        }
-
-    
-        .wizard-footer {
-            margin-top: 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-     
-        .wizard-actions {
-            display: flex;
-            gap: 15px;
-        }
-
-        .cancel-btn {
-            color: #0ea5e9;
-            font-weight: 600;
-            text-decoration: none;
-        }
-
-        .wizard-footer {
-            margin-top: 40px;
-            padding-top: 25px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .cancel-btn {
-            color: #0ea5e9;
-            font-weight: 600;
-        }
-
-        .btn-back {
-            background: #e5e7eb;
-            border-radius: 30px;
-            padding: 10px 28px;
-            font-weight: 600;
-        }
-
-        .btn-next {
-            background: #fff;
-            color: #000;
-            border-radius: 30px;
-            padding: 10px 32px;
-            font-weight: 600;
-            transition: 0.3s ease;
-        }
-
-            .btn-next:hover {
-                background: #fff;
-                transform: translateY(-2px);
-            }
-
-        .brand-header {
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-            padding: 40px;
-            border-radius: 20px;
-            color: white;
-        }
-
-        .brand-title {
-            font-size: 42px;
-            font-weight: 800;
-            color: #e7b549;
-        }
-
-        .brand-subtitle {
-            font-size: 18px;
-            color: #cbd5e1;
-        }
-
-        .brand-image {
-            max-height: 100px;
-            border-radius: 25px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
-
-     
-    </style>
-
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            // Initializing manual jQuery validation with rules
-            $('.game-form').validate({
-                rules: {
-                    BrandGameName: { required: true },
-                    BrandGameTitle: { required: true },
-                    BrandGameDesc: { required: true },
-                    DateStart: { required: true },
-                    DateEnd: { required: true },
-
-                    DestinationUrl: { required: true, url: true },
-                    PromotionalCode: { required: true },
-                    PrimaryOfferText: { required: true },
-                    PrimaryPrizeCount: { required: true, min: 0 },
-                    PrimaryWinMessage: { required: true },
-                    PrimaryPrizePromotionId: { required: true },
-                    OfferText: { required: true },
-                    SecondaryPrizeCount: { required: true, min: 0 },
-                    SecondaryWinMessage: { required: true },
-                    ConsolationPrizeCount: { required: true, min: 0 },
-                    PointsAwarded: { required: true, min: 0 },
-                    ConsolationMessage: { required: true }
-                },
-                messages: {
-                    BrandGameName: "Game name is required",
-                    BrandGameTitle: "Subtitle is required",
-                    BrandGameDesc: "Description is required",
-                    DateStart: "Start date is required",
-                    DateEnd: "End date is required",
-
-                    DestinationUrl: {
-                        required: "Destination URL is required",
-                        url: "Please enter a valid URL"
-                    },
-                    PromotionalCode: "Required",
-                    PrimaryOfferText: "Required",
-                    PrimaryPrizeCount: "Required",
-                    PrimaryWinMessage: "Required",
-                    PrimaryPrizePromotionId: "Required",
-                    OfferText: "Required",
-                    SecondaryPrizeCount: "Required",
-                    SecondaryWinMessage: "Required",
-                    ConsolationPrizeCount: "Required",
-                    PointsAwarded: "Required",
-                    ConsolationMessage: "Required"
-                },
-                errorElement: 'span',
-                errorPlacement: function (error, element) {
-                    error.addClass('error');
-                    error.insertAfter(element);
-                },
-                highlight: function (element) {
-                    $(element).addClass('error');
-                },
-                unhighlight: function (element) {
-                    $(element).removeClass('error');
-                }
-            });
-
-            $('#DateEnd').on('change', function() {
-                var startVal = $('#DateStart').val();
-                if (startVal) {
-                    var start = new Date(startVal);
-                    var end = new Date($(this).val());
-                    if (end < start) {
-                        alert('End date cannot be before start date');
-                        $(this).val(startVal);
-                    }
-                }
-            });
-        });
-
-        function goToTab(nextTabId) {
-            var $form = $('.game-form');
-            var $currentTabPane = $('.tab-pane.show.active');
-            
-            // Validate only the inputs within the current tab
-            var isValid = true;
-            $currentTabPane.find('input, textarea, select').each(function() {
-                if ($(this).attr('name')) {
-                    if (!$form.validate().element(this)) {
-                        isValid = false;
-                    }
-                }
-            });
-
-            if (!isValid) return;
-
-            // Save progress via AJAX
-            var formData = new FormData($form[0]);
-            var $nextBtn = $currentTabPane.find('.btn-next');
-            var originalHtml = $nextBtn.html();
-            $nextBtn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...');
-
-            $.ajax({
-                url: '@Url.Action("AjaxSave", "Game")',
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function(response) {
-                    $nextBtn.prop('disabled', false).html(originalHtml);
-                    if (response.success) {
-                        if (response.brandGameId) {
-                            $('input[name="BrandGameID"]').val(response.brandGameId);
-                        }
-                        
-                        var $nextTrigger = $('[data-bs-target="#' + nextTabId + '"]');
-                        if ($nextTrigger.length) {
-                            bootstrap.Tab.getOrCreateInstance($nextTrigger[0]).show();
-                            window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }
-                    } else {
-                        Swal.fire({ icon: 'error', title: 'Error', text: response.message });
-                    }
-                },
-                error: function() {
-                    $nextBtn.prop('disabled', false).html(originalHtml);
-                    alert('Save failed.');
-                }
-            });
-        }
-    </script>
+    <script src="~/js/brandgame.js"></script>
 }

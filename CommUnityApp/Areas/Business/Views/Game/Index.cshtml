@@ -105,7 +105,11 @@
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3">
                                             <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-chart-simple me-2 text-primary"></i> Analytics</a></li>
-                                            <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-pen-to-square me-2 text-info"></i> Edit Details</a></li>
+                                            <li>
+                                                <a class="dropdown-item py-2" href="@Url.Action("Create", "Game", new { brandGameId = game.BrandGameID })">
+                                                    <i class="fa-solid fa-pen-to-square me-2 text-info"></i> Edit Details
+                                                </a>
+                                            </li>
                                             <li><a class="dropdown-item py-2" href="#"><i class="fa-solid fa-share-nodes me-2 text-success"></i> Get QR Code</a></li>
                                             <li><hr class="dropdown-divider"></li>
                                             <li><a class="dropdown-item py-2 text-danger" href="#"><i class="fa-solid fa-trash-can me-2"></i> Archive Game</a></li>
