@@ -7,5 +7,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
     {
         Task<BusinessLoginResponse> LoginAsync(BusinessLoginRequest request);
         Task<BaseResponse> RegisterAsync(AddUpdateBusinessRequest request);
+        Task<BusinessAddResponse> AddBusinessAsync(AddBusinessRequest request);
     }
 }

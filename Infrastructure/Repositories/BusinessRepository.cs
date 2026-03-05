@@ -4,6 +4,7 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Data;
+using System.Data.Common;
 using System.Threading.Tasks;
 
 namespace CommUnityApp.InfrastructureLayer.Repositories
@@ -54,6 +55,39 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     request.Info,
                     request.Logo,
                     request.Password
+                },
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+
+
+        public async Task<BusinessAddResponse> AddBusinessAsync(AddBusinessRequest request)
+        {
+            using var connection = Connection;
+
+            return await connection.QueryFirstOrDefaultAsync<BusinessAddResponse>(
+                "Add_Business",
+                new
+                {
+                    BusinessId = request.BusinessId,
+                    CategoryId = request.CategoryId,
+                    BusinessName = request.BusinessName,
+                    BusinessNumber = request.BusinessNumber,
+                    OwnerName = request.OwnerName,
+                    Email = request.Email,
+                    Phone = request.Phone,
+                    Address = request.Address,
+                    City = request.City,
+                    State = request.State,
+                    Country = request.Country,
+                    Suburb = request.Suburb,
+                    Logo = request.Logo,
+                    Info = request.Info,
+                    Latitude = request.Latitude,
+                    Longitude = request.Longitude,
+                    IsVerified = request.IsVerified,
+                    IsActive = request.IsActive
                 },
                 commandType: CommandType.StoredProcedure
             );
