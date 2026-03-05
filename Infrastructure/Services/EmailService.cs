@@ -13,6 +13,7 @@ namespace CommUnityApp.InfrastructureLayer.Services
         public EmailService(IConfiguration configuration)
         {
             _configuration = configuration;
+
         }
 
         public Task SendPasswordResetEmailAsync(string toEmail, string otp)
@@ -109,5 +110,63 @@ namespace CommUnityApp.InfrastructureLayer.Services
         {
             throw new NotImplementedException();
         }
+
+
+        public async Task SendBusinessUserCredentialsEmailAsync(string toEmail, string password)
+        {
+            var smtpSection = _configuration.GetSection("SmtpSettings");
+
+            using (var client = new SmtpClient())
+            {
+                client.Host = smtpSection["Host"];
+                client.Port = int.Parse(smtpSection["Port"]);
+                client.EnableSsl = bool.Parse(smtpSection["EnableSsl"]);
+                client.Credentials = new NetworkCredential(
+                    smtpSection["UserName"],
+                    smtpSection["Password"]
+                );
+
+                var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(smtpSection["UserName"]),
+                    Subject = "Your Business Account Credentials",
+                    Body = $"Your login password is: {password}",
+                    IsBodyHtml = false
+                };
+
+                mailMessage.To.Add(toEmail);
+
+                await client.SendMailAsync(mailMessage);
+            }
+        }
+
+
+        private async Task SendEmailAsync(string toEmail, string subject, string body)
+        {
+            var smtpClient = new SmtpClient(_configuration["Email:SmtpHost"])
+            {
+                Port = int.Parse(_configuration["Email:Port"]),
+                Credentials = new NetworkCredential(
+                    _configuration["Email:Username"],
+                    _configuration["Email:Password"]
+                ),
+                EnableSsl = true
+            };
+
+            var mailMessage = new MailMessage
+            {
+                From = new MailAddress(_configuration["Email:From"]),
+                Subject = subject,
+                Body = body,
+                IsBodyHtml = true
+            };
+
+            mailMessage.To.Add(toEmail);
+
+            await smtpClient.SendMailAsync(mailMessage);
+        }
+
+       
+
     }
 }

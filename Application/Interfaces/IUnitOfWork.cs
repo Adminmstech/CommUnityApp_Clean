@@ -11,5 +11,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         IAuctionRepository Auction { get; }
         IForgotPasswordRepository ForgotPassword { get; }
         IUserRepository User { get; }
+        IProductRepository Product { get; }
     }
 }

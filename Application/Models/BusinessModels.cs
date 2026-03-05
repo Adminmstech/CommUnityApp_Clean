@@ -33,4 +33,41 @@ namespace CommUnityApp.ApplicationCore.Models
         public string Logo { get; set; }
         public string Password { get; set; }
     }
+
+    public class AddBusinessRequest
+    {
+        public int BusinessId { get; set; }
+        public int CategoryId { get; set; }
+        public string BusinessName { get; set; }
+        public string? BusinessNumber { get; set; }
+
+        public string OwnerName { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
+
+        public string Address { get; set; }
+        public string City { get; set; }
+        public string State { get; set; }
+        public string? Country { get; set; }
+        public string? Suburb { get; set; }
+
+        public string? LogoBase64 { get; set; }
+        public string? Logo { get; set; }
+        public string? Info { get; set; }
+
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
+
+        public bool IsVerified { get; set; }
+        public int IsActive { get; set; } = 1;
+    }
+
+    public class BusinessAddResponse
+    {
+        public int ResultId { get; set; }
+
+        public string ResultMessage { get; set; }
+
+        public string? GeneratedPassword { get; set; }
+    }
 }

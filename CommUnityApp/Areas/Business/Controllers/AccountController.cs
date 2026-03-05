@@ -44,6 +44,7 @@ namespace CommUnityApp.Areas.Business.Controllers
             return RedirectToAction("Login");
         }
 
+
         public IActionResult Register()
         {
             return View();
