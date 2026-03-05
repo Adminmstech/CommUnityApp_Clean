@@ -1,6 +1,7 @@
 ﻿@{
     ViewData["Title"] = "Add Product";
     var businessId = Context.Session.GetString("BusinessId");
+    Layout = "_BusinessLayout";
 }
 
 <!DOCTYPE html>
@@ -97,6 +98,24 @@
                             <div class="row">
 
                                 <div class="col-md-6 mb-3">
+                                    <label class="form-label">Redemption Coins (%)</label>
+                                    <input type="number" id="redemptionCoins" class="form-control" min="0" max="100" value="0">
+                                    <small class="text-muted">Enter percentage of price to give as coins</small>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Refer a Friend</label>
+                                    <select id="referAFriend" class="form-control">
+                                        <option value="false">No</option>
+                                        <option value="true">Yes</option>
+                                    </select>
+                                </div>
+
+                            </div>
+
+                            <div class="row">
+
+                                <div class="col-md-6 mb-3">
                                     <label class="form-label">Start Date</label>
                                     <input type="datetime-local" id="startDate" class="form-control">
                                 </div>
@@ -114,6 +133,7 @@
                             </div>
 
                             <div id="imagePreview" class="d-flex flex-wrap mb-3"></div>
+
 
                             <div class="mb-3">
                                 <label class="form-label">Status</label>
@@ -242,18 +262,31 @@
 
         const data={
 
-        product:{
+                       product:{
 
         productId:0,
         businessId:parseInt(businessId),
         categoryId:parseInt(document.getElementById("categoryId").value),
+
+        productCategory: document.getElementById("categoryId").selectedOptions[0].text,
+
         productName:document.getElementById("productName").value,
         description:document.getElementById("description").value,
+
         price:parseFloat(document.getElementById("price").value),
+
         discountPrice:parseFloat(document.getElementById("discountPrice").value)||0,
+
+        redemptionCoins: parseFloat(document.getElementById("redemptionCoins").value)||0,
+
+        referAFriend: document.getElementById("referAFriend").value === "true",
+
         startDate:document.getElementById("startDate").value||null,
         endDate:document.getElementById("endDate").value||null,
-        isActive:parseInt(document.getElementById("isActive").value)
+
+        isActive:parseInt(document.getElementById("isActive").value),
+
+        images: []
 
         },
 

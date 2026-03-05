@@ -15,6 +15,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BaseResponse> AddProductCategory(ProductCategories entity);
         Task<List<ProductCategories>> GetProductCategories();
         Task<BaseResponse> AddProductImage(ProductImageUpload entity);
+        Task<List<ProductImage>> GetProductImageById(int productId);
+        Task<List<Product>> GetProductByBusinessId(int BusinessId);
     }
 }
 

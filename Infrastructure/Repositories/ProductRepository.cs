@@ -39,6 +39,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             parameters.Add("@DiscountPrice", entity.DiscountPrice);
             parameters.Add("@StartDate", entity.StartDate);
             parameters.Add("@EndDate", entity.EndDate);
+            parameters.Add("@RedemptionCoins", entity.RedemptionCoins);
+            parameters.Add("@ReferAFriend", entity.ReferAFriend);
             parameters.Add("@IsActive", entity.IsActive);
 
             var result = await connection.QueryAsync<BaseResponse>(
@@ -107,6 +109,46 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure
             );
         }
+
+        public async Task<List<Product>> GetProductByBusinessId(int BusinessId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@BusinessId", BusinessId);
+
+            var result = await connection.QueryAsync<Product>(
+                "Get_ProductByBusinessId",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+
+        public async Task<List<ProductImage>> GetProductImageById(int productId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@ProductId", productId);
+
+            var result = await connection.QueryAsync<ProductImage>(
+                "Get_ProductImages",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+
 
         public async Task<BaseResponse> AddProductCategory(ProductCategories entity)
         {

@@ -27,19 +27,19 @@ namespace CommUnityApp.Services
         //    return Ok(data);
         //}
 
-        [HttpGet("Get_Products")]
-        public async Task<IActionResult> GetProducts()
-        {
-            var data = await _unitOfWork.Product.GetAllProducts();
-            return Ok(data);
-        }
+        //[HttpGet("Get_Products")]
+        //public async Task<IActionResult> GetProducts()
+        //{
+        //    var data = await _unitOfWork.Product.GetAllProducts();
+        //    return Ok(data);
+        //}
 
-        [HttpGet("Get_ProductById")]
-        public async Task<IActionResult> GetProductById(int productId)
-        {
-            var data = await _unitOfWork.Product.GetProductById(productId);
-            return Ok(data);
-        }
+        //[HttpGet("Get_ProductById")]
+        //public async Task<IActionResult> GetProductById(int productId)
+        //{
+        //    var data = await _unitOfWork.Product.GetProductById(productId);
+        //    return Ok(data);
+        //}
 
         [HttpPost("Add_ProductCategory")]
         public async Task<IActionResult> AddProductCategory(ProductCategories entity)
@@ -137,6 +137,150 @@ namespace CommUnityApp.Services
                 {
                     success = false,
                     message = ex.Message
+                });
+            }
+        }
+
+
+
+        [HttpGet("Get_Products")]
+        public async Task<IActionResult> GetProductsWithImages()
+        {
+            try
+            {
+                var products = await _unitOfWork.Product.GetAllProducts();
+
+                var productList = new List<ProductWithImagesModel>();
+
+                foreach (var product in products)
+                {
+                    var images = await _unitOfWork.Product.GetProductImageById(product.ProductId);
+
+                    var response = new ProductWithImagesModel
+                    {
+                        Product = product
+                    };
+
+                    if (images != null && images.Count > 0)
+                    {
+                        foreach (var image in images)
+                        {
+                            response.Images.Add(new ProductImageUpload
+                            {
+                                ProductImageId = image.ProductImageId,
+                                ProductId = image.ProductId,
+                                ImagePath = image.ImagePath,
+                                IsPrimary = image.IsPrimary
+                            });
+                        }
+                    }
+
+                    productList.Add(response);
+                }
+
+                return Ok(productList);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = "Error retrieving products",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("Get_ProductById")]
+        public async Task<IActionResult> GetProductById(int productId)
+        {
+            try
+            {
+                // Step 1: Get product
+                var product = await _unitOfWork.Product.GetProductById(productId);
+
+                if (product == null)
+                {
+                    return NotFound("Product not found");
+                }
+
+                // Step 2: Get images
+                var images = await _unitOfWork.Product.GetProductImageById(productId);
+
+                var response = new ProductWithImagesModel
+                {
+                    Product = product
+                };
+
+                if (images != null && images.Count > 0)
+                {
+                    foreach (var image in images)
+                    {
+                        response.Images.Add(new ProductImageUpload
+                        {
+                            ProductImageId = image.ProductImageId,
+                            ProductId = image.ProductId,
+                            ImagePath = image.ImagePath,
+                            IsPrimary = image.IsPrimary
+                        });
+                    }
+                }
+
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = "Error retrieving product",
+                    Error = ex.Message
+                });
+            }
+        }
+
+
+        [HttpGet("Get_ProductByBusinessId")]
+        public async Task<IActionResult> GetProductByBusinessId(int BusinessId)
+        {
+            try
+            {
+                var products = await _unitOfWork.Product.GetProductByBusinessId(BusinessId);
+
+                var productList = new List<ProductWithImagesModel>();
+
+                foreach (var product in products)
+                {
+                    var images = await _unitOfWork.Product.GetProductImageById(product.ProductId);
+
+                    var response = new ProductWithImagesModel
+                    {
+                        Product = product
+                    };
+
+                    if (images != null)
+                    {
+                        foreach (var image in images)
+                        {
+                            response.Images.Add(new ProductImageUpload
+                            {
+                                ProductImageId = image.ProductImageId,
+                                ProductId = image.ProductId,
+                                ImagePath = image.ImagePath,
+                                IsPrimary = image.IsPrimary
+                            });
+                        }
+                    }
+
+                    productList.Add(response);
+                }
+
+                return Ok(productList);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = "Error retrieving products",
+                    Error = ex.Message
                 });
             }
         }

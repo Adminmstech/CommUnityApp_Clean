@@ -10,6 +10,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public int? BusinessId { get; set; }
 
         public int? CategoryId { get; set; }
+        public string ProductCategory { get; set; }
 
         public string? ProductName { get; set; }
 
@@ -23,7 +24,11 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public DateTime? EndDate { get; set; }
 
+        public int? RedemptionCoins { get; set; }
+
+        public bool? ReferAFriend { get; set; }
         public int? IsActive { get; set; }
+        public List<ProductImage> Images { get; set; }
     }
 
 
