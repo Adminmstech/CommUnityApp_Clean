@@ -70,7 +70,7 @@
                 </div>
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light">
+                        <thead >
                             <tr>
                                 <th class="ps-4 border-0">Game Name</th>
                                 <th class="border-0">StartDate</th>
@@ -157,10 +157,160 @@
 </div>
 
 <style>
-    .fw-700 { font-weight: 700; }
-    .fw-800 { font-weight: 800; }
-    .uppercase { text-transform: uppercase; letter-spacing: 0.5px; }
-    .bg-success-subtle { background-color: #dcfce7 !important; }
-    .bg-secondary-subtle { background-color: #f1f5f9 !important; }
-    .tiny { font-size: 12px; }
+    
+    body {
+        font-family: 'Inter', sans-serif;
+        background: #f5f7fb;
+    }
+
+    .fw-700 {
+        font-weight: 700;
+    }
+
+    .fw-800 {
+        font-weight: 800;
+    }
+
+    .uppercase {
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .tiny {
+        font-size: 12px;
+    }
+
+    .card {
+        border-radius: 18px;
+        background: #ffffff;
+        transition: all 0.25s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+        }
+
+        .card .bg-opacity-10 {
+            border-radius: 14px;
+        }
+
+   
+    .table {
+        border-collapse: separate;
+        border-spacing: 0;
+    }
+
+        .table thead {
+            background: #2f3e63;
+        }
+
+            .table thead th {
+                font-size: 13px;
+                font-weight: 600;
+                color: #fff;
+                padding: 16px 20px;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+        .table tbody td {
+            padding: 18px 20px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
+            color: #1e293b;
+        }
+
+    .table-hover tbody tr:hover {
+        background: #f8fafc;
+    }
+
+  
+    .badge {
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .bg-success-subtle {
+        background-color: #dcfce7 !important;
+        color: #059669 !important;
+    }
+
+    .bg-secondary-subtle {
+        background-color: #f1f5f9 !important;
+        color: #64748b !important;
+    }
+
+  
+    .btn-primary {
+        background-color: #14b8a6;
+        border-color: #14b8a6;
+        border-radius: 30px;
+        font-weight: 600;
+        transition: 0.3s ease;
+    }
+
+        .btn-primary:hover {
+            background-color: #0d9488;
+            border-color: #0d9488;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(20, 184, 166, 0.3);
+        }
+
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: #f1f5f9;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .btn-icon:hover {
+            background: #e2e8f0;
+        }
+
+ 
+    .btn-outline-primary {
+        border-radius: 30px;
+        font-weight: 600;
+    }
+
+    
+    .btn-light {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+    }
+
+        .btn-light:hover {
+            background: #f1f5f9;
+        }
+
+    .bg-primary.text-white {
+        background: linear-gradient(135deg, #2563eb, #1e40af) !important;
+        border-radius: 20px;
+    }
+
+   
+    @@media (max-width: 768px) {
+        .table thead {
+            display: none;
+        }
+
+        .table tbody tr {
+            display: block;
+            margin-bottom: 15px;
+            background: white;
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        .table tbody td {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 15px;
+            border: none;
+        }
+    }
 </style>

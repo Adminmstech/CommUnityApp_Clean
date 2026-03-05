@@ -44,7 +44,7 @@ builder.Services.AddSignalR();
 Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Mgo+DSMBMAY9C3t2U1hhQlJBfV5CQmdWfFN0QXNYflRxfF9CaEwxOX1dQl9nSXdTckdgXHtac3FWRGM=");
 builder.Services.AddHttpClient();
 builder.Services.AddControllersWithViews();
-builder.Services.AddControllers(); 
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddControllers();
 builder.Services.AddControllers();
@@ -102,9 +102,11 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseSession();                     
+app.UseSession();
 
 app.UseAuthorization();
+
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "areas",

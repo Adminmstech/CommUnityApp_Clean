@@ -1,18 +1,44 @@
-@model CommUnityApp.ApplicationCore.Models.AddUpdateBrandGameRequest
+﻿@model CommUnityApp.ApplicationCore.Models.AddUpdateBrandGameRequest
 @{
-    ViewData["Title"] = "Create Brand Game";
+    var isEditMode = Model.BrandGameID > 0;
+    ViewData["Title"] = isEditMode ? "Edit Brand Game" : "Create Brand Game";
     Layout = "_BusinessLayout";
 }
 
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="~/css/brandgame.css" rel="stylesheet" />
+
+<div class="container-xxl px-3 px-md-4">
+
+    <div class="d-flex align-items-center mb-4">
+
+        <!-- Image -->
         <div>
-            <h2 class="fw-800 mb-1">Create New Brand Game</h2>
-            <p class="text-muted">Set up your interactive game and configure prizes.</p>
+            <img src="~/img/gameimage.png"
+                 class="brand-image img-fluid me-4"
+                 alt="Game Icon" />
         </div>
-        <a href="@Url.Action("Index", "Home")" class="btn btn-light rounded-pill px-4 fw-600">
+
+        <!-- Title Section -->
+        <div class="me-auto">
+            <h2 class="fw-800 mb-1 ms-2" id="page-title">@(isEditMode ? "Edit Brand Game" : "Create New Brand Game")</h2>
+            <p class="text-muted ms-2" id="page-subtitle">@(isEditMode ? "Update your game details and prize settings." : "Set up your interactive game and configure prizes.")</p>
+        </div>
+
+        <!-- Back Button -->
+        <a href="@Url.Action("Index", "Home")"
+           class="btn btn-light rounded-pill px-4 fw-600">
             <i class="fa-solid fa-arrow-left me-2"></i> Back to Dashboard
         </a>
+
+        <!-- Import Template Button -->
+        @if (!isEditMode)
+        {
+            <button type="button" class="btn btn-outline-primary rounded-pill px-4 fw-600 ms-2" data-bs-toggle="modal" data-bs-target="#importTemplateModal">
+                <i class="fa-solid fa-download me-2"></i> Import Template
+            </button>
+        }
+
     </div>
 
     @if (ViewBag.Error != null)
@@ -50,77 +76,154 @@
                         </button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="consolation-tab" data-bs-toggle="pill" data-bs-target="#consolation" type="button" role="tab">
+                        <button class="nav-link" id="consolation-tab"
+                                data-bs-toggle="pill"
+                                data-bs-target="#consolation"
+                                type="button" role="tab">
                             <i class="fa-solid fa-gift me-2"></i> Consolation
                         </button>
                     </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="media-tab" data-bs-toggle="pill" data-bs-target="#media" type="button" role="tab">
-                            <i class="fa-solid fa-palette me-2"></i> Media & Style
-                        </button>
-                    </li>
+
                 </ul>
             </div>
 
             <!-- Tab Content -->
             <div class="card-body p-4">
                 <div class="tab-content" id="gameTabsContent">
-                    
+
                     <!-- 1. General Info -->
                     <div class="tab-pane fade show active" id="general" role="tabpanel">
                         <div class="row g-4">
                             <div class="col-md-6">
-                                <label asp-for="BrandGame" class="form-label fw-600">Game Name</label>
-                                <input asp-for="BrandGame" class="form-control" placeholder="e.g. Summer Sensation" required />
+                                <label class="form-label fw-600">Game Name</label>
+                                <input asp-for="BrandGameName" name="BrandGameName" class="form-control" placeholder="e.g. Summer Sensation" />
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="BrandGameTitle" class="form-label fw-600">Game Subtitle</label>
-                                <input asp-for="BrandGameTitle" class="form-control" placeholder="Short catchy phrase" />
+                                <label class="form-label fw-600">Game Subtitle</label>
+                                <input asp-for="BrandGameTitle" name="BrandGameTitle" class="form-control" placeholder="Short catchy phrase" />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-600">Start Date</label>
+                                <input asp-for="DateStart" name="DateStart" type="date" class="form-control" />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-600">End Date</label>
+                                <input asp-for="DateEnd" name="DateEnd" type="date" class="form-control" />
                             </div>
                             <div class="col-12">
-                                <label asp-for="BrandGameDesc" class="form-label fw-600">Description</label>
-                                <textarea asp-for="BrandGameDesc" class="form-control" rows="3" placeholder="Explain the game to users..."></textarea>
+                                <label class="form-label fw-600">Description</label>
+                                <textarea asp-for="BrandGameDesc" name="BrandGameDesc" class="form-control" rows="3" placeholder="Explain the game to users..."></textarea>
                             </div>
-                            <div class="col-md-6">
-                                <label asp-for="DateStart" class="form-label fw-600">Start Date</label>
-                                <input asp-for="DateStart" type="date" class="form-control" required />
+
+                            <div class="col-12">
+                                <label class="form-label fw-600">Main Game Image</label>
+                                <input type="file" asp-for="BrandGameImageFile" name="BrandGameImageFile" class="form-control" accept="image/*" />
+                                <div class="form-text">Will be displayed on the game card.</div>
+                                <div class="image-preview mt-2" id="main-image-preview" style="display: none;">
+                                    <img class="preview-img" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 2px solid #14b8a6;" />
+                                    <span class="ms-2 text-success fw-600"><i class="fa-solid fa-check-circle me-1"></i>Current Image</span>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label asp-for="DateEnd" class="form-label fw-600">End Date</label>
-                                <input asp-for="DateEnd" type="date" class="form-control" required />
-                            </div>
+
+
+                        </div>
+                        <div class="wizard-footer">
+                            <button type="button" class="btn btn-link cancel-btn"
+                                    onclick="window.location.href='@Url.Action("Index", "Home")'">
+                                Cancel
+                            </button>
+
+                            <button type="button" class="btn btn-next"
+                                    onclick="goToTab('config')">
+                                Next <i class="fa-solid fa-chevron-right ms-1"></i>
+                            </button>
                         </div>
                     </div>
 
                     <!-- 2. Game Config -->
                     <div class="tab-pane fade" id="config" role="tabpanel">
+                        <div class="alert alert-info bg-opacity-10 border-0 rounded-3 mb-4">
+                            <i class="fa-solid fa-cog me-2"></i> Configure game settings, win frequency, and release options.
+                        </div>
                         <div class="row g-4">
-                            <div class="col-md-4">
-                                <label asp-for="PanelCount" class="form-label fw-600">Panel Count</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-table-cells"></i></span>
-                                    <input asp-for="PanelCount" type="number" class="form-control" min="1" required />
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <label asp-for="ChanceCount" class="form-label fw-600">Chances per User</label>
-                                <div class="input-group">
-                                    <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-rotate-left"></i></span>
-                                    <input asp-for="ChanceCount" type="number" class="form-control" min="1" required />
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <label asp-for="PanelOpeningLimit" class="form-label fw-600">Max Openings</label>
-                                <input asp-for="PanelOpeningLimit" type="number" class="form-control" min="1" required />
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-600">Success Redirect URL</label>
+                                <input asp-for="DestinationUrl" name="DestinationUrl" type="url" class="form-control" placeholder="https://yourwebsite.com/success" />
+                                <div class="form-text">URL where users are redirected after playing</div>
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="DestinationUrl" class="form-label fw-600">Destination URL</label>
-                                <input asp-for="DestinationUrl" type="url" class="form-control" placeholder="https://yourwebsite.com/success" />
+                                <label class="form-label fw-600">Promotional Code</label>
+                                <input asp-for="PromotionalCode" name="PromotionalCode" class="form-control" placeholder="Enter promo code" />
+                                <div class="form-text">Optional promotional code for tracking</div>
                             </div>
-                             <div class="col-md-6">
-                                <label asp-for="PromotionalCode" class="form-label fw-600">Promo Code (If any)</label>
-                                <input asp-for="PromotionalCode" class="form-control" />
+
+                            <!-- Prize Frequency Configuration -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-600">Prize Frequency</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">1 in</span>
+                                    <input asp-for="OnceIn" name="OnceIn" type="number" class="form-control" min="1" max="1000" placeholder="10" />
+                                    <span class="input-group-text">wins</span>
+                                </div>
+                                <div class="form-text">How often should prizes be awarded (1 in X attempts)</div>
                             </div>
+
+                            <!-- Game Release Status -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-600">Game Release Status</label>
+                                <select asp-for="IsReleased" name="IsReleased" class="form-select">
+                                    <option value="0">🔒 Draft (Not Released)</option>
+                                    <option value="1">🚀 Released (Live)</option>
+                                </select>
+                                <div class="form-text">Control whether the game is publicly available</div>
+                            </div>
+
+                            <!-- Prize Distribution Status -->
+                            <div class="col-md-4">
+                                <label class="form-label fw-600">Prize Distribution</label>
+                                <select asp-for="IsPrizeClosed" name="IsPrizeClosed" class="form-select">
+                                    <option value="0">🎁 Open (Prizes Available)</option>
+                                    <option value="1">🔐 Closed (No More Prizes)</option>
+                                </select>
+                                <div class="form-text">Stop prize distribution while keeping game active</div>
+                            </div>
+
+                            <!-- Advanced Settings Section -->
+                            <div class="col-12" style="display:none;">
+                                <div class="card bg-light border-0 mt-3">
+                                    <div class="card-body p-3">
+                                        <h6 class="card-title text-dark mb-3">
+                                            <i class="fa-solid fa-sliders me-2"></i>Advanced Configuration
+                                        </h6>
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label class="form-label text-dark fw-600">Panel Count</label>
+                                                <input asp-for="PanelCount" name="PanelCount" type="number" class="form-control" min="1" max="20" value="9" />
+                                                <div class="form-text">Number of game panels/tiles</div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label class="form-label text-dark fw-600">Opening Limit</label>
+                                                <input asp-for="PanelOpeningLimit" name="PanelOpeningLimit" type="number" class="form-control" min="1" max="10" value="3" />
+                                                <div class="form-text">Maximum panels a user can open</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="wizard-footer">
+                            <button type="button" class="btn btn-back"
+                                    onclick="goToTab('general')">
+                                <i class="fa-solid fa-chevron-left me-1"></i> Back
+                            </button>
+
+                            <button type="button" class="btn btn-next"
+                                    onclick="goToTab('primary')">
+                                Next <i class="fa-solid fa-chevron-right ms-1"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -131,39 +234,91 @@
                         </div>
                         <div class="row g-4">
                             <div class="col-md-6">
-                                <label asp-for="PrimaryOfferText" class="form-label fw-600">Primary Offer Label</label>
-                                <input asp-for="PrimaryOfferText" class="form-control" placeholder="e.g. 50% OFF" />
+                                <label class="form-label fw-600">Primary Offer Text</label>
+                                <input asp-for="PrimaryOfferText" name="PrimaryOfferText" class="form-control" placeholder="e.g. 50% OFF" />
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="PrimaryPrizeCount" class="form-label fw-600">Total Available Prizes</label>
-                                <input asp-for="PrimaryPrizeCount" type="number" class="form-control" min="0" />
+                                <label class="form-label fw-600">Total Available Prizes</label>
+                                <input asp-for="PrimaryPrizeCount" name="PrimaryPrizeCount" type="number" class="form-control" min="0" />
                             </div>
+                            <div class="col-6">
+                                <label class="form-label fw-600">Success Message</label>
+                                <textarea asp-for="PrimaryWinMessage" name="PrimaryWinMessage" class="form-control" rows="2" placeholder="Congratulations! You won the grand prize!"></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-600">Promotion Linked ID</label>
+                                <input asp-for="PrimaryPrizePromotionId" name="PrimaryPrizePromotionId" type="number" class="form-control" />
+                            </div>
+
+                            <!-- Primary Prize Image Upload -->
                             <div class="col-12">
-                                <label asp-for="PrimaryWinMessage" class="form-label fw-600">Success Message</label>
-                                <textarea asp-for="PrimaryWinMessage" class="form-control" rows="2" placeholder="Congratulations! You won the grand prize!"></textarea>
+                                <label class="form-label fw-600">Primary Prize Image</label>
+                                <input type="file" asp-for="PrimaryPrizeImageFile" name="PrimaryPrizeImageFile" class="form-control prize-image-upload" accept="image/*" data-prize-type="primary" />
+                                <div class="form-text">Upload an image that represents your primary prize (JPG, PNG, GIF - Max 5MB)</div>
+                                <div class="image-preview mt-2" id="primary-preview" style="display: none;">
+                                    <img class="preview-img" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 2px solid #14b8a6;" />
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeImagePreview('primary')">
+                                        <i class="fa-solid fa-trash"></i> Remove
+                                    </button>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label asp-for="PrimaryPrizePromotionId" class="form-label fw-600">Promotion Linked ID</label>
-                                <input asp-for="PrimaryPrizePromotionId" type="number" class="form-control" />
-                            </div>
+
                         </div>
+                        <div class="wizard-footer">
+                            <button type="button" class="btn btn-back"
+                                    onclick="goToTab('config')">
+                                <i class="fa-solid fa-chevron-left me-1"></i> Back
+                            </button>
+
+                            <button type="button" class="btn btn-next"
+                                    onclick="goToTab('secondary')">
+                                Next <i class="fa-solid fa-chevron-right ms-1"></i>
+                            </button>
+                        </div>
+
                     </div>
 
                     <!-- 4. Secondary Prize -->
                     <div class="tab-pane fade" id="secondary" role="tabpanel">
-                         <div class="row g-4">
+                        <div class="row g-4">
                             <div class="col-md-6">
-                                <label asp-for="OfferText" class="form-label fw-600">Secondary Offer Label</label>
-                                <input asp-for="OfferText" class="form-control" placeholder="e.g. $10 Voucher" />
+                                <label class="form-label fw-600">Secondary Offer Text</label>
+                                <input asp-for="OfferText" name="OfferText" class="form-control" placeholder="e.g. $10 Voucher" />
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="SecondaryPrizeCount" class="form-label fw-600">Total Available Prizes</label>
-                                <input asp-for="SecondaryPrizeCount" type="number" class="form-control" min="0" />
+                                <label class="form-label fw-600">Total Available Prizes</label>
+                                <input asp-for="SecondaryPrizeCount" name="SecondaryPrizeCount" type="number" class="form-control" min="0" />
                             </div>
                             <div class="col-12">
-                                <label asp-for="SecondaryWinMessage" class="form-label fw-600">Success Message</label>
-                                <textarea asp-for="SecondaryWinMessage" class="form-control" rows="2" placeholder="Great job! You won a secondary prize!"></textarea>
+                                <label class="form-label fw-600">Success Message</label>
+                                <textarea asp-for="SecondaryWinMessage" name="SecondaryWinMessage" class="form-control" rows="2" placeholder="Great job! You won a secondary prize!"></textarea>
                             </div>
+
+                            <!-- Secondary Prize Image Upload -->
+                            <div class="col-12">
+                                <label class="form-label fw-600">Secondary Prize Image</label>
+                                <input type="file" asp-for="SecondaryPrizeImageFile" name="SecondaryPrizeImageFile" class="form-control prize-image-upload" accept="image/*" data-prize-type="secondary" />
+                                <div class="form-text">Upload an image that represents your secondary prize (JPG, PNG, GIF - Max 5MB)</div>
+                                <div class="image-preview mt-2" id="secondary-preview" style="display: none;">
+                                    <img class="preview-img" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 2px solid #14b8a6;" />
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeImagePreview('secondary')">
+                                        <i class="fa-solid fa-trash"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="wizard-footer">
+                            <button type="button" class="btn btn-back"
+                                    onclick="goToTab('primary')">
+                                <i class="fa-solid fa-chevron-left me-1"></i> Back
+                            </button>
+
+                            <button type="button" class="btn btn-next"
+                                    onclick="goToTab('consolation')">
+                                Next <i class="fa-solid fa-chevron-right ms-1"></i>
+                            </button>
                         </div>
                     </div>
 
@@ -171,52 +326,47 @@
                     <div class="tab-pane fade" id="consolation" role="tabpanel">
                         <div class="row g-4">
                             <div class="col-md-6">
-                                <label asp-for="ConsolationPrizeCount" class="form-label fw-600">Total Consolation Count</label>
-                                <input asp-for="ConsolationPrizeCount" type="number" class="form-control" min="0" />
+                                <label class="form-label fw-600">Total Consolation Count</label>
+                                <input asp-for="ConsolationPrizeCount" name="ConsolationPrizeCount" type="number" class="form-control" min="0" />
                             </div>
                             <div class="col-md-6">
-                                <label asp-for="PointsAwarded" class="form-label fw-600">Points Awarded</label>
-                                <input asp-for="PointsAwarded" type="number" class="form-control" min="0" />
+                                <label class="form-label fw-600">Points Awarded</label>
+                                <input asp-for="PointsAwarded" name="PointsAwarded" type="number" class="form-control" min="0" />
                             </div>
                             <div class="col-12">
-                                <label asp-for="ConsolationMessage" class="form-label fw-600">Consolation Message</label>
-                                <textarea asp-for="ConsolationMessage" class="form-control" rows="2" placeholder="Better luck next time! Here's a small gift..."></textarea>
+                                <label class="form-label fw-600">Consolation Message</label>
+                                <textarea asp-for="ConsolationMessage" name="ConsolationMessage" class="form-control" rows="2" placeholder="Better luck next time! Here's a small gift..."></textarea>
                             </div>
+
+                            <!-- Consolation Prize Image Upload -->
+                            <div class="col-12">
+                                <label class="form-label fw-600">Consolation Prize Image</label>
+                                <input type="file" asp-for="ConsolationPrizeImageFile" name="ConsolationPrizeImageFile" class="form-control prize-image-upload" accept="image/*" data-prize-type="consolation" />
+                                <div class="form-text">Upload an image that represents your consolation prize (JPG, PNG, GIF - Max 5MB)</div>
+                                <div class="image-preview mt-2" id="consolation-preview" style="display: none;">
+                                    <img class="preview-img" style="max-width: 200px; max-height: 150px; border-radius: 8px; border: 2px solid #14b8a6;" />
+                                    <button type="button" class="btn btn-sm btn-outline-danger ms-2" onclick="removeImagePreview('consolation')">
+                                        <i class="fa-solid fa-trash"></i> Remove
+                                    </button>
+                                </div>
+                            </div>
+
+
+                        </div>
+                        <div class="wizard-footer">
+                            <button type="button" class="btn btn-back"
+                                    onclick="goToTab('secondary')">
+                                <i class="fa-solid fa-chevron-left me-1"></i> Back
+                            </button>
+
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-800" id="launch-btn">
+                                <i class="fa-solid fa-@(isEditMode ? "floppy-disk" : "rocket") me-2"></i>
+                                <span id="launch-text">@(isEditMode ? "Update Brand Game" : "Launch Brand Game")</span>
+                            </button>
                         </div>
                     </div>
 
-                    <!-- 6. Media & Style -->
-                    <div class="tab-pane fade" id="media" role="tabpanel">
-                        <div class="row g-4">
-                            <div class="col-md-6">
-                                <label class="form-label fw-600">Main Game Image</label>
-                                <input type="file" asp-for="BrandGameImageFile" class="form-control" accept="image/*" />
-                                <div class="form-text">Will be displayed on the game card.</div>
-                            </div>
-                             <div class="col-md-6">
-                                <label class="form-label fw-600">Unsuccessful / Better Luck Image</label>
-                                <input type="file" asp-for="UnSuccessfulImageFile" class="form-control" accept="image/*" />
-                            </div>
-                            <div class="col-md-6">
-                                <div class="p-3 rounded-4 border bg-white shadow-sm">
-                                    <label asp-for="FormColor" class="form-label fw-600 d-block">Form Theme Color</label>
-                                    <input asp-for="FormColor" type="color" class="form-control form-control-color w-100 border-0" value="#2563eb" />
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="p-3 rounded-4 border bg-white shadow-sm">
-                                    <label asp-for="TextColor" class="form-label fw-600 d-block">Primary Text Color</label>
-                                    <input asp-for="TextColor" type="color" class="form-control form-control-color w-100 border-0" value="#0f172a" />
-                                </div>
-                            </div>
-                            <div class="col-12 mt-4 text-end">
-                                <hr class="my-4 opacity-5" />
-                                <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-800">
-                                    <i class="fa-solid fa-rocket me-2"></i> Launch Brand Game
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+
 
                 </div>
             </div>
@@ -224,50 +374,170 @@
     </form>
 </div>
 
-@section Scripts {
-    <style>
-        .custom-tabs {
-            padding: 10px 20px;
-            background: #f8fafc;
-            gap: 10px;
-        }
-        .custom-tabs .nav-link {
-            border-radius: 999px;
-            font-weight: 700;
-            color: #64748b;
-            padding: 10px 20px;
-            transition: all 0.2s;
-            border: 2px solid transparent;
-        }
-        .custom-tabs .nav-link:hover {
-            color: var(--primary);
-            background: rgba(37, 99, 235, 0.05);
-        }
-        .custom-tabs .nav-link.active {
-            background: #ffffff !important;
-            color: var(--primary) !important;
-            border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1);
-        }
-        .form-label {
-            margin-bottom: 8px;
-            color: #334155;
-        }
-        .form-control, .form-select {
-            border-radius: 12px;
-            padding: 12px 16px;
-            border: 1px solid #e2e8f0;
-            background: #ffffff;
-        }
-        .form-control:focus {
-            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
-            border-color: var(--primary);
-        }
-        .fw-600 { font-weight: 600; }
-        .fw-800 { font-weight: 800; }
-    </style>
+<!-- Import Template Modal -->
+<div class="modal fade" id="importTemplateModal" tabindex="-1" aria-labelledby="importTemplateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-700" id="importTemplateModalLabel">
+                    <i class="fa-solid fa-download me-2 text-primary"></i> Import Game Template
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted mb-4">Choose a pre-configured game template to get started quickly. You can customize all settings after import.</p>
+                
+                <div class="row g-3">
+                    <!-- Welcome Template -->
+                    <div class="col-md-6">
+                        <div class="template-card card h-100 border-2 rounded-4 cursor-pointer" data-template="welcome" style="cursor: pointer;">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="template-icon bg-primary bg-opacity-10 rounded-3 p-2 me-3">
+                                        <i class="fa-solid fa-hand-sparkles text-primary fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-700 mb-0">Welcome Game</h6>
+                                        <small class="text-muted">3 months duration</small>
+                                    </div>
+                                </div>
+                                <p class="small text-muted mb-2">Standard scratch & win game for general promotions.</p>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <span class="badge bg-primary-subtle text-primary">5 Primary</span>
+                                    <span class="badge bg-info-subtle text-info">20 Secondary</span>
+                                    <span class="badge bg-secondary-subtle text-secondary">100 Consolation</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
+                    <!-- Holiday Template -->
+                    <div class="col-md-6">
+                        <div class="template-card card h-100 border-2 rounded-4 cursor-pointer" data-template="holiday" style="cursor: pointer;">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="template-icon bg-danger bg-opacity-10 rounded-3 p-2 me-3">
+                                        <i class="fa-solid fa-gift text-danger fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-700 mb-0">Holiday Special</h6>
+                                        <small class="text-muted">2 weeks duration</small>
+                                    </div>
+                                </div>
+                                <p class="small text-muted mb-2">Limited-time festive promotion with bigger prizes.</p>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <span class="badge bg-primary-subtle text-primary">3 Primary</span>
+                                    <span class="badge bg-info-subtle text-info">15 Secondary</span>
+                                    <span class="badge bg-secondary-subtle text-secondary">100 Consolation</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loyalty Template -->
+                    <div class="col-md-6">
+                        <div class="template-card card h-100 border-2 rounded-4 cursor-pointer" data-template="loyalty" style="cursor: pointer;">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="template-icon bg-purple bg-opacity-10 rounded-3 p-2 me-3" style="background-color: rgba(107, 91, 149, 0.1);">
+                                        <i class="fa-solid fa-crown text-purple fa-lg" style="color: #6B5B95;"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-700 mb-0">Loyalty Rewards</h6>
+                                        <small class="text-muted">1 year duration</small>
+                                    </div>
+                                </div>
+                                <p class="small text-muted mb-2">Daily rewards for loyal members with points system.</p>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <span class="badge bg-primary-subtle text-primary">12 Primary</span>
+                                    <span class="badge bg-info-subtle text-info">365 Secondary</span>
+                                    <span class="badge bg-secondary-subtle text-secondary">1000 Consolation</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New Customer Template -->
+                    <div class="col-md-6">
+                        <div class="template-card card h-100 border-2 rounded-4 cursor-pointer" data-template="newcustomer" style="cursor: pointer;">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="template-icon bg-teal bg-opacity-10 rounded-3 p-2 me-3" style="background-color: rgba(0, 128, 128, 0.1);">
+                                        <i class="fa-solid fa-user-plus fa-lg" style="color: #008080;"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-700 mb-0">New Customer</h6>
+                                        <small class="text-muted">Ongoing</small>
+                                    </div>
+                                </div>
+                                <p class="small text-muted mb-2">One-time welcome bonus for new sign-ups.</p>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <span class="badge bg-primary-subtle text-primary">10 Primary</span>
+                                    <span class="badge bg-info-subtle text-info">100 Secondary</span>
+                                    <span class="badge bg-secondary-subtle text-secondary">Unlimited</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4 fw-600" id="btnImportTemplate" disabled>
+                    <i class="fa-solid fa-download me-2"></i> Import Selected
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/js/brandgame.js"></script>
     <script>
-        // Optional: Client-side validation for tab completion or required fields
+        // Template import functionality
+        $(document).ready(function() {
+            var selectedTemplate = null;
+
+            // Template card selection
+            $('.template-card').on('click', function() {
+                $('.template-card').removeClass('border-primary selected');
+                $(this).addClass('border-primary selected');
+                selectedTemplate = $(this).data('template');
+                $('#btnImportTemplate').prop('disabled', false);
+            });
+
+            // Import button click
+            $('#btnImportTemplate').on('click', function() {
+                if (!selectedTemplate) return;
+
+                var $btn = $(this);
+                $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i> Importing...');
+
+                $.ajax({
+                    url: '@Url.Action("ImportDefaultGame", "Game")',
+                    type: 'POST',
+                    data: { templateType: selectedTemplate },
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success and redirect to edit the imported game
+                            $('#importTemplateModal').modal('hide');
+                            if (response.redirectUrl) {
+                                window.location.href = response.redirectUrl;
+                            } else {
+                                location.reload();
+                            }
+                        } else {
+                            alert(response.message || 'Failed to import template.');
+                            $btn.prop('disabled', false).html('<i class="fa-solid fa-download me-2"></i> Import Selected');
+                        }
+                    },
+                    error: function() {
+                        alert('Error importing template. Please try again.');
+                        $btn.prop('disabled', false).html('<i class="fa-solid fa-download me-2"></i> Import Selected');
+                    }
+                });
+            });
+        });
     </script>
 }
