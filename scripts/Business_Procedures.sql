@@ -117,6 +117,29 @@ BEGIN
 END
 GO
 
+IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'BrandGamePlayHistory')
+BEGIN
+    CREATE TABLE [dbo].[BrandGamePlayHistory]
+    (
+        [GamePlayId] BIGINT IDENTITY(1,1) NOT NULL,
+        [BrandGameID] INT NOT NULL,
+        [MemberId] BIGINT NOT NULL,
+        [AttemptNumber] INT NULL,
+        [PrizeType] NVARCHAR(50) NOT NULL,
+        [IsWinner] BIT NOT NULL,
+        [PlayedAt] DATETIME NOT NULL CONSTRAINT [DF_BrandGamePlayHistory_PlayedAt] DEFAULT (GETDATE()),
+        CONSTRAINT [PK_BrandGamePlayHistory] PRIMARY KEY CLUSTERED ([GamePlayId] ASC),
+        CONSTRAINT [FK_BrandGamePlayHistory_BrandGame] FOREIGN KEY ([BrandGameID]) REFERENCES [dbo].[BrandGame]([BrandGameID])
+    );
+
+    CREATE INDEX [IX_BrandGamePlayHistory_BrandGameID_PlayedAt]
+        ON [dbo].[BrandGamePlayHistory]([BrandGameID], [PlayedAt] DESC);
+
+    CREATE INDEX [IX_BrandGamePlayHistory_MemberId_PlayedAt]
+        ON [dbo].[BrandGamePlayHistory]([MemberId], [PlayedAt] DESC);
+END
+GO
+
 -- 1. sp_BusinessLogin
 IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND name = 'sp_BusinessLogin')
     DROP PROCEDURE sp_BusinessLogin

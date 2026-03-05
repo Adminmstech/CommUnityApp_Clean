@@ -7,10 +7,12 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 {
     public interface IBrandGameRepository
     {
-        Task<BaseResponse> AddUpdateBrandGameAsync(AddUpdateBrandGameRequest model, string brandGameImagePath, string unsuccessfulImagePath);
+        Task<BaseResponse> AddUpdateBrandGameAsync(AddUpdateBrandGameRequest model, string brandGameImagePath, string unsuccessfulImagePath, string primaryPrizeImagePath = "", string secondaryPrizeImagePath = "", string consolationPrizeImagePath = "");
         Task<BrandGameDto> GetBrandGameByIdAsync(int brandGameId);
         Task<IEnumerable<BrandGameDto>> GetAllBrandGamesAsync();
         Task<IEnumerable<BrandGameDto>> GetBrandGamesByMerchantAsync(int merchantId);
+        Task<PrizeConsumeResult> TryConsumePrizeAsync(int gameId, string prizeType);
+        Task<BaseResponse> TrackGameplayAsync(int gameId, long memberId, string prizeType, bool isWinner, int? attemptNumber);
         Task<BaseResponse> DeleteBrandGameAsync(int brandGameId);
     }
 }
