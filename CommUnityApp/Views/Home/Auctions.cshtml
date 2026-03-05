@@ -1,0 +1,573 @@
+﻿@{
+    ViewData["Title"] = "Indian Community Network";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>@ViewData["Title"]</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+
+    <style>
+
+
+        body {
+            margin: 0;
+            font-family: 'Inter',sans-serif;
+            background: linear-gradient(rgba(10,15,35,.85),rgba(10,15,35,.85)), url('https://images.unsplash.com/photo-1609947017136-9daf32a5eb16');
+            background-size: cover;
+            background-position: right center;
+            color: #fff;
+        }
+
+        .register-btn {
+            padding: 8px 18px;
+            border-radius: 999px;
+            border: none;
+            background: #08a594; /* red */
+            color: #000; /* black font */
+            font-weight: 700;
+            cursor: pointer;
+            transition: .3s ease;
+            margin-left: 8px;
+        }
+
+            .register-btn:hover {
+                background: #08a594;
+                transform: translateY(-2px);
+            }
+
+        .title-section {
+            text-align: center;
+            padding: 60px 20px 30px;
+        }
+
+            .title-section h1 {
+                font-family: 'Playfair Display',serif;
+                font-size: 64px;
+                letter-spacing: 3px;
+                margin: 0;
+            }
+
+        .gold-line {
+            width: 120px;
+            height: 2px;
+            background: #d4af37;
+            margin: 15px auto;
+        }
+
+        .main-card {
+            max-width: 1200px;
+            margin: 20px auto 60px;
+            background: linear-gradient(135deg,#0f172a,#1e293b);
+            border-radius: 28px;
+            padding: 30px;
+            box-shadow: 0 40px 80px rgba(0,0,0,.6);
+        }
+
+        .live-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .live-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .hammer {
+            background: linear-gradient(135deg,#d4af37,#facc15);
+            padding: 10px 14px;
+            border-radius: 12px;
+            color: #111;
+        }
+
+        .timer-box {
+            border: 1px solid #d4af37;
+            padding: 12px 20px;
+            border-radius: 14px;
+            color: #facc15;
+            font-weight: 600;
+        }
+
+
+        .grid {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 30px;
+        }
+
+
+        .sidebar {
+            border-right: 1px solid rgba(255,255,255,.08);
+            padding-right: 20px;
+        }
+
+            .sidebar h4 {
+                color: #d4af37;
+                font-size: 14px;
+                letter-spacing: 1px;
+                margin-bottom: 15px;
+            }
+
+            .sidebar ul {
+                list-style: none;
+                padding: 0;
+            }
+
+            .sidebar li {
+                padding: 10px;
+                border-radius: 10px;
+                cursor: pointer;
+                transition: .2s;
+                font-size: 14px;
+            }
+
+                .sidebar li:hover {
+                    background: rgba(255,255,255,.06);
+                }
+
+                .sidebar li.active {
+                    background: linear-gradient(135deg,#d4af37,#facc15);
+                    color: #111;
+                    font-weight: 600;
+                }
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+
+            .section-title span {
+                font-size: 14px;
+                color: #cbd5e1;
+            }
+
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
+        }
+
+        .card {
+            background: linear-gradient(135deg,#1e293b,#111827);
+            border-radius: 18px;
+            border: 1px solid rgba(255,255,255,.05);
+            overflow: hidden;
+            transition: .3s;
+        }
+
+            .card:hover {
+                transform: translateY(-5px);
+                box-shadow: 0 20px 40px rgba(0,0,0,.6);
+            }
+
+            .card img {
+                width: 100%;
+                height: 200px;
+                object-fit: cover;
+            }
+
+        .card-body {
+            padding: 18px;
+        }
+
+        .card h4 {
+            margin: 0 0 8px;
+            font-size: 15px;
+        }
+
+        .price {
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .bid-btn {
+            padding: 8px 18px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(135deg,#d4af37,#facc15);
+            font-weight: 700;
+            cursor: pointer;
+            color: #111;
+        }
+
+        .footer {
+            margin-top: 30px;
+            border-top: 1px solid rgba(255,255,255,.08);
+            padding-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: #cbd5e1;
+        }
+
+        .social {
+            display: flex;
+            gap: 15px;
+            font-size: 18px;
+        }
+
+        .card-img {
+            position: relative;
+        }
+
+            .card-img img {
+                width: 100%;
+                height: 200px;
+                object-fit: cover;
+                display: block;
+            }
+
+        .heart {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: rgba(120,120,120,.85); /* soft grey */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #fff;
+            cursor: pointer;
+            transition: .3s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,.4);
+        }
+
+            .heart:hover {
+                transform: scale(1.1);
+            }
+
+            /* ACTIVE (Liked) */
+            .heart.active {
+                background: linear-gradient(135deg,#ff4d6d,#ff0033);
+                color: #fff;
+            }
+
+    </style>
+</head>
+<body>
+
+    <div class="title-section">
+        <h1>INDIAN COMMUNITY NETWORK</h1>
+        <div class="gold-line"></div>
+    </div>
+
+    <div class="main-card">
+
+        <div class="live-header">
+            <div class="live-left">
+                <div class="hammer">🔨</div>
+                LIVE AUCTION
+            </div>
+            <div class="timer-box" id="timerBox">--</div>
+        </div>
+
+        <div class="grid">
+
+            <!-- ✅ CATEGORIES SIDEBAR -->
+            <div class="sidebar">
+                <h4>CATEGORIES</h4>
+                <ul id="categoryList">
+                    <li data-filter="all" class="active">All</li>
+                </ul>
+            </div>
+
+            <div>
+
+                <div class="section-title">
+                    AUCTIONS
+                    <span id="lotCount">LOTS (0)</span>
+                </div>
+
+                <!-- ✅ CARDS CONTAINER -->
+                <div class="cards" id="auctionCards">
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <div>Secure Payment | Easy Returns | 24/7 Support</div>
+        </div>
+
+    </div>
+    <script>
+
+        const apiBase = "/api/Auction";
+
+        // ✅ Dynamic values from Cookie (via Razor)
+        const currentUserId = "@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value";
+        const isLoggedIn = @User.Identity.IsAuthenticated.ToString().ToLower();
+
+        document.addEventListener("DOMContentLoaded", function () {
+            loadCategories();
+            loadAuctions();
+        });
+
+        // ================= LOAD CATEGORIES =================
+        async function loadCategories() {
+            try {
+                const response = await fetch(`${apiBase}/Get_ItemType`);
+                const categories = await response.json();
+
+                const ul = document.getElementById("categoryList");
+
+                categories.forEach(cat => {
+                    const li = document.createElement("li");
+                    li.textContent = cat.itemTypeName;
+                    li.setAttribute("data-filter", cat.itemTypeId);
+                    ul.appendChild(li);
+                });
+
+                enableFiltering();
+            } catch (error) {
+                console.error("Error loading categories:", error);
+            }
+        }
+
+        // ================= LOAD AUCTIONS =================
+        async function loadAuctions() {
+            try {
+                const response = await fetch(`${apiBase}/Get_Auctions`);
+                const auctions = await response.json();
+                renderAuctions(auctions);
+            } catch (error) {
+                console.error("Error loading auctions:", error);
+            }
+        }
+
+        // ================= LOAD BY CATEGORY =================
+        async function loadAuctionsByCategory(itemTypeId) {
+            try {
+                const response = await fetch(`${apiBase}/Get_AuctionByCategoryId?itemTypeId=${itemTypeId}`);
+                const auctions = await response.json();
+                renderAuctions(auctions);
+            } catch (error) {
+                console.error("Error loading auctions by category:", error);
+            }
+        }
+
+        // ================= RENDER AUCTIONS =================
+        function renderAuctions(auctions) {
+
+            const container = document.getElementById("auctionCards");
+            container.innerHTML = "";
+
+            document.getElementById("lotCount").innerText =
+                `LOTS (${auctions.length})`;
+
+            const now = new Date();
+            let html = "";
+
+            auctions.forEach(a => {
+
+                const primaryImage = a.images?.find(x => x.isPrimary)
+                    || a.images?.[0];
+
+                const imageUrl = primaryImage
+                    ? (primaryImage.imageUrl.startsWith("http")
+                        ? primaryImage.imageUrl
+                        : `/${primaryImage.imageUrl}`)
+                    : "https://via.placeholder.com/400x300";
+
+                const start = new Date(a.startTime);
+                const end = new Date(a.endTime);
+
+                let actionButton = "";
+
+                // 🟢 BEFORE START → REGISTER
+                if (now < start) {
+
+                    actionButton = `
+                        <button class="register-btn"
+                                   onclick="registerForBid(event, ${a.auctionId}, ${a.minDeposite})"
+        >
+                            REGISTER
+                        </button>
+                    `;
+                }
+
+                // 🔴 LIVE → BID
+                else if (now >= start && now <= end) {
+
+                    if (isLoggedIn) {
+                        actionButton = `
+                            <button class="bid-btn"
+                                onclick="goToBid(${a.auctionId})">
+                                BID
+                            </button>
+                        `;
+                    } else {
+                        actionButton = `
+                            <button class="bid-btn"
+                                onclick="redirectToLogin()">
+                                LOGIN TO BID
+                            </button>
+                        `;
+                    }
+                }
+
+                // ⚫ CLOSED
+                else {
+                    actionButton = `
+                        <button class="bid-btn" disabled
+                            style="background:#555; cursor:not-allowed;">
+                            CLOSED
+                        </button>
+                    `;
+                }
+
+                html += `
+                    <div class="card" data-category="${a.itemTypeId}">
+                        <div class="card-img">
+                            <img src="${imageUrl}">
+                            <div class="heart">♡</div>
+                        </div>
+                        <div class="card-body">
+                            <h4>${a.itemTitle}</h4>
+
+                            <div style="color:#facc15; font-size:13px; margin-bottom:10px;">
+                                Starts: ${start.toLocaleDateString()} |
+                                ${start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
+
+                            ${actionButton}
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            enableHearts();
+        }
+
+        // ================= REGISTER =================
+               async function registerForBid(e, auctionId, price) {
+
+            if (!isLoggedIn || !currentUserId) {
+                redirectToLogin();
+                return;
+            }
+
+            if (!price || price <= 0) {
+                alert("Invalid deposit amount.");
+                return;
+            }
+
+            const button = e.target;
+            button.disabled = true;
+            button.innerText = "Processing...";
+
+            try {
+                const response = await fetch("/api/Auction/create-checkout-session-dynamic", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        auctionId: auctionId,
+                        userId: currentUserId,
+                        price: price   // 🔥 THIS WAS MISSING
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert(data || "Unable to initiate payment.");
+                    button.disabled = false;
+                    button.innerText = "REGISTER";
+                }
+
+            } catch (error) {
+                console.error(error);
+                alert("Payment failed.");
+                button.disabled = false;
+                button.innerText = "REGISTER";
+            }
+        }
+
+        // ================= GO TO BID =================
+        function goToBid(id) {
+            window.location.href = `/Business/Home/AuctionDetails?AuctionId=${id}`;
+        }
+
+        // ================= LOGIN REDIRECT =================
+        function redirectToLogin() {
+            alert("Please login to continue.");
+            window.location.href = "/Home/Login";
+        }
+
+        // ================= FILTER =================
+        function enableFiltering() {
+
+            const filters = document.querySelectorAll(".sidebar li");
+
+            filters.forEach(filter => {
+                filter.addEventListener("click", function () {
+
+                    filters.forEach(f => f.classList.remove("active"));
+                    this.classList.add("active");
+
+                    const value = this.getAttribute("data-filter");
+
+                    if (value === "all") {
+                        loadAuctions();
+                    } else {
+                        loadAuctionsByCategory(value);
+                    }
+                });
+            });
+        }
+
+        // ================= HEART =================
+        function enableHearts() {
+            document.querySelectorAll(".heart").forEach(heart => {
+                heart.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    this.classList.toggle("active");
+                    this.textContent =
+                        this.classList.contains("active") ? "♥" : "♡";
+                });
+            });
+        }
+
+        // ================= LIVE CLOCK =================
+        setInterval(() => {
+
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+
+            document.getElementById("timerBox").innerText =
+                `${hours}H : ${minutes}M : ${seconds}S`;
+
+        }, 1000);
+
+    </script>
+
+
+
+</body>
+</html>

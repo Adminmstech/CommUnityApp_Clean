@@ -1,0 +1,606 @@
+﻿@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Auction Details</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top left, #1e293b, #0f172a 60%);
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1350px;
+            margin: 30px auto;
+            display: grid;
+            grid-template-columns: 1fr 420px;
+            gap: 60px;
+            padding: 50px;
+            background: rgba(255,255,255,0.03);
+            backdrop-filter: blur(25px);
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+        }
+
+
+        .image-section img {
+            width: 60%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 30px;
+            border: 2px solid rgba(250,204,21,0.4);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transition: 0.4s ease;
+        }
+
+            .image-section img:hover {
+                transform: scale(1.02);
+            }
+
+        .thumbs {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+            .thumbs img {
+                width: 75px;
+                height: 55px;
+                border-radius: 14px;
+                object-fit: cover;
+                cursor: pointer;
+                opacity: 0.7;
+                transition: 0.3s ease;
+                border: 2px solid transparent;
+            }
+
+                .thumbs img:hover {
+                    opacity: 1;
+                    transform: translateY(-5px);
+                    border-color: #facc15;
+                }
+
+        .details {
+            margin-top: 35px;
+            padding: 30px;
+            background: rgba(255,255,255,0.04);
+            border-radius: 25px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+            .details h2 {
+                margin-top: 0;
+                font-size: 32px;
+                font-weight: 700;
+                background: linear-gradient(90deg,#facc15,#fde68a);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+            }
+
+        .info {
+            margin-top: 15px;
+            font-size: 15px;
+            color: #cbd5e1;
+            line-height: 1.7;
+        }
+
+
+
+        .bid-panel {
+            background: linear-gradient(160deg,#111827,#0b1120);
+            padding: 40px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 25px 60px rgba(0,0,0,0.6);
+            position: sticky;
+            top: 60px;
+            height: fit-content;
+        }
+
+        .timer {
+            font-size: 30px;
+            font-weight: 800;
+            color: #facc15;
+            text-align: center;
+            margin-bottom: 35px;
+            letter-spacing: 2px;
+            padding: 20px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(250,204,21,0.15), rgba(250,204,21,0.05));
+            border: 1px solid rgba(250,204,21,0.4);
+            box-shadow: 0 0 25px rgba(250,204,21,0.4), inset 0 0 15px rgba(250,204,21,0.2);
+            animation: glowPulse 2s infinite alternate;
+        }
+
+        @@keyframes glowPulse {
+            from {
+                box-shadow: 0 0 20px rgba(250,204,21,0.4), inset 0 0 10px rgba(250,204,21,0.2);
+            }
+
+            to {
+                box-shadow: 0 0 35px rgba(250,204,21,0.8), inset 0 0 20px rgba(250,204,21,0.4);
+            }
+        }
+
+        .price-box {
+            background: linear-gradient(135deg,#d4af37,#facc15);
+            color: #111;
+            padding: 18px;
+            border-radius: 16px;
+            font-weight: 700;
+            text-align: center;
+            font-size: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(250,204,21,0.3);
+        }
+
+        .bid-input {
+            width: 90%;
+            padding: 15px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.1);
+            background: #1f2937;
+            color: #fff;
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: 0.3s;
+        }
+
+            .bid-input:focus {
+                outline: none;
+                border-color: #facc15;
+                box-shadow: 0 0 10px rgba(250,204,21,0.5);
+            }
+
+        .place-btn {
+            width: 100%;
+            padding: 15px;
+            border-radius: 999px;
+            border: none;
+            background: #14b8a6;
+            color: #fff;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s ease;
+        }
+
+            .place-btn:hover {
+                transform: translateY(-4px);
+            }
+
+
+
+        @@media (max-width: 1000px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+
+            .bid-panel {
+                position: relative;
+                top: 0;
+            }
+        }
+
+        .bid-history {
+            height: 250px;
+            overflow: hidden;
+            border-radius: 18px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.08);
+            margin-bottom: 25px;
+            padding: 15px;
+            position: relative;
+        }
+
+        .bid-scroll {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .bid-bubble span {
+            color: #facc15;
+            font-weight: 700;
+        }
+
+        /* @@keyframes scrollUp {
+                            0% {
+                                transform: translateY(0);
+                            }
+
+                            100% {
+                                transform: translateY(-50%);
+                            }
+                        } */
+
+        .top-middle {
+            position: fixed;
+            top: 55px;
+            left: 54%;
+            transform: translateX(-50%);
+            width: 320px;
+            max-width: 90%;
+            z-index: 999;
+            background: rgba(17,24,39,0.85);
+            backdrop-filter: blur(25px);
+            border-radius: 25px;
+            padding: 25px;
+            border: 1px solid rgba(250,204,21,0.35);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.7);
+        }
+
+
+
+
+        .bid-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+
+
+        .bid-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .bid-name {
+            font-size: 15px;
+            color: #cbd5e1;
+        }
+
+        .bid-value {
+            font-size: 18px;
+            font-weight: 700;
+            color: #facc15;
+        }
+
+        .bid-bubble {
+            background: linear-gradient(135deg,#1f2937,#111827);
+            padding: 16px 18px;
+            border-radius: 22px;
+            font-size: 16px;
+            width: 80%;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+        }
+
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #14b8a6;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+
+    <div class="container">
+
+        <!-- LEFT SIDE -->
+        <div>
+            <div class="image-section">
+                <img id="mainImage">
+            </div>
+
+            <div class="thumbs" id="thumbContainer"></div>
+
+            <div class="details">
+                <h2 id="title"></h2>
+                <div class="info" id="description"></div>
+                <div class="info" id="condition"></div>
+                <div class="info" id="location"></div>
+            </div>
+            <div class="bid-history top-middle">
+                <div class="bid-scroll" id="bidScroll">
+                </div>
+            </div>
+        </div>
+
+        <!-- RIGHT SIDE -->
+        <div class="bid-panel">
+            <div class="timer" id="countdown"></div>
+
+            <div class="price-box">
+                Current Bid ₹<span id="currentBid"></span>
+            </div>
+            <div id="liveBids" style="margin-top:20px; display:flex; flex-direction:column; gap:8px; max-height:200px; overflow-y:auto;"></div>
+
+            <input type="number" id="bidAmount" class="bid-input" placeholder="Enter your bid">
+
+            <button class="place-btn">Place Your Bid</button>
+
+
+
+        </div>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+
+        // ===============================
+        // GLOBALS
+        // ===============================
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const auctionId = parseInt(urlParams.get("AuctionId"));
+
+        // 🔥 Dynamic from Razor (like Auctions page)
+        const currentUserId = "@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value";
+        const currentUserName = "@User.Identity.Name";
+
+        let connection;
+        let highestBid = 0;
+        let priceIncrement = 0;
+
+        const bidScroll = document.getElementById("bidScroll");
+        const liveBidsContainer = document.getElementById("liveBids");
+
+        // ===============================
+        // INIT
+        // ===============================
+
+        document.addEventListener("DOMContentLoaded", async () => {
+
+            await loadAuctionDetails();
+            await loadInitialBids();
+
+            initializeSignalR();
+            bindPlaceBid();
+        });
+
+        // ===============================
+        // LOAD AUCTION DETAILS
+        // ===============================
+
+        async function loadAuctionDetails() {
+
+            const response = await fetch(`/api/Auction/Get_AuctionByAuctionId?AuctionId=${auctionId}`);
+            const data = await response.json();
+
+            if (!data || data.length === 0) return;
+
+            const auction = data[0];
+
+            document.getElementById("title").innerText = auction.itemTitle;
+            document.getElementById("description").innerText = auction.itemDescription;
+            document.getElementById("condition").innerText = "Condition: " + auction.itemCondition;
+            document.getElementById("location").innerText = "Location: " + auction.itemLocation;
+
+            priceIncrement = auction.priceIncrement;
+
+            // Fallback
+            highestBid = auction.reservePrice;
+            document.getElementById("currentBid").innerText = highestBid;
+
+            const primary = auction.images.find(x => x.isPrimary) || auction.images[0];
+
+            const imageUrl = primary.imageUrl.startsWith("http")
+                ? primary.imageUrl
+                : "/" + primary.imageUrl;
+
+            document.getElementById("mainImage").src = imageUrl;
+
+            const thumbContainer = document.getElementById("thumbContainer");
+            thumbContainer.innerHTML = "";
+
+            auction.images.forEach(img => {
+
+                const thumbUrl = img.imageUrl.startsWith("http")
+                    ? img.imageUrl
+                    : "/" + img.imageUrl;
+
+                const image = document.createElement("img");
+                image.src = thumbUrl;
+                image.onclick = () => {
+                    document.getElementById("mainImage").src = thumbUrl;
+                };
+
+                thumbContainer.appendChild(image);
+            });
+
+            startCountdown(auction.endTime);
+        }
+
+        // ===============================
+        // LOAD INITIAL BIDS (FIXED CASING)
+        // ===============================
+
+        async function loadInitialBids() {
+
+            const res = await fetch(`/api/Auction/GetRecentBids?auctionId=${auctionId}`);
+            const result = await res.json();
+
+            if (result.resultId !== 1) return;
+
+            const bids = result.data;
+
+            if (!bids || bids.length === 0) return;
+
+            // Clear UI once
+            bidScroll.innerHTML = "";
+            liveBidsContainer.innerHTML = "";
+
+            bids.forEach(bid => {
+                renderBid(bid.userName, bid.bidAmount);
+            });
+
+            const latest = bids.reduce((max, b) =>
+                b.bidAmount > max.bidAmount ? b : max
+            );
+
+            highestBid = latest.bidAmount;
+
+            document.getElementById("currentBid").innerText = highestBid;
+        }
+
+        // ===============================
+        // SIGNALR
+        // ===============================
+
+        function initializeSignalR() {
+
+            connection = new signalR.HubConnectionBuilder()
+                .withUrl("/auctionHub")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.start()
+                .then(() => {
+                    console.log("Connected to SignalR");
+                    connection.invoke("JoinAuction", auctionId.toString());
+                })
+                .catch(err => console.error(err));
+
+            connection.on("ReceiveBid", function (data) {
+
+                if (data.bidAmount <= highestBid) return;
+
+                highestBid = data.bidAmount;
+
+                document.getElementById("currentBid").innerText = highestBid;
+
+                renderBid(data.userName, data.bidAmount);
+            });
+        }
+
+        // ===============================
+        // PLACE BID
+        // ===============================
+
+        function bindPlaceBid() {
+
+            document.querySelector(".place-btn")
+                .addEventListener("click", async () => {
+
+                    if (!currentUserId) {
+                        alert("Please login to place bid.");
+                        window.location.href = "/Home/Login";
+                        return;
+                    }
+
+                    const amountInput = document.getElementById("bidAmount");
+                    const amount = parseFloat(amountInput.value);
+
+                    const minimumAllowed = highestBid + priceIncrement;
+
+                    if (!amount || amount < minimumAllowed) {
+                        alert(`Minimum bid must be ${minimumAllowed.toFixed(2)}`);
+                        return;
+                    }
+
+                    try {
+
+                        const response = await fetch("/api/Auction/PlaceBid", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json"
+                            },
+                            body: JSON.stringify({
+                                auctionId: auctionId,
+                                userId: currentUserId,  // 🔥 dynamic from Razor
+                                bidAmount: amount
+                            })
+                        });
+
+                        const result = await response.json();
+
+                        if (result.resultId <= 0) {
+                            alert(result.resultMessage);
+                            return;
+                        }
+
+                        amountInput.value = "";
+
+                    } catch (error) {
+                        console.error(error);
+                    }
+                });
+        }
+
+        // ===============================
+        // COUNTDOWN
+        // ===============================
+
+        function startCountdown(endTime) {
+
+            const end = new Date(endTime);
+
+            setInterval(() => {
+
+                const now = new Date();
+                const diff = end - now;
+
+                if (diff <= 0) {
+                    document.getElementById("countdown").innerText = "Auction Ended";
+                    return;
+                }
+
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const minutes = Math.floor((diff / (1000 * 60)) % 60);
+                const seconds = Math.floor((diff / 1000) % 60);
+
+                document.getElementById("countdown").innerText =
+                    `Auction Ends In ${hours}h ${minutes}m ${seconds}s`;
+
+            }, 1000);
+        }
+
+        // ===============================
+        // RENDER BID
+        // ===============================
+
+        function renderBid(userName, amount) {
+
+            const initials = userName.charAt(0).toUpperCase();
+
+            const bubble = document.createElement("div");
+            bubble.className = "bid-bubble";
+
+            bubble.innerHTML = `
+                <div class="bid-user">
+                    <div class="avatar">${initials}</div>
+                    <div class="bid-info">
+                        <div class="bid-name">${userName}</div>
+                        <div class="bid-value">₹${amount}</div>
+                    </div>
+                </div>
+            `;
+
+            bidScroll.prepend(bubble);
+
+            const side = document.createElement("div");
+            side.innerHTML = `
+                <span style="color:#cbd5e1">${userName}</span>
+                <span style="color:#facc15;font-weight:700"> ₹${amount}</span>
+            `;
+
+            liveBidsContainer.prepend(side);
+        }
+
+    </script>
+
+
+
+
+</body>
+</html>
