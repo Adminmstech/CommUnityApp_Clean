@@ -319,7 +319,7 @@ $(document).ready(function () {
             PrimaryOfferText: { required: true },
             PrimaryPrizeCount: { required: true, min: 0 },
             PrimaryWinMessage: { required: true },
-            PrimaryPrizePromotionId: { required: true },
+            PrimaryPrizePromotionId: { required: false },
             OfferText: { required: true },
             SecondaryPrizeCount: { required: true, min: 0 },
             SecondaryWinMessage: { required: true },

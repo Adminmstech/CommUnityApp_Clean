@@ -376,3 +376,34 @@ input.error, textarea.error, select.error {
 .form-text.danger {
     color: #dc3545 !important;
 }
+
+/* Template Card Styles for Import Modal */
+.template-card {
+    transition: all 0.2s ease;
+    border-color: #e2e8f0 !important;
+}
+
+.template-card:hover {
+    border-color: #4A90D9 !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(74, 144, 217, 0.15);
+}
+
+.template-card.selected {
+    border-color: #4A90D9 !important;
+    background-color: rgba(74, 144, 217, 0.05);
+    box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.2);
+}
+
+.template-card .template-icon {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.template-card .badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+}

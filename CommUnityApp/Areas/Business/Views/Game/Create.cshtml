@@ -31,6 +31,14 @@
             <i class="fa-solid fa-arrow-left me-2"></i> Back to Dashboard
         </a>
 
+        <!-- Import Template Button -->
+        @if (!isEditMode)
+        {
+            <button type="button" class="btn btn-outline-primary rounded-pill px-4 fw-600 ms-2" data-bs-toggle="modal" data-bs-target="#importTemplateModal">
+                <i class="fa-solid fa-download me-2"></i> Import Template
+            </button>
+        }
+
     </div>
 
     @if (ViewBag.Error != null)
@@ -366,7 +374,170 @@
     </form>
 </div>
 
+<!-- Import Template Modal -->
+<div class="modal fade" id="importTemplateModal" tabindex="-1" aria-labelledby="importTemplateModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-700" id="importTemplateModalLabel">
+                    <i class="fa-solid fa-download me-2 text-primary"></i> Import Game Template
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <p class="text-muted mb-4">Choose a pre-configured game template to get started quickly. You can customize all settings after import.</p>
+                
+                <div class="row g-3">
+                    <!-- Welcome Template -->
+                    <div class="col-md-6">
+                        <div class="template-card card h-100 border-2 rounded-4 cursor-pointer" data-template="welcome" style="cursor: pointer;">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="template-icon bg-primary bg-opacity-10 rounded-3 p-2 me-3">
+                                        <i class="fa-solid fa-hand-sparkles text-primary fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-700 mb-0">Welcome Game</h6>
+                                        <small class="text-muted">3 months duration</small>
+                                    </div>
+                                </div>
+                                <p class="small text-muted mb-2">Standard scratch & win game for general promotions.</p>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <span class="badge bg-primary-subtle text-primary">5 Primary</span>
+                                    <span class="badge bg-info-subtle text-info">20 Secondary</span>
+                                    <span class="badge bg-secondary-subtle text-secondary">100 Consolation</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Holiday Template -->
+                    <div class="col-md-6">
+                        <div class="template-card card h-100 border-2 rounded-4 cursor-pointer" data-template="holiday" style="cursor: pointer;">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="template-icon bg-danger bg-opacity-10 rounded-3 p-2 me-3">
+                                        <i class="fa-solid fa-gift text-danger fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-700 mb-0">Holiday Special</h6>
+                                        <small class="text-muted">2 weeks duration</small>
+                                    </div>
+                                </div>
+                                <p class="small text-muted mb-2">Limited-time festive promotion with bigger prizes.</p>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <span class="badge bg-primary-subtle text-primary">3 Primary</span>
+                                    <span class="badge bg-info-subtle text-info">15 Secondary</span>
+                                    <span class="badge bg-secondary-subtle text-secondary">100 Consolation</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Loyalty Template -->
+                    <div class="col-md-6">
+                        <div class="template-card card h-100 border-2 rounded-4 cursor-pointer" data-template="loyalty" style="cursor: pointer;">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="template-icon bg-purple bg-opacity-10 rounded-3 p-2 me-3" style="background-color: rgba(107, 91, 149, 0.1);">
+                                        <i class="fa-solid fa-crown text-purple fa-lg" style="color: #6B5B95;"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-700 mb-0">Loyalty Rewards</h6>
+                                        <small class="text-muted">1 year duration</small>
+                                    </div>
+                                </div>
+                                <p class="small text-muted mb-2">Daily rewards for loyal members with points system.</p>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <span class="badge bg-primary-subtle text-primary">12 Primary</span>
+                                    <span class="badge bg-info-subtle text-info">365 Secondary</span>
+                                    <span class="badge bg-secondary-subtle text-secondary">1000 Consolation</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- New Customer Template -->
+                    <div class="col-md-6">
+                        <div class="template-card card h-100 border-2 rounded-4 cursor-pointer" data-template="newcustomer" style="cursor: pointer;">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="template-icon bg-teal bg-opacity-10 rounded-3 p-2 me-3" style="background-color: rgba(0, 128, 128, 0.1);">
+                                        <i class="fa-solid fa-user-plus fa-lg" style="color: #008080;"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-700 mb-0">New Customer</h6>
+                                        <small class="text-muted">Ongoing</small>
+                                    </div>
+                                </div>
+                                <p class="small text-muted mb-2">One-time welcome bonus for new sign-ups.</p>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <span class="badge bg-primary-subtle text-primary">10 Primary</span>
+                                    <span class="badge bg-info-subtle text-info">100 Secondary</span>
+                                    <span class="badge bg-secondary-subtle text-secondary">Unlimited</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4 fw-600" id="btnImportTemplate" disabled>
+                    <i class="fa-solid fa-download me-2"></i> Import Selected
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
     <script src="~/js/brandgame.js"></script>
+    <script>
+        // Template import functionality
+        $(document).ready(function() {
+            var selectedTemplate = null;
+
+            // Template card selection
+            $('.template-card').on('click', function() {
+                $('.template-card').removeClass('border-primary selected');
+                $(this).addClass('border-primary selected');
+                selectedTemplate = $(this).data('template');
+                $('#btnImportTemplate').prop('disabled', false);
+            });
+
+            // Import button click
+            $('#btnImportTemplate').on('click', function() {
+                if (!selectedTemplate) return;
+
+                var $btn = $(this);
+                $btn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-2"></i> Importing...');
+
+                $.ajax({
+                    url: '@Url.Action("ImportDefaultGame", "Game")',
+                    type: 'POST',
+                    data: { templateType: selectedTemplate },
+                    success: function(response) {
+                        if (response.success) {
+                            // Show success and redirect to edit the imported game
+                            $('#importTemplateModal').modal('hide');
+                            if (response.redirectUrl) {
+                                window.location.href = response.redirectUrl;
+                            } else {
+                                location.reload();
+                            }
+                        } else {
+                            alert(response.message || 'Failed to import template.');
+                            $btn.prop('disabled', false).html('<i class="fa-solid fa-download me-2"></i> Import Selected');
+                        }
+                    },
+                    error: function() {
+                        alert('Error importing template. Please try again.');
+                        $btn.prop('disabled', false).html('<i class="fa-solid fa-download me-2"></i> Import Selected');
+                    }
+                });
+            });
+        });
+    </script>
 }
