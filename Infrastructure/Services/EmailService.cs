@@ -16,9 +16,27 @@ namespace CommUnityApp.InfrastructureLayer.Services
 
         }
 
-        public Task SendPasswordResetEmailAsync(string toEmail, string otp)
+        public async Task SendPasswordResetEmailAsync(string toEmail, string otp)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(toEmail))
+                return;
+
+            string subject = "CommUnityApp - Password Reset OTP";
+            string body = $@"
+<html>
+<body>
+    <p>Hello,</p>
+    <p>Your OTP for password reset is:</p>
+    <h2 style='color:#2563eb'>{otp}</h2>
+    <p>This OTP is valid for 5 minutes.</p>
+    <p>If you did not request this, please ignore this email.</p>
+    <br/>
+    <p>Regards,<br/>
+    CommUnityApp Team</p>
+</body>
+</html>";
+
+            await SendEmailAsync(toEmail, subject, body);
         }
 
         public Task SendPasswordResetSuccessEmailAsync(string toEmail)

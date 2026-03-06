@@ -15,5 +15,9 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<EventDto> GetEventByIdAsync(int eventId);
         Task<EventRegistrationModel?> GetRegistrationByIdAsync(long id);
         Task<IEnumerable<EventRegistrationModel>> GetRegistrationsByEventAsync(long eventId);
+
+        Task<List<Events>> GetEvents();
+        Task<List<Events>> GetEventById(int EventId);
+        Task<List<TopEventDto>> GetTop5Events();
     }
 }

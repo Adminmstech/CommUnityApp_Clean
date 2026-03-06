@@ -8,6 +8,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public int ProductId { get; set; }
 
         public int? BusinessId { get; set; }
+        public string BusinessName { get; set; }
 
         public int? CategoryId { get; set; }
         public string ProductCategory { get; set; }

@@ -163,6 +163,11 @@
 
         let imageList = [];
 
+        /* Get ProductId from URL */
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get("productId");
+
 
         /* Load Categories */
 
@@ -184,9 +189,84 @@
 
         });
 
+        /* Load Product for Edit */
+
+        if(productId){
+        loadProduct();
+        document.querySelector(".card-header").innerText="Edit Product";
+        document.querySelector("button[type='submit']").innerText="Update Product";
+        }
+
         });
 
         });
+
+
+        /* Load Product By Id */
+
+        async function loadProduct(){
+
+        try{
+
+        const response=await fetch(`/api/Product/Get_ProductById?productId=${productId}`);
+
+        const data=await response.json();
+
+        const product=data.product;
+
+        document.getElementById("categoryId").value=product.categoryId;
+        document.getElementById("productName").value=product.productName;
+        document.getElementById("description").value=product.description;
+
+        document.getElementById("price").value=product.price;
+        document.getElementById("discountPrice").value=product.discountPrice;
+
+        document.getElementById("redemptionCoins").value=product.redemptionCoins ?? 0;
+
+        document.getElementById("referAFriend").value=product.referAFriend.toString();
+
+        document.getElementById("isActive").value=product.isActive;
+
+        /* Date Format */
+
+        if(product.startDate){
+        document.getElementById("startDate").value=product.startDate.substring(0,16);
+        }
+
+        if(product.endDate){
+        document.getElementById("endDate").value=product.endDate.substring(0,16);
+        }
+
+
+        /* Load Images */
+
+        if(data.images){
+
+        imageList=data.images;
+
+        data.images.forEach(img=>{
+
+        const image=document.createElement("img");
+
+        image.src="/"+img.imagePath;
+
+        image.className="preview-img";
+
+        document.getElementById("imagePreview").appendChild(image);
+
+        });
+
+        }
+
+        }
+        catch(err){
+
+        console.error("Error loading product",err);
+
+        }
+
+        }
+
 
 
         /* Convert Image to Base64 */
@@ -225,7 +305,7 @@
         imageList.push({
 
         productImageId:0,
-        productId:0,
+        productId:productId ? parseInt(productId) : 0,
         imageBase64:base64,
         imagePath:"",
         isPrimary:(i===0)
@@ -262,10 +342,12 @@
 
         const data={
 
-                       product:{
+        product:{
 
-        productId:0,
+        productId: productId ? parseInt(productId) : 0,
+
         businessId:parseInt(businessId),
+
         categoryId:parseInt(document.getElementById("categoryId").value),
 
         productCategory: document.getElementById("categoryId").selectedOptions[0].text,
@@ -311,7 +393,7 @@
         {
 
         document.getElementById("result").innerHTML=
-        "<div class='alert alert-success'>Product added successfully</div>";
+        "<div class='alert alert-success'>Product saved successfully</div>";
 
         document.getElementById("productForm").reset();
         document.getElementById("imagePreview").innerHTML="";
@@ -321,7 +403,7 @@
         {
 
         document.getElementById("result").innerHTML=
-        "<div class='alert alert-danger'>Failed to add product</div>";
+        "<div class='alert alert-danger'>Failed to save product</div>";
 
         }
 
