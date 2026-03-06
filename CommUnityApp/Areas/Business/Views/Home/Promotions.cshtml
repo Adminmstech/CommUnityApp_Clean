@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Products";
+    ViewData["Title"] = "Promotions";
     var businessId = ViewBag.BusinessId;
     Layout = "_BusinessLayout";
 }
@@ -11,20 +11,148 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-    <title>Products</title>
+    <title>Promotions</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     <style>
 
+        body {
+            background: #f4f6f9;
+            font-family: "Segoe UI", sans-serif;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .page-title {
+            font-size: 28px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .btn-create {
+            background: #20b2aa;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: 600;
+        }
+
+            .btn-create:hover {
+                background: #17a2a0;
+                color: white;
+            }
+
+        .card {
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .table {
+            margin: 0;
+        }
+
+            .table thead {
+                background: #334a73;
+                color: white;
+            }
+
+                .table thead th {
+                    border: none;
+                    padding: 14px;
+                    font-weight: 600;
+                    font-size: 14px;
+                }
+
+            .table tbody td {
+                vertical-align: middle;
+                padding: 14px;
+                font-size: 14px;
+                border-top: 1px solid #eee;
+            }
+
+            .table tbody tr:hover {
+                background: #f8f9fc;
+            }
+
         .product-img {
-            width: 60px;
-            height: 60px;
+            width: 55px;
+            height: 55px;
+            border-radius: 8px;
             object-fit: cover;
+            background: #e9ecef;
+        }
+
+        .badge-success {
+            background: #28a745;
+        }
+
+        .badge-no {
+            background: #6c757d;
+        }
+
+        .btn-edit {
+            background: #ffc107;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .promo-header th {
+            background: #334a73 !important;
+            color: white !important;
+            border: none !important;
+            padding: 22px 20px !important; 
+            font-weight: 600;
+            font-size: 15px;
+            white-space: nowrap;
+            vertical-align: middle;
+        }
+
+        .table tbody tr:nth-child(odd) td {
+            background: #ffffff !important;
+        }
+
+        .table tbody tr:nth-child(even) td {
+            background: #f2f3f5 !important;
+        }
+
+      
+        .table td {
+            vertical-align: middle;
+        }
+
+        .table tbody td {
+            vertical-align: middle;
+            padding: 8px 10px; 
+            font-size: 13px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn-edit {
+            background: #f1bb49;
+            color: #000;
+            border: none;
+            padding: 5px 12px;
+            font-size: 13px;
             border-radius: 6px;
         }
 
+            .btn-edit:hover {
+                background: #f1bb49;
+                color: #000;
+            }
     </style>
+
+   
 
 </head>
 
@@ -32,12 +160,17 @@
 
     <div class="container mt-4">
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="page-header">
 
-            <h3 class="fw-bold">Products</h3>
+            <div>
+                <div class="page-title">Promotions</div>
+                <div class="text-muted">
+                    Manage and monitor your product promotions
+                </div>
+            </div>
 
-            <a href="/Business/Home/AddProduct" class="btn btn-primary">
-                + Add Product
+            <a href="/Business/Home/AddProduct" class="btn btn-create">
+                + Add Promotion
             </a>
 
         </div>
@@ -48,26 +181,26 @@
 
                 <table class="table table-bordered table-hover mb-0">
 
-                    <thead class="table-dark">
-
+                    <thead class="promo-header">
                         <tr>
                             <th style="width:90px">Image</th>
-                            <th>Product Name</th>
+                            <th>Name</th>
                             <th>Category</th>
                             <th>Price</th>
-                            <th>Discount Price</th>
+                            <th>Discount (%)</th>
                             <th>Coins (%)</th>
                             <th>Refer Friend</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
                             <th style="width:120px">Action</th>
                         </tr>
-
                     </thead>
 
                     <tbody id="productTable">
 
                         <tr>
-                            <td colspan="8" class="text-center p-3">
-                                Loading products...
+                            <td colspan="10" class="text-center p-3">
+                                Loading Promotions...
                             </td>
                         </tr>
 
@@ -81,110 +214,118 @@
 
     </div>
 
-
     <script>
 
-        const businessId = '@businessId';
+        const businessId='@businessId';
+
+        function formatDate(dateString){
+
+        if(!dateString) return "";
+
+        const date=new Date(dateString);
+
+        return date.toLocaleDateString()+" "+date.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+
+        }
 
         async function loadProducts(){
 
-            try{
+        try{
 
-                const response = await fetch(`/api/Product/Get_ProductByBusinessId?BusinessId=${businessId}`);
+        const response=await fetch(`/api/Product/Get_ProductByBusinessId?BusinessId=${businessId}`);
 
-                const data = await response.json();
+        const data=await response.json();
 
-                let rows = "";
+        let rows="";
 
-                if(data.length === 0){
+        if(data.length===0){
 
-                    rows = `
-                        <tr>
-                            <td colspan="8" class="text-center p-4">
-                                No products found
-                            </td>
-                        </tr>
-                    `;
-                }
-
-                data.forEach(item => {
-
-                    let image = "/images/no-image.png";
-
-                    if(item.images && item.images.length > 0){
-                        image = "/" + item.images[0].imagePath;
-                    }
-
-                    rows += `
-                        <tr>
-
-                            <td>
-                                <img src="${image}" class="product-img"/>
-                            </td>
-
-                            <td>${item.product.productName ?? ""}</td>
-
-                            <td>${item.product.productCategory ?? ""}</td>
-
-                            <td>${item.product.price ?? ""}</td>
-
-                            <td>${item.product.discountPrice ?? ""}</td>
-
-                            <td>${item.product.redemptionCoins ?? 0}%</td>
-
-                            <td>
-                                ${item.product.referAFriend
-                                    ? "<span class='badge bg-success'>Yes</span>"
-                                    : "<span class='badge bg-secondary'>No</span>"
-                                }
-                            </td>
-
-                            <td>
-
-                                <button class="btn btn-warning btn-sm"
-                                    onclick="editProduct(${item.product.productId})">
-
-                                    Edit
-
-                                </button>
-
-                            </td>
-
-                        </tr>
-                    `;
-                });
-
-                document.getElementById("productTable").innerHTML = rows;
-
-            }
-            catch(error){
-
-                console.error("Error loading products:", error);
-
-                document.getElementById("productTable").innerHTML =
-                `
-                <tr>
-                    <td colspan="8" class="text-center text-danger p-4">
-                        Failed to load products
-                    </td>
-                </tr>
-                `;
-            }
+        rows=`
+        <tr>
+        <td colspan="10" class="text-center p-4">
+        No products found
+        </td>
+        </tr>
+        `;
 
         }
 
+        data.forEach(item=>{
+
+        let image="/images/no-image.png";
+
+        if(item.images && item.images.length>0){
+        image="/"+item.images[0].imagePath;
+        }
+
+        rows+=`
+        <tr>
+
+        <td>
+        <img src="${image}" class="product-img"/>
+        </td>
+
+        <td>${item.product.productName ?? ""}</td>
+
+        <td>${item.product.productCategory ?? ""}</td>
+
+        <td>${item.product.price ?? ""}</td>
+
+        <td>${item.product.discountPrice ?? 0}%</td>
+
+        <td>${item.product.redemptionCoins ?? 0}%</td>
+
+        <td>
+        ${item.product.referAFriend
+        ? "<span class='badge bg-success'>Yes</span>"
+        : "<span class='badge bg-secondary'>No</span>"
+        }
+        </td>
+
+        <td>${formatDate(item.product.startDate)}</td>
+
+        <td>${formatDate(item.product.endDate)}</td>
+
+        <td>
+               <button class="btn-edit"
+        onclick="editProduct(${item.product.productId})">
+        Edit
+        </button>
+        </td>
+
+        </tr>
+        `;
+
+        });
+
+        document.getElementById("productTable").innerHTML=rows;
+
+        }
+        catch(error){
+
+        console.error("Error loading products:",error);
+
+        document.getElementById("productTable").innerHTML=`
+        <tr>
+        <td colspan="10" class="text-center text-danger p-4">
+        Failed to load products
+        </td>
+        </tr>
+        `;
+
+        }
+
+        }
 
         function editProduct(id){
 
-            window.location.href = "/Business/Home/AddProduct?productId=" + id;
+        window.location.href="/Business/Home/AddProduct?productId="+id;
 
         }
-
 
         loadProducts();
 
     </script>
-
 
 </body>
 </html>
