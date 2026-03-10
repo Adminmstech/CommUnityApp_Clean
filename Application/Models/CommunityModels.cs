@@ -1,4 +1,4 @@
-namespace CommUnityApp.ApplicationCore.Models
+﻿namespace CommUnityApp.ApplicationCore.Models
 {
     public class CommunityLoginResponse
     {
@@ -52,6 +52,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public int ResultId { get; set; }
         public string? ResultMessage { get; set; }
         public DashboardData? Data { get; set; }
+       
     }
 
     public class DashboardData
@@ -59,5 +60,6 @@ namespace CommUnityApp.ApplicationCore.Models
         public List<TopEventDto>? Events { get; set; }
         public List<AuctionListModel>? Auctions { get; set; }
         public List<Community>? Communities { get; set; }
+        public List<BusinessDetailsDto> Businesses { get; set; }
     }
 }

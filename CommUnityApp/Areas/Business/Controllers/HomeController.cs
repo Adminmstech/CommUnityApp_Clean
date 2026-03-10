@@ -41,5 +41,19 @@ namespace CommUnityApp.Areas.Business.Controllers
 
             return View();
         }
+
+        public IActionResult BusinessProfile()
+        {
+            var businessId = HttpContext.Session.GetString("BusinessId");
+
+            if (string.IsNullOrEmpty(businessId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            ViewBag.BusinessId = businessId;
+
+            return View();
+        }
     }
 }

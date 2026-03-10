@@ -18,24 +18,67 @@
     <style>
 
         body {
-            background: #f4f6f9;
+            background: #EDF2FF;
+            font-family: "Segoe UI", sans-serif;
         }
 
         .card {
-            border-radius: 10px;
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f4f7fe;
         }
 
         .card-header {
+            background: #334a73 !important;
+            color: #fff !important;
+            font-size: 18px;
             font-weight: 600;
+            padding: 16px 20px;
         }
 
-        .preview-img {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
+        .form-label {
+            font-weight: 700;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .form-control {
             border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+
+            .form-control:focus {
+                border-color: #20b2aa;
+                box-shadow: 0 0 0 0.15rem rgba(32,178,170,.25);
+            }
+
+        .btn-success {
+            background: #20b2aa;
+            border: none;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+            .btn-success:hover {
+                background: #179b94;
+            }
+
+        .preview-img {
+            width: 90px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 8px;
             margin-right: 10px;
             margin-bottom: 10px;
+            border: 1px solid #ddd;
+            padding: 2px;
+        }
+
+        .card-body {
+            padding: 25px;
         }
 
     </style>
@@ -48,7 +91,7 @@
 
         <div class="row justify-content-center">
 
-            <div class="col-lg-8">
+            <div class="col-lg-10">
 
                 <div class="card shadow">
 

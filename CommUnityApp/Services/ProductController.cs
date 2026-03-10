@@ -2,6 +2,7 @@
 using CommUnityApp.ApplicationCore.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Org.BouncyCastle.Bcpg;
 
 namespace CommUnityApp.Services
 {
@@ -195,37 +196,52 @@ namespace CommUnityApp.Services
         {
             try
             {
-                // Step 1: Get product
                 var product = await _unitOfWork.Product.GetProductById(productId);
 
                 if (product == null)
-                {
                     return NotFound("Product not found");
-                }
 
-                // Step 2: Get images
                 var images = await _unitOfWork.Product.GetProductImageById(productId);
 
-                var response = new ProductWithImagesModel
+                var response = new ProductFullResponse
                 {
-                    Product = product
+                    ProductDetails = new ProductDetails
+                    {
+                        ProductId = product.ProductId,
+                        BusinessId = product.BusinessId,
+                        CategoryId = product.CategoryId,
+                        ProductCategory = product.ProductCategory,
+                        ProductName = product.ProductName,
+                        Description = product.Description,
+                        Price = product.Price,
+                        DiscountPrice = product.DiscountPrice,
+                        StartDate = product.StartDate,
+                        EndDate = product.EndDate,
+                        RedemptionCoins = product.RedemptionCoins,
+                        ReferAFriend = product.ReferAFriend,
+                        IsActive = product.IsActive,
+                        CreatedAt = product.CreatedAt
+                    },
+
+                    ProductImages = images ?? new List<ProductImage>(),
+
+                    BusinessDetails = new BusinessDetails
+                    {
+                        BusinessName = product.BusinessName,
+                        OwnerName = product.OwnerName,
+                        Email = product.Email,
+                        Phone = product.Phone,
+                        Address = product.Address,
+                        City = product.City,
+                        State = product.State,
+                        Country = product.Country,
+                        Logo = product.Logo,
+                        Latitude = product.Latitude,
+                        Longitude = product.Longitude
+                    }
                 };
 
-                if (images != null && images.Count > 0)
-                {
-                    foreach (var image in images)
-                    {
-                        response.Images.Add(new ProductImageUpload
-                        {
-                            ProductImageId = image.ProductImageId,
-                            ProductId = image.ProductId,
-                            ImagePath = image.ImagePath,
-                            IsPrimary = image.IsPrimary
-                        });
-                    }
-                }
-
-                return Ok(response);
+                return Ok(new List<ProductFullResponse> { response });
             }
             catch (Exception ex)
             {
@@ -283,6 +299,20 @@ namespace CommUnityApp.Services
                     Error = ex.Message
                 });
             }
+        }
+
+        [HttpPost("Add_FavouriteBusiness")]
+        public async Task<IActionResult> AddFavouriteBusiness(FavBusineess F )
+        {
+            var data = await _unitOfWork.Product.AddFavouriteBusiness(F);
+           return Ok(data);
+        }
+
+        [HttpGet("Get_UserFavBusiness")]
+        public async Task<IActionResult> GetFavBusiness(Guid UserId )
+        {
+            var data = await _unitOfWork.Product.GetFavBusiness(UserId);
+            return Ok(data);
         }
     }
 }

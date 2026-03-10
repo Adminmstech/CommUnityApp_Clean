@@ -84,13 +84,14 @@ namespace CommUnityApp.Services
                 var auctions = await _unitOfWork.Auction.GetTop5Auctions();
                 var communities = await _unitOfWork.Community.GetCommunities();
 
-                // ✅ Get auction IDs from auctions (NOT from response.Data)
+                // ⭐ NEW
+                var businesses = await _unitOfWork.Business.GetAllBusinesses();
+
+                // Get auction IDs
                 var auctionIds = auctions.Select(a => a.AuctionId).ToList();
 
-                // ✅ Call correct method (must accept List<int>)
                 var auctionImages = await _unitOfWork.Auction.GetAuctionImagesByIds(auctionIds);
 
-                // ✅ Map images to auctions
                 foreach (var auction in auctions)
                 {
                     auction.AuctionImages = auctionImages
@@ -104,7 +105,8 @@ namespace CommUnityApp.Services
                 {
                     Events = events,
                     Auctions = auctions,
-                    Communities = communities
+                    Communities = communities,
+                    Businesses = businesses   // ⭐ Added here
                 };
 
                 return Ok(new List<DashboardResponse> { response });
