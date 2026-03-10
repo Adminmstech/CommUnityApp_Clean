@@ -1,5 +1,5 @@
 ﻿@{
-    ViewData["Title"] = "Add Product";
+    ViewData["Title"] = "Add Promotion";
     var businessId = Context.Session.GetString("BusinessId");
     Layout = "_BusinessLayout";
 }
@@ -18,24 +18,67 @@
     <style>
 
         body {
-            background: #f4f6f9;
+            background: #EDF2FF;
+            font-family: "Segoe UI", sans-serif;
         }
 
         .card {
-            border-radius: 10px;
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f4f7fe;
         }
 
         .card-header {
+            background: #334a73 !important;
+            color: #fff !important;
+            font-size: 18px;
             font-weight: 600;
+            padding: 16px 20px;
         }
 
-        .preview-img {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
+        .form-label {
+            font-weight: 700;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .form-control {
             border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+
+            .form-control:focus {
+                border-color: #20b2aa;
+                box-shadow: 0 0 0 0.15rem rgba(32,178,170,.25);
+            }
+
+        .btn-success {
+            background: #20b2aa;
+            border: none;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+            .btn-success:hover {
+                background: #179b94;
+            }
+
+        .preview-img {
+            width: 90px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 8px;
             margin-right: 10px;
             margin-bottom: 10px;
+            border: 1px solid #ddd;
+            padding: 2px;
+        }
+
+        .card-body {
+            padding: 25px;
         }
 
     </style>
@@ -48,12 +91,12 @@
 
         <div class="row justify-content-center">
 
-            <div class="col-lg-8">
+            <div class="col-lg-10">
 
                 <div class="card shadow">
 
                     <div class="card-header bg-primary text-white">
-                        Add New Product
+                        Add New Promotion
                     </div>
 
                     <div class="card-body">
@@ -63,24 +106,20 @@
                         <form id="productForm">
 
                             <input type="hidden" id="businessId" value="@businessId" />
-
-                            <div class="mb-3">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
                                 <label class="form-label">Category</label>
                                 <select id="categoryId" class="form-control" required>
                                     <option value="">Select Category</option>
                                 </select>
                             </div>
 
-                            <div class="mb-3">
+                                <div class="col-md-6 mb-3">
                                 <label class="form-label">Product Name</label>
                                 <input type="text" id="productName" class="form-control" required>
                             </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Description</label>
-                               <textarea id="description" class="form-control"></textarea>
                             </div>
-
+                           
                             <div class="row">
 
                                 <div class="col-md-6 mb-3">
@@ -126,25 +165,35 @@
                                 </div>
 
                             </div>
+                            <div class="row">
 
+                                <!-- Upload Images -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Upload Product Images</label>
+                                    <input type="file" id="productImages" class="form-control" multiple accept="image/*">
+
+                                    <!-- Image Preview -->
+                                    <div id="imagePreview" class="d-flex flex-wrap mt-2"></div>
+                                </div>
+
+                                <!-- Status -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select id="isActive" class="form-control">
+                                        <option value="1">Active</option>
+                                        <option value="0">Inactive</option>
+                                    </select>
+                                </div>
+
+                            </div>
                             <div class="mb-3">
-                                <label class="form-label">Upload Product Images</label>
-                                <input type="file" id="productImages" class="form-control" multiple accept="image/*">
+                                <label class="form-label">Description</label>
+                                <textarea id="description" class="form-control"></textarea>
                             </div>
 
-                            <div id="imagePreview" class="d-flex flex-wrap mb-3"></div>
-
-
-                            <div class="mb-3">
-                                <label class="form-label">Status</label>
-                                <select id="isActive" class="form-control">
-                                    <option value="1">Active</option>
-                                    <option value="0">Inactive</option>
-                                </select>
-                            </div>
 
                             <button type="submit" class="btn btn-success w-100">
-                                Add Product
+                                Add Promotion
                             </button>
 
                         </form>
