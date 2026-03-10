@@ -92,5 +92,38 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure
             );
         }
+
+        public async Task<List<BusinessDetailsDto>> GetAllBusinesses()
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<BusinessDetailsDto>("Get_AllBusinesses", commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+        public async Task<BusinessDetailsDto> GetBusinessDetails(int BusinessId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@BusinessId", BusinessId);
+
+            var result = await connection.QueryAsync<BusinessDetailsDto>(
+                "Get_BusinessDetails",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.FirstOrDefault();
+        }
     }
 }

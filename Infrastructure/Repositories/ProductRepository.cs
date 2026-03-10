@@ -92,7 +92,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result.ToList();
         }
 
-        public async Task<Product?> GetProductById(int productId)
+        public async Task<ProductDetails?> GetProductById(int productId)
         {
             using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection")
@@ -103,7 +103,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             var parameters = new DynamicParameters();
             parameters.Add("@ProductId", productId);
 
-            return await connection.QueryFirstOrDefaultAsync<Product>(
+            return await connection.QueryFirstOrDefaultAsync<ProductDetails>(
                 "Get_ProductById",
                 parameters,
                 commandType: CommandType.StoredProcedure
@@ -184,6 +184,50 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             );
 
             return result.ToList();
+        }
+
+
+        public async Task<FavoriteBusinessResult> AddFavouriteBusiness(FavBusineess entity)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@UserId", entity.UserId);
+            parameters.Add("@BusinessId", entity.BusinessId);
+          
+            var result = await connection.QueryAsync<FavoriteBusinessResult>(
+                "Add_Favorite_Business",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.FirstOrDefault();
+        }
+
+
+        public async Task<BusinessDetailsDto> GetFavBusiness( Guid UserId )
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@UserId", UserId);
+
+            var result = await connection.QueryAsync<BusinessDetailsDto>(
+                "Get_UserFavBusiness",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.FirstOrDefault();
         }
     }
 }

@@ -118,5 +118,24 @@ namespace CommUnityApp.Services
         return false;
     }
 }
+
+
+
+        [HttpGet("Get_Businesses")]
+        public async Task<IActionResult> GetBusinesses()
+        {
+            var data = await _unitOfWork.Business.GetAllBusinesses();
+            return Ok(data);
+        }
+
+
+        [HttpGet("Get_BusinessDetails")]
+        public async Task<IActionResult> GetBusinessDetails( int BusinessId)
+        {
+            var data = await _unitOfWork.Business.GetBusinessDetails(BusinessId);
+            return Ok(data);
+        }
     }
+
+
 }

@@ -11,12 +11,14 @@ namespace CommUnityApp.ApplicationCore.Interfaces
     {
         Task<BaseResponse> AddProduct(Product entity);
         Task<List<Product>> GetAllProducts();
-        Task<Product?> GetProductById(int productId);
+        Task<ProductDetails?> GetProductById(int productId);
         Task<BaseResponse> AddProductCategory(ProductCategories entity);
         Task<List<ProductCategories>> GetProductCategories();
         Task<BaseResponse> AddProductImage(ProductImageUpload entity);
         Task<List<ProductImage>> GetProductImageById(int productId);
         Task<List<Product>> GetProductByBusinessId(int BusinessId);
+        Task<FavoriteBusinessResult> AddFavouriteBusiness(FavBusineess entity);
+        Task<BusinessDetailsDto> GetFavBusiness(Guid UserId);
     }
 }
 

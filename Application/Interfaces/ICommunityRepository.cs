@@ -6,5 +6,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
     {
         Task<CommunityLoginResponse> LoginAsync(CommunityLoginRequest request);
         Task<List<GroupDto>> GetGroupsByCommunityAsync(long communityId);
+        Task<List<Community>> GetCommunities();
     }
 }

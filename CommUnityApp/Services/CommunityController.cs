@@ -1,5 +1,6 @@
 ﻿using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
+using CommUnityApp.InfrastructureLayer.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CommUnityApp.Services
@@ -12,11 +13,17 @@ namespace CommUnityApp.Services
     {
 
         private readonly ICommunityRepository _communityRepository;
+        private readonly ILogger<CommunityController> _logger;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IConfiguration _config;
 
 
-        public CommunityController(ICommunityRepository communityRepository)
+
+        public CommunityController(ILogger<CommunityController> logger, IUnitOfWork unitOfWork, IConfiguration config)
         {
-            _communityRepository = communityRepository;
+            _logger = logger;
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _config = config;
         }
 
 
@@ -54,6 +61,62 @@ namespace CommUnityApp.Services
         public async Task<IActionResult> GetByCommunity(long communityId)
         {
             return Ok(await _communityRepository.GetGroupsByCommunityAsync(communityId));
+        }
+
+
+        [HttpGet("Get_Communities")]
+        public async Task<IActionResult> GetCommunities()
+        {
+            var data = await _unitOfWork.Community.GetCommunities();
+            return Ok(data);
+        }
+
+
+        //For mobile app dashboard//
+        [HttpGet("Get_DashboardData")]
+        public async Task<IActionResult> GetDashboardData()
+        {
+            var response = new DashboardResponse();
+
+            try
+            {
+                var events = await _unitOfWork.Events.GetTop5Events();
+                var auctions = await _unitOfWork.Auction.GetTop5Auctions();
+                var communities = await _unitOfWork.Community.GetCommunities();
+
+                // ⭐ NEW
+                var businesses = await _unitOfWork.Business.GetAllBusinesses();
+
+                // Get auction IDs
+                var auctionIds = auctions.Select(a => a.AuctionId).ToList();
+
+                var auctionImages = await _unitOfWork.Auction.GetAuctionImagesByIds(auctionIds);
+
+                foreach (var auction in auctions)
+                {
+                    auction.AuctionImages = auctionImages
+                        .Where(img => img.AuctionId == auction.AuctionId)
+                        .ToList();
+                }
+
+                response.ResultId = 1;
+                response.ResultMessage = "Success";
+                response.Data = new DashboardData
+                {
+                    Events = events,
+                    Auctions = auctions,
+                    Communities = communities,
+                    Businesses = businesses   // ⭐ Added here
+                };
+
+                return Ok(new List<DashboardResponse> { response });
+            }
+            catch (Exception ex)
+            {
+                response.ResultId = 0;
+                response.ResultMessage = ex.Message;
+                return Ok(new List<DashboardResponse> { response });
+            }
         }
 
     }
