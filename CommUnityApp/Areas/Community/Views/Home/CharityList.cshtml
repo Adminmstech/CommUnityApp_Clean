@@ -1,0 +1,207 @@
+﻿@{
+    ViewData["Title"] = "Charity Items";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+}
+
+<h3 class="mb-3">Charity Items</h3>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <table class="table table-bordered table-striped align-middle" id="tblCharity">
+            <thead class="table-dark">
+                <tr>
+
+                    <th style="width:100px;">Image</th>
+                    <th>Item Name</th>
+                    <th>Description</th>
+                    <th style="width:100px;">Quantity</th>
+                    <th style="width:120px;">Status</th>
+                    <th style="width:150px;">Created Date</th>
+                    <th style="width:150px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="7" class="text-center">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+<div class="modal fade" id="volunteerModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Assign Volunteer</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="selectedCharityId" />
+
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Mobile</th>
+                            <th>Email</th>
+                            <th style="width:120px;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblVolunteers">
+                        <tr>
+                            <td colspan="4" class="text-center">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        loadCharityItems();
+    });
+
+    function loadCharityItems() {
+
+        $.ajax({
+            url: '/api/Community/GetCharityListByCommunity',
+            type: 'GET',
+            success: function (res) {
+
+                var html = "";
+
+                if (!res || res.length === 0) {
+                    html += "<tr><td colspan='7' class='text-center'>No records found</td></tr>";
+                }
+                else {
+
+                    $.each(res, function (i, item) {
+
+                        html += "<tr>";
+
+                        html += "<td>";
+                        if (item.imagePath) {
+                            html += "<img src='" + item.imagePath + "' class='img-thumbnail' style='width:80px;height:80px;' />";
+                        } else {
+                            html += "<img src='/images/noimage.png' class='img-thumbnail' style='width:80px;height:80px;' />";
+                        }
+                        html += "</td>";
+
+                        html += "<td>" + (item.itemName || "") + "</td>";
+                        html += "<td>" + (item.description || "") + "</td>";
+                        html += "<td>" + item.quantity + "</td>";
+
+                        if (item.status === "Pending")
+                            html += "<td><span class='badge bg-warning text-dark'>Pending</span></td>";
+                        else if (item.status === "Approved")
+                            html += "<td><span class='badge bg-success'>Approved</span></td>";
+                        else if (item.status === "Assigned")
+                            html += "<td><span class='badge bg-primary'>Assigned</span></td>";
+                        else
+                            html += "<td><span class='badge bg-danger'>Rejected</span></td>";
+
+                        html += "<td>" + (item.createdDate ? new Date(item.createdDate).toLocaleDateString() : "-") + "</td>";
+
+                        html += "<td>";
+
+                        if (item.status === "Approved" || item.status === "Pending") {
+                            html += "<button class='btn btn-sm btn-primary' onclick='openVolunteerModal(" + item.charityItemId + ")'>Assign Volunteer</button>";
+                        }
+                        else if (item.status === "Assigned") {
+                            html += "<span class='text-success'>Already Assigned</span>";
+                        }
+                        else {
+                            html += "-";
+                        }
+
+                        html += "</td>";
+
+                        html += "</tr>";
+                    });
+                }
+
+                $("#tblCharity tbody").html(html);
+            }
+        });
+    }
+
+    function openVolunteerModal(charityId) {
+
+        console.log("Selected CharityItemId:", charityId);
+
+        $("#selectedCharityId").val(charityId);
+        $("#volunteerModal").modal("show");
+
+        $.ajax({
+            url: '/api/Community/GetVolunteers',
+            type: 'GET',
+            success: function (res) {
+
+                var html = "";
+
+                if (!res || res.length === 0) {
+                    html = "<tr><td colspan='4' class='text-center'>No volunteers found</td></tr>";
+                }
+                else {
+
+                    $.each(res, function (i, v) {
+
+                        html += "<tr>";
+                        html += "<td>" + (v.FullName || "") + "</td>";
+                        html += "<td>" + (v.Mobile || "") + "</td>";
+                        html += "<td>" + (v.Email || "") + "</td>";
+
+                        // IMPORTANT: pass GUID properly
+                        html += "<td><button class='btn btn-sm btn-success' onclick='assignVolunteer(\"" + v.UserId + "\")'>Assign</button></td>";
+
+                        html += "</tr>";
+                    });
+                }
+
+                $("#tblVolunteers").html(html);
+            }
+        });
+    }
+
+    function assignVolunteer(volunteerId) {
+
+        var charityItemId = $("#selectedCharityId").val();
+
+        if (!charityItemId) {
+            alert("Charity ID missing");
+            return;
+        }
+
+        var payload = {
+            CharityItemId: parseInt(charityItemId),
+            AssignedToUserId: volunteerId
+        };
+
+        console.log("Sending Payload:", payload);
+
+        $.ajax({
+            url: '/api/Community/Assign',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload),
+            success: function (res) {
+
+                alert(res.message);
+
+                $("#volunteerModal").modal("hide");
+                loadCharityItems(); // refresh grid
+            },
+            error: function (err) {
+                console.log(err.responseText);
+                alert("Assignment Failed");
+            }
+        });
+    }
+</script>

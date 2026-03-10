@@ -41,5 +41,43 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure
             )).ToList();
         }
+
+        public async Task<List<CharityItem>> GetCharityItemsByCommunityId(long communityId)
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            return (await con.QueryAsync<CharityItem>(
+                "SP_GetCharityItemsByCommunityId",
+                new { CommunityId = communityId },
+                commandType: CommandType.StoredProcedure
+            )).ToList();
+        }
+        public async Task<IEnumerable<dynamic>> GetVolunteersList(long? communityId)
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            return await con.QueryAsync(
+                "SP_GetVolunteersList",
+                new { CommunityId = communityId },
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+        public async Task<bool> AssignVolunteer(long charityItemId, Guid assignedToUserId)
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await con.ExecuteAsync(
+                "SP_AssignVolunteerToCharity",
+                new
+                {
+                    CharityItemId = charityItemId,
+                    AssignedToUserId = assignedToUserId
+                },
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result > 0;
+        }
     }
 }
