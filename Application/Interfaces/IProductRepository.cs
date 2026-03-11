@@ -19,6 +19,9 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<Product>> GetProductByBusinessId(int BusinessId);
         Task<FavoriteBusinessResult> AddFavouriteBusiness(FavBusineess entity);
         Task<BusinessDetailsDto> GetFavBusiness(Guid UserId);
+        Task<BaseResponse> AddToCart(AddToCartRequest entity);
+        Task<BaseResponse> RemoveFromCart(AddToCartRequest entity);
+        Task<List<CartItemResponse>> GetCartItems(Guid UserId);
     }
 }
 

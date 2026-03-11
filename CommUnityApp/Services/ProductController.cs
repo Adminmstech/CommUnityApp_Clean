@@ -314,5 +314,66 @@ namespace CommUnityApp.Services
             var data = await _unitOfWork.Product.GetFavBusiness(UserId);
             return Ok(data);
         }
+
+        [HttpPost("Add_ToCart")]
+        public async Task<IActionResult> AddToCart(AddToCartRequest F)
+        {
+            var data = await _unitOfWork.Product.AddToCart(F);
+            return Ok(data);
+        }
+
+        [HttpPost("Remove_fromCart")]
+        public async Task<IActionResult> Removefromcart(AddToCartRequest F)
+        {
+            var data = await _unitOfWork.Product.RemoveFromCart(F);
+            return Ok(data);
+        }
+
+        [HttpGet("Get_CartItems")]
+        public async Task<IActionResult> GetCart(Guid UserId)
+        {
+            try
+            {
+                var cartItems = await _unitOfWork.Product.GetCartItems(UserId);
+
+                var cartList = new List<CartWithImagesModel>();
+
+                foreach (var cart in cartItems)
+                {
+                    var images = await _unitOfWork.Product.GetProductImageById(cart.ProductId);
+
+                    var response = new CartWithImagesModel
+                    {
+                        Cart = cart
+                    };
+
+                    if (images != null)
+                    {
+                        foreach (var image in images)
+                        {
+                            response.Images.Add(new ProductImageUpload
+                            {
+                                ProductImageId = image.ProductImageId,
+                                ProductId = image.ProductId,
+                                ImagePath = image.ImagePath,
+                                IsPrimary = image.IsPrimary
+                            });
+                        }
+                    }
+
+                    cartList.Add(response);
+                }
+
+                return Ok(cartList);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = "Error retrieving cart items",
+                    Error = ex.Message
+                });
+            }
+        }
     }
 }
