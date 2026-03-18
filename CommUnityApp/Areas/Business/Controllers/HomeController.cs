@@ -55,5 +55,20 @@ namespace CommUnityApp.Areas.Business.Controllers
 
             return View();
         }
+
+        public IActionResult AddAuction()
+        {
+            return View();
+        }
+
+        public IActionResult Auctions()
+        {
+            return View();
+        }
+
+        public IActionResult AuctionDetails()
+        {
+            return View();
+        }
     }
 }
