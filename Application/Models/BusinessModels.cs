@@ -114,4 +114,23 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public DateTime CreatedAt { get; set; }
     }
+
+    public class CustomerModel
+    {
+        public Guid UserId { get; set; }
+
+        public string Name { get; set; }
+
+        public string Email { get; set; }
+
+        public string Mobile { get; set; }
+        public int Gender { get; set; }
+        public string City { get; set; }
+
+        public int TotalOrders { get; set; }
+
+        public decimal TotalSpent { get; set; }
+
+        public DateTime LastOrderDate { get; set; }
+    }
 }

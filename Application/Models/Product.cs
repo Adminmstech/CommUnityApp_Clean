@@ -195,6 +195,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public Guid UserId { get; set; }
 
         public int ProductId { get; set; }
+        public int Quantity { get; set; }
     }
 
     public class CartItemResponse

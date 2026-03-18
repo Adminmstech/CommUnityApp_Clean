@@ -57,6 +57,7 @@
 
     public class DashboardData
     {
+        public Rewards Rewards { get; set; }
         public List<TopEventDto>? Events { get; set; }
         public List<AuctionListModel>? Auctions { get; set; }
         public List<Community>? Communities { get; set; }

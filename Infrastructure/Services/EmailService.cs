@@ -184,7 +184,48 @@ namespace CommUnityApp.InfrastructureLayer.Services
             await smtpClient.SendMailAsync(mailMessage);
         }
 
-       
 
+        public async Task<bool> SendBulkEmailAsync(string toEmail, string subject, string body)
+        {
+            try
+            {
+                var smtp = _configuration.GetSection("SMTP");
+
+                var host = smtp["Host"];
+                var port = smtp["Port"];
+                var username = smtp["Username"];
+                var password = smtp["Password"];
+                var from = smtp["FromEmail"];
+
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(port))
+                    throw new Exception("SMTP configuration missing");
+
+                using var smtpClient = new SmtpClient(host)
+                {
+                    Port = int.Parse(port),
+                    Credentials = new NetworkCredential(username, password),
+                    EnableSsl = true
+                };
+
+                using var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(from, "CommUnityApp"),
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true
+                };
+
+                mailMessage.To.Add(toEmail);
+
+                await smtpClient.SendMailAsync(mailMessage);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                throw;
+            }
+        }
     }
 }

@@ -135,6 +135,13 @@ namespace CommUnityApp.Services
             var data = await _unitOfWork.Business.GetBusinessDetails(BusinessId);
             return Ok(data);
         }
+
+        [HttpGet("Get_BusinessCustomer")]
+        public async Task<IActionResult> GetBusinessCustomer(int BusinessId)
+        {
+            var data = await _unitOfWork.Business.GetBusinessCustomers(BusinessId);
+            return Ok(data);
+        }
     }
 
 

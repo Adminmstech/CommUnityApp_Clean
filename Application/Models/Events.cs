@@ -71,4 +71,5 @@
 
         public int? AvailableTickets { get; set; }
     }
+
 }

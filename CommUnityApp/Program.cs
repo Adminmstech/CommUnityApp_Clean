@@ -40,7 +40,7 @@ builder.Services.AddSession(options =>
 // SignalR
 builder.Services.AddSignalR();
 
-
+builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Mgo+DSMBMAY9C3t2U1hhQlJBfV5CQmdWfFN0QXNYflRxfF9CaEwxOX1dQl9nSXdTckdgXHtac3FWRGM=");
 builder.Services.AddHttpClient();
 builder.Services.AddControllersWithViews();

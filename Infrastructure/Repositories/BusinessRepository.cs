@@ -125,5 +125,27 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result.FirstOrDefault();
         }
+
+        public async Task<List<CustomerModel>> GetBusinessCustomers(int BusinessId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@BusinessId", BusinessId);
+
+            var result = await connection.QueryAsync<CustomerModel>(
+                "Get_BusinessCustomers",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+
+
     }
 }

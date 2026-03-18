@@ -9,7 +9,13 @@ namespace CommUnityApp.ApplicationCore.Models
     public class Rewards
     {
         public Guid UserId { get; set; }
-        public int TotalCoins { get; set; }
-    }
 
+        public int TotalCoinsEarned { get; set; }
+
+        public int TotalCoinsUsed { get; set; }
+
+        public int? BalanceCoins { get; set; }
+
+        public decimal? MoneyValue { get; set; }
+    }
 }

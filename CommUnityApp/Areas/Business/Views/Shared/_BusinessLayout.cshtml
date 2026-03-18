@@ -186,8 +186,14 @@
                 <a href="@Url.Action("Promotions", "Home", new { area = "Business" })">
                     <i class="fa-solid fa-bullhorn"></i> Promotions
                 </a>
-                <a href="#">
+                <a href="@Url.Action("BusinessOrders", "Home", new { area = "Business" })">
+                    <i class="fa-solid fa-clipboard-list"></i> Orders
+                </a>
+                <a href="@Url.Action("BusinessCustomers", "Home", new { area = "Business" })">
                     <i class="fa-solid fa-users"></i> Customers
+                </a>
+                <a href="@Url.Action("Communication", "Home", new { area = "Business" })">
+                    <i class="fa-solid fa-bullhorn"></i> Communication
                 </a>
                 <a href="@Url.Action("BusinessProfile", "Home", new { area = "Business" })">
                     <i class="fa-solid fa-gear"></i> Profile Settings

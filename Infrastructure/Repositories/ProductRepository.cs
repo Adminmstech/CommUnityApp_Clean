@@ -243,6 +243,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             parameters.Add("@UserId", entity.UserId);
             parameters.Add("@ProductId", entity.ProductId);
+            parameters.Add("@quantity", entity.Quantity);
 
             var result = await connection.QueryAsync<BaseResponse>(
                 "Add_ProductToCart",
