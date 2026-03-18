@@ -215,5 +215,62 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
           ORDER BY CreatedDate DESC",
                 new { EventId = eventId });
         }
+
+
+        public async Task<BookingResponse> BookEventAsync(EventBookingRequest request)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@UserId", request.UserId);
+                parameters.Add("@EventId", request.EventId);
+                parameters.Add("@NoOfTickets", request.NoOfTickets);
+                parameters.Add("@UsedWalletAmount", request.UsedWalletAmount);
+
+                var result = await con.QueryFirstOrDefaultAsync<BookingResponse>(
+                    "SP_BookEvent",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return result;
+            }
+        }
+
+
+        public async Task<EventDetailsResponse> GetEventDetailsAsync(Guid userId, int eventId)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@UserId", userId);
+                parameters.Add("@EventId", eventId);
+
+                var result = await con.QueryFirstOrDefaultAsync<EventDetailsResponse>(
+                    "SP_GetEventDetailsWithUserWallet",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return result;
+            }
+        }
+
+        public async Task<IEnumerable<UserBookingResponse>> GetUserBookingsAsync(Guid userId)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@UserId", userId);
+
+                var result = await con.QueryAsync<UserBookingResponse>(
+                    "SP_GetUserBookings",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return result;
+            }
+        }
     }
 }
