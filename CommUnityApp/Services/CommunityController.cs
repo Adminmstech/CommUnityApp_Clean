@@ -74,7 +74,7 @@ namespace CommUnityApp.Services
 
         //For mobile app dashboard//
         [HttpGet("Get_DashboardData")]
-        public async Task<IActionResult> GetDashboardData()
+        public async Task<IActionResult> GetDashboardData(Guid userId)
         {
             var response = new DashboardResponse();
 
@@ -83,13 +83,13 @@ namespace CommUnityApp.Services
                 var events = await _unitOfWork.Events.GetTop5Events();
                 var auctions = await _unitOfWork.Auction.GetTop5Auctions();
                 var communities = await _unitOfWork.Community.GetCommunities();
-
-                // ⭐ NEW
                 var businesses = await _unitOfWork.Business.GetAllBusinesses();
 
-                // Get auction IDs
-                var auctionIds = auctions.Select(a => a.AuctionId).ToList();
+                // ⭐ Rewards
+                var rewards = await _unitOfWork.Rewards.GetCoins(userId);
 
+                // Auction Images
+                var auctionIds = auctions.Select(a => a.AuctionId).ToList();
                 var auctionImages = await _unitOfWork.Auction.GetAuctionImagesByIds(auctionIds);
 
                 foreach (var auction in auctions)
@@ -103,10 +103,11 @@ namespace CommUnityApp.Services
                 response.ResultMessage = "Success";
                 response.Data = new DashboardData
                 {
+                    Rewards = rewards,  // ⭐ added
                     Events = events,
                     Auctions = auctions,
                     Communities = communities,
-                    Businesses = businesses   // ⭐ Added here
+                    Businesses = businesses
                 };
 
                 return Ok(new List<DashboardResponse> { response });
@@ -115,6 +116,7 @@ namespace CommUnityApp.Services
             {
                 response.ResultId = 0;
                 response.ResultMessage = ex.Message;
+
                 return Ok(new List<DashboardResponse> { response });
             }
         }

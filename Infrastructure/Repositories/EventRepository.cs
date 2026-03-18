@@ -259,5 +259,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result.ToList();
         }
+
+
     }
 }

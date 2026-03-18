@@ -10,5 +10,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BusinessAddResponse> AddBusinessAsync(AddBusinessRequest request);
         Task<List<BusinessDetailsDto>> GetAllBusinesses();
         Task<BusinessDetailsDto> GetBusinessDetails(int BusinessId);
+        Task<List<CustomerModel>> GetBusinessCustomers(int BusinessId);
     }
 }

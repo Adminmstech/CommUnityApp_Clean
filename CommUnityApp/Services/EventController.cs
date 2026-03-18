@@ -214,7 +214,7 @@ namespace CommUnityApp.Services
             return Ok(data);
         }
 
-        [HttpGet("GetEventsById")]
+        [HttpGet("Get_EventDetails")]
         public async Task<IActionResult> GetEventsById(int EventId)
         {
             var data = await _unitOfWork.Events.GetEventById(EventId);

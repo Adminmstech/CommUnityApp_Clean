@@ -229,5 +229,76 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result.FirstOrDefault();
         }
+
+
+        public async Task<BaseResponse> AddToCart(AddToCartRequest entity)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@UserId", entity.UserId);
+            parameters.Add("@ProductId", entity.ProductId);
+            parameters.Add("@quantity", entity.Quantity);
+
+            var result = await connection.QueryAsync<BaseResponse>(
+                "Add_ProductToCart",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.FirstOrDefault();
+        }
+
+
+        public async Task<BaseResponse> RemoveFromCart(AddToCartRequest entity)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@UserId", entity.UserId);
+            parameters.Add("@ProductId", entity.ProductId);
+
+            var result = await connection.QueryAsync<BaseResponse>(
+                "Remove_ProductFromCart",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.FirstOrDefault();
+        }
+
+        public async Task<List<CartItemResponse>> GetCartItems( Guid UserId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@UserId", UserId);
+
+
+            var result = await connection.QueryAsync<CartItemResponse>(
+                "Get_CartItems",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+
+
     }
 }

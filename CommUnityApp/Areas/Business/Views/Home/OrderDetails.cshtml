@@ -1,0 +1,212 @@
+﻿@{
+    ViewData["Title"] = "Order Details";
+    Layout = "_BusinessLayout";
+    var businessId = ViewBag.BusinessId;
+}
+
+<div class="container mt-4">
+
+    ```
+    <h3 class="mb-4">Order Details</h3>
+
+    <!-- ORDER SUMMARY -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+
+            <div class="row text-center">
+
+                <div class="col-md-2">
+                    <b>Order ID</b>
+                    <div id="orderIdText"></div>
+                </div>
+
+                <div class="col-md-2">
+                    <b>Total Items</b>
+                    <div id="productCount"></div>
+                </div>
+
+                <div class="col-md-3">
+                    <b>Business Amount</b>
+                    <div>₹ <span id="orderAmount"></span></div>
+                </div>
+
+                <div class="col-md-2">
+                    <b>Coins Used</b>
+                    <div id="coinsUsed"></div>
+                </div>
+
+                <div class="col-md-2">
+                    <b>Coins Earned</b>
+                    <div id="coinsEarned"></div>
+                </div>
+
+                <div class="col-md-1">
+                    <b>Final Paid</b>
+                    <div>₹ <span id="finalAmount"></span></div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- ORDER ITEMS -->
+    <div class="card shadow-sm">
+
+        <div class="card-header">
+            <b>Ordered Items</b>
+        </div>
+
+        <div class="table-responsive">
+
+            <table class="table table-bordered table-striped mb-0">
+
+                <thead>
+                    <tr>
+                        <th>Image</th>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+
+                <tbody id="orderItems">
+
+                    <tr>
+                        <td colspan="5" class="text-center p-4">
+                            Loading items...
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+    ```
+
+</div>
+
+<script>
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const orderId = urlParams.get("orderId");
+
+    const businessId = parseInt('@businessId');
+
+
+    function currency(value){
+        return "₹ " + Number(value).toLocaleString();
+    }
+
+
+    async function loadOrderDetails(){
+
+        try{
+
+            const response = await fetch("/api/Order/Get_OrderItems",{
+
+                method:"POST",
+
+                headers:{
+                    "Content-Type":"application/json"
+                },
+
+                body: JSON.stringify({
+                    orderId: parseInt(orderId),
+                    businessId: parseInt(businessId)
+                })
+
+            });
+
+            const data = await response.json();
+
+            console.log("Order Details:", data);
+
+
+            // SUMMARY
+
+            document.getElementById("orderIdText").innerText =
+                data.orderSummary.orderId;
+
+            document.getElementById("productCount").innerText =
+                data.orderSummary.totalItems;
+
+            document.getElementById("orderAmount").innerText =
+                Number(data.orderSummary.businessOrderAmount).toLocaleString();
+
+            document.getElementById("coinsUsed").innerText =
+                data.orderSummary.coinsUsed;
+
+            document.getElementById("coinsEarned").innerText =
+                data.orderSummary.coinsEarned;
+
+            document.getElementById("finalAmount").innerText =
+                Number(data.orderSummary.finalAmount).toLocaleString();
+
+
+            // ITEMS
+
+            let rows = "";
+
+            if(data.items.length === 0){
+
+                rows = `
+                <tr>
+                    <td colspan="5" class="text-center p-4">
+                        No Items Found
+                    </td>
+                </tr>
+                `;
+
+            }
+
+            data.items.forEach(item => {
+
+                rows += `
+                <tr>
+
+                    <td>
+                        <img src="/${item.imagePath}"
+                             style="width:70px;height:70px;object-fit:cover;border-radius:6px"/>
+                    </td>
+
+                    <td>${item.productName}</td>
+
+                    <td>${item.quantity}</td>
+
+                    <td>${currency(item.price)}</td>
+
+                    <td>${currency(item.totalPrice)}</td>
+
+                </tr>
+                `;
+
+            });
+
+            document.getElementById("orderItems").innerHTML = rows;
+
+        }
+        catch(error){
+
+            console.error("Error loading order details:", error);
+
+            document.getElementById("orderItems").innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-danger p-4">
+                    Failed to load order items
+                </td>
+            </tr>
+            `;
+
+        }
+
+    }
+
+    loadOrderDetails();
+
+</script>
