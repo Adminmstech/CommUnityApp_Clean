@@ -108,4 +108,105 @@ namespace CommUnityApp.ApplicationCore.Models
         public string EventAcess { get; set; }
         public string EventStatus { get; set; }
     }
+
+    public class EventBookingRequest
+    {
+        public Guid UserId { get; set; }
+        public int EventId { get; set; }
+        public int NoOfTickets { get; set; }
+        public bool UseWallet{ get; set; }
+    }
+
+    public class BookingResponse
+    {
+        public int Status { get; set; }
+        public string Message { get; set; }
+        public String TransactionId { get; set; }
+        public Guid? UserId { get; set; }
+    }
+
+    public class EventDetailsResponse
+    {
+        public int EventId { get; set; }
+        public string EventName { get; set; }
+        public string Description { get; set; }
+        public string Location { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public decimal TicketPrice { get; set; }
+        public int AvailableTickets { get; set; }
+        public int TotalSeats { get; set; }
+        public int TicketsBooked { get; set; }
+        public int MaxTicketsPerUser { get; set; }
+        public bool IsPaidEvent { get; set; }
+        public string EventImage { get; set; }
+
+        public decimal WalletBalance { get; set; }
+        public int RewardCoins { get; set; }
+
+    }
+
+    public class UserBookingResponse
+    {
+        public int BookingId { get; set; }
+        public Guid UserId { get; set; }
+        public int EventId { get; set; }
+        public int NoOfTickets { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal WalletUsed { get; set; }
+        public decimal PayableAmount { get; set; }
+        public DateTime BookingDate { get; set; }
+        public string TransactionId { get; set; }
+
+        public string EventName { get; set; }
+        public string EventImage { get; set; }
+        public string Location { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public decimal TicketPrice { get; set; }
+    }
+
+    public class EventCheckoutResponse
+    {
+        public int Status { get; set; }
+        public string Message { get; set; }
+
+        public int BookingId { get; set; }
+        public string TransactionId { get; set; }
+        public int NoOfTickets { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal WalletUsed { get; set; }
+        public decimal PayableAmount { get; set; }
+        public DateTime BookingDate { get; set; }
+
+        public int EventId { get; set; }
+        public string EventName { get; set; }
+        public string EventImage { get; set; }
+        public string Location { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public decimal TicketPrice { get; set; }
+
+        public decimal WalletBalance { get; set; }
+    }
+
+    public class EventPaymentRequest
+    {
+        public Guid UserId { get; set; }
+        public string TransactionId { get; set; }  
+        public decimal Amount { get; set; }
+        public string PaymentMethod { get; set; }
+        public string PaymentGatewayId { get; set; }
+        public string PaymentStatus { get; set; }
+    }
+
+    public class EventCheckoutSummaryResponse
+    {
+        public decimal CartTotal { get; set; }
+        public int CoinsAvailable { get; set; }
+        public int CoinsUsed { get; set; }
+        public decimal CoinDiscount { get; set; }
+        public decimal FinalAmount { get; set; }
+        public int CoinsEarned { get; set; }
+    }
 }

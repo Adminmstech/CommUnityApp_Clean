@@ -197,8 +197,157 @@ namespace CommUnityApp.Services
             return Ok(registrations);
         }
 
+        [HttpPost("BookEvent")]
+        public async Task<IActionResult> BookEvent([FromBody] EventBookingRequest request)
+        {
+            var result = await _repository.BookEventAsync(request);
 
+            if (result.Status == 1)
+            {
+                return Ok(new
+                {
+                    status = result.Status,
+                    message = result.Message,
+                    transactionId = result.TransactionId,  
+                    userId = result.UserId
+                });
+            }
 
+            return BadRequest(new
+            {
+                status = result.Status,
+                message = result.Message
+            });
+        }
+        [HttpGet("GetEventDetails")]
+        public async Task<IActionResult> GetEventDetails(Guid userId, int eventId)
+        {
+            var result = await _repository.GetEventDetailsAsync(userId, eventId);
+
+            if (result == null)
+            {
+                return NotFound(new
+                {
+                    status = 0,
+                    message = "Event not found"
+                });
+            }
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+            if (!string.IsNullOrEmpty(result.EventImage))
+            {
+                result.EventImage = baseUrl + result.EventImage;
+            }
+
+            return Ok(new
+            {
+                status = 1,
+                data = result
+            });
+        }
+
+        [HttpGet("GetUserEventBookings")]
+        public async Task<IActionResult> GetUserBookings(Guid userId)
+        {
+            var result = await _repository.GetUserBookingsAsync(userId);
+
+            if (result == null || !result.Any())
+            {
+                return NotFound(new
+                {
+                    status = 0,
+                    message = "No bookings found"
+                });
+            }
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+            foreach (var item in result)
+            {
+                if (!string.IsNullOrEmpty(item.EventImage))
+                {
+                    item.EventImage = baseUrl + item.EventImage;
+                }
+            }
+
+            return Ok(new
+            {
+                status = 1,
+                data = result
+            });
+        }
+        [HttpGet("GetEventCheckoutSummaryByTransaction")]
+        public async Task<IActionResult> GetEventCheckoutSummaryByTransaction(Guid transactionId)
+        {
+            var result = await _repository.GetEventCheckoutAsync(transactionId);
+
+            if (result == null || result.Status == 0)
+            {
+                return NotFound(new
+                {
+                    status = 0,
+                    message = "Invalid TransactionId"
+                });
+            }
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+            if (!string.IsNullOrEmpty(result.EventImage))
+            {
+                result.EventImage = baseUrl + result.EventImage;
+            }
+
+            return Ok(new
+            {
+                status = 1,
+                data = result
+            });
+        }
+
+        [HttpPost("AddEventPayment")]
+        public async Task<IActionResult> AddEventPayment([FromBody] EventPaymentRequest request)
+        {
+            var result = await _repository.AddEventPaymentAsync(request);
+
+            if (result.Status == 1)
+            {
+                return Ok(new
+                {
+                    status = result.Status,
+                    message = result.Message,
+                    bookingId = result.BookingId,
+                    transactionId = result.TransactionId
+                });
+            }
+
+            return BadRequest(new
+            {
+                status = result.Status,
+                message = result.Message
+            });
+        }
+
+        [HttpGet("GetEventCheckoutSummaryByUser")]
+        public async Task<IActionResult> GetEventCheckoutSummary(Guid userId)
+        {
+            var result = await _repository.GetEventCheckoutSummaryAsync(userId);
+
+            if (result == null)
+            {
+                return NotFound(new
+                {
+                    status = 0,
+                    message = "No booking found"
+                });
+            }
+
+            return Ok(new
+            {
+                status = 1,
+                data = result
+            });
+        }
 
         [HttpGet("Get_AllEvents")]
         public async Task<IActionResult> GetAllEvents()
