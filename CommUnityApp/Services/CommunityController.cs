@@ -2,6 +2,7 @@
 using CommUnityApp.ApplicationCore.Models;
 using CommUnityApp.InfrastructureLayer.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using static CommUnityApp.ApplicationCore.Models.AssignVolunteerRequest;
 
 namespace CommUnityApp.Services
 {

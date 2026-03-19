@@ -326,6 +326,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
                 return result;
             }
+        }
         public async Task<List<Events>> GetEvents()
         {
             using var connection = new SqlConnection(

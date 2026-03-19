@@ -1,4 +1,5 @@
 using CommUnityApp.ApplicationCore.Models;
+using static CommUnityApp.ApplicationCore.Models.AssignVolunteerRequest;
 
 namespace CommUnityApp.ApplicationCore.Interfaces
 {

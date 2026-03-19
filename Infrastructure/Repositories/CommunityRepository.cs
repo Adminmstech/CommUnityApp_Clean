@@ -4,6 +4,7 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Data;
+using static CommUnityApp.ApplicationCore.Models.AssignVolunteerRequest;
 
 namespace CommUnityApp.InfrastructureLayer.Repositories
 {
@@ -78,6 +79,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             );
 
             return result > 0;
+        }
         public async Task<List<Community>> GetCommunities()
         {
             using var connection = new SqlConnection(
