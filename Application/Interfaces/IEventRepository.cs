@@ -15,5 +15,11 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<EventDto> GetEventByIdAsync(int eventId);
         Task<EventRegistrationModel?> GetRegistrationByIdAsync(long id);
         Task<IEnumerable<EventRegistrationModel>> GetRegistrationsByEventAsync(long eventId);
+        Task<BookingResponse> BookEventAsync(EventBookingRequest request);
+        Task<EventDetailsResponse> GetEventDetailsAsync(Guid userId, int eventId);
+        Task<IEnumerable<UserBookingResponse>> GetUserBookingsAsync(Guid userId);
+        Task<EventCheckoutResponse> GetEventCheckoutAsync(Guid transactionId);
+        Task<dynamic> AddEventPaymentAsync(EventPaymentRequest request);
+        Task<EventCheckoutSummaryResponse> GetEventCheckoutSummaryAsync(Guid userId);
     }
 }
