@@ -21,5 +21,9 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<EventCheckoutResponse> GetEventCheckoutAsync(Guid transactionId);
         Task<dynamic> AddEventPaymentAsync(EventPaymentRequest request);
         Task<EventCheckoutSummaryResponse> GetEventCheckoutSummaryAsync(Guid userId);
+
+        Task<List<Events>> GetEvents();
+        Task<List<Events>> GetEventById(int EventId);
+        Task<List<TopEventDto>> GetTop5Events();
     }
 }

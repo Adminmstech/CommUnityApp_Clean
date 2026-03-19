@@ -2,6 +2,7 @@
 using CommUnityApp.ApplicationCore.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -172,6 +173,24 @@ namespace CommUnityApp.Services
         [HttpPost("Login")]
         public async Task<IActionResult> Login(LoginRequest request)
         {
+            if (request == null)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = "Request cannot be null"
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = "Email and password are required"
+                });
+            }
+
             try
             {
                 var result = await _unitOfWork.User.UserLogin(request);
@@ -185,25 +204,45 @@ namespace CommUnityApp.Services
                     });
                 }
 
-                // 🔐 Create Claims
-                var claims = new List<Claim>
-        {
-            new Claim(ClaimTypes.NameIdentifier, result.UserId.ToString()),
-            new Claim(ClaimTypes.Name, result.FullName ?? ""),
-            new Claim(ClaimTypes.Email, result.Email ?? ""),
-            new Claim(ClaimTypes.Role, result.Role ?? "")
-        };
+                var claims = new List<Claim>(7)
+                {
+                    new Claim(ClaimTypes.NameIdentifier, result.UserId.ToString()),
+                    new Claim(ClaimTypes.Name, result.FullName ?? string.Empty),
+                    new Claim(ClaimTypes.Email, result.Email ?? string.Empty),
+                    new Claim(JwtRegisteredClaimNames.Sub, result.UserId.ToString()),
+                    new Claim(JwtRegisteredClaimNames.Email, result.Email ?? string.Empty),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+                };
 
-                // 🔑 Generate Token
-                var key = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(_config["Jwt:Key"])
-                );
+                //if (!string.IsNullOrWhiteSpace(result.Role))
+                //{
+                //    var roles = result.Role.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+                //    foreach (var role in roles)
+                //    {
+                //        claims.Add(new Claim(ClaimTypes.Role, role));
+                //    }
+                //}
 
+                var jwtKey = _config["Jwt:Key"];
+                var jwtIssuer = _config["Jwt:Issuer"];
+                var jwtAudience = _config["Jwt:Audience"];
+
+                if (string.IsNullOrWhiteSpace(jwtKey))
+                {
+                    _logger.LogError("JWT Key is not configured");
+                    return StatusCode(500, new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Server configuration error"
+                    });
+                }
+
+                var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
                 var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
                 var token = new JwtSecurityToken(
-                    issuer: _config["Jwt:Issuer"],
-                    audience: _config["Jwt:Audience"],
+                    issuer: jwtIssuer,
+                    audience: jwtAudience,
                     claims: claims,
                     expires: DateTime.UtcNow.AddHours(8),
                     signingCredentials: creds
@@ -215,31 +254,32 @@ namespace CommUnityApp.Services
                 {
                     ResultId = 1,
                     ResultMessage = "Login successful",
-                    Token = tokenString, // ✅ IMPORTANT
+                    Token = tokenString,
                     User = new
                     {
                         result.UserId,
                         result.FullName,
                         result.Email,
                         result.Role
-                    },
-                    //Redirect = result.Role switch
-                    //{
-                    //    "Admin" => "/Admin/Dashboard",
-                    //    "Business Owner" => "/Business/Dashboard",
-                    //    "Customer" => "/Customer/Home",
-                    //    _ => "/"
-                    //}
+                    }
+                });
+            }
+            catch (SqlException sqlEx)
+            {
+                _logger.LogError(sqlEx, "Database error during login for {Email}", request?.Email);
+                return StatusCode(500, new
+                {
+                    ResultId = 0,
+                    ResultMessage = "A database error occurred. Please try again later."
                 });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Login error for {Email}", request?.Email);
-
                 return StatusCode(500, new
                 {
                     ResultId = 0,
-                    ResultMessage = "Something went wrong"
+                    ResultMessage = "An unexpected error occurred. Please try again later."
                 });
             }
         }

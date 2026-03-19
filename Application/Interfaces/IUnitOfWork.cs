@@ -12,5 +12,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         IForgotPasswordRepository ForgotPassword { get; }
         IUserRepository User { get; }
         IProductRepository Product { get; }
+        IRewardsRepository Rewards { get; }
+        IOrderRepository Order { get; }
     }
 }

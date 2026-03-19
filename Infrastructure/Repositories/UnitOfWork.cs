@@ -14,6 +14,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         public IForgotPasswordRepository ForgotPassword { get; }
         public IUserRepository User { get; }
         public IProductRepository Product { get; }
+        public IRewardsRepository Rewards { get; }
+        public IOrderRepository Order { get; }
 
         public UnitOfWork(
             ICommunityRepository community,
@@ -23,7 +25,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             IAuctionRepository auction,
             IForgotPasswordRepository forgotPassword,
             IUserRepository user,
-            IProductRepository product)
+            IProductRepository product,
+            IRewardsRepository rewards,
+            IOrderRepository order)
         {
             Community = community;
             Events = events;
@@ -33,7 +37,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             ForgotPassword = forgotPassword;
             User = user;
             Product = product;
-
+            Rewards = rewards;
+            Order = order;
         }
     }
 }

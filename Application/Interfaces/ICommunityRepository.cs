@@ -6,8 +6,12 @@ namespace CommUnityApp.ApplicationCore.Interfaces
     {
         Task<CommunityLoginResponse> LoginAsync(CommunityLoginRequest request);
         Task<List<GroupDto>> GetGroupsByCommunityAsync(long communityId);
+
         Task<List<CharityItem>> GetCharityItemsByCommunityId(long communityId);
         Task<IEnumerable<dynamic>> GetVolunteersList(long? communityId);
         Task<bool> AssignVolunteer(long charityItemId, Guid assignedToUserId);
+
+        Task<List<Community>> GetCommunities();
+
     }
 }
