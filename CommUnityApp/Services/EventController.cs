@@ -271,6 +271,76 @@ namespace CommUnityApp.Services
                 data = result
             });
         }
+        [HttpGet("GetEventCheckoutSummaryByTransaction")]
+        public async Task<IActionResult> GetEventCheckoutSummaryByTransaction(Guid transactionId)
+        {
+            var result = await _repository.GetEventCheckoutAsync(transactionId);
 
+            if (result == null || result.Status == 0)
+            {
+                return NotFound(new
+                {
+                    status = 0,
+                    message = "Invalid TransactionId"
+                });
+            }
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+            if (!string.IsNullOrEmpty(result.EventImage))
+            {
+                result.EventImage = baseUrl + result.EventImage;
+            }
+
+            return Ok(new
+            {
+                status = 1,
+                data = result
+            });
+        }
+
+        [HttpPost("AddEventPayment")]
+        public async Task<IActionResult> AddEventPayment([FromBody] EventPaymentRequest request)
+        {
+            var result = await _repository.AddEventPaymentAsync(request);
+
+            if (result.Status == 1)
+            {
+                return Ok(new
+                {
+                    status = result.Status,
+                    message = result.Message,
+                    bookingId = result.BookingId,
+                    transactionId = result.TransactionId
+                });
+            }
+
+            return BadRequest(new
+            {
+                status = result.Status,
+                message = result.Message
+            });
+        }
+
+        [HttpGet("GetEventCheckoutSummaryByUser")]
+        public async Task<IActionResult> GetEventCheckoutSummary(Guid userId)
+        {
+            var result = await _repository.GetEventCheckoutSummaryAsync(userId);
+
+            if (result == null)
+            {
+                return NotFound(new
+                {
+                    status = 0,
+                    message = "No booking found"
+                });
+            }
+
+            return Ok(new
+            {
+                status = 1,
+                data = result
+            });
+        }
     }
 }

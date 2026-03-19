@@ -272,5 +272,62 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return result;
             }
         }
+
+        public async Task<EventCheckoutResponse> GetEventCheckoutAsync(Guid transactionId)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@TransactionId", transactionId);
+
+                var result = await con.QueryFirstOrDefaultAsync<EventCheckoutResponse>(
+                    "SP_EventCheckoutSummary",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return result;
+            }
+        }
+
+        public async Task<dynamic> AddEventPaymentAsync(EventPaymentRequest request)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@UserId", request.UserId);
+                parameters.Add("@TransactionId", request.TransactionId);
+                parameters.Add("@Amount", request.Amount);
+                parameters.Add("@PaymentMethod", request.PaymentMethod);
+                parameters.Add("@PaymentGatewayId", request.PaymentGatewayId);
+                parameters.Add("@PaymentStatus", request.PaymentStatus);
+
+                var result = await con.QueryFirstOrDefaultAsync<dynamic>(
+                    "SP_AddEventPaymentTransaction",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return result;
+            }
+        }
+        public async Task<EventCheckoutSummaryResponse> GetEventCheckoutSummaryAsync(Guid userId)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var parameters = new DynamicParameters();
+                parameters.Add("@UserId", userId);
+
+                var result = await con.QueryFirstOrDefaultAsync<EventCheckoutSummaryResponse>(
+                    "SP_EventCheckoutSummary_ByUser",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return result;
+            }
+        }
+
+
     }
 }

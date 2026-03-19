@@ -165,4 +165,48 @@ namespace CommUnityApp.ApplicationCore.Models
         public DateTime? EndDate { get; set; }
         public decimal TicketPrice { get; set; }
     }
+
+    public class EventCheckoutResponse
+    {
+        public int Status { get; set; }
+        public string Message { get; set; }
+
+        public int BookingId { get; set; }
+        public string TransactionId { get; set; }
+        public int NoOfTickets { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal WalletUsed { get; set; }
+        public decimal PayableAmount { get; set; }
+        public DateTime BookingDate { get; set; }
+
+        public int EventId { get; set; }
+        public string EventName { get; set; }
+        public string EventImage { get; set; }
+        public string Location { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+        public decimal TicketPrice { get; set; }
+
+        public decimal WalletBalance { get; set; }
+    }
+
+    public class EventPaymentRequest
+    {
+        public Guid UserId { get; set; }
+        public string TransactionId { get; set; }  
+        public decimal Amount { get; set; }
+        public string PaymentMethod { get; set; }
+        public string PaymentGatewayId { get; set; }
+        public string PaymentStatus { get; set; }
+    }
+
+    public class EventCheckoutSummaryResponse
+    {
+        public decimal CartTotal { get; set; }
+        public int CoinsAvailable { get; set; }
+        public int CoinsUsed { get; set; }
+        public decimal CoinDiscount { get; set; }
+        public decimal FinalAmount { get; set; }
+        public int CoinsEarned { get; set; }
+    }
 }
