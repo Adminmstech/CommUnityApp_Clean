@@ -65,6 +65,7 @@ builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IProductRepository, ProductRepository>();
 builder.Services.AddTransient<IRewardsRepository, RewardsRepository>();
 builder.Services.AddTransient<IOrderRepository, OrderRepository>();
+builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
 
 
 builder.Services.AddSession();

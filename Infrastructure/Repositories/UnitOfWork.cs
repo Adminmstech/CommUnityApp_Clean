@@ -16,6 +16,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         public IProductRepository Product { get; }
         public IRewardsRepository Rewards { get; }
         public IOrderRepository Order { get; }
+        public IServiceRepository Service { get; }
 
         public UnitOfWork(
             ICommunityRepository community,
@@ -27,7 +28,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             IUserRepository user,
             IProductRepository product,
             IRewardsRepository rewards,
-            IOrderRepository order)
+            IOrderRepository order,
+            IServiceRepository service)
         {
             Community = community;
             Events = events;
@@ -39,6 +41,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             Product = product;
             Rewards = rewards;
             Order = order;
+            Service = service;
         }
     }
 }

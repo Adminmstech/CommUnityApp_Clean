@@ -14,5 +14,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         IProductRepository Product { get; }
         IRewardsRepository Rewards { get; }
         IOrderRepository Order { get; }
+        IServiceRepository Service { get; }
     }
 }
