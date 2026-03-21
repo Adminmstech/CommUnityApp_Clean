@@ -78,6 +78,10 @@ namespace CommUnityApp.ApplicationCore.Models
         public string Address { get; set; }
         public string City { get; set; }
         public string State { get; set; }
+        public string Logo { get; set; }
+        public decimal? Latitude { get; set; }
+        public decimal? Longitude { get; set; }
+        public string WebLink { get; set; }
 
         public string CategoryName { get; set; }
     }

@@ -147,5 +147,18 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         }
 
 
+
+        public async Task<List<Category>> GetBusinesscategory()
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<Category>("Get_BusinessCategories", commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
     }
 }

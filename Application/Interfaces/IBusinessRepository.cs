@@ -11,5 +11,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<BusinessDetailsDto>> GetAllBusinesses();
         Task<BusinessDetailsDto> GetBusinessDetails(int BusinessId);
         Task<List<CustomerModel>> GetBusinessCustomers(int BusinessId);
+        Task<List<Category>> GetBusinesscategory();
     }
 }
