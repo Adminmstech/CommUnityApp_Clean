@@ -9,5 +9,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<CharityItem>> GetCharityItemsByCommunityId(long communityId);
         Task<IEnumerable<dynamic>> GetVolunteersList(long? communityId);
         Task<bool> AssignVolunteer(long charityItemId, Guid assignedToUserId);
+        Task<AssignedVolunteerModel> GetAssignedVolunteer(int charityItemId);
+        Task<CharityItemModel> GetCharityItemDetails(int charityItemId);
+        Task<bool> UpdateVolunteerStatusAsync(UpdateStatusRequest request);
     }
 }

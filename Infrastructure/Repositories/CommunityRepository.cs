@@ -79,5 +79,51 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result > 0;
         }
+        public async Task<AssignedVolunteerModel> GetAssignedVolunteer(int charityItemId)
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            {
+                return con.QueryFirstOrDefault<AssignedVolunteerModel>(
+                    "sp_GetAssignedVolunteerByCharityItem",
+                    new { CharityItemId = charityItemId },
+                    commandType: CommandType.StoredProcedure);
+            }
+        }
+        public async Task<CharityItemModel> GetCharityItemDetails(int charityItemId)
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            {
+                return await con.QueryFirstOrDefaultAsync<CharityItemModel>(
+                    "sp_GetCharityItemDetails",
+                    new { CharityItemId = charityItemId },
+                    commandType: CommandType.StoredProcedure);
+            }
+        }
+
+        public async Task<bool> UpdateVolunteerStatusAsync(UpdateStatusRequest request)
+        {
+            try
+            {
+                using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                {
+                    var parameters = new DynamicParameters();
+                    parameters.Add("@CharityItemId", request.CharityItemId);
+                    parameters.Add("@UserId", request.UserId);
+                    parameters.Add("@Status", request.Status);
+
+                    var result = await con.ExecuteAsync(
+                        "SP_UpdateVolunteerStatus",
+                        parameters,
+                        commandType: CommandType.StoredProcedure
+                    );
+
+                    return result > 0;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
     }
 }

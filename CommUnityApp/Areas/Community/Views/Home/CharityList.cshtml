@@ -62,6 +62,91 @@
         </div>
     </div>
 </div>
+<div class="modal fade" id="assignedModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Assigned Volunteer Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <table class="table table-bordered">
+
+                    <tr>
+                        <th>Name</th>
+                        <td id="vName"></td>
+                    </tr>
+
+                    <tr>
+                        <th>Mobile</th>
+                        <td id="vMobile"></td>
+                    </tr>
+
+                    <tr>
+                        <th>Email</th>
+                        <td id="vEmail"></td>
+                    </tr>
+
+                    <tr>
+                        <th>Assigned Date</th>
+                        <td id="vDate"></td>
+                    </tr>
+                    <div class="row mb-2">
+                        <div class="col-md-4"><strong>Delivery Status:</strong></div>
+                        <div class="col-md-8" id="vStatus"></div>
+                    </div>
+                </table>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5 class="modal-title">Charity Item Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div class="row">
+
+                    <div class="col-md-4 text-center">
+                        <img id="dImage" class="img-fluid img-thumbnail" style="max-height:200px;" />
+                    </div>
+
+                    <div class="col-md-8">
+
+                        <p><b>Item Name:</b> <span id="dItemName"></span></p>
+                        <p><b>Description:</b> <span id="dDescription"></span></p>
+                        <p><b>Quantity:</b> <span id="dQuantity"></span></p>
+                        <p><b>Status:</b> <span id="dStatus"></span></p>
+                        <p><b>Created Date:</b> <span id="dCreatedDate"></span></p>
+
+                        <hr />
+
+                        <h6>Posted Member Details</h6>
+
+                        <p><b>Name:</b> <span id="dMemberName"></span></p>
+                        <p><b>Mobile:</b> <span id="dMemberMobile"></span></p>
+                        <p><b>Email:</b> <span id="dMemberEmail"></span></p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function () {
@@ -111,11 +196,13 @@
 
                         html += "<td>";
 
+                        html += "<button class='btn btn-sm btn-info me-1' onclick='viewDetails(" + item.charityItemId + ")'>Details</button>";
+
                         if (item.status === "Approved" || item.status === "Pending") {
                             html += "<button class='btn btn-sm btn-primary' onclick='openVolunteerModal(" + item.charityItemId + ")'>Assign Volunteer</button>";
                         }
                         else if (item.status === "Assigned") {
-                            html += "<span class='text-success'>Already Assigned</span>";
+                            html += "<button class='btn btn-sm btn-success' onclick='viewAssigned(" + item.charityItemId + ")'>Assigned</button>";
                         }
                         else {
                             html += "-";
@@ -158,7 +245,6 @@
                         html += "<td>" + (v.Mobile || "") + "</td>";
                         html += "<td>" + (v.Email || "") + "</td>";
 
-                        // IMPORTANT: pass GUID properly
                         html += "<td><button class='btn btn-sm btn-success' onclick='assignVolunteer(\"" + v.UserId + "\")'>Assign</button></td>";
 
                         html += "</tr>";
@@ -201,6 +287,87 @@
             error: function (err) {
                 console.log(err.responseText);
                 alert("Assignment Failed");
+            }
+        });
+    }
+
+    $(document).ready(function () {
+        loadCharityItems();
+    });
+
+    function viewAssigned(charityItemId) {
+
+        $.ajax({
+            url: '/api/Community/GetAssignedVolunteer?charityItemId=' + charityItemId,
+            type: 'GET',
+            success: function (res) {
+
+                if (res) {
+
+                    $("#vName").text(res.fullName);
+                    $("#vMobile").text(res.mobile);
+                    $("#vEmail").text(res.email);
+
+                    if (res.assignedDate)
+                        $("#vDate").text(new Date(res.assignedDate).toLocaleDateString());
+                    else
+                        $("#vDate").text("-");
+
+                    var statusHtml = "";
+
+                    if (res.deliveryStatus === "Accepted") {
+                        statusHtml = "<span class='badge bg-info'>Accepted</span>";
+                    }
+                    else if (res.deliveryStatus === "Delivered") {
+                        statusHtml = "<span class='badge bg-success'>Delivered</span>";
+                    }
+                    else {
+                        statusHtml = "<span class='badge bg-primary'>Assigned</span>";
+                    }
+
+                    $("#vStatus").html(statusHtml);
+
+                    $("#assignedModal").modal("show");
+                }
+            },
+            error: function () {
+                alert("Failed to load volunteer details");
+            }
+        });
+    }
+    function viewDetails(charityItemId) {
+
+        $.ajax({
+            url: '/api/Community/GetCharityItemDetails?charityItemId=' + charityItemId,
+            type: 'GET',
+            success: function (res) {
+
+                if (!res) {
+                    alert("No details found");
+                    return;
+                }
+
+                $("#dItemName").text(res.itemName);
+                $("#dDescription").text(res.description);
+                $("#dQuantity").text(res.quantity);
+                $("#dStatus").text(res.status);
+
+                if (res.createdDate)
+                    $("#dCreatedDate").text(new Date(res.createdDate).toLocaleDateString());
+
+                $("#dMemberName").text(res.postedMemberName);
+                $("#dMemberMobile").text(res.mobile);
+                $("#dMemberEmail").text(res.email);
+
+                if (res.imagePath)
+                    $("#dImage").attr("src", res.imagePath);
+                else
+                    $("#dImage").attr("src", "/images/noimage.png");
+
+                $("#detailsModal").modal("show");
+            },
+            error: function () {
+                alert("Failed to load item details");
             }
         });
     }

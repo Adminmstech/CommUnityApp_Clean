@@ -1,6 +1,9 @@
 ﻿using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using static Org.BouncyCastle.Math.EC.ECCurve;
+using System.Data;
 
 namespace CommUnityApp.Services
 {
@@ -125,6 +128,56 @@ namespace CommUnityApp.Services
                     error = ex.Message
                 });
             }
+        }
+
+        [HttpGet]
+        [Route("GetAssignedVolunteer")]
+        public async Task<IActionResult> GetAssignedVolunteer(int charityItemId)
+        {
+            try
+            {
+                var result = await _communityRepository.GetAssignedVolunteer(charityItemId);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet]
+        [Route("GetCharityItemDetails")]
+        public async Task<IActionResult> GetCharityItemDetails(int charityItemId)
+        {
+            try
+            {
+                var result = await _communityRepository.GetCharityItemDetails(charityItemId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpPost("UpdateVolunteerStatus")]
+        public async Task<IActionResult> UpdateVolunteerStatus([FromBody] UpdateStatusRequest request)
+        {
+            var result = await _communityRepository.UpdateVolunteerStatusAsync(request);
+
+            if (result)
+            {
+                return Ok(new
+                {
+                    status = 1,
+                    message = "Status updated successfully"
+                });
+            }
+
+            return BadRequest(new
+            {
+                status = 0,
+                message = "Update failed"
+            });
         }
     }
 }
