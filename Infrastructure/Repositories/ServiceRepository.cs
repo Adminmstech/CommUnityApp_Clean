@@ -115,5 +115,133 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 OtherServices = otherServices
             };
         }
+
+        public async Task<List<BusinessAppointmentDto>> GetBusinessAppointmts( int BusinessId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@BusinessId", BusinessId);
+
+            var result = await connection.QueryAsync<BusinessAppointmentDto>(
+                "Get_BusinessAppointments",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+
+        public async Task<UpdateAppointmentStatusResponse> UpdateAppointment(UpdateAppointmentStatusRequest entity)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@AppointmentId", entity.AppointmentId);
+            parameters.Add("@Status", entity.Status);
+           
+
+            var result = await connection.QueryAsync<UpdateAppointmentStatusResponse>(
+                "Update_AppointmentStatus",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.FirstOrDefault();
+        }
+
+        public async Task<BaseResponse> AddService(AddServiceRequest entity)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@BusinessId", entity.BusinessId);
+            parameters.Add("@ServiceName", entity.ServiceName);
+            parameters.Add("@Description", entity.Description);
+            parameters.Add("@Price", entity.Price);
+            parameters.Add("@DurationMinutes", entity.DurationMinutes);
+            parameters.Add("@IsBookingRequired", entity.IsBookingRequired);
+            parameters.Add("@IsActive", entity.IsActive);
+
+            var result = await connection.QueryAsync<BaseResponse>(
+                "Add_Service",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.FirstOrDefault();
+        }
+
+        public async Task<BaseResponse> AddOrUpdateServiceImage(AddOrUpdateServiceImageRequest entity)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@ImageId", entity.ImageId);
+            parameters.Add("@ServiceId", entity.ServiceId);
+            parameters.Add("@ImageUrl", entity.ImageUrl);
+            parameters.Add("@IsPrimary", entity.IsPrimary);
+            parameters.Add("@IsActive", entity.IsActive);
+
+            return await connection.QueryFirstOrDefaultAsync<BaseResponse>( "Add_ServiceImage",parameters, commandType: CommandType.StoredProcedure);
+        }
+
+
+        public async Task<List<ServiceModel>> GetBusinessServices(int BusinessId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@BusinessId", BusinessId);
+
+            var result = await connection.QueryAsync<ServiceModel>(
+                "Get_BusinessServices",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+
+        public async Task<List<ServiceImageModel>> GetServiceImages(int serviceId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@ServiceId", serviceId);
+
+            var result = await connection.QueryAsync<ServiceImageModel>(
+                "Get_ServiceImagesByServiceId",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
     }
 }

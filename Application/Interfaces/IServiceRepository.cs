@@ -13,5 +13,11 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<ServiceListResponse>> GetAllServices(ServiceSearchRequest request);
         Task<List<AppointmentResponse>> GetUserAppointments(Guid UserId);
         Task<ServiceDetailsResponse> GetServiceDetails(int serviceId);
+        Task<List<BusinessAppointmentDto>> GetBusinessAppointmts(int BusinessId);
+        Task<UpdateAppointmentStatusResponse> UpdateAppointment(UpdateAppointmentStatusRequest entity);
+        Task<BaseResponse> AddService(AddServiceRequest entity);
+        Task<BaseResponse> AddOrUpdateServiceImage(AddOrUpdateServiceImageRequest entity);
+        Task<List<ServiceModel>> GetBusinessServices(int BusinessId);
+        Task<List<ServiceImageModel>> GetServiceImages(int serviceId);
     }
 }

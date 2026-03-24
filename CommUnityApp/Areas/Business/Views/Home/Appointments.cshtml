@@ -1,0 +1,210 @@
+﻿@{
+    ViewData["Title"] = "Appointments";
+    var businessId = ViewBag.BusinessId;
+    Layout = "_BusinessLayout";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+    body {
+        background: #f4f6f9;
+        font-family: "Segoe UI", sans-serif;
+    }
+
+    .page-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #495057;
+    }
+
+    .card {
+        border-radius: 12px;
+        border: none;
+    }
+
+    .table thead th {
+        background: #0f0f0f !important;
+        color: white;
+        padding: 14px;
+        font-size: 14px;
+    }
+
+    .table tbody td {
+        padding: 12px;
+        font-size: 13px;
+    }
+
+    .badge {
+        padding: 6px 10px;
+        font-size: 12px;
+    }
+</style>
+
+<div class="container mt-4">
+
+    <h2 class="page-title mb-3">Appointments</h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+
+            <table class="table table-bordered mb-0">
+
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>User</th>
+                        <th>Email</th>
+                        <th>Date</th>
+                        <th>Notes</th>
+                        <th>Status</th>
+                        <th style="width:150px">Update Status</th>
+                    </tr>
+                </thead>
+
+                <tbody id="appointmentTable">
+                    <tr>
+                        <td colspan="7" class="text-center p-3">
+                            Loading...
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+<script>
+
+    const businessId = '@businessId';
+
+    // Format Date
+    function formatDate(dateString) {
+        const d = new Date(dateString);
+        return d.toLocaleDateString() + " " +
+               d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Status Badge
+    function getStatusBadge(status) {
+
+        if (status === "Pending")
+            return `<span class="badge bg-warning text-dark">Pending</span>`;
+
+        if (status === "Responded")
+            return `<span class="badge bg-info text-dark">Responded</span>`;
+
+        if (status === "Completed")
+            return `<span class="badge bg-success">Completed</span>`;
+
+        if (status === "Cancelled")
+            return `<span class="badge bg-danger">Cancelled</span>`;
+
+        return status;
+    }
+
+    // Load Appointments
+    async function loadAppointments() {
+
+        try {
+
+            const res = await fetch(`/api/Service/Get_BusinessAppointments?BusinessId=${businessId}`);
+            const data = await res.json();
+
+            let rows = "";
+
+            if (!data || data.length === 0) {
+                rows = `<tr>
+                            <td colspan="7" class="text-center p-4">
+                                No appointments found
+                            </td>
+                        </tr>`;
+            }
+
+            data.forEach(item => {
+
+                rows += `
+                <tr>
+
+                    <td>${item.serviceName}</td>
+                    <td>${item.userName}</td>
+                    <td>${item.email}</td>
+                    <td>${formatDate(item.appointmentDateTime)}</td>
+                    <td>${item.notes ?? ""}</td>
+
+                    <td>${getStatusBadge(item.status)}</td>
+
+                    <td>
+
+                        <select class="form-select form-select-sm status-dropdown"
+                                data-id="${item.appointmentId}">
+
+                            <option value="Pending" ${item.status === "Pending" ? "selected" : ""}>Pending</option>
+                            <option value="Responded" ${item.status === "Responded" ? "selected" : ""}>Responded</option>
+                            <option value="Completed" ${item.status === "Completed" ? "selected" : ""}>Completed</option>
+                            <option value="Cancelled" ${item.status === "Cancelled" ? "selected" : ""}>Cancelled</option>
+
+                        </select>
+
+                    </td>
+
+                </tr>
+                `;
+            });
+
+            document.getElementById("appointmentTable").innerHTML = rows;
+
+        } catch (err) {
+
+            console.error(err);
+
+            document.getElementById("appointmentTable").innerHTML =
+                `<tr>
+                    <td colspan="7" class="text-danger text-center">
+                        Error loading data
+                    </td>
+                </tr>`;
+        }
+    }
+
+    // Handle Status Change
+    document.addEventListener("change", async function (e) {
+
+        if (e.target.classList.contains("status-dropdown")) {
+
+            const id = e.target.getAttribute("data-id");
+            const status = e.target.value;
+
+            if (!confirm("Change status to " + status + "?")) return;
+
+            try {
+
+                const res = await fetch('/api/Service/Update_AppointmentStatus', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        appointmentId: parseInt(id),
+                        status: status
+                    })
+                });
+
+                if (res.ok) {
+                    alert("Status updated successfully");
+                    loadAppointments(); // 🔥 smooth refresh (no reload)
+                } else {
+                    alert("Update failed");
+                }
+
+            } catch (err) {
+                console.error(err);
+                alert("Update failed");
+            }
+        }
+    });
+
+    loadAppointments();
+
+</script>

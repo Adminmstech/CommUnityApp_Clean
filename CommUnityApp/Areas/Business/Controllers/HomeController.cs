@@ -126,5 +126,48 @@ namespace CommUnityApp.Areas.Business.Controllers
         {
             return View();
         }
+
+
+        public IActionResult Appointments()
+        {
+            var businessId = HttpContext.Session.GetString("BusinessId");
+
+            if (string.IsNullOrEmpty(businessId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            ViewBag.BusinessId = businessId;
+
+            return View();
+        }
+
+        public IActionResult AddService()
+        {
+            var businessId = HttpContext.Session.GetString("BusinessId");
+
+            if (string.IsNullOrEmpty(businessId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            ViewBag.BusinessId = businessId;
+
+            return View();
+        }
+
+        public IActionResult GetBusinessService()
+        {
+            var businessId = HttpContext.Session.GetString("BusinessId");
+
+            if (string.IsNullOrEmpty(businessId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            ViewBag.BusinessId = businessId;
+
+            return View();
+        }
     }
 }
