@@ -125,5 +125,122 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return false;
             }
         }
+
+        public async Task<List<CharityRequestModel>> GetCharityItemRequestsList(long communityId)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await con.QueryAsync<CharityRequestModel>(
+                    "sp_GetCharityItemRequestsList",
+                    new { CommunityId = communityId },
+                    commandType: CommandType.StoredProcedure);
+
+                return result.ToList();
+            }
+        }
+        public async Task<int> AddCharityItem(AddCharityItemModel model, string imagePath)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var id = await con.ExecuteScalarAsync<int>(
+                    "SP_AddCharityItem",
+                    new
+                    {
+                        model.CommunityId,
+                        model.PostedByUserId,
+                        model.ItemName,
+                        model.Description,
+                        model.Quantity,
+                        ImagePath = imagePath
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+                return id;
+            }
+        }
+
+        public async Task UpdateCharityItemImage(int charityItemId, string imagePath)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                await con.ExecuteAsync(
+                    "UPDATE CharityItems SET ImagePath=@ImagePath WHERE CharityItemId=@CharityItemId",
+                    new { CharityItemId = charityItemId, ImagePath = imagePath });
+            }
+        }
+
+        public async Task<int> RequestCharityItem(RequestCharityItemModel model)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var id = await con.ExecuteScalarAsync<int>(
+                    "sp_RequestCharityItem",
+                    new
+                    {
+                        model.CharityItemId,
+                        model.RequestedByUserId,
+                        model.RequestedQuantity,
+                        model.Description
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+                return id;
+            }
+        }
+
+        public async Task<List<RequestedUserModel>> GetRequestedUsersByItemId(int charityItemId)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await con.QueryAsync<RequestedUserModel>(
+                    "sp_GetRequestedUsersByItemId",
+                    new { CharityItemId = charityItemId },
+                    commandType: CommandType.StoredProcedure);
+
+                return result.ToList();
+            }
+        }
+
+ 
+
+        public async Task AssignVolunteerToRequest(AssignVolunteerModel model)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                await con.ExecuteAsync(
+                    "sp_AssignVolunteerToRequest",
+                    new
+                    {
+                        model.RequestId,
+                        model.VolunteerId
+                    },
+                    commandType: CommandType.StoredProcedure);
+            }
+        }
+
+        public async Task<List<CharityItemListModel>> GetAllCharityItems()
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await con.QueryAsync<CharityItemListModel>(
+                    "sp_GetAllCharityItems",
+                    commandType: CommandType.StoredProcedure);
+
+                return result.ToList();
+            }
+        }
+        public async Task<List<MyRequestedItemsModel>> GetMyRequestedItems(Guid userId)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await con.QueryAsync<MyRequestedItemsModel>(
+                    "sp_GetMyRequestedItems",
+                    new { UserId = userId },
+                    commandType: CommandType.StoredProcedure);
+
+                return result.ToList();
+            }
+        }
+
     }
 }

@@ -371,4 +371,39 @@
             }
         });
     }
+
+    function openRequestedUsersModal(charityItemId) {
+
+        $("#requestedUsersModal").modal("show");
+
+        $.ajax({
+            url: '/api/Community/GetRequestedUsersByItemId?charityItemId=' + charityItemId,
+            type: 'GET',
+            success: function (res) {
+
+                var html = "";
+
+                if (!res || res.length === 0) {
+                    html = "<tr><td colspan='5' class='text-center'>No requests found</td></tr>";
+                }
+                else {
+
+                    $.each(res, function (i, item) {
+
+                        html += "<tr>";
+                        html += "<td>" + item.requestedUserName + "</td>";
+                        html += "<td>" + item.mobile + "</td>";
+                        html += "<td>" + item.requestedQuantity + "</td>";
+                        html += "<td>" + (item.description || "-") + "</td>";
+                        html += "<td>";
+                        html += "<button class='btn btn-sm btn-primary' onclick='selectRequestedUser(" + item.requestId + ")'>Select</button>";
+                        html += "</td>";
+                        html += "</tr>";
+                    });
+                }
+
+                $("#tblRequestedUsers").html(html);
+            }
+        });
+    }
 </script>

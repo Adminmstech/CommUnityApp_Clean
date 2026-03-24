@@ -47,5 +47,20 @@ namespace CommUnityApp.Areas.Community.Controllers
 
             return View();
         }
+        public IActionResult ItemRequestList()
+        {
+            long communityId = 0;
+
+            var sessionValue = HttpContext.Session.GetString("CommunityId");
+
+            if (!string.IsNullOrEmpty(sessionValue))
+            {
+                communityId = Convert.ToInt64(sessionValue);
+            }
+
+            ViewBag.CommunityId = communityId;
+
+            return View();
+        }
     }
 }
