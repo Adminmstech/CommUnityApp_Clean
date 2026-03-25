@@ -1,0 +1,78 @@
+﻿@{
+    ViewData["Title"] = "Charity Items";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+}
+<h3 class="mb-3">Charity Item Requests</h3>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+
+        <table class="table table-bordered table-striped" id="tblRequests">
+            <thead class="table-dark">
+                <tr>
+                    <th>Item</th>
+                    <th>Requested User</th>
+                    <th>Description</th>
+                    <th>Mobile</th>
+                    <th>Qty</th>
+                    <th>Status</th>
+                    <th>Volunteer</th>
+                    <th>Delivery</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="9" class="text-center">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        loadRequests();
+    });
+
+    function loadRequests() {
+
+        $.ajax({
+            url: '/api/Community/GetCharityItemRequestsList',
+            type: 'GET',
+            success: function (res) {
+
+                var html = "";
+
+                if (!res || res.length === 0) {
+                    html += "<tr><td colspan='9' class='text-center'>No records found</td></tr>";
+                }
+                else {
+
+                    $.each(res, function (i, item) {
+
+                        html += "<tr>";
+
+                        html += "<td>" + item.itemName + "</td>";
+                        html += "<td>" + item.requestedUserName + "</td>";
+                        html += "<td>" + (item.description || "-") + "</td>"; 
+
+                        html += "<td>" + item.mobile + "</td>";
+                        html += "<td>" + item.requestedQuantity + "</td>";
+                        html += "<td>" + item.status + "</td>";
+                        html += "<td>" + (item.volunteerName || "-") + "</td>";
+                        html += "<td>" + (item.deliveryStatus || "-") + "</td>";
+                        html += "<td>" + new Date(item.createdDate).toLocaleDateString() + "</td>";
+
+                        html += "</tr>";
+                    });
+                }
+
+                $("#tblRequests tbody").html(html);
+            }
+        });
+    }
+</script>
