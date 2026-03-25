@@ -327,6 +327,48 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return result;
             }
         }
+        public async Task<List<Events>> GetEvents()
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<Events>("Get_AllEvents", commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+
+        public async Task<List<TopEventDto>> GetTop5Events()
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<TopEventDto>("Get_Top5Events", commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+        public async Task<List<Events>> GetEventById(int EventId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@EventId", EventId);
+
+            var result = await connection.QueryAsync<Events>("Get_EventById", parameters, commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
 
 
     }

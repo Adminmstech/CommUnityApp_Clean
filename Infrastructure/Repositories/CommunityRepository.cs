@@ -4,6 +4,7 @@ using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Data;
+using static CommUnityApp.ApplicationCore.Models.AssignVolunteerRequest;
 
 namespace CommUnityApp.InfrastructureLayer.Repositories
 {
@@ -242,5 +243,17 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             }
         }
 
+        public async Task<List<Community>> GetCommunities()
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<Community>("Get_AllCommunities", commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
     }
 }

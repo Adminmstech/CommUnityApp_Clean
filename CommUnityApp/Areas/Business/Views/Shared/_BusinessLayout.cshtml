@@ -12,10 +12,10 @@
 
     <style>
         :root {
-            --sidebar-bg: #0f172a;
-            --sidebar-hover: #1e293b;
+            --sidebar-bg: #0f0f0f;
+            --sidebar-hover: #1c1c1c;
             --primary: #2563eb;
-            --accent: #3b82f6;
+            --accent: #f6af3e;
         }
 
         html, body {
@@ -49,7 +49,7 @@
 
         .brand {
             font-size: 20px;
-            font-weight: 800;
+            font-weight: 700;
             margin-bottom: 32px;
             color: #fff;
             display: flex;
@@ -174,7 +174,7 @@
             </div>
 
             <nav class="nav">
-                <a href="@Url.Action("Index", "Home", new { area = "Business" })" class="active">
+                <a href="@Url.Action("Index", "Home", new { area = "Business" })" >
                     <i class="fa-solid fa-chart-line"></i> Dashboard
                 </a>
                 <a href="@Url.Action("Index", "Game", new { area = "Business" })">
@@ -183,10 +183,23 @@
                 <a href="@Url.Action("Create", "Game", new { area = "Business" })">
                     <i class="fa-solid fa-plus-circle"></i> Create New Game
                 </a>
-                <a href="#">
+
+                <a href="@Url.Action("Promotions", "Home", new { area = "Business" })">
+                    <i class="fa-solid fa-bullhorn"></i> Promotions
+                </a>
+                <a href="@Url.Action("BusinessOrders", "Home", new { area = "Business" })">
+                    <i class="fa-solid fa-clipboard-list"></i> Orders
+                </a>
+                <a href="@Url.Action("BusinessCustomers", "Home", new { area = "Business" })">
                     <i class="fa-solid fa-users"></i> Customers
                 </a>
-                <a href="#">
+                <a href="@Url.Action("Communication", "Home", new { area = "Business" })">
+                    <i class="fa-solid fa-bullhorn"></i> Communication
+                </a>
+                <a href="@Url.Action("Appointments", "Home", new { area = "Business" })">
+                    <i class="fa-solid fa-clipboard-list"></i>  Appointments
+                </a>
+                <a href="@Url.Action("BusinessProfile", "Home", new { area = "Business" })">
                     <i class="fa-solid fa-gear"></i> Profile Settings
                 </a>
             </nav>

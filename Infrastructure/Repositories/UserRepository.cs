@@ -169,6 +169,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
         public async Task<LoginResponse> UserLogin(LoginRequest request)
         {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+
             using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection")
             );
@@ -184,7 +187,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 parameters,
                 commandType: CommandType.StoredProcedure
             );
-            return result;
+            
+            return result ?? new LoginResponse { ResultId = 0, ResultMessage = "Invalid credentials" };
         }
 
 
