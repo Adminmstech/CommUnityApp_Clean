@@ -225,7 +225,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 parameters.Add("@UserId", request.UserId);
                 parameters.Add("@EventId", request.EventId);
                 parameters.Add("@NoOfTickets", request.NoOfTickets);
-                parameters.Add("@UseWallet", request.UseWallet);
+                parameters.Add("@UsedWalletAmount", request.UsedWalletAmount);
 
                 var result = await con.QueryFirstOrDefaultAsync<BookingResponse>(
                     "SP_BookEvent",
