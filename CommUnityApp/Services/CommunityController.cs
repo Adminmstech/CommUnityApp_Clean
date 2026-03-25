@@ -2,6 +2,12 @@
 using CommUnityApp.ApplicationCore.Models;
 using CommUnityApp.InfrastructureLayer.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using static Org.BouncyCastle.Math.EC.ECCurve;
+using System.Data;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 using static CommUnityApp.ApplicationCore.Models.AssignVolunteerRequest;
 
 namespace CommUnityApp.Services
@@ -14,6 +20,11 @@ namespace CommUnityApp.Services
     {
 
         private readonly ICommunityRepository _communityRepository;
+        private readonly IWebHostEnvironment _env;
+        public CommunityController(IWebHostEnvironment env, ICommunityRepository communityRepository)
+        {
+            _env = env;
+            _communityRepository = communityRepository;
         private readonly ILogger<CommunityController> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
@@ -135,6 +146,216 @@ namespace CommUnityApp.Services
             }
         }
 
+        [HttpGet]
+        [Route("GetAssignedVolunteer")]
+        public async Task<IActionResult> GetAssignedVolunteer(int charityItemId)
+        {
+            try
+            {
+                var result = await _communityRepository.GetAssignedVolunteer(charityItemId);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet]
+        [Route("GetCharityItemDetails")]
+        public async Task<IActionResult> GetCharityItemDetails(int charityItemId)
+        {
+            try
+            {
+                var result = await _communityRepository.GetCharityItemDetails(charityItemId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpPost("UpdateVolunteerStatus")]
+        public async Task<IActionResult> UpdateVolunteerStatus([FromBody] UpdateStatusRequest request)
+        {
+            var result = await _communityRepository.UpdateVolunteerStatusAsync(request);
+
+            if (result)
+            {
+                return Ok(new
+                {
+                    status = 1,
+                    message = "Status updated successfully"
+                });
+            }
+
+            return BadRequest(new
+            {
+                status = 0,
+                message = "Update failed"
+            });
+        }
+
+        [HttpGet("GetCharityItemRequestsList")]
+        public async Task<IActionResult> GetCharityItemRequestsList(long? communityId)
+        {
+            long cid = 0;
+
+            if (communityId != null)
+            {
+                cid = communityId.Value;
+            }
+            else
+            {
+                var sessionValue = HttpContext.Session.GetString("CommunityId");
+
+                if (!string.IsNullOrEmpty(sessionValue))
+                    cid = Convert.ToInt64(sessionValue);
+            }
+
+            if (cid == 0)
+                return Unauthorized("Session expired");
+
+            var data = await _communityRepository.GetCharityItemRequestsList(cid);
+
+            string baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+            foreach (var item in data)
+            {
+                if (!string.IsNullOrEmpty(item.ImagePath))
+                    item.ImagePath = baseUrl + item.ImagePath;
+                else
+                    item.ImagePath = baseUrl + "/images/noimage.png";
+            }
+
+            return Ok(data);
+        }
+        [HttpPost("AddCharityItem")]
+        public async Task<IActionResult> AddCharityItem([FromBody] AddCharityItemModel model)
+        {
+            try
+            {
+                string imagePath = "";
+
+                var charityItemId = await _communityRepository.AddCharityItem(model, "");
+
+                if (!string.IsNullOrEmpty(model.ImagePath))
+                {
+                    string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "charity", charityItemId.ToString());
+
+                    if (!Directory.Exists(folderPath))
+                        Directory.CreateDirectory(folderPath);
+
+                    string filePath = Path.Combine(folderPath, model.FileName);
+
+                    byte[] imageBytes = Convert.FromBase64String(model.ImagePath);
+                    System.IO.File.WriteAllBytes(filePath, imageBytes);
+
+                    imagePath = "/uploads/charity/" + charityItemId + "/" + model.FileName;
+
+                    await _communityRepository.UpdateCharityItemImage(charityItemId, imagePath);
+                }
+
+                return Ok(new { message = "Item added successfully" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("RequestCharityItem")]
+        public async Task<IActionResult> RequestCharityItem([FromBody] RequestCharityItemModel model)
+        {
+            try
+            {
+                if (model.RequestedQuantity <= 0)
+                    return BadRequest("Invalid quantity");
+
+                var requestId = await _communityRepository.RequestCharityItem(model);
+
+                return Ok(new
+                {
+                    message = "Request submitted successfully",
+                    requestId = requestId
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("GetRequestedUsersByItemId")]
+        public async Task<IActionResult> GetRequestedUsersByItemId(int charityItemId)
+        {
+            try
+            {
+                var data = await _communityRepository.GetRequestedUsersByItemId(charityItemId);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("AssignVolunteerToRequest")]
+        public async Task<IActionResult> AssignVolunteerToRequest([FromBody] AssignVolunteerModel model)
+        {
+            await _communityRepository.AssignVolunteerToRequest(model);
+            return Ok(new { message = "Volunteer Assigned Successfully" });
+        }
+
+        [HttpGet("GetAllCharityItems")]
+        public async Task<IActionResult> GetAllCharityItems()
+        {
+            try
+            {
+                var data = await _communityRepository.GetAllCharityItems();
+
+                string baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+                foreach (var item in data)
+                {
+                    if (!string.IsNullOrEmpty(item.ImagePath))
+                        item.ImagePath = baseUrl + item.ImagePath;
+                    else
+                        item.ImagePath = baseUrl + "/images/noimage.png";
+                }
+
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("GetMyRequestedItems")]
+        public async Task<IActionResult> GetMyRequestedItems(Guid userId)
+        {
+            try
+            {
+                var data = await _communityRepository.GetMyRequestedItems(userId);
+
+                string baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+                foreach (var item in data)
+                {
+                    if (!string.IsNullOrEmpty(item.ImagePath))
+                        item.ImagePath = baseUrl + item.ImagePath;
+                    else
+                        item.ImagePath = baseUrl + "/images/noimage.png";
+                }
+
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
         [HttpGet("Get_Communities")]
         public async Task<IActionResult> GetCommunities()
         {
