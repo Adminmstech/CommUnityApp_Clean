@@ -115,7 +115,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public Guid UserId { get; set; }
         public int EventId { get; set; }
         public int NoOfTickets { get; set; }
-        public bool UsedWalletAmount { get; set; }
+        public bool UseWallet { get; set; }
     }
 
     public class BookingResponse

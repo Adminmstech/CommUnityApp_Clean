@@ -26,8 +26,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<List<CharityItemListModel>> GetAllCharityItems();
         Task<List<MyRequestedItemsModel>> GetMyRequestedItems(Guid userId);
-        }
-
+        
         Task<List<Community>> GetCommunities();
 
     }

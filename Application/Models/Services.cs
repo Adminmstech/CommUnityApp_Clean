@@ -33,6 +33,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public decimal Price { get; set; }
         public int DurationMinutes { get; set; }
         public bool IsBookingRequired { get; set; }
+        public double Rating { get; set; }
 
         public int BusinessId { get; set; }
         public string BusinessName { get; set; }
@@ -41,6 +42,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string CategoryName { get; set; }
 
         public DateTime CreatedAt { get; set; }
+
     }
 
     public class ServiceSearchRequest
@@ -72,7 +74,6 @@ namespace CommUnityApp.ApplicationCore.Models
         public int ServiceId { get; set; }
         public string ServiceName { get; set; }
         public string Description { get; set; }
-       
         public bool IsBookingRequired { get; set; }
 
         public int BusinessId { get; set; }
@@ -84,6 +85,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
         public string WebLink { get; set; }
+
         public string CategoryName { get; set; }
     }
     public class RelatedService
@@ -206,6 +208,60 @@ namespace CommUnityApp.ApplicationCore.Models
         public ServiceModel Service { get; set; }
 
         public List<ServiceImageModel> Images { get; set; } = new();
+    }
+    public class CategoryResponse
+    {
+        public int CategoryId { get; set; }
+        public string CategoryName { get; set; }
+        public string Description { get; set; }
+        public string ImageURL { get; set; }
+        public int TotalProviders { get; set; }
+    }
+    public class ServiceHomeResponse
+    {
+        public List<ServiceListResponse> TopServices { get; set; } = new();
+        public List<CategoryResponse> Categories { get; set; } = new();
+    }
+
+    public class ServiceSubCategory
+    {
+       
+        public int SubCategoryId { get; set; }
+        public int CategoryId { get; set; }
+
+        public string SubCategoryName { get; set; }
+
+        public string Icon { get; set; }
+
+        public bool IsActive { get; set; }
+    }
+
+    public class BusinessCategory
+    {
+        public int CategoryId { get; set; }
+
+        public string CategoryName { get; set; }
+
+        public string? Description { get; set; }
+
+        public string? ImageURL { get; set; }
+
+        public bool IsActive { get; set; }
+
+        // 🔥 For Base64 upload
+        public string? ImageBase64 { get; set; }
+    }
+    public class CategoryServicesResponse
+    {
+        public List<ServiceSubCategory> SubCategories { get; set; } = new();
+
+        public List<ServiceListResponse> Services { get; set; } = new();
+    }
+
+    public class CategoryServicesWithImagesResponse
+    {
+        public List<ServiceSubCategory> SubCategories { get; set; } = new();
+        public List<ServiceWithImagesResponse> Services { get; set; } = new();
     }
 
 }

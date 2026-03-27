@@ -21,18 +21,19 @@ namespace CommUnityApp.Services
 
         private readonly ICommunityRepository _communityRepository;
         private readonly IWebHostEnvironment _env;
-        public CommunityController(IWebHostEnvironment env, ICommunityRepository communityRepository)
-        {
-            _env = env;
-            _communityRepository = communityRepository;
         private readonly ILogger<CommunityController> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
-
-
-
-        public CommunityController(ILogger<CommunityController> logger, IUnitOfWork unitOfWork, IConfiguration config)
+        public CommunityController(
+      IWebHostEnvironment env,
+      ICommunityRepository communityRepository,
+      ILogger<CommunityController> logger,
+      IUnitOfWork unitOfWork,
+      IConfiguration config)
         {
+            _env = env;
+            _communityRepository = communityRepository;
+
             _logger = logger;
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _config = config;

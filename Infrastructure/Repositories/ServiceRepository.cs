@@ -47,7 +47,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         }
 
 
-        public async Task<List<ServiceListResponse>> GetAllServices(ServiceSearchRequest request)
+        public async Task<ServiceHomeResponse> GetAllServices(ServiceSearchRequest request)
         {
             using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection")
@@ -56,18 +56,28 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             await connection.OpenAsync();
 
             var parameters = new DynamicParameters();
-
             parameters.Add("@SearchText", request?.SearchText ?? (object)DBNull.Value);
             parameters.Add("@CategoryId", request?.CategoryId ?? (object)DBNull.Value);
             parameters.Add("@BusinessId", request?.BusinessId ?? (object)DBNull.Value);
 
-            var result = await connection.QueryAsync<ServiceListResponse>(
+            using var multi = await connection.QueryMultipleAsync(
                 "sp_GetAllServices",
                 parameters,
                 commandType: CommandType.StoredProcedure
             );
 
-            return result.ToList();
+            var response = new ServiceHomeResponse
+            {
+                // 🔥 1st result set → Top Services
+                TopServices = (await multi.ReadAsync<ServiceListResponse>()).ToList(),
+
+                // 📂 2nd result set → Categories
+                Categories = (await multi.ReadAsync<CategoryResponse>()).ToList(),
+
+                
+            };
+
+            return response;
         }
 
         public async Task<List<AppointmentResponse>> GetUserAppointments(Guid UserId)
@@ -100,19 +110,17 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             var parameters = new DynamicParameters();
             parameters.Add("@ServiceId", serviceId);
 
-            using var multi = await connection.QueryMultipleAsync(
+            // 🔥 Only one result set now
+            var service = await connection.QueryFirstOrDefaultAsync<ServiceDetails>(
                 "Get_ServiceDetails",
                 parameters,
                 commandType: CommandType.StoredProcedure
             );
 
-            var service = await multi.ReadFirstOrDefaultAsync<ServiceDetails>();
-            var otherServices = (await multi.ReadAsync<RelatedService>()).ToList();
-
             return new ServiceDetailsResponse
             {
-                Service = service,
-                OtherServices = otherServices
+                Service = service
+                // ❌ Removed OtherServices
             };
         }
 
@@ -237,6 +245,151 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             var result = await connection.QueryAsync<ServiceImageModel>(
                 "Get_ServiceImagesByServiceId",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+
+
+        public async Task<BaseResponse> AddServiceSubCategory(ServiceSubCategory entity)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@CategoryId", entity.CategoryId);
+            parameters.Add("@SubCategoryName", entity.SubCategoryName);
+            parameters.Add("@Icon", entity.Icon);
+            parameters.Add("@IsActive", entity.IsActive);
+
+            var result = await connection.QueryAsync<BaseResponse>(
+                "Add_ServiceSubCategory",   // your stored procedure name
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.FirstOrDefault();
+        }
+
+
+        public async Task<BaseResponse> AddBusinessCategory(BusinessCategory entity)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@CategoryId", entity.CategoryId);
+            parameters.Add("@CategoryName", entity.CategoryName);
+            parameters.Add("@Description", entity.Description);
+            parameters.Add("@ImageURL", entity.ImageURL);
+            parameters.Add("@IsActive", entity.IsActive);
+
+            var result = await connection.QueryAsync<BaseResponse>(
+                "Add_BusinessCategory",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.FirstOrDefault();
+        }
+
+        public async Task<CategoryServicesWithImagesResponse> GetServicesByCategory(int categoryId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@CategoryId", categoryId);
+
+            var result = await connection.QueryAsync<dynamic>(
+                "Get_ServicesByCategory",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            var response = new CategoryServicesWithImagesResponse();
+
+            if (result != null && result.Any())
+            {
+                var firstRow = (IDictionary<string, object>)result.First();
+
+                // 🔥 SUBCATEGORIES
+                if (firstRow.ContainsKey("SubCategoryId"))
+                {
+                    response.SubCategories = result.Select(r => new ServiceSubCategory
+                    {
+                        SubCategoryId = r.SubCategoryId,
+                        CategoryId = r.CategoryId,
+                        SubCategoryName = r.SubCategoryName,
+                        Icon = r.Icon
+                    }).ToList();
+                }
+                else
+                {
+                    // 🔥 SERVICES WITH IMAGES
+                    foreach (var r in result)
+                    {
+                        var service = new ServiceModel
+                        {
+                            ServiceId = r.ServiceId,
+                            BusinessId = r.BusinessId,
+                            ServiceName = r.ServiceName,
+                            Description = r.Description,
+                            Price = r.Price,
+                            DurationMinutes = r.DurationMinutes,
+                            IsBookingRequired = r.IsBookingRequired,
+                            IsActive = true,
+                            CreatedAt = r.CreatedAt
+                        };
+
+                        // 🔥 Get images
+                        var images = await GetServiceImages(service.ServiceId);
+
+                        var serviceWithImages = new ServiceWithImagesResponse
+                        {
+                            Service = service,
+                            Images = images?.Select(img => new ServiceImageModel
+                            {
+                                ImageId = img.ImageId,
+                                ServiceId = img.ServiceId,
+                                ImageUrl = img.ImageUrl,
+                                IsPrimary = img.IsPrimary
+                            }).ToList() ?? new List<ServiceImageModel>()
+                        };
+
+                        response.Services.Add(serviceWithImages);
+                    }
+                }
+            }
+
+            return response;
+        }
+
+
+        public async Task<List<ServiceListResponse>> GerserviceBySubcategory(int SubCategoryId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@SubCategoryId", SubCategoryId);
+
+            var result = await connection.QueryAsync<ServiceListResponse>(
+                "Get_ServicesBySubCategory",
                 parameters,
                 commandType: CommandType.StoredProcedure
             );
