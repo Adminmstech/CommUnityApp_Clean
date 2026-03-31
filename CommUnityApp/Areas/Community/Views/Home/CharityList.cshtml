@@ -7,17 +7,33 @@
 
 <div class="card shadow-sm">
     <div class="card-body">
+        
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <label><b>Item Category</b></label>
+                <select id="ddlCategory" class="form-control">
+                    <option value="">All</option>
+                </select>
+                <input type="text" id="txtSearch" class="form-control" placeholder="Search item name" />
 
+            </div>
+
+            <div class="col-md-2 d-flex align-items-end">
+                <button class="btn btn-primary" onclick="filterData()">Search</button>
+            </div>
+        </div>
         <table class="table table-bordered table-striped align-middle" id="tblCharity">
             <thead class="table-dark">
                 <tr>
-
+                    <th style="width:60px;">#</th>
                     <th style="width:100px;">Image</th>
                     <th>Item Name</th>
                     <th>Description</th>
+                    <th>Item Category</th>
+                    <th>Item Code</th>
                     <th style="width:100px;">Quantity</th>
-                    <th style="width:120px;">Status</th>
-                    <th style="width:150px;">Created Date</th>
+                    @*<th style="width:120px;">Status</th>*@
+                    <th style="width:150px;">Added Date</th>
                     <th style="width:150px;">Action</th>
                 </tr>
             </thead>
@@ -27,7 +43,49 @@
                 </tr>
             </tbody>
         </table>
+        <div class="d-flex justify-content-between mt-3">
+            <div>
+                <strong>Showing:</strong> <span id="pageInfo"></span>
+            </div>
+            <div>
+                <button class="btn btn-sm btn-primary" onclick="prevPage()">Prev</button>
+                <span id="currentPage" class="mx-2">1</span>
+                <button class="btn btn-sm btn-primary" onclick="nextPage()">Next</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="requestedUsersModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
 
+            <div class="modal-header">
+                <h5 class="modal-title">Requested Users</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <input type="hidden" id="selectedRequestId" />
+
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Mobile</th>
+                            <th>Requested Qty</th>
+                            <th>Description</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tblRequestedUsers">
+                        <tr>
+                            <td colspan="5" class="text-center">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
     </div>
 </div>
 <div class="modal fade" id="volunteerModal" tabindex="-1">
@@ -62,6 +120,7 @@
         </div>
     </div>
 </div>
+
 <div class="modal fade" id="assignedModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -151,74 +210,121 @@
 <script>
     $(document).ready(function () {
         loadCharityItems();
+        loadCategories();
+
+    });
+
+    var allData = [];
+    var filteredData = [];
+    var pageSize = 10;
+    var currentPage = 1;
+
+    $(document).ready(function () {
+        loadCharityItems();
     });
 
     function loadCharityItems() {
-
         $.ajax({
             url: '/api/Community/GetCharityListByCommunity',
             type: 'GET',
             success: function (res) {
 
-                var html = "";
+                allData = res || [];
+                filteredData = allData;
 
-                if (!res || res.length === 0) {
-                    html += "<tr><td colspan='7' class='text-center'>No records found</td></tr>";
-                }
-                else {
+                $("#totalCount").text(filteredData.length);
 
-                    $.each(res, function (i, item) {
-
-                        html += "<tr>";
-
-                        html += "<td>";
-                        if (item.imagePath) {
-                            html += "<img src='" + item.imagePath + "' class='img-thumbnail' style='width:80px;height:80px;' />";
-                        } else {
-                            html += "<img src='/images/noimage.png' class='img-thumbnail' style='width:80px;height:80px;' />";
-                        }
-                        html += "</td>";
-
-                        html += "<td>" + (item.itemName || "") + "</td>";
-                        html += "<td>" + (item.description || "") + "</td>";
-                        html += "<td>" + item.quantity + "</td>";
-
-                        if (item.status === "Pending")
-                            html += "<td><span class='badge bg-warning text-dark'>Pending</span></td>";
-                        else if (item.status === "Approved")
-                            html += "<td><span class='badge bg-success'>Approved</span></td>";
-                        else if (item.status === "Assigned")
-                            html += "<td><span class='badge bg-primary'>Assigned</span></td>";
-                        else
-                            html += "<td><span class='badge bg-danger'>Rejected</span></td>";
-
-                        html += "<td>" + (item.createdDate ? new Date(item.createdDate).toLocaleDateString() : "-") + "</td>";
-
-                        html += "<td>";
-
-                        html += "<button class='btn btn-sm btn-info me-1' onclick='viewDetails(" + item.charityItemId + ")'>Details</button>";
-
-                        if (item.status === "Approved" || item.status === "Pending") {
-                            html += "<button class='btn btn-sm btn-primary' onclick='openVolunteerModal(" + item.charityItemId + ")'>Assign Volunteer</button>";
-                        }
-                        else if (item.status === "Assigned") {
-                            html += "<button class='btn btn-sm btn-success' onclick='viewAssigned(" + item.charityItemId + ")'>Assigned</button>";
-                        }
-                        else {
-                            html += "-";
-                        }
-
-                        html += "</td>";
-
-                        html += "</tr>";
-                    });
-                }
-
-                $("#tblCharity tbody").html(html);
+                currentPage = 1;
+                renderTable();
             }
         });
     }
 
+    function renderTable() {
+
+        var html = "";
+
+        var start = (currentPage - 1) * pageSize;
+        var end = start + pageSize;
+        var pageData = filteredData.slice(start, end);
+
+        if (pageData.length === 0) {
+            html += "<tr><td colspan='9' class='text-center'>No records found</td></tr>";
+        }
+        else {
+            $.each(pageData, function (i, item) {
+
+                var rowNumber = start + i + 1;
+
+                html += "<tr>";
+                html += "<td>" + rowNumber + "</td>";
+
+                html += "<td>";
+                if (item.imagePath) {
+                    html += "<img src='" + item.imagePath + "' class='img-thumbnail' style='width:80px;height:80px;' />";
+                } else {
+                    html += "<img src='/images/noimage.png' class='img-thumbnail' style='width:80px;height:80px;' />";
+                }
+                html += "</td>";
+
+                html += "<td>" + (item.itemName || "") + "</td>";
+                html += "<td>" + (item.description || "") + "</td>";
+                html += "<td>" + (item.itemCategory || "") + "</td>";
+                html += "<td>" + (item.itemCode || "") + "</td>";
+                html += "<td>" + item.quantity + "</td>";
+                html += "<td>" + (item.createdDate ? new Date(item.createdDate).toLocaleDateString() : "-") + "</td>";
+
+                html += "<td>";
+                html += "<button class='btn btn-sm btn-info me-1' onclick='viewDetails(" + item.charityItemId + ")'>Details</button>";
+
+                if ((item.status === "Approved" || item.status === "Pending") && item.quantity > 0) {
+                    html += "<button class='btn btn-sm btn-primary' onclick='openRequestedUsersModal(" + item.charityItemId + ")'>Assign Volunteer</button>";
+                }
+                else if (item.quantity == 0) {
+                    html += "<button class='btn btn-sm btn-secondary' disabled>Completed</button>";
+                }
+                else if (item.status === "Assigned") {
+                    html += "<button class='btn btn-sm btn-success' onclick='viewAssigned(" + item.charityItemId + ")'>Assigned</button>";
+                }
+                else {
+                    html += "-";
+                }
+
+                html += "</td>";
+                html += "</tr>";
+            });
+        }
+
+        $("#tblCharity tbody").html(html);
+
+        $("#currentPage").text(currentPage);
+        $("#pageInfo").text((start + 1) + " - " + Math.min(end, filteredData.length) + " of " + filteredData.length);
+    }
+
+    function nextPage() {
+        if ((currentPage * pageSize) < allData.length) {
+            currentPage++;
+            renderTable();
+        }
+    }
+
+    function prevPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable();
+        }
+    }
+    function filterData() {
+
+        var category = $("#ddlCategory").val().toLowerCase();
+
+        filteredData = allData.filter(function (item) {
+            return !category || (item.itemCategory && item.itemCategory.toLowerCase().includes(category));
+        });
+
+        currentPage = 1;
+        renderTable();
+    }
     function openVolunteerModal(charityId) {
 
         console.log("Selected CharityItemId:", charityId);
@@ -258,22 +364,20 @@
 
     function assignVolunteer(volunteerId) {
 
-        var charityItemId = $("#selectedCharityId").val();
+        var requestId = $("#selectedRequestId").val();
 
-        if (!charityItemId) {
-            alert("Charity ID missing");
+        if (!requestId) {
+            alert("Request ID missing");
             return;
         }
 
         var payload = {
-            CharityItemId: parseInt(charityItemId),
-            AssignedToUserId: volunteerId
+            RequestId: parseInt(requestId),
+            VolunteerId: volunteerId
         };
 
-        console.log("Sending Payload:", payload);
-
         $.ajax({
-            url: '/api/Community/Assign',
+            url: '/api/Community/AssignVolunteerToRequest',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(payload),
@@ -282,10 +386,9 @@
                 alert(res.message);
 
                 $("#volunteerModal").modal("hide");
-                loadCharityItems(); // refresh grid
+                loadCharityItems();
             },
-            error: function (err) {
-                console.log(err.responseText);
+            error: function () {
                 alert("Assignment Failed");
             }
         });
@@ -406,4 +509,75 @@
             }
         });
     }
+
+    function selectRequestedUser(requestId) {
+
+        $("#selectedRequestId").val(requestId);
+
+        $("#requestedUsersModal").modal("hide");
+
+        // Now open volunteers list
+        $("#volunteerModal").modal("show");
+
+        $.ajax({
+            url: '/api/Community/GetVolunteers',
+            type: 'GET',
+            success: function (res) {
+
+                var html = "";
+
+                if (!res || res.length === 0) {
+                    html = "<tr><td colspan='4' class='text-center'>No volunteers found</td></tr>";
+                }
+                else {
+
+                    $.each(res, function (i, v) {
+
+                        html += "<tr>";
+                        html += "<td>" + (v.FullName || "") + "</td>";
+                        html += "<td>" + (v.Mobile || "") + "</td>";
+                        html += "<td>" + (v.Email || "") + "</td>";
+
+                        html += "<td><button class='btn btn-sm btn-success' onclick='assignVolunteer(\"" + v.UserId + "\")'>Assign</button></td>";
+
+                        html += "</tr>";
+                    });
+                }
+
+                $("#tblVolunteers").html(html);
+            }
+        });
+    }
+
+    function loadCategories() {
+        $.ajax({
+            url: '/api/Community/GetItemCategories',
+            type: 'GET',
+            success: function (res) {
+                var html = "<option value=''>All</option>";
+                $.each(res, function (i, item) {
+                    html += "<option value='" + item.categoryId + "'>" + item.itemCategory + "</option>";
+                });
+                $("#ddlCategory").html(html);
+            }
+        });
+    }
+
+   function filterData() {
+
+    var category = $("#ddlCategory").val().toLowerCase();
+    var searchText = $("#txtSearch").val().toLowerCase();
+
+    filteredData = allData.filter(function (x) {
+
+        var itemCategory = x.itemCategory ? x.itemCategory.toLowerCase() : "";
+        var itemName = x.itemName ? x.itemName.toLowerCase() : "";
+
+        return (category === "" || itemCategory === category) &&
+               (searchText === "" || itemName.includes(searchText));
+    });
+
+    currentPage = 1;
+    renderTable();
+}
 </script>

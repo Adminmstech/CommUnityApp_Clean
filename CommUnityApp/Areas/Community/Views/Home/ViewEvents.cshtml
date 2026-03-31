@@ -23,6 +23,16 @@
             </thead>
             <tbody id="eventTable"></tbody>
         </table>
+        <div class="d-flex justify-content-between mt-3">
+            <div>
+                <strong>Showing:</strong> <span id="pageInfo"></span>
+            </div>
+            <div>
+                <button class="btn btn-sm btn-primary" onclick="prevPage()">Prev</button>
+                <span id="currentPage" class="mx-2">1</span>
+                <button class="btn btn-sm btn-primary" onclick="nextPage()">Next</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -30,6 +40,10 @@
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
+    var allEvents = [];
+    var pageSize = 5;
+    var currentPage = 1;
+
     $(document).ready(function () {
         loadEvents();
     });
@@ -40,10 +54,28 @@
 
         $.get(`/api/Event/GetByCommunity/${communityId}`, function (res) {
 
-            let rows = "";
-            let index = 1;
+            allEvents = res || [];
+            currentPage = 1;
+            renderTable();
+        });
+    }
 
-            res.forEach(e => {
+    function renderTable() {
+
+        let rows = "";
+
+        var start = (currentPage - 1) * pageSize;
+        var end = start + pageSize;
+        var pageData = allEvents.slice(start, end);
+
+        if (pageData.length === 0) {
+            rows = "<tr><td colspan='9' class='text-center'>No records found</td></tr>";
+        }
+        else {
+
+            pageData.forEach((e, i) => {
+
+                let index = start + i + 1;
 
                 let imageUrl = e.eventImage
                     ? e.eventImage
@@ -51,70 +83,78 @@
 
                 let qrHtml = e.qrCodeImage
                     ? `<img src="${e.qrCodeImage}"
-                     style="width:70px;height:70px;
-                            border:1px solid #ddd;
-                            padding:4px;
-                            background:#fff;" />`
+                             style="width:70px;height:70px;
+                                    border:1px solid #ddd;
+                                    padding:4px;
+                                    background:#fff;" />`
                     : '-';
 
                 rows += `
-            <tr>
-                <td class="text-center">${index++}</td>
+                <tr>
+                    <td class="text-center">${index}</td>
 
-                <td class="text-center">
-                    <img src="${imageUrl}"
-                         style="width:70px;height:50px;
-                                object-fit:cover;
-                                border-radius:6px;
-                                border:1px solid #ddd;" />
-                </td>
+                    <td class="text-center">
+                        <img src="${imageUrl}"
+                             style="width:70px;height:50px;
+                                    object-fit:cover;
+                                    border-radius:6px;
+                                    border:1px solid #ddd;" />
+                    </td>
 
-                <td>${e.eventName}</td>
+                    <td>${e.eventName}</td>
+                    <td>${e.categoryName}</td>
 
-                <td>${e.categoryName}</td>
+                    <td>
+                        ${formatDate(e.startDate)}<br/>
+                        <small class="text-muted">
+                            to ${formatDate(e.endDate)}
+                        </small>
+                    </td>
 
-                <td>
-                    ${formatDate(e.startDate)}<br/>
-                    <small class="text-muted">
-                        to ${formatDate(e.endDate)}
-                    </small>
-                </td>
+                    <td>${e.location ?? '-'}</td>
 
-                <td>${e.location ?? '-'}</td>
+                    <td>
+                        <span class="badge ${e.isFundRaising == 1 ? 'bg-success' : 'bg-secondary'}">
+                            ${e.isFundRaising == 1 ? 'Yes' : 'No'}
+                        </span>
+                    </td>
 
-                <td>
-                    <span class="badge ${e.isFundRaising == 1 ? 'bg-success' : 'bg-secondary'}">
-                        ${e.isFundRaising == 1 ? 'Yes' : 'No'}
-                    </span>
-                </td>
+                    <td class="text-center">
+                        ${qrHtml}
+                    </td>
 
-                <td class="text-center">
-                    ${qrHtml}
-                </td>
+                    <td>
+                        <a href="/Community/Home/AddEvent?eventId=${e.eventId}"
+                           class="btn btn-sm btn-primary mb-1">Edit</a>
 
-                    <<td>
-        <a href="/Community/Home/AddEvent?eventId=${e.eventId}"
-           class="btn btn-sm btn-primary mb-1">
-            Edit
-        </a>
+                        <a href="/Community/Home/PostEvent?eventId=${e.eventId}"
+                           class="btn btn-sm btn-success mb-1">Post</a>
 
-        <a href="/Community/Home/PostEvent?eventId=${e.eventId}"
-           class="btn btn-sm btn-success mb-1">
-            Post
-        </a>
-
-        <a href="/Community/Home/ViewRegistrations?eventId=${e.eventId}"
-           class="btn btn-sm btn-warning mb-1">
-            View Registrations
-        </a>
-    </td>
-
-            </tr>`;
+                        <a href="/Community/Home/ViewRegistrations?eventId=${e.eventId}"
+                           class="btn btn-sm btn-warning mb-1">View Registrations</a>
+                    </td>
+                </tr>`;
             });
+        }
 
+        $("#eventTable").html(rows);
 
-            $("#eventTable").html(rows);
-        });
+        $("#currentPage").text(currentPage);
+        $("#pageInfo").text((start + 1) + " - " + Math.min(end, allEvents.length) + " of " + allEvents.length);
+    }
+
+    function nextPage() {
+        if ((currentPage * pageSize) < allEvents.length) {
+            currentPage++;
+            renderTable();
+        }
+    }
+
+    function prevPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable();
+        }
     }
 
     function formatDate(date) {
