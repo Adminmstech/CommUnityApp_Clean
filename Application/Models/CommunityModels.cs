@@ -115,7 +115,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public long CommunityId { get; set; }
         public string ItemName { get; set; }
         public string ItemCategory { get; set; }
-        public string Description { get; set; }
+        public string Description { get; set; } 
         public int Quantity { get; set; }
         public Guid PostedByUserId { get; set; }
         public string FileName { get; set; }
