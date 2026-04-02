@@ -138,28 +138,30 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return result.ToList();
             }
         }
-        public async Task<int> AddCharityItem(AddCharityItemModel model, string imagePath)
+        public async Task<(int CharityItemId, string ItemCode)> AddCharityItem(AddCharityItemModel model, string imagePath)
         {
-            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-            {
-                var id = await con.ExecuteScalarAsync<int>(
-                    "SP_AddCharityItem",
-                    new
-                    {
-                        model.CommunityId,
-                        model.PostedByUserId,
-                        model.ItemName,
-                        model.Description,
-                        model.Quantity,
-                        ImagePath = imagePath
-                    },
-                    commandType: CommandType.StoredProcedure);
+           
+                using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                {
+                    var result = await con.QueryFirstAsync(
+                        "SP_AddCharityItem",
+                        new
+                        {
+                            model.CommunityId,
+                            model.PostedByUserId,
+                            model.ItemName,
+                            model.ItemCategory,
+                            model.Description,
+                            model.Quantity,
+                            ImagePath = imagePath
+                        },
+                        commandType: CommandType.StoredProcedure);
 
-                return id;
+                    return ((int)result.CharityItemId, (string)result.ItemCode);
+                }
             }
-        }
 
-        public async Task UpdateCharityItemImage(int charityItemId, string imagePath)
+            public async Task UpdateCharityItemImage(int charityItemId, string imagePath)
         {
             using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
@@ -241,6 +243,17 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return result.ToList();
             }
         }
+        public async Task<List<ItemCategoryModel>> GetItemCategories()
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await connection.QueryAsync<ItemCategoryModel>(
+                    "SP_GetItemCategories",
+                    commandType: CommandType.StoredProcedure
+                );
 
+                return result.ToList();
+            }
+        }
     }
 }

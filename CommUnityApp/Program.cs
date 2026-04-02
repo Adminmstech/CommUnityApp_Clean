@@ -64,6 +64,7 @@ builder.Services.AddTransient<IAuctionRepository, AuctionRepository>();
 builder.Services.AddTransient<IForgotPasswordRepository, ForgotPasswordRepository>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IProductRepository, ProductRepository>();
+builder.Services.AddTransient<IVolunteerRepository, VolunteerRepository>();
 
 
 builder.Services.AddSession();

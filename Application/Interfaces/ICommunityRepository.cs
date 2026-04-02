@@ -14,7 +14,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<bool> UpdateVolunteerStatusAsync(UpdateStatusRequest request);
         Task<List<CharityRequestModel>> GetCharityItemRequestsList(long communityId);
 
-        Task<int> AddCharityItem(AddCharityItemModel model, string imagePath);
+        Task<(int CharityItemId, string ItemCode)> AddCharityItem(AddCharityItemModel model, string imagePath);
         Task UpdateCharityItemImage(int charityItemId, string imagePath);
         Task<int> RequestCharityItem(RequestCharityItemModel model);
 
@@ -24,5 +24,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<List<CharityItemListModel>> GetAllCharityItems();
         Task<List<MyRequestedItemsModel>> GetMyRequestedItems(Guid userId);
+
+        Task<List<ItemCategoryModel>> GetItemCategories();
         }
 }
