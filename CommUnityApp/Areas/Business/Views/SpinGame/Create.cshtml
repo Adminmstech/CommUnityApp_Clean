@@ -136,13 +136,14 @@
                             <tbody id="sectionsBody">
                                 @foreach (var section in Model.Sections)
                                 {
-                                    <tr data-section-id="@section.SectionId">
-                                        <td>@section.SectionNumber</td>
-                                        <td>@section.SectionNumber</td>
-                                        <td><input type="number" class="form-control points-input" value="@section.Points" min="0" /></td>
-                                        <td><input type="number" class="form-control promo-input" value="@section.PromotionId" min="0" /></td>
-                                        <td><input type="text" class="form-control text-input" value="@section.PrizeText" data-val="true" data-val-required="Prize text is required." /></td>
-                                        <td><input type="color" class="form-control color-input" value="@section.Color" /></td>
+                                    var section1 = section;
+                                    <tr data-section-id="@section1.SectionId">
+                                        <td>@section1.SectionNumber</td>
+                                        <td>@section1.SectionNumber</td>
+                                        <td><input type="number" class="form-control points-input" value="@section1.Points" min="0" /></td>
+                                        <td><input type="number" class="form-control promo-input" value="@section1.PromotionId" min="0" /></td>
+                                        <td><input type="text" class="form-control text-input" value="@section1.PrizeText" data-val="true" data-val-required="Prize text is required." /></td>
+                                        <td><input type="color" class="form-control color-input" value="@section1.Color" /></td>
                                         <td>
                                             <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteSection(this)">
                                                 <i class="fa-solid fa-trash"></i>
