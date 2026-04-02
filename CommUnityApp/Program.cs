@@ -55,6 +55,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<ICommunityRepository, CommunityRepository>();
 builder.Services.AddTransient<IEventRepository, EventRepository>();
 builder.Services.AddTransient<IBrandGameRepository, BrandGameRepository>();
+builder.Services.AddTransient<ISpinGameRepository, SpinGameRepository>();
 builder.Services.AddTransient<IBusinessRepository, BusinessRepository>();
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<CommUnityApp.ApplicationCore.Interfaces.IEmailService, EmailService>();

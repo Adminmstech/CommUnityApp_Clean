@@ -177,12 +177,18 @@
                 <a href="@Url.Action("Index", "Home", new { area = "Business" })" class="active">
                     <i class="fa-solid fa-chart-line"></i> Dashboard
                 </a>
-                <a href="@Url.Action("Index", "Game", new { area = "Business" })">
+                <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fa-solid fa-gamepad"></i> My Games
                 </a>
-                <a href="@Url.Action("Create", "Game", new { area = "Business" })">
-                    <i class="fa-solid fa-plus-circle"></i> Create New Game
-                </a>
+                <ul class="dropdown-menu border-0 shadow-lg rounded-3 mt-1" style="background: var(--sidebar-hover); min-width: 220px;">
+                    <li><a class="dropdown-item py-3 px-4 text-white fw-600 rounded-2 m-1" href="@Url.Action("Index", "Game", new { area = "Business" })">
+                        <i class="fa-solid fa-hand-scissors me-3"></i> Scratch and Win 
+                    </a></li>
+                    <li><a class="dropdown-item py-3 px-4 text-white fw-600 rounded-2 m-1" href="@Url.Action("Index", "SpinGame", new { area = "Business" })">
+                        <i class="fa-solid fa-sync-alt me-3"></i> Spin and Win
+                    </a></li>
+                </ul>
+               
                 <a href="#">
                     <i class="fa-solid fa-users"></i> Customers
                 </a>
