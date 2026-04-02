@@ -15,5 +15,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         IRewardsRepository Rewards { get; }
         IOrderRepository Order { get; }
         IServiceRepository Service { get; }
+        ICampaignRepository Campaign { get; }
     }
 }
