@@ -254,7 +254,7 @@ namespace CommUnityApp.Services
 
                     imagePath = "/uploads/charity/" + charityItemId + "/" + model.FileName;
 
-                    await _communityRepository.UpdateCharityItemImage(charityItemId, imagePath);
+                    //await _communityRepository.UpdateCharityItemImage(charityItemId, imagePath);
                 }
 
                 return Ok(new { message = "Item added successfully" });
@@ -414,5 +414,12 @@ namespace CommUnityApp.Services
             }
         }
 
+        [HttpGet]
+        [Route("GetItemCategories")]
+        public async Task<IActionResult> GetItemCategories()
+        {
+            var data = await _communityRepository.GetItemCategories();
+            return Ok(data);
+        }
     }
 }

@@ -31,6 +31,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public Guid PostedByUserId { get; set; }
         public string ItemName { get; set; }
         public string Description { get; set; }
+        public string ItemCategory { get; set; }
+        public string ItemCode { get; set; }
         public int Quantity { get; set; }
         public string ImagePath { get; set; }
         public string Status { get; set; }
@@ -135,6 +137,8 @@ namespace CommUnityApp.ApplicationCore.Models
     {
         public int RequestId { get; set; }
         public int CharityItemId { get; set; }
+        public string ItemCode { get; set; }
+
         public string ItemName { get; set; }
         public string ImagePath { get; set; }
         public string Description { get; set; }
@@ -151,7 +155,8 @@ namespace CommUnityApp.ApplicationCore.Models
     {
         public long CommunityId { get; set; }
         public string ItemName { get; set; }
-        public string Description { get; set; }
+        public string ItemCategory { get; set; }
+        public string Description { get; set; } 
         public int Quantity { get; set; }
         public Guid PostedByUserId { get; set; }
         public string FileName { get; set; }
@@ -242,5 +247,11 @@ namespace CommUnityApp.ApplicationCore.Models
         public string DeliveryStatus { get; set; }
         public string VolunteerName { get; set; }
         public string VolunteerMobile { get; set; }
+    }
+
+    public class ItemCategoryModel
+    {
+        public int CategoryId { get; set; }
+        public string ItemCategory{ get; set; }
     }
 }
