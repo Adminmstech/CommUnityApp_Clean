@@ -28,9 +28,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<MyRequestedItemsModel>> GetMyRequestedItems(Guid userId);
         
         Task<List<Community>> GetCommunities();
+        Task<List<ItemCategoryModel>> GetItemCategories();
 
     }
-
-        Task<List<ItemCategoryModel>> GetItemCategories();
-        }
 }
