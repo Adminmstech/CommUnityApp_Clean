@@ -1,6 +1,7 @@
 ﻿@{
-    ViewData["Title"] = "Add Product";
+    ViewData["Title"] = "Add Promotion";
     var businessId = Context.Session.GetString("BusinessId");
+    Layout = "_BusinessLayout";
 }
 
 <!DOCTYPE html>
@@ -17,24 +18,67 @@
     <style>
 
         body {
-            background: #f4f6f9;
+            background: #EDF2FF;
+            font-family: "Segoe UI", sans-serif;
         }
 
         .card {
-            border-radius: 10px;
+            border: none;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #f4f7fe;
         }
 
         .card-header {
+            background: #212529 !important;
+            color: #fff !important;
+            font-size: 18px;
             font-weight: 600;
+            padding: 16px 20px;
         }
 
-        .preview-img {
-            width: 100px;
-            height: 100px;
-            object-fit: cover;
+        .form-label {
+            font-weight: 700;
+            font-size: 14px;
+            color: #2c3e50;
+        }
+
+        .form-control {
             border-radius: 6px;
+            padding: 10px 12px;
+            font-size: 14px;
+        }
+
+            .form-control:focus {
+                border-color: #f6af3e;
+               
+            }
+
+        .btn-success {
+            background: #f6af3e;
+            border: none;
+            padding: 12px;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+            .btn-success:hover {
+                background: #f6af3e;
+            }
+
+        .preview-img {
+            width: 90px;
+            height: 90px;
+            object-fit: cover;
+            border-radius: 8px;
             margin-right: 10px;
             margin-bottom: 10px;
+            border: 1px solid #ddd;
+            padding: 2px;
+        }
+
+        .card-body {
+            padding: 25px;
         }
 
     </style>
@@ -47,12 +91,12 @@
 
         <div class="row justify-content-center">
 
-            <div class="col-lg-8">
+            <div class="col-lg-10">
 
                 <div class="card shadow">
 
                     <div class="card-header bg-primary text-white">
-                        Add New Product
+                        Add New Promotion
                     </div>
 
                     <div class="card-body">
@@ -62,24 +106,20 @@
                         <form id="productForm">
 
                             <input type="hidden" id="businessId" value="@businessId" />
-
-                            <div class="mb-3">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
                                 <label class="form-label">Category</label>
                                 <select id="categoryId" class="form-control" required>
                                     <option value="">Select Category</option>
                                 </select>
                             </div>
 
-                            <div class="mb-3">
+                                <div class="col-md-6 mb-3">
                                 <label class="form-label">Product Name</label>
                                 <input type="text" id="productName" class="form-control" required>
                             </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Description</label>
-                               <textarea id="description" class="form-control"></textarea>
                             </div>
-
+                           
                             <div class="row">
 
                                 <div class="col-md-6 mb-3">
@@ -97,6 +137,24 @@
                             <div class="row">
 
                                 <div class="col-md-6 mb-3">
+                                    <label class="form-label">Redemption Coins (%)</label>
+                                    <input type="number" id="redemptionCoins" class="form-control" min="0" max="100" value="0">
+                                    <small class="text-muted">Enter percentage of price to give as coins</small>
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Refer a Friend</label>
+                                    <select id="referAFriend" class="form-control">
+                                        <option value="false">No</option>
+                                        <option value="true">Yes</option>
+                                    </select>
+                                </div>
+
+                            </div>
+
+                            <div class="row">
+
+                                <div class="col-md-6 mb-3">
                                     <label class="form-label">Start Date</label>
                                     <input type="datetime-local" id="startDate" class="form-control">
                                 </div>
@@ -107,24 +165,35 @@
                                 </div>
 
                             </div>
+                            <div class="row">
 
+                                <!-- Upload Images -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Upload Product Images</label>
+                                    <input type="file" id="productImages" class="form-control" multiple accept="image/*">
+
+                                    <!-- Image Preview -->
+                                    <div id="imagePreview" class="d-flex flex-wrap mt-2"></div>
+                                </div>
+
+                                <!-- Status -->
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Status</label>
+                                    <select id="isActive" class="form-control">
+                                        <option value="1">Active</option>
+                                        <option value="0">Inactive</option>
+                                    </select>
+                                </div>
+
+                            </div>
                             <div class="mb-3">
-                                <label class="form-label">Upload Product Images</label>
-                                <input type="file" id="productImages" class="form-control" multiple accept="image/*">
+                                <label class="form-label">Description</label>
+                                <textarea id="description" class="form-control"></textarea>
                             </div>
 
-                            <div id="imagePreview" class="d-flex flex-wrap mb-3"></div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Status</label>
-                                <select id="isActive" class="form-control">
-                                    <option value="1">Active</option>
-                                    <option value="0">Inactive</option>
-                                </select>
-                            </div>
 
                             <button type="submit" class="btn btn-success w-100">
-                                Add Product
+                                Add Promotion
                             </button>
 
                         </form>
@@ -142,6 +211,11 @@
     <script>
 
         let imageList = [];
+
+        /* Get ProductId from URL */
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const productId = urlParams.get("productId");
 
 
         /* Load Categories */
@@ -164,9 +238,84 @@
 
         });
 
+        /* Load Product for Edit */
+
+        if(productId){
+        loadProduct();
+        document.querySelector(".card-header").innerText="Edit Product";
+        document.querySelector("button[type='submit']").innerText="Update Product";
+        }
+
         });
 
         });
+
+
+        /* Load Product By Id */
+
+        async function loadProduct(){
+
+        try{
+
+        const response=await fetch(`/api/Product/Get_ProductById?productId=${productId}`);
+
+        const data=await response.json();
+
+        const product=data.product;
+
+        document.getElementById("categoryId").value=product.categoryId;
+        document.getElementById("productName").value=product.productName;
+        document.getElementById("description").value=product.description;
+
+        document.getElementById("price").value=product.price;
+        document.getElementById("discountPrice").value=product.discountPrice;
+
+        document.getElementById("redemptionCoins").value=product.redemptionCoins ?? 0;
+
+        document.getElementById("referAFriend").value=product.referAFriend.toString();
+
+        document.getElementById("isActive").value=product.isActive;
+
+        /* Date Format */
+
+        if(product.startDate){
+        document.getElementById("startDate").value=product.startDate.substring(0,16);
+        }
+
+        if(product.endDate){
+        document.getElementById("endDate").value=product.endDate.substring(0,16);
+        }
+
+
+        /* Load Images */
+
+        if(data.images){
+
+        imageList=data.images;
+
+        data.images.forEach(img=>{
+
+        const image=document.createElement("img");
+
+        image.src="/"+img.imagePath;
+
+        image.className="preview-img";
+
+        document.getElementById("imagePreview").appendChild(image);
+
+        });
+
+        }
+
+        }
+        catch(err){
+
+        console.error("Error loading product",err);
+
+        }
+
+        }
+
 
 
         /* Convert Image to Base64 */
@@ -205,7 +354,7 @@
         imageList.push({
 
         productImageId:0,
-        productId:0,
+        productId:productId ? parseInt(productId) : 0,
         imageBase64:base64,
         imagePath:"",
         isPrimary:(i===0)
@@ -244,16 +393,31 @@
 
         product:{
 
-        productId:0,
+        productId: productId ? parseInt(productId) : 0,
+
         businessId:parseInt(businessId),
+
         categoryId:parseInt(document.getElementById("categoryId").value),
+
+        productCategory: document.getElementById("categoryId").selectedOptions[0].text,
+
         productName:document.getElementById("productName").value,
         description:document.getElementById("description").value,
+
         price:parseFloat(document.getElementById("price").value),
+
         discountPrice:parseFloat(document.getElementById("discountPrice").value)||0,
+
+        redemptionCoins: parseFloat(document.getElementById("redemptionCoins").value)||0,
+
+        referAFriend: document.getElementById("referAFriend").value === "true",
+
         startDate:document.getElementById("startDate").value||null,
         endDate:document.getElementById("endDate").value||null,
-        isActive:parseInt(document.getElementById("isActive").value)
+
+        isActive:parseInt(document.getElementById("isActive").value),
+
+        images: []
 
         },
 
@@ -278,7 +442,7 @@
         {
 
         document.getElementById("result").innerHTML=
-        "<div class='alert alert-success'>Product added successfully</div>";
+        "<div class='alert alert-success'>Product saved successfully</div>";
 
         document.getElementById("productForm").reset();
         document.getElementById("imagePreview").innerHTML="";
@@ -288,7 +452,7 @@
         {
 
         document.getElementById("result").innerHTML=
-        "<div class='alert alert-danger'>Failed to add product</div>";
+        "<div class='alert alert-danger'>Failed to save product</div>";
 
         }
 

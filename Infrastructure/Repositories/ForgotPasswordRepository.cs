@@ -9,101 +9,104 @@ using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 
-public class ForgotPasswordRepository : IForgotPasswordRepository
+namespace CommUnityApp.InfrastructureLayer.Repositories
 {
-    private readonly IConfiguration _configuration;
-
-    public ForgotPasswordRepository(IConfiguration configuration)
+    public class ForgotPasswordRepository : IForgotPasswordRepository
     {
-        _configuration = configuration;
-    }
+        private readonly IConfiguration _configuration;
 
-    
+        public ForgotPasswordRepository(IConfiguration configuration)
+        {
+            _configuration = configuration;
+        }
 
-    // ============================================
-    // 1️⃣ Generate OTP
-    // ============================================
-    public async Task<BaseResponseWithOtp> GenerateOtpAsync(string email)
-    {
-        using var connection = new SqlConnection(
+        public async Task<BaseResponseWithOtp> GenerateOtpAsync(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentException("Email cannot be null or empty", nameof(email));
+
+            using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection")
             );
-        var parameters = new DynamicParameters();
-        parameters.Add("@Email", email, DbType.String);
 
-        var result = await connection.QueryFirstOrDefaultAsync<BaseResponseWithOtp>(
-            "Generate_ForgotPassword_OTP",
-            parameters,
-            commandType: CommandType.StoredProcedure
-        );
+            await connection.OpenAsync();
 
-        return result;
-    }
+            var parameters = new DynamicParameters();
+            parameters.Add("@Email", email, DbType.String);
 
-    // ============================================
-    // 2️⃣ Verify OTP
-    // ============================================
-    public async Task<BaseResponse> VerifyOtpAsync(string email, string otp)
-    {
-        using var connection = new SqlConnection(
+            var result = await connection.QueryFirstOrDefaultAsync<BaseResponseWithOtp>(
+                "Generate_ForgotPassword_OTP",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result ?? new BaseResponseWithOtp
+            {
+                ResultId = 0,
+                ResultMessage = "Failed to generate OTP"
+            };
+        }
+
+        public async Task<BaseResponse> VerifyOtpAsync(string email, string otp)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentException("Email cannot be null or empty", nameof(email));
+
+            if (string.IsNullOrWhiteSpace(otp))
+                throw new ArgumentException("OTP cannot be null or empty", nameof(otp));
+
+            using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection")
             );
-        var parameters = new DynamicParameters();
-        parameters.Add("@Email", email, DbType.String);
-        parameters.Add("@OTP", otp, DbType.String);
 
-        var result = await connection.QueryFirstOrDefaultAsync<BaseResponse>(
-            "Verify_ForgotPassword_OTP",
-            parameters,
-            commandType: CommandType.StoredProcedure
-        );
+            await connection.OpenAsync();
 
-        return result;
-    }
+            var parameters = new DynamicParameters();
+            parameters.Add("@Email", email, DbType.String);
+            parameters.Add("@OTP", otp, DbType.String);
 
-    // ============================================
-    // 3️⃣ Reset Password
-    // ============================================
-    public async Task<BaseResponse> ResetPasswordAsync(string email, string newPassword)
-    {
-        using var connection = new SqlConnection(
+            var result = await connection.QueryFirstOrDefaultAsync<BaseResponse>(
+                "Verify_ForgotPassword_OTP",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result ?? new BaseResponse
+            {
+                ResultId = 0,
+                ResultMessage = "OTP verification failed"
+            };
+        }
+
+        public async Task<BaseResponse> ResetPasswordAsync(string email, string newPassword)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentException("Email cannot be null or empty", nameof(email));
+
+            if (string.IsNullOrWhiteSpace(newPassword))
+                throw new ArgumentException("Password cannot be null or empty", nameof(newPassword));
+
+            using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection")
             );
-        var parameters = new DynamicParameters();
-        parameters.Add("@Email", email, DbType.String);
-        parameters.Add("@Password", newPassword, DbType.String);
 
-        var result = await connection.QueryFirstOrDefaultAsync<BaseResponse>(
-            "Reset_Password",
-            parameters,
-            commandType: CommandType.StoredProcedure
-        );
+            await connection.OpenAsync();
 
-        return result;
-    }
+            var parameters = new DynamicParameters();
+            parameters.Add("@Email", email, DbType.String);
+            parameters.Add("@Password", newPassword, DbType.String);
 
-    public Task<ForgotPasswordRequest> GetByIdAsync(int id)
-    {
-        throw new NotImplementedException();
-    }
+            var result = await connection.QueryFirstOrDefaultAsync<BaseResponse>(
+                "Reset_Password",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
 
-    public Task<IReadOnlyList<ForgotPasswordRequest>> GetAllAsync()
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<int> AddAsync(ForgotPasswordRequest entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<int> UpdateAsync(ForgotPasswordRequest entity)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<int> DeleteAsync(int id)
-    {
-        throw new NotImplementedException();
+            return result ?? new BaseResponse
+            {
+                ResultId = 0,
+                ResultMessage = "Password reset failed"
+            };
+        }
     }
 }

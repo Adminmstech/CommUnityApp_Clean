@@ -1,0 +1,327 @@
+﻿@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Customer Communication";
+    var businessId = ViewBag.BusinessId;
+    Layout = "_BusinessLayout";
+}
+
+<div class="container-fluid mt-4">
+
+    <!-- 🔹 TOP FILTERS -->
+    <div class="card mb-3">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Customer Filters</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Gender</label>
+                    <select class="form-select" id="genderFilter">
+                        <option value="">All</option>
+                        <option value="1">Male</option>
+                        <option value="0">Female</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">City</label>
+                    <select class="form-select" id="cityFilter">
+                        <option value="">All Cities</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label fw-bold">Search</label>
+                    <input type="text" class="form-control" id="searchCustomers" placeholder="Name, email or mobile">
+                </div>
+
+                <div class="col-md-3 mt-3">
+                    <button class="btn btn-success w-100 mb-2" onclick="selectAllFiltered()">Select All</button>
+                    <button class="btn btn-outline-danger w-100" onclick="deselectAll()">Clear</button>
+                </div>
+
+            </div>
+
+            <hr>
+
+            <div class="text-center">
+                <h5 class="text-primary mb-1" id="selectedCount">0</h5>
+                <small class="text-muted">Customers Selected</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔹 MAIN CONTENT -->
+    <div class="row">
+
+        <!-- CUSTOMER LIST -->
+        <div class="col-xl-3 col-lg-4 mb-3">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between">
+                    <h6 class="mb-0">
+                        Customers
+                        <span class="badge bg-primary" id="totalCustomers">0</span>
+                    </h6>
+                </div>
+
+                <div class="card-body p-0" style="max-height:500px;overflow-y:auto;">
+                    <div id="customerList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EMAIL COMPOSER -->
+        <div class="col-xl-9 col-lg-8 mb-3">
+            <div class="card h-100">
+
+                <div class="card-header bg-primary text-white">
+                    <h4>Email Campaign</h4>
+                    <span class="badge bg-success" id="recipientBadge">0 Recipients</span>
+                </div>
+
+                <div class="card-body">
+                    <form id="emailForm">
+
+                        <!-- 🔥 PROMOTIONS -->
+                        <div class="border p-3 mb-3">
+                            <h6>Promotions</h6>
+
+                            <select class="form-select mb-2" id="promotionDropdown">
+                                <option value="">Select Promotion</option>
+                            </select>
+
+                            <input type="text" class="form-control" id="promotionLink" placeholder="Promotion link will appear here" readonly>
+                        </div>
+
+                        <label class="fw-bold">Subject</label>
+                        <input type="text" class="form-control mb-3" id="emailSubject" required>
+
+                        <label class="fw-bold">Message</label>
+                        <textarea class="form-control mb-3" id="emailBody" rows="8" required></textarea>
+
+                        <div class="border p-3 mb-3">
+                            <h6>Preview</h6>
+                            <div id="emailPreview"></div>
+                        </div>
+
+                        <button class="btn btn-success w-100" id="sendCampaignBtn" disabled>
+                            Send Email
+                        </button>
+
+                    </form>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+    // ✅ SAFE SESSION VALUE (FIXED)
+    const businessId = @Html.Raw(JsonSerializer.Serialize(ViewBag.BusinessId));
+
+    let allCustomers = [];
+    let selectedCustomers = [];
+    let filteredCustomers = [];
+
+    document.addEventListener('DOMContentLoaded', init);
+
+    function init(){
+        console.log("BusinessId:", businessId);
+
+        loadCustomers();
+        loadPromotions();
+
+        ['genderFilter','cityFilter']
+        .forEach(id=>{
+            document.getElementById(id).addEventListener('change', applyFilters);
+        });
+
+        document.getElementById('searchCustomers')
+        .addEventListener('input', applyFilters);
+
+        ['emailSubject','emailBody'].forEach(id=>{
+            document.getElementById(id).addEventListener('input',updatePreview);
+        });
+    }
+
+    async function loadCustomers(){
+        try {
+            const res = await fetch(`/api/Business/Get_BusinessCustomer?BusinessId=${businessId}`);
+            allCustomers = await res.json();
+
+            const cities = [...new Set(allCustomers.map(c => c.city).filter(c => c))].sort();
+
+            const citySelect = document.getElementById('cityFilter');
+            citySelect.innerHTML = `<option value="">All Cities</option>`;
+
+            cities.forEach(c=>{
+                citySelect.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+
+            filteredCustomers = [...allCustomers];
+
+            renderCustomers();
+            updateStats();
+
+        } catch (err) {
+            console.error("Error loading customers", err);
+        }
+    }
+
+    async function loadPromotions(){
+        try{
+            const res = await fetch(`/api/Product/Get_ProductByBusinessId?BusinessId=${businessId}`);
+            const data = await res.json();
+
+            let products = Array.isArray(data) ? data : [data];
+
+            const dropdown = document.getElementById("promotionDropdown");
+
+            products.forEach(p=>{
+                if(!p.product) return;
+
+                const option = document.createElement("option");
+                option.value = p.product.productId;
+                option.text = `${p.product.productName} (₹${p.product.discountPrice})`;
+
+                dropdown.appendChild(option);
+            });
+
+        }catch(err){
+            console.error("Error loading promotions",err);
+        }
+    }
+
+    document.addEventListener("change", function(e){
+        if(e.target.id === "promotionDropdown"){
+            const productId = e.target.value;
+
+            if(!productId){
+                document.getElementById("promotionLink").value = "";
+                return;
+            }
+
+            const link = `${window.location.origin}/Product/Details?productId=${productId}`;
+            document.getElementById("promotionLink").value = link;
+
+            updatePreview();
+        }
+    });
+
+    function applyFilters(){
+        const gender = document.getElementById('genderFilter').value;
+        const city = document.getElementById('cityFilter').value;
+        const search = document.getElementById('searchCustomers').value.toLowerCase();
+
+        filteredCustomers = allCustomers.filter(c => {
+            return (!gender || c.gender == gender) &&
+                   (!city || (c.city && c.city.toLowerCase() === city.toLowerCase())) &&
+                   (!search ||
+                    (c.name && c.name.toLowerCase().includes(search)) ||
+                    (c.email && c.email.toLowerCase().includes(search)) ||
+                    (c.mobile && c.mobile.includes(search)));
+        });
+
+        renderCustomers();
+        updateStats();
+    }
+
+    function renderCustomers(){
+        document.getElementById('customerList').innerHTML =
+            filteredCustomers.map(c=>{
+                const selected=selectedCustomers.some(x=>x.userId==c.userId);
+
+                return `
+                <div class="list-group-item customer-item ${selected?'selected':''}">
+                    <input type="checkbox" ${selected?'checked':''}
+                        onchange="toggleCustomer(this,'${c.userId}')">
+                    <div>
+                        <div><b>${c.name}</b></div>
+                        <small>${c.email}</small>
+                    </div>
+                </div>`;
+            }).join('');
+    }
+
+    function toggleCustomer(cb,id){
+        const c=allCustomers.find(x=>x.userId==id);
+        if(cb.checked) selectedCustomers.push(c);
+        else selectedCustomers=selectedCustomers.filter(x=>x.userId!=id);
+
+        updateStats();
+    }
+
+    function selectAllFiltered(){
+        filteredCustomers.forEach(c=>{
+            if(!selectedCustomers.some(x=>x.userId==c.userId))
+                selectedCustomers.push(c);
+        });
+        renderCustomers(); updateStats();
+    }
+
+    function deselectAll(){
+        selectedCustomers=[]; renderCustomers(); updateStats();
+    }
+
+    function updateStats(){
+        selectedCustomers.length
+        document.getElementById('selectedCount').innerText=selectedCustomers.length;
+        document.getElementById('recipientBadge').innerText=selectedCustomers.length+" Recipients";
+        toggleSend();
+    }
+
+    function updatePreview(){
+        const s=emailSubject.value;
+        const b=emailBody.value;
+        const promo=document.getElementById('promotionLink').value;
+
+        let fullBody = b;
+
+        if(promo){
+            fullBody += `\n\n🔥 Check this offer:\n${promo}`;
+        }
+
+        document.getElementById('emailPreview').innerHTML=
+            `<h5>${s}</h5><p>${fullBody.replace(/\n/g,'<br>')}</p>`;
+
+        toggleSend();
+    }
+
+    function toggleSend(){
+        document.getElementById('sendCampaignBtn').disabled =
+            !(selectedCustomers.length && emailSubject.value && emailBody.value);
+    }
+
+    document.getElementById('emailForm').addEventListener('submit', async e => {
+        e.preventDefault();
+
+        const promo=document.getElementById('promotionLink').value;
+        let fullBody=emailBody.value;
+
+        if(promo){
+            fullBody += `\n\n🔥 Check this offer:\n${promo}`;
+        }
+
+        try {
+            const response = await fetch('/api/Email/SendEmail', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    emails: selectedCustomers.map(c => c.email),
+                    subject: emailSubject.value,
+                    body: fullBody
+                })
+            });
+
+            const result = await response.json();
+            alert(`✅ Emails sent: ${result.sent}/${result.total}`);
+        } catch (err) {
+            console.error(err);
+            alert("❌ Failed to send emails");
+        }
+    });
+</script>
