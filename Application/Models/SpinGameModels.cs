@@ -8,6 +8,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public int BusinessId { get; set; }
         public string GameName { get; set; } = string.Empty;
         public string? Description { get; set; }
+        public string? GameImage { get; set; }
         public int ConfigId { get; set; }
         public bool IsActive { get; set; }
         // Add other props as needed
@@ -40,6 +41,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public int BusinessId { get; set; }
         public string GameName { get; set; } = string.Empty;
         public string? Description { get; set; }
+        public string? GameImage { get; set; }
+        public Microsoft.AspNetCore.Http.IFormFile? GameImageFile { get; set; }
         public int ConfigId { get; set; }
         public int CreatedByAdminId { get; set; }
         public bool IsActive { get; set; } = true;

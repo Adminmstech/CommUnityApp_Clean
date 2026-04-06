@@ -57,6 +57,35 @@
                         "description": "Scratch play endpoint. Tracks by memberId, checks/decreases prize balance, and returns Primary/Secondary based on OnceIn + release; otherwise Consolation."
                     },
                     "response": []
+                },
+                {
+                    "name": "Add/Update Spin Game",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"gameId\": 0,\n  \"businessId\": 1,\n  \"gameName\": \"New Spin Game Example\",\n  \"description\": \"A brand new spin game created via Postman.\",\n  \"configId\": 0,\n  \"createdByAdminId\": 1,\n  \"isActive\": true,\n  \"configs\": [\n    {\n      \"configId\": 0,\n      \"maxSpinsPerDay\": 1,\n      \"numberOfSections\": 8,\n      \"gameStartDate\": \"2026-04-04T10:00:00\",\n      \"gameEndDate\": \"2026-05-04T23:59:59\",\n      \"isActive\": true\n    }\n  ],\n  \"sections\": [\n    {\n      \"sectionId\": 0,\n      \"sectionNumber\": 1,\n      \"points\": 100,\n      \"promotionId\": null,\n      \"prizeText\": \"Win 100 Points!\",\n      \"color\": \"#FFD700\"\n    },\n    {\n      \"sectionId\": 0,\n      \"sectionNumber\": 2,\n      \"points\": null,\n      \"promotionId\": 1,\n      \"prizeText\": \"Free Coffee!\",\n      \"color\": \"#8B4513\"\n    },\n    {\n      \"sectionId\": 0,\n      \"sectionNumber\": 3,\n      \"points\": 50,\n      \"promotionId\": null,\n      \"prizeText\": \"50 Points\",\n      \"color\": \"#C0C0C0\"\n    },\n    {\n      \"sectionId\": 0,\n      \"sectionNumber\": 4,\n      \"points\": null,\n      \"promotionId\": null,\n      \"prizeText\": \"Try Again :(\",\n      \"color\": \"#000000\"\n    },\n    {\n      \"sectionId\": 0,\n      \"sectionNumber\": 5,\n      \"points\": 200,\n      \"promotionId\": null,\n      \"prizeText\": \"200 Points!!\",\n      \"color\": \"#FF4500\"\n    },\n    {\n      \"sectionId\": 0,\n      \"sectionNumber\": 6,\n      \"points\": null,\n      \"promotionId\": 2,\n      \"prizeText\": \"10% Off!\",\n      \"color\": \"#008000\"\n    },\n    {\n      \"sectionId\": 0,\n      \"sectionNumber\": 7,\n      \"points\": 25,\n      \"promotionId\": null,\n      \"prizeText\": \"25 Points\",\n      \"color\": \"#ADD8E6\"\n    },\n    {\n      \"sectionId\": 0,\n      \"sectionNumber\": 8,\n      \"points\": null,\n      \"promotionId\": null,\n      \"prizeText\": \"Better Luck Next Time\",\n      \"color\": \"#808080\"\n    }\n  ]\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/Game/AddUpdateSpinGame",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Game",
+                                "AddUpdateSpinGame"
+                            ]
+                        },
+                        "description": "Adds a new Spin Game or updates an existing one, including its configuration and sections."
+                    },
+                    "response": []
                 }
             ]
         }

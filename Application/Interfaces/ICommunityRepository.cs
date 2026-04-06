@@ -29,7 +29,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         
         Task<List<Community>> GetCommunities();
 
-    }
+    
 
         Task<List<ItemCategoryModel>> GetItemCategories();
         }

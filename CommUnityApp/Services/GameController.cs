@@ -11,11 +11,13 @@ namespace CommUnityApp.Services
     public class GameController : ControllerBase
     {
         private readonly IBrandGameRepository _brandGameRepository;
+        private readonly ISpinGameRepository _spinGameRepository; // Added
         private readonly IConfiguration _configuration;
 
-        public GameController(IBrandGameRepository brandGameRepository, IConfiguration configuration)
+        public GameController(IBrandGameRepository brandGameRepository, ISpinGameRepository spinGameRepository, IConfiguration configuration) // Modified
         {
             _brandGameRepository = brandGameRepository;
+            _spinGameRepository = spinGameRepository; // Added
             _configuration = configuration;
         }
 
@@ -176,6 +178,93 @@ namespace CommUnityApp.Services
                     secondary = consumeResult.SecondaryPrizeBalCount,
                     consolation = consumeResult.ConsolationPrizeBalCount
                 }
+            });
+        }
+
+        [HttpPost("AddUpdateSpinGame")] // New API endpoint for SpinGame
+        public async Task<IActionResult> AddUpdateSpinGame([FromBody] AddUpdateSpinGameRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var result = await _spinGameRepository.AddUpdateSpinGameAsync(request);
+
+            if (result.ResultId > 0)
+            {
+                return Ok(result);
+            }
+            else
+            {
+                return StatusCode(500, result); // Internal server error or specific error from repository
+            }
+        }
+        [HttpGet("GetActiveSpinGame")]
+        public async Task<IActionResult> GetActiveSpinGame(int businessId)
+        {
+            if (businessId < 0) return BadRequest(new { resultId = 0, resultMessage = "Valid businessId is required. Pass 0 for all active games." });
+
+            IEnumerable<SpinGameDto> games;
+            if (businessId == 0)
+            {
+                games = await _spinGameRepository.GetAllSpinGamesAsync();
+            }
+            else
+            {
+                games = await _spinGameRepository.GetSpinGamesByBusinessAsync(businessId);
+            }
+
+            if (games == null || !games.Any())
+            {
+                return NotFound(new { resultId = 0, resultMessage = "No active spin games found." });
+            }
+
+            var fullyPopulatedGames = new List<object>();
+
+            foreach (var game in games)
+            {
+                var config = await _spinGameRepository.GetConfigByIdAsync(game.ConfigId);
+                var sections = await _spinGameRepository.GetSectionsByGameIdAsync(game.GameId);
+
+                fullyPopulatedGames.Add(new
+                {
+                    game = game,
+                    config = config,
+                    sections = sections
+                });
+            }
+
+            return Ok(new
+            {
+                resultId = 1,
+                resultMessage = fullyPopulatedGames.Count + " Spin game(s) found.",
+                games = fullyPopulatedGames
+            });
+        }
+
+        [HttpGet("GetSpinGameDetails")]
+        public async Task<IActionResult> GetSpinGameDetails(int gameId)
+        {
+            if (gameId <= 0) return BadRequest(new { resultId = 0, resultMessage = "Valid gameId is required." });
+
+            var game = await _spinGameRepository.GetSpinGameByIdAsync(gameId);
+            
+            if (game == null)
+            {
+                return NotFound(new { resultId = 0, resultMessage = "Spin game not found." });
+            }
+
+            var config = await _spinGameRepository.GetConfigByIdAsync(game.ConfigId);
+            var sections = await _spinGameRepository.GetSectionsByGameIdAsync(game.GameId);
+
+            return Ok(new
+            {
+                resultId = 1,
+                resultMessage = "Spin game found.",
+                game = game,
+                config = config,
+                sections = sections
             });
         }
 

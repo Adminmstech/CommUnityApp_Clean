@@ -30,6 +30,7 @@
         <input type="hidden" asp-for="CreatedByAdminId" name="CreatedByAdminId" value="1" />
         
         <!-- Config hidden fields for model binding -->
+        <input type="hidden" name="Configs[0].ConfigId" id="ConfigId" class="config-input" />
         <input type="hidden" name="Configs[0].MaxSpinsPerDay" id="MaxSpinsPerDay" class="config-input" value="5" />
         <input type="hidden" name="Configs[0].NumberOfSections" id="NumberOfSections" class="config-input" value="8" />
         <input type="hidden" name="Configs[0].GameStartDate" id="GameStartDate" class="config-input" />
@@ -275,6 +276,7 @@ function validateSections() {
 }
 
 function syncConfigFields() {
+    document.getElementById('ConfigId').value = @Model.ConfigId;
     document.getElementById('MaxSpinsPerDay').value = document.getElementById('MaxSpinsPerDayVisible').value;
     document.getElementById('NumberOfSections').value = document.getElementById('NumberOfSectionsVisible').value;
     document.getElementById('GameStartDate').value = document.getElementById('GameStartDateVisible').value;
