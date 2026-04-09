@@ -362,6 +362,101 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 ResultMessage = result > 0 ? "Spin game soft-deleted." : "Not found."
             };
         }
+        public async Task<PlaySpinResponse> PlaySpinGameAsync(PlaySpinRequest request)
+        {
+            using var con = Connection;
+            
+            // Validate game
+            var game = await GetSpinGameByIdAsync(request.GameId);
+            if (game == null || !game.IsActive)
+                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "Game not found or inactive." };
+
+            // Optional: validate config (IsActive, date range)
+            var config = await GetConfigByIdAsync(game.ConfigId);
+            if (config == null || !config.IsActive || config.GameStartDate > DateTime.Now || config.GameEndDate < DateTime.Now)
+            {
+                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "Game configuration is invalid or expired." };
+            }
+
+            // Fetch sections
+            var sections = await GetSectionsByGameIdAsync(request.GameId);
+            if (sections == null || !sections.Any())
+                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "No sections configured for this game." };
+
+            // Validate and select the section provided in the request
+            var selectedSection = sections.FirstOrDefault(s => s.SectionId == request.SectionId);
+            if (selectedSection == null)
+            {
+                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "Invalid section or section does not belong to this game." };
+            }
+
+            // Insert into GameSpin (using the entity name as table name, common in this project schema e.g., SpinGame, SpinSection)
+            var gameSpin = new CommUnityApp.Domain.Entities.GameSpin
+            {
+                UserId = request.UserId,
+                SpinDate = DateTime.Now,
+                SelectedSectionId = selectedSection.SectionId,
+                PointsAwarded = selectedSection.Points,
+                PromotionId = selectedSection.PromotionId
+            };
+
+            var insertQuery = @"
+                INSERT INTO GameSpins (UserId, SpinDate, SelectedSectionId, PointsAwarded, PromotionId)
+                VALUES (@UserId, @SpinDate, @SelectedSectionId, @PointsAwarded, @PromotionId);
+                SELECT CAST(SCOPE_IDENTITY() as int);";
+
+            try
+            {
+                var spinId = await _dapper.QueryFirstOrDefaultAsync<int>(con, insertQuery, gameSpin);
+                gameSpin.SpinId = spinId;
+
+                return new PlaySpinResponse
+                {
+                    ResultId = 1,
+                    ResultMessage = "Spin played successfully.",
+                    SelectedSection = selectedSection
+                };
+            }
+            catch (Exception ex)
+            {
+                return new PlaySpinResponse { ResultId = 0, ResultMessage = "Failed to save game spin: " + ex.Message };
+            }
+        }
+
+        public async Task<IEnumerable<GameSpinResultDto>> GetGameSpinResultsAsync(int? gameId, Guid? userId)
+        {
+            using var con = Connection;
+            var queryBuilder = new System.Text.StringBuilder(@"
+                SELECT 
+                    gs.SpinId, 
+                    gs.UserId, 
+                    gs.SpinDate, 
+                    gs.SelectedSectionId, 
+                    gs.PointsAwarded, 
+                    gs.PromotionId,
+                    sg.GameId,
+                    sg.GameName,
+                    ss.PrizeText
+                FROM GameSpins gs
+                INNER JOIN SpinSection ss ON gs.SelectedSectionId = ss.SectionId
+                INNER JOIN SpinGame sg ON ss.GameId = sg.GameId
+                WHERE 1 = 1
+            ");
+
+            if (gameId.HasValue && gameId.Value > 0)
+            {
+                queryBuilder.Append(" AND sg.GameId = @GameId");
+            }
+
+            if (userId.HasValue && userId.Value != Guid.Empty)
+            {
+                queryBuilder.Append(" AND gs.UserId = @UserId");
+            }
+
+            queryBuilder.Append(" ORDER BY gs.SpinDate DESC");
+
+            return await _dapper.QueryAsync<GameSpinResultDto>(con, queryBuilder.ToString(), new { GameId = gameId, UserId = userId });
+        }
     }
 }
 

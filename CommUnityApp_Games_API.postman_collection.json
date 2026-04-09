@@ -86,6 +86,61 @@
                         "description": "Adds a new Spin Game or updates an existing one, including its configuration and sections."
                     },
                     "response": []
+                },
+                {
+                    "name": "Play Spin Game",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"gameId\": 1,\n  \"userId\": \"00000000-0000-0000-0000-000000000000\",\n  \"sectionId\": 1\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/Game/PlaySpinGame",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Game",
+                                "PlaySpinGame"
+                            ]
+                        },
+                        "description": "Log an attempt to play a spin game and the section landed on."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Game Spin Results",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/Game/GetGameSpinResults?gameId=1",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "Game",
+                                "GetGameSpinResults"
+                            ],
+                            "query": [
+                                {
+                                    "key": "gameId",
+                                    "value": "1"
+                                }
+                            ]
+                        },
+                        "description": "Returns a history of spin game attempts, filtered by gameId or userId."
+                    },
+                    "response": []
                 }
             ]
         }
