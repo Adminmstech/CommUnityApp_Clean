@@ -1,0 +1,147 @@
+﻿@{
+    ViewData["Title"] = "Communication";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+}
+
+<input type="hidden" id="CommunityId" value="@Context.Session.GetString("CommunityId")" />
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h5 class="mb-3">Community Chat</h5>
+
+        <div class="mb-2">
+            <select id="ddlUsers" class="form-control">
+                <option value="">Select Member</option>
+            </select>
+        </div>
+
+        <div id="chatBox" style="height:400px; overflow-y:auto; border:1px solid #ddd; padding:10px; background:#f5f5f5; border-radius:8px;">
+        </div>
+
+        <div class="mt-2">
+            <input type="text" id="txtMessage" class="form-control" placeholder="Type a message..." />
+        </div>
+
+        <div class="mt-2">
+            <input type="file" id="imgFile" class="form-control" />
+        </div>
+
+        <button class="btn btn-primary mt-2 w-100" onclick="sendMessage()">Send</button>
+
+    </div>
+</div>
+
+
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    var selectedUserId = "";
+
+    $(document).ready(function () {
+        loadUsers();
+    });
+
+    function loadUsers() {
+
+        $.ajax({
+            url: '/api/Community/GetCommunityUsers',
+            type: 'GET',
+            success: function (res) {
+
+                var html = "<option value=''>Select Member</option>";
+
+                $.each(res, function (i, u) {
+                    html += "<option value='" + u.UserId + "'>" + u.FullName + "</option>";
+                });
+
+                $("#ddlUsers").html(html);
+            }
+        });
+    }
+
+    $("#ddlUsers").on("change", function () {
+        selectedUserId = $(this).val();
+        loadMessages();
+    });
+    var communityId = $("#CommunityId").val(); 
+
+    function loadMessages() {
+
+        if (!selectedUserId) return;
+
+        $.ajax({
+            url: '/api/Community/GetMessages?communityId=' + communityId + '&receiverUserId=' + selectedUserId,
+            type: 'GET',
+            success: function (res) {
+
+                var html = "";
+              
+                $.each(res, function (i, msg) {
+                    var date = new Date(msg.CreatedDate);
+
+                    var formattedDate =
+                        date.toLocaleDateString('en-GB') + " " +   
+                        date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                    html += "<div style='margin-bottom:10px;'>";
+
+                    html += "<b>" + msg.UserName + "</b><br/>"; 
+
+                    html += (msg.MessageText || "") + "<br/>";   
+
+                    if (msg.ImagePath) {
+                        html += "<img src='" + msg.ImagePath + "' width='120'/>";
+                    }
+                    
+
+                    html += "<small style='color:gray;'>" + formattedDate + "</small><br/>"; html += "<hr/>";
+                    html += "</div>";
+                });
+
+                $("#chatBox").html(html);
+            }
+        });
+    }
+    function sendMessage() {
+
+        var receiverId = $("#ddlUsers").val();
+        var message = $("#txtMessage").val().trim();
+        var file = $("#imgFile")[0].files[0];
+
+        if (!receiverId) {
+            alert("Select user");
+            return;
+        }
+
+        if (!message && !file) {
+            alert("Enter message or select image");
+            return;
+        }
+
+        var formData = new FormData();
+        formData.append("ReceiverUserId", receiverId);
+        formData.append("MessageText", message);
+
+        if (file) {
+            formData.append("ImageFile", file);
+        }
+
+        $.ajax({
+            url: '/api/Community/SendMessage',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function () {
+                $("#txtMessage").val("");
+                $("#imgFile").val("");
+                loadMessages();
+            },
+            error: function (err) {
+                console.log(err.responseText);
+                alert("Error: " + err.responseText);
+            }
+        });
+    }
+</script>

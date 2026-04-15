@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Areas\Community\Views\Home\CharityDeliveryReport.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
     <PackageReference Include="Dapper" Version="2.1.66" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.12" />
@@ -27,6 +31,18 @@
   <ItemGroup>
     <ProjectReference Include="..\Application\CommUnityApp.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\CommUnityApp.Infrastructure.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Areas\Community\Views\Home\CharityDeliveryReport.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Areas\Community\Views\Home\CharityDeliveryReport.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Areas\Community\Views\Home\CharityDeliveryReport.cshtml" />
   </ItemGroup>
 
 </Project>

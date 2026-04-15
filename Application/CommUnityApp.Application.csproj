@@ -19,4 +19,12 @@
     <RootNamespace>CommUnityApp.ApplicationCore</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <EditorConfigFiles Remove="C:\Users\Jahnavi Reddy\source\repos\CommUnityApp_Clean\Application\Models\.editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="C:\Users\Jahnavi Reddy\source\repos\CommUnityApp_Clean\Application\Models\.editorconfig" />
+  </ItemGroup>
+
 </Project>

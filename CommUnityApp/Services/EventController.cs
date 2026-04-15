@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using QRCoder;
 using System.Drawing;
+using Microsoft.Data.SqlClient;
+using Dapper;
+using Microsoft.AspNetCore.Authorization;
 using System.Drawing.Imaging;
 using static Org.BouncyCastle.Math.EC.ECCurve;
 
@@ -348,6 +351,164 @@ namespace CommUnityApp.Services
                 data = result
             });
         }
+        [HttpPost("AddSponsor")]
+        public async Task<IActionResult> AddSponsor([FromForm] EventSponsorModel model)
+        {
+            try
+            {
+                var communityId = HttpContext.Session.GetString("CommunityId");
+
+                if (string.IsNullOrEmpty(communityId))
+                    return Unauthorized("CommunityId not found in session");
+
+                model.CommunityId = Convert.ToInt32(communityId);
+
+                string logoPath = "";
+
+                if (model.LogoFile != null)
+                {
+                    string folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/sponsors");
+
+                    if (!Directory.Exists(folder))
+                        Directory.CreateDirectory(folder);
+
+                    string fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.LogoFile.FileName);
+                    string filePath = Path.Combine(folder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await model.LogoFile.CopyToAsync(stream);
+                    }
+
+                    logoPath = "/uploads/sponsors/" + fileName;
+                }
+
+                var id = await _repository.AddEventSponsor(model, logoPath);
+
+                return Ok(new { message = "Sponsor Added Successfully", sponsorId = id });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("GetSponsors")]
+        public async Task<IActionResult> GetSponsors(int eventId)
+        {
+            var data = await _repository.GetEventSponsors(eventId);
+
+            string baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+            foreach (var item in data)
+            {
+                if (!string.IsNullOrEmpty(item.LogoPath))
+                    item.LogoPath = baseUrl + item.LogoPath;
+            }
+
+            return Ok(data);
+        }
+
+        [HttpGet("GetAllEventSponsors")]
+        public async Task<IActionResult> GetAllSponsors()
+        {
+            var data = await _repository.GetAllSponsors();
+
+            string baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+            foreach (var item in data)
+            {
+                if (!string.IsNullOrEmpty(item.LogoPath))
+                    item.LogoPath = baseUrl + item.LogoPath;
+                else
+                    item.LogoPath = baseUrl + "/images/noimage.png";
+            }
+
+            return Ok(data);
+        }
+        [HttpGet("GetSponsorsByCommunity")]
+        public async Task<IActionResult> GetSponsorsByCommunity()
+        {
+            try
+            {
+                var communityId = HttpContext.Session.GetString("CommunityId");
+
+                if (string.IsNullOrEmpty(communityId))
+                    return Unauthorized("Community not logged in");
+
+                int cid = Convert.ToInt32(communityId);
+
+                var sponsors = await _repository.GetSponsorsByCommunity(cid);
+
+                return Ok(sponsors);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
+        }
+        [HttpPost("AttachSponsorToEvent")]
+        public async Task<IActionResult> AttachSponsorToEvent([FromBody] EventSponsorMappingModel model)
+        {
+            try
+            {
+                if (model.EventId == 0 || model.SponsorId == 0)
+                    return BadRequest("Invalid data");
+
+                await _repository.AttachSponsorToEvent(model);
+
+                return Ok("Sponsor linked successfully");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet("GetEventsByCommunity")]
+        public async Task<IActionResult> GetEventsByCommunity(int communityId)
+        {
+            var events = await _repository.GetEventsByCommunity(communityId);
+            return Ok(events);
+        }
+
+        [HttpGet("GetEventDetailsWithSponsors")]
+        public async Task<IActionResult> GetEventDetailsWithSponsors(int eventId)
+        {
+            var data = await _repository.GetEventDetailsWithSponsors(eventId);
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+            // Event Image
+            if (!string.IsNullOrEmpty(data.EventImage))
+            {
+                data.EventImage = baseUrl + "/uploads/Events/" + data.EventImage;
+            }
+
+            // Sponsor Logos
+            foreach (var s in data.Sponsors)
+            {
+                if (!string.IsNullOrEmpty(s.LogoPath))
+                {
+                    s.LogoPath = baseUrl + "/uploads/sponsors/" + s.LogoPath;
+                }
+            }
+
+            return Ok(data);
+        }
+
+        [HttpGet("GetSponsorsByEvent")]
+        public async Task<IActionResult> GetSponsorsByEvent(int eventId)
+        {
+            try
+            {
+                var data = await _repository.GetSponsorsByEvent(eventId);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
         [HttpGet("Get_AllEvents")]
         public async Task<IActionResult> GetAllEvents()
@@ -372,4 +533,5 @@ namespace CommUnityApp.Services
 
 
     }
-}
+    }
+
