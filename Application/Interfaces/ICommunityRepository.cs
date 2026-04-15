@@ -1,4 +1,5 @@
 using CommUnityApp.ApplicationCore.Models;
+using static CommUnityApp.ApplicationCore.Models.AssignVolunteerRequest;
 
 namespace CommUnityApp.ApplicationCore.Interfaces
 {
@@ -6,6 +7,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
     {
         Task<CommunityLoginResponse> LoginAsync(CommunityLoginRequest request);
         Task<List<GroupDto>> GetGroupsByCommunityAsync(long communityId);
+
         Task<List<CharityItem>> GetCharityItemsByCommunityId(long communityId);
         Task<IEnumerable<dynamic>> GetVolunteersList(long? communityId);
         Task<bool> AssignVolunteer(long charityItemId, Guid assignedToUserId);
@@ -24,6 +26,10 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<List<CharityItemListModel>> GetAllCharityItems();
         Task<List<MyRequestedItemsModel>> GetMyRequestedItems(Guid userId);
+        
+        Task<List<Community>> GetCommunities();
+
+    }
 
         Task<List<ItemCategoryModel>> GetItemCategories();
 

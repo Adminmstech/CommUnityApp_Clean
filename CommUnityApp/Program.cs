@@ -40,7 +40,7 @@ builder.Services.AddSession(options =>
 // SignalR
 builder.Services.AddSignalR();
 
-
+builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
 Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Mgo+DSMBMAY9C3t2U1hhQlJBfV5CQmdWfFN0QXNYflRxfF9CaEwxOX1dQl9nSXdTckdgXHtac3FWRGM=");
 builder.Services.AddHttpClient();
 builder.Services.AddControllersWithViews();
@@ -55,6 +55,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<ICommunityRepository, CommunityRepository>();
 builder.Services.AddTransient<IEventRepository, EventRepository>();
 builder.Services.AddTransient<IBrandGameRepository, BrandGameRepository>();
+builder.Services.AddTransient<ISpinGameRepository, SpinGameRepository>();
 builder.Services.AddTransient<IBusinessRepository, BusinessRepository>();
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<CommUnityApp.ApplicationCore.Interfaces.IEmailService, EmailService>();
@@ -63,6 +64,9 @@ builder.Services.AddTransient<IAuctionRepository, AuctionRepository>();
 builder.Services.AddTransient<IForgotPasswordRepository, ForgotPasswordRepository>();
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IProductRepository, ProductRepository>();
+builder.Services.AddTransient<IRewardsRepository, RewardsRepository>();
+builder.Services.AddTransient<IOrderRepository, OrderRepository>();
+builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
 builder.Services.AddTransient<IVolunteerRepository, VolunteerRepository>();
 builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
 

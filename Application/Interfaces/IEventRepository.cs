@@ -30,5 +30,9 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<EventDetailsModel> GetEventDetailsWithSponsors(int eventId);
 
         Task<List<SponsorModel>> GetSponsorsByEvent(int eventId);
+
+        Task<List<Events>> GetEvents();
+        Task<List<Events>> GetEventById(int EventId);
+        Task<List<TopEventDto>> GetTop5Events();
     }
 }
