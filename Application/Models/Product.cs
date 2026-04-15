@@ -21,6 +21,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public decimal? Price { get; set; }
 
         public decimal? DiscountPrice { get; set; }
+        public decimal? DiscountAmount { get; set; }
 
         public DateTime? StartDate { get; set; }
 

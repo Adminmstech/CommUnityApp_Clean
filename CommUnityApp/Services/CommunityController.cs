@@ -376,12 +376,42 @@ namespace CommUnityApp.Services
                 var events = await _unitOfWork.Events.GetTop5Events();
                 var auctions = await _unitOfWork.Auction.GetTop5Auctions();
                 var communities = await _unitOfWork.Community.GetCommunities();
-                var businesses = await _unitOfWork.Business.GetAllBusinesses();
 
                 // ⭐ Rewards
                 var rewards = await _unitOfWork.Rewards.GetCoins(userId);
 
-                // Auction Images
+                // ⭐ Products with Images
+                var products = await _unitOfWork.Product.GetAllProducts();
+                var productList = new List<ProductWithImagesModel>();
+
+                foreach (var product in products)
+                {
+                    var images = await _unitOfWork.Product.GetProductImageById(product.ProductId);
+
+                    var productResponse = new ProductWithImagesModel
+                    {
+                        Product = product,
+                        Images = new List<ProductImageUpload>() // ✅ IMPORTANT (avoid null)
+                    };
+
+                    if (images != null && images.Count > 0)
+                    {
+                        foreach (var image in images)
+                        {
+                            productResponse.Images.Add(new ProductImageUpload
+                            {
+                                ProductImageId = image.ProductImageId,
+                                ProductId = image.ProductId,
+                                ImagePath = image.ImagePath,
+                                IsPrimary = image.IsPrimary
+                            });
+                        }
+                    }
+
+                    productList.Add(productResponse);
+                }
+
+                // ⭐ Auction Images
                 var auctionIds = auctions.Select(a => a.AuctionId).ToList();
                 var auctionImages = await _unitOfWork.Auction.GetAuctionImagesByIds(auctionIds);
 
@@ -396,11 +426,11 @@ namespace CommUnityApp.Services
                 response.ResultMessage = "Success";
                 response.Data = new DashboardData
                 {
-                    Rewards = rewards,  // ⭐ added
+                    Rewards = rewards,
                     Events = events,
                     Auctions = auctions,
                     Communities = communities,
-                    Businesses = businesses
+                    Products = productList // ✅ FIXED
                 };
 
                 return Ok(new List<DashboardResponse> { response });
