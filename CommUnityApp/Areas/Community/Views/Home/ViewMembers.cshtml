@@ -1,0 +1,161 @@
+﻿@{
+    ViewData["Title"] = "Add / Update Members";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+}
+
+<input type="hidden" id="CommunityId" value="@Context.Session.GetString("CommunityId")" />
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="mb-3">Community Members</h5>
+        <div class="row mb-3">
+            <div class="col-md-4">
+                <input type="text" id="searchInput" class="form-control" placeholder="🔍 Search by name..." />
+            </div>
+        </div>
+        <table class="table table-bordered table-striped">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Profile</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Mobile</th>
+                    <th>City</th>
+                    <th>Status</th>
+                    <th>Joined</th>
+                </tr>
+            </thead>
+            <tbody id="memberTable">
+                <tr>
+                    <td colspan="8" class="text-center">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+            <div>
+                <button class="btn btn-sm btn-secondary" id="prevPage">Previous</button>
+                <button class="btn btn-sm btn-secondary" id="nextPage">Next</button>
+            </div>
+            <div>
+                Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    let allMembers = [];
+    let filteredMembers = [];
+    let currentPage = 1;
+    let pageSize = 5;
+
+    $(document).ready(function () {
+
+        var communityId = $("#CommunityId").val();
+
+        if (!communityId) {
+            $("#memberTable").html("<tr><td colspan='8' class='text-danger text-center'>CommunityId missing</td></tr>");
+            return;
+        }
+
+        $.get('/api/Community/GetMembersByCommunity?communityId=' + communityId, function (res) {
+
+            allMembers = res || [];
+            filteredMembers = [...allMembers];
+
+            renderTable();
+        });
+
+        $("#searchInput").on("keyup", function () {
+
+            let value = $(this).val().toLowerCase();
+
+            filteredMembers = allMembers.filter(m => {
+                let name = ((m.firstName || m.FirstName || "") + " " + (m.lastName || m.LastName || "")).toLowerCase();
+                return name.includes(value);
+            });
+
+            currentPage = 1;
+            renderTable();
+        });
+
+        $("#prevPage").click(function () {
+            if (currentPage > 1) {
+                currentPage--;
+                renderTable();
+            }
+        });
+
+        $("#nextPage").click(function () {
+            let totalPages = Math.ceil(filteredMembers.length / pageSize);
+            if (currentPage < totalPages) {
+                currentPage++;
+                renderTable();
+            }
+        });
+    });
+
+    function renderTable() {
+
+        let html = "";
+        let baseUrl = window.location.origin;
+
+        let start = (currentPage - 1) * pageSize;
+        let end = start + pageSize;
+
+        let pageData = filteredMembers.slice(start, end);
+
+        if (pageData.length === 0) {
+            html = "<tr><td colspan='8' class='text-center'>No members found</td></tr>";
+        }
+        else {
+
+            pageData.forEach((m, i) => {
+
+                let firstName = m.firstName || m.FirstName || "";
+                let lastName = m.lastName || m.LastName || "";
+                let email = m.email || m.Email || "-";
+                let mobile = m.mobile || m.Mobile || "-";
+                let city = m.city || m.City || "-";
+                let createdDate = m.createdDate || m.CreatedDate;
+                let isActive = m.isActive ?? m.IsActive;
+
+                let profilePath = m.profileImagePath || m.ProfileImagePath;
+
+                let profile = profilePath
+                    ? `<img src="${baseUrl}/${profilePath}" width="40" height="40" style="border-radius:50%; object-fit:cover;" />`
+                    : `<img src="/content/images/user.png" width="40" height="40" style="border-radius:50%;" />`;
+
+                let status = isActive
+                    ? `<span class="badge bg-success">Active</span>`
+                    : `<span class="badge bg-danger">Inactive</span>`;
+
+                html += `
+            <tr>
+                <td>${start + i + 1}</td>
+                <td>${profile}</td>
+                <td>${firstName} ${lastName}</td>
+                <td>${email}</td>
+                <td>${mobile}</td>
+                <td>${city}</td>
+                <td>${status}</td>
+                <td>${formatDate(createdDate)}</td>
+            </tr>`;
+            });
+        }
+
+        $("#memberTable").html(html);
+
+        let totalPages = Math.ceil(filteredMembers.length / pageSize) || 1;
+
+        $("#currentPage").text(currentPage);
+        $("#totalPages").text(totalPages);
+    }
+
+    function formatDate(date) {
+        if (!date) return "-";
+        return new Date(date).toLocaleDateString();
+    }
+</script>

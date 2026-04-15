@@ -62,5 +62,34 @@ namespace CommUnityApp.Areas.Community.Controllers
 
             return View();
         }
+
+        public IActionResult DeliveryReport()
+        {
+            return View();
+        }
+
+        public IActionResult AddEventSponsors()
+        {
+           
+            return View();
+        }
+
+        public IActionResult EventSponsors()
+        {
+            return View();
+        }
+        public IActionResult AddSponsorsToEvent()
+        {
+            return View();
+        }
+        public IActionResult ViewMembers()
+        {
+            return View();
+        }
+        public IActionResult CommunityChat()
+        {
+            return View();
+        }
+
     }
 }

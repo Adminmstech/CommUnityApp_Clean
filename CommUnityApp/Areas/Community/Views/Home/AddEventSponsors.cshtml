@@ -1,0 +1,129 @@
+﻿@{
+    ViewData["Title"] = "Add / Update Event Sponsors";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+}
+
+<h4>Add Event Sponsor</h4>
+
+<div class="card shadow-sm">
+    <div class="card-body">
+        <h4 class="mb-3">Add Event Sponsor</h4>
+
+        <input type="hidden" id="EventId" value="1" />
+
+        <div class="column">
+
+            <div class="col-md-3">
+                <label>Name</label>
+                <input type="text" id="SponsorName" class="form-control" />
+            </div>
+
+            <div class="col-md-3">
+                <label>Mobile</label>
+                <input type="text" id="Mobile" class="form-control" />
+            </div>
+
+            <div class="col-md-3">
+                <label>Email</label>
+                <input type="text" id="Email" class="form-control" />
+            </div>
+
+            <div class="col-md-3">
+                <label>Amount</label>
+                <input type="number" id="Amount" class="form-control" />
+            </div>
+
+            <div class="col-md-3 mt-2">
+                <label>Sponsor Type</label>
+                <select id="SponsorType" class="form-control">
+                    <option value="Gold">Gold</option>
+                    <option value="Silver">Silver</option>
+                    <option value="Bronze">Bronze</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label>Other Info</label>
+                <input type="text" id="OtherInfo" class="form-control" />
+            </div>
+            <div class="col-md-3 mt-2">
+                <label>Logo</label>
+                <input type="file" id="LogoFile" class="form-control" />
+            </div>
+
+            <div class="col-md-3 mt-4">
+                <button class="btn btn-primary w-100" onclick="addSponsor()">Add Sponsor</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+ <script>
+    $(document).ready(function () {
+        loadSponsors();
+    });
+    function addSponsor() {
+
+        var fileInput = $("#LogoFile")[0];
+
+        var formData = new FormData();
+        formData.append("EventId", $("#EventId").val());
+        formData.append("SponsorName", $("#SponsorName").val());
+        formData.append("Mobile", $("#Mobile").val());
+        formData.append("Email", $("#Email").val());
+        formData.append("Amount", $("#Amount").val());
+        formData.append("SponsorType", $("#SponsorType").val());
+        formData.append("OtherInfo", $("#OtherInfo").val());
+
+        if (fileInput.files.length > 0) {
+            formData.append("LogoFile", fileInput.files[0]);
+        }
+
+        $.ajax({
+            url: '/api/Event/AddSponsor',
+            type: 'POST',
+            headers: {
+                "Authorization": "Bearer " + localStorage.getItem("token")
+            },
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function (res) {
+                alert("Sponsor Added Successfully");
+                loadSponsors();
+            },
+            error: function (err) {
+                alert("Error: " + err.responseText);
+            }
+        });
+    }
+    function loadSponsors() {
+
+        var eventId = $("#EventId").val();
+
+        $.ajax({
+            url: '/api/EventSponsor/GetSponsors?eventId=' + eventId,
+            type: 'GET',
+            success: function (res) {
+
+                var html = "";
+
+                $.each(res, function (i, item) {
+
+                    html += "<tr>";
+                    html += "<td><img src='" + item.logoPath + "' width='60'/></td>";
+                    html += "<td>" + item.sponsorName + "</td>";
+                    html += "<td>" + item.mobile + "</td>";
+                    html += "<td>" + item.email + "</td>";
+                    html += "<td>" + item.amount + "</td>";
+                    html += "<td>" + item.sponsorType + "</td>";
+                    html += "</tr>";
+                });
+
+                $("#tblSponsors tbody").html(html);
+            }
+        });
+    }
+        </script>

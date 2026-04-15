@@ -26,5 +26,13 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<MyRequestedItemsModel>> GetMyRequestedItems(Guid userId);
 
         Task<List<ItemCategoryModel>> GetItemCategories();
-        }
+
+        Task<List<MemberModel>> GetMembersByCommunity(int communityId);
+
+        Task<List<dynamic>> GetMessages(long communityId, Guid receiverUserId);
+        Task<List<dynamic>> GetCommunityUsers(long communityId);
+        Task<int> SendMessage(long communityId, Guid receiverUserId, string message, string imagePath);       
+    }
+
 }
+

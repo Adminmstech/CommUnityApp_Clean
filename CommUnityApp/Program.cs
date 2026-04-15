@@ -64,6 +64,7 @@ builder.Services.AddTransient<IForgotPasswordRepository, ForgotPasswordRepositor
 builder.Services.AddTransient<IUserRepository, UserRepository>();
 builder.Services.AddTransient<IProductRepository, ProductRepository>();
 builder.Services.AddTransient<IVolunteerRepository, VolunteerRepository>();
+builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
 
 
 builder.Services.AddSession();
