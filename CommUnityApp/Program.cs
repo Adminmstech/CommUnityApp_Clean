@@ -69,6 +69,7 @@ builder.Services.AddTransient<IRewardsRepository, RewardsRepository>();
 builder.Services.AddTransient<IOrderRepository, OrderRepository>();
 builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
 builder.Services.AddTransient<IVolunteerRepository, VolunteerRepository>();
+builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
 builder.Services.AddTransient<IDapperWrapper, DapperWrapper>(); // Added DapperWrapper registration
 
 
