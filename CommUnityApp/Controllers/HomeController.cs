@@ -51,6 +51,11 @@ namespace CommUnityApp.Controllers
             return View();
         }
 
+        public IActionResult CreateSpinGame()
+        {
+            return View("~/Views/Game/Create.cshtml");
+        }
+
         public IActionResult Login()
         {
             return View();

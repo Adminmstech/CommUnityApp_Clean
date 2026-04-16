@@ -182,4 +182,14 @@ namespace CommUnityApp.ApplicationCore.Models
         public int ConsolationPrizeBalCount { get; set; }
         public int TotalEntries { get; set; }
     }
+
+    public class PrizeDto
+    {
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public string ImageUrl { get; set; }
+        public string GameType { get; set; } // e.g., "ScratchAndWin", "SpinAndWin"
+        public int GameId { get; set; }
+        public string PrizeType { get; set; } // e.g., "Primary", "Secondary", "Consolation", "Section"
+    }
 }
