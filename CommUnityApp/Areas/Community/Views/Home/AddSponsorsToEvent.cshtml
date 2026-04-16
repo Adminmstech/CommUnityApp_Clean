@@ -1,0 +1,122 @@
+﻿@{
+    ViewData["Title"] = "Add / Update Event";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+}
+<input type="hidden" id="CommunityId" value="@Context.Session.GetString("CommunityId")" />
+
+
+<div class="card">
+    <div class="card-body">
+        <h4>Link Sponsors To Event</h4>
+
+        <div class="row">
+            <div class="col-md-4">
+                <label>Select Event</label>
+                <select id="EventId" class="form-control"></select>
+            </div>
+
+            <div class="col-md-4">
+                <label>Select Sponsors</label>
+                <select id="SponsorId" class="form-control"></select>
+            </div>
+
+            <div class="col-md-2">
+                <label>Amount</label>
+                <input type="number" id="Amount" class="form-control" />
+            </div>
+
+            <div class="col-md-2">
+                <label>Type</label>
+                <select id="SponsorType" class="form-control">
+                    <option>Gold</option>
+                    <option>Silver</option>
+                    <option>Bronze</option>
+                </select>
+            </div>
+
+            <div class="col-md-2 mt-4">
+                <button class="btn btn-primary" onclick="attachSponsor()">Add</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        loadEvents();
+        loadSponsors();
+    });
+
+    function loadEvents() {
+
+        var communityId = $("#CommunityId").val();
+
+        $.ajax({
+            url: '/api/Event/GetEventsByCommunity?communityId=' + communityId,
+            type: 'GET',
+            success: function (res) {
+
+                var html = "<option value=''>-- Select Event --</option>";
+
+                $.each(res, function (i, e) {
+                    html += "<option value='" + e.eventId + "'>" + e.eventName + "</option>";
+                });
+
+                $("#EventId").html(html);
+            },
+            error: function (err) {
+                alert("Error loading events");
+                console.log(err.responseText);
+            }
+        });
+    }
+
+    function loadSponsors() {
+
+        var communityId = $("#CommunityId").val();
+
+        $.ajax({
+            url: '/api/Event/GetSponsorsByCommunity?communityId=' + communityId,
+            type: 'GET',
+            success: function (res) {
+
+                var html = "<option value=''>-- Select Sponsor --</option>";
+
+                $.each(res, function (i, s) {
+                    html += "<option value='" + s.sponsorId + "'>" + s.sponsorName + "</option>";
+                });
+
+                $("#SponsorId").html(html);
+            },
+            error: function (err) {
+                alert("Error loading sponsors");
+                console.log(err.responseText);
+            }
+        });
+    }
+
+    function attachSponsor() {
+
+        var data = {
+            EventId: $("#EventId").val(),
+            SponsorId: $("#SponsorId").val(),
+            Amount: $("#Amount").val(),
+            SponsorType: $("#SponsorType").val()
+        };
+
+        $.ajax({
+            url: '/api/Event/AttachSponsorToEvent',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function () {
+                alert("Sponsor linked to event successfully");
+            },
+            error: function (err) {
+                alert("Error saving");
+                console.log(err);
+            }
+        });
+    }
+</script>

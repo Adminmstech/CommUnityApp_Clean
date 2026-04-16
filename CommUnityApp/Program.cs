@@ -68,20 +68,8 @@ builder.Services.AddTransient<IRewardsRepository, RewardsRepository>();
 builder.Services.AddTransient<IOrderRepository, OrderRepository>();
 builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
 builder.Services.AddTransient<IVolunteerRepository, VolunteerRepository>();
-builder.Services.AddTransient<ICampaignRepository, CampignRepository>();
-builder.Services.AddTransient<IDapperWrapper, DapperWrapper>();
-builder.Services.AddTransient<ISpinGameRepository>(provider =>
-{
-    var configuration = provider.GetRequiredService<IConfiguration>();
-    var dapper = provider.GetRequiredService<IDapperWrapper>();
-
-    Func<System.Data.IDbConnection> connectionFactory = () =>
-        new Microsoft.Data.SqlClient.SqlConnection(configuration.GetConnectionString("DefaultConnection"));
-
-    return new SpinGameRepository(connectionFactory, dapper);
-});
-
-//builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
+builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
+builder.Services.AddTransient<IDapperWrapper, DapperWrapper>(); // Added DapperWrapper registration
 
 
 builder.Services.AddSession();

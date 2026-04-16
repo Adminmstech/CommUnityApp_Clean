@@ -8,6 +8,7 @@ using System.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using Dapper;
 using static CommUnityApp.ApplicationCore.Models.AssignVolunteerRequest;
 
 namespace CommUnityApp.Services
@@ -449,6 +450,96 @@ namespace CommUnityApp.Services
         public async Task<IActionResult> GetItemCategories()
         {
             var data = await _communityRepository.GetItemCategories();
+            return Ok(data);
+        }
+
+        [HttpGet("GetMembersByCommunity")]
+        public async Task<IActionResult> GetMembersByCommunity(int communityId)
+        {
+            if (communityId == 0)
+                return BadRequest("Invalid CommunityId");
+
+            var data = await _communityRepository.GetMembersByCommunity(communityId);
+
+            return Ok(data);
+        }
+
+
+        [HttpGet("GetCommunityUsers")]
+        public async Task<IActionResult> GetCommunityUsers(long communityId)
+        {
+            var users = await _communityRepository.GetCommunityUsers(communityId);
+            return Ok(users);
+        }
+        [HttpPost("SendMessage")]
+        public async Task<IActionResult> SendMessage([FromForm] CommunityMessageModel model)
+        {
+            try
+            {
+                var communityIdStr = HttpContext.Session.GetString("CommunityId");
+
+                if (string.IsNullOrEmpty(communityIdStr))
+                    return Unauthorized("Session expired");
+
+                long communityId = Convert.ToInt64(communityIdStr);
+
+                if (model.ReceiverUserId == Guid.Empty)
+                    return BadRequest("ReceiverUserId required");
+
+                if (string.IsNullOrWhiteSpace(model.MessageText) && model.ImageFile == null)
+                    return BadRequest("Message or Image is required");
+
+                string imagePath = "";
+
+                if (model.ImageFile != null)
+                {
+                    string folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/chat");
+
+                    if (!Directory.Exists(folder))
+                        Directory.CreateDirectory(folder);
+
+                    string fileName = Guid.NewGuid() + Path.GetExtension(model.ImageFile.FileName);
+                    string filePath = Path.Combine(folder, fileName);
+
+                    using var stream = new FileStream(filePath, FileMode.Create);
+                    await model.ImageFile.CopyToAsync(stream);
+
+                    imagePath = "/uploads/chat/" + fileName;
+                }
+
+                var id = await _communityRepository.SendMessage(
+                    communityId,
+                    model.ReceiverUserId,
+                    model.MessageText ?? "",
+                    imagePath
+                );
+
+                return Ok(new { message = "Sent", id });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet("GetMessages")]
+        public async Task<IActionResult> GetMessages(long communityId, Guid receiverUserId)
+        {
+            if (communityId == 0)
+                return BadRequest("CommunityId required");
+
+            if (receiverUserId == Guid.Empty)
+                return BadRequest("ReceiverUserId required");
+
+            var data = await _communityRepository.GetMessages(communityId, receiverUserId);
+
+            string baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+            foreach (var item in data)
+            {
+                if (item.ImagePath != null)
+                    item.ImagePath = baseUrl + item.ImagePath;
+            }
+
             return Ok(data);
         }
     }

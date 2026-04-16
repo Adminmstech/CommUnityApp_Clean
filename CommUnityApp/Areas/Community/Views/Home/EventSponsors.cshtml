@@ -1,0 +1,83 @@
+﻿@{
+    ViewData["Title"] = "Event Sponsors";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+}
+
+<div class="card shadow-sm mt-3">
+    <div class="card-body">
+        <h5>Event Sponsors</h5>
+
+        <table class="table table-bordered table-striped" id="tblSponsors">
+            <thead class="table-dark">
+                <tr>
+                    <th>#</th>
+                    <th>Logo</th>
+                    <th>Name</th>
+                    <th>Mobile</th>
+                    <th>Email</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                    <th>Other Info</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="9" class="text-center">Loading...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+        loadSponsors();
+    });
+
+    function loadSponsors() {
+
+        $.ajax({
+            url: '/api/Event/GetSponsorsByCommunity',
+            type: 'GET',
+            success: function (res) {
+
+                var html = "";
+
+                if (!res || res.length === 0) {
+                    html += "<tr><td colspan='9' class='text-center'>No records found</td></tr>";
+                }
+                else {
+                    $.each(res, function (i, item) {
+
+                        html += "<tr>";
+                        html += "<td>" + (i + 1) + "</td>";
+                        html += "<td><img src='" + item.logoPath + "' width='60' height='60'/></td>";
+                        html += "<td>" + item.sponsorName + "</td>";
+                        html += "<td>" + item.mobile + "</td>";
+                        html += "<td>" + item.email + "</td>";
+                        html += "<td>₹ " + item.amount + "</td>";
+
+                        if (item.sponsorType === "Gold")
+                            html += "<td><span class='badge bg-warning'>Gold</span></td>";
+                        else if (item.sponsorType === "Silver")
+                            html += "<td><span class='badge bg-secondary'>Silver</span></td>";
+                        else
+                            html += "<td><span class='badge bg-dark'>Bronze</span></td>";
+
+                        html += "<td>" + (item.otherInfo || "-") + "</td>";
+                        html += "<td>" + new Date(item.createdDate).toLocaleDateString() + "</td>";
+                        html += "</tr>";
+                    });
+                }
+
+                $("#tblSponsors tbody").html(html);
+            },
+            error: function () {
+                alert("Error loading sponsors");
+            }
+        });
+    }
+</script>
