@@ -252,7 +252,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     "SP_GetItemCategories",
                     commandType: CommandType.StoredProcedure
                 );
-
+                return result.ToList();
+            }
+        }
         public async Task<List<Community>> GetCommunities()
         {
             using var connection = new SqlConnection(
