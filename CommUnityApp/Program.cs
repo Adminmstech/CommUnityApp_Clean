@@ -3,10 +3,8 @@ using CommUnityApp.InfrastructureLayer.Repositories;
 using CommUnityApp.InfrastructureLayer.Services;
 using CommUnityApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
-
+using Microsoft.OpenApi;
 using Stripe;
-using System.Data;
-using Microsoft.Data.SqlClient;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,7 +16,14 @@ builder.Services.AddControllersWithViews();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
-
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "CommUnityApp API",
+        Version = "v1"
+    });
+});
 
 // Http Context & HttpClient
 builder.Services.AddHttpContextAccessor();
@@ -50,13 +55,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<ICommunityRepository, CommunityRepository>();
 builder.Services.AddTransient<IEventRepository, EventRepository>();
 builder.Services.AddTransient<IBrandGameRepository, BrandGameRepository>();
-builder.Services.AddTransient<ISpinGameRepository, SpinGameRepository>(provider =>
-{
-    var configuration = provider.GetRequiredService<IConfiguration>();
-    var dapper = provider.GetRequiredService<IDapperWrapper>();
-    Func<System.Data.IDbConnection> connectionFactory = () => new Microsoft.Data.SqlClient.SqlConnection(configuration.GetConnectionString("DefaultConnection"));
-    return new SpinGameRepository(connectionFactory, dapper);
-});
+//builder.Services.AddTransient<ISpinGameRepository, SpinGameRepository>();
 builder.Services.AddTransient<IBusinessRepository, BusinessRepository>();
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<CommUnityApp.ApplicationCore.Interfaces.IEmailService, EmailService>();
@@ -70,7 +69,19 @@ builder.Services.AddTransient<IOrderRepository, OrderRepository>();
 builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
 builder.Services.AddTransient<IVolunteerRepository, VolunteerRepository>();
 builder.Services.AddTransient<ICampaignRepository, CampignRepository>();
-builder.Services.AddTransient<IDapperWrapper, DapperWrapper>(); // Added DapperWrapper registration
+builder.Services.AddTransient<IDapperWrapper, DapperWrapper>();
+builder.Services.AddTransient<ISpinGameRepository>(provider =>
+{
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    var dapper = provider.GetRequiredService<IDapperWrapper>();
+
+    Func<System.Data.IDbConnection> connectionFactory = () =>
+        new Microsoft.Data.SqlClient.SqlConnection(configuration.GetConnectionString("DefaultConnection"));
+
+    return new SpinGameRepository(connectionFactory, dapper);
+});
+
+//builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
 
 
 builder.Services.AddSession();
@@ -98,7 +109,12 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
-
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CommUnityApp API v1");
+    c.RoutePrefix = "swagger";
+});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
