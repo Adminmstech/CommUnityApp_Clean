@@ -210,7 +210,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                         {
                             CommentId = c.CommentId,
                             CommentText = c.CommentText,
-                            UserId = c.UserId.ToString()
+                            UserId = c.UserId.ToString(),
+                             FullName = c.FullName
                         }).ToList();
 
                         post.CommentsCount = post.Comments.Count;
@@ -246,5 +247,85 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return result.ToList();
             }
         }
+
+        public async Task<IEnumerable<dynamic>> GetPosts()
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            return await con.QueryAsync(
+                "sp_GetAdminMessageBoardPosts",
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<IEnumerable<dynamic>> GetComments(int postId)
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            return await con.QueryAsync(
+                "sp_GetAdminMessageBoardPostComments",
+                new { PostId = postId },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<BaseResponse> DeleteComment(int commentId)
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            return await con.QueryFirstAsync<BaseResponse>(
+                "sp_DeleteComment",
+                new { CommentId = commentId },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<BaseResponse> DeletePost(int postId)
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            return await con.QueryFirstAsync<BaseResponse>(
+                "sp_DeletePost",
+                new { PostId = postId },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<PostResponse> GetPostDetails(int postId)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                using (var multi = await connection.QueryMultipleAsync(
+                    "dbo.GetCommunityMessageBoardPostDetails",   
+                    new { PostId = postId },
+                    commandType: CommandType.StoredProcedure))
+                {
+                    var post = (await multi.ReadAsync<PostResponse>()).FirstOrDefault();
+
+                    if (post == null)
+                        return null;
+
+                    var images = (await multi.ReadAsync<dynamic>()).ToList();
+                    var comments = (await multi.ReadAsync<dynamic>()).ToList();
+
+                    post.Images = images
+                        .Where(i => i.PostId == post.PostId)
+                        .Select(i => (string)i.ImagePath)
+                        .ToList();
+
+                    post.Comments = comments
+    .Where(c => c.PostId == post.PostId)
+    .Select(c => new CommentDto
+    {
+        CommentId = c.CommentId,
+        CommentText = c.CommentText,
+        UserId = c.UserId.ToString(),
+        CreatedDate=c.CreatedDate(),
+        FullName = c.FullName   
+    }).ToList();
+
+                    post.CommentsCount = post.Comments.Count;
+
+                    return post;
+                }
+            }
+        }
     }
-}
+    }
+

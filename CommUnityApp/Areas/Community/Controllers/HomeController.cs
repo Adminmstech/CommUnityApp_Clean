@@ -91,5 +91,15 @@ namespace CommUnityApp.Areas.Community.Controllers
             return View();
         }
 
+        public IActionResult ViewMessageBoardPosts()
+        {
+
+           return View();
+        }
+
+         public IActionResult CreateMessageBoardPost()
+        {
+            return View();}
+
     }
 }

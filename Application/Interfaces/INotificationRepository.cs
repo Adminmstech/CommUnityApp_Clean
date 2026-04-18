@@ -22,5 +22,10 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<CategoryDto>> GetCategories();
         Task<List<SubCategoryDto>> GetSubCategories(int categoryId);
 
+        Task<IEnumerable<dynamic>> GetPosts();
+        Task<IEnumerable<dynamic>> GetComments(int postId);
+        Task<BaseResponse> DeleteComment(int commentId);
+        Task<BaseResponse> DeletePost(int postId);
+
     }
 }

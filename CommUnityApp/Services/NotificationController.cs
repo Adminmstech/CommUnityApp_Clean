@@ -191,5 +191,43 @@ namespace CommUnityApp.Services
 
             return Ok(result);
         }
+
+        [HttpGet("GetPosts")]
+        public async Task<IActionResult> GetMessageBoardPosts()
+        {
+            var data = await _notificationRepository.GetPosts();
+            return Ok(data);
+        }
+
+        [HttpGet("GetComments")]
+        public async Task<IActionResult> GetComments(int postId)
+        {
+            var data = await _notificationRepository.GetComments(postId);
+            return Ok(data);
+        }
+
+        [HttpDelete("DeleteComment")]
+        public async Task<IActionResult> DeleteComment(int commentId)
+        {
+            var res = await _notificationRepository.DeleteComment(commentId);
+            return Ok(res);
+        }
+
+        [HttpDelete("DeletePost")]
+        public async Task<IActionResult> DeletePost(int postId)
+        {
+            var res = await _notificationRepository.DeletePost(postId);
+            return Ok(res);
+        }
+
+        [HttpGet("GetPostDetails")]
+        public async Task<IActionResult> GetPostDetails(int postId)
+        {
+            var data = await _notificationRepository.GetMessageBoardPosts();
+
+            var post = data.FirstOrDefault(x => x.PostId == postId);
+
+            return Ok(post);
+        }
     }
 }
