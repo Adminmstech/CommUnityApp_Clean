@@ -32,7 +32,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
     
         Task<List<ItemCategoryModel>> GetItemCategories();
 
-        Task<List<ItemCategoryModel>> GetItemCategories();
+       
 
         Task<List<MemberModel>> GetMembersByCommunity(int communityId);
 
