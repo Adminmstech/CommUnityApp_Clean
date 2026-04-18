@@ -77,6 +77,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public int CommentId { get; set; }
         public string CommentText { get; set; }
         public string UserId { get; set; }
+        public string FullName { get; set; }
+        public DateTime CreatedDate { get; set; }
     }
     public class CategoryDto
     {
