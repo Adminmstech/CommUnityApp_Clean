@@ -16,7 +16,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public Guid ReceiverUserId { get; set; }
         public int MessageId { get; set; }
         public string Title { get; set; }
-        public string MessageText { get; set; }
+        public string MessageText { get; set; } 
         public string ImagePath { get; set; }
         public DateTime CreatedDate { get; set; }
     }
