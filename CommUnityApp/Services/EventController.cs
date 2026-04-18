@@ -1,13 +1,17 @@
 ﻿using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using CommUnityApp.Domain.Entities;
+using CommUnityApp.InfrastructureLayer.Repositories;
+using Dapper;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using QRCoder;
-using System.Drawing.Imaging;
 using System.Drawing;
 using Microsoft.Data.SqlClient;
 using Dapper;
 using Microsoft.AspNetCore.Authorization;
+using System.Drawing.Imaging;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace CommUnityApp.Services
 {
@@ -19,11 +23,15 @@ namespace CommUnityApp.Services
 
         private readonly IEventRepository _repository;
         private readonly IWebHostEnvironment _env;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IConfiguration _config;
 
-        public EventController(IEventRepository repository, IWebHostEnvironment env)
+        public EventController(IEventRepository repository, IWebHostEnvironment env, IUnitOfWork unitOfWork, IConfiguration config)
         {
             _repository = repository;
             _env = env;
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+            _config = config;
 
         }
 
@@ -501,6 +509,29 @@ namespace CommUnityApp.Services
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet("Get_AllEvents")]
+        public async Task<IActionResult> GetAllEvents()
+        {
+            var data = await _unitOfWork.Events.GetEvents();
+            return Ok(data);
+        }
+
+        [HttpGet("Get_Top5Events")]
+        public async Task<IActionResult> GetTopEvents()
+        {
+            var data = await _unitOfWork.Events.GetTop5Events();
+            return Ok(data);
+        }
+
+        [HttpGet("Get_EventDetails")]
+        public async Task<IActionResult> GetEventsById(int EventId)
+        {
+            var data = await _unitOfWork.Events.GetEventById(EventId);
+            return Ok(data);
+        }
+
+
     }
     }
 

@@ -2,7 +2,7 @@
 {
     public class Users
     {
-        public Guid? UserId { get; set; }         
+        public Guid? UserId { get; set; }
         public int? CommunityId { get; set; }
 
         // Required Fields
@@ -12,19 +12,62 @@
         public string Email { get; set; }
         public string Mobile { get; set; }
 
-        public string Password { get; set; }       
+        public string Password { get; set; }
         public string RoleIds { get; set; }
 
-        // 🔹 For receiving base64 image from frontend
+        // 🔹 Image
         public string ProfileImageBase64 { get; set; }
-
         public string ProfileImagePath { get; set; }
 
+        // 🔹 Address
         public string AddressLine1 { get; set; }
         public string AddressLine2 { get; set; }
 
         public string ZipCode { get; set; }
         public string City { get; set; }
+
+        // 🔥 NEW FIELDS
+        public string Language { get; set; }     
+        public int? AgeGroupId { get; set; }
+        public int? Gender { get; set; }
+ 
+
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class UserDetailsResponse
+    {
+        public Guid? UserId { get; set; }
+        public int? CommunityId { get; set; }
+
+        // Required Fields
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+
+        public string Email { get; set; }
+        public string Mobile { get; set; }
+
+      
+        public string RoleIds { get; set; }
+
+        // 🔹 Image
+        public string ProfileImageBase64 { get; set; }
+        public string ProfileImagePath { get; set; }
+
+        // 🔹 Address
+        public string AddressLine1 { get; set; }
+        public string AddressLine2 { get; set; }
+
+        public string ZipCode { get; set; }
+        public string City { get; set; }
+
+        // 🔥 NEW FIELDS
+        public string Language { get; set; }
+        public int? AgeGroupId { get; set; }
+        public int? Gender { get; set; }
+
+
+        public string AgeRange { get; set; }
 
         public bool IsActive { get; set; } = true;
     }
@@ -120,4 +163,31 @@
         public string Role { get; set; }
     }
 
+
+    public class UpdateUserRequest
+    {
+        public Guid UserId { get; set; }
+
+        public int? CommunityId { get; set; }
+
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+
+        public string Email { get; set; }
+        public string Mobile { get; set; }
+
+        public string Role { get; set; }
+
+        public string ProfileImagePath { get; set; }
+
+        public string AddressLine1 { get; set; }
+        public string AddressLine2 { get; set; }
+
+        public string ZipCode { get; set; }
+        public string City { get; set; }
+
+        // 🔥 NEW FIELDS
+        public string Language { get; set; }
+        public int? AgeGroupId { get; set; }
+    }
 }

@@ -1,0 +1,144 @@
+﻿@{
+    ViewData["Title"] = "Business Customers";
+    var businessId = ViewBag.BusinessId;
+    Layout = "_BusinessLayout";
+}
+
+<div class="container mt-4">
+
+    <h3>My Customers</h3>
+
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Mobile</th>
+                <th>Email</th>
+                <th>Total Orders</th>
+                <th>Total Spent</th>
+                <th>Last Order</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody id="customersTable">
+            <tr>
+                <td colspan="7" class="text-center p-3">
+                    Loading Customers...
+                </td>
+            </tr>
+        </tbody>
+
+    </table>
+
+</div>
+
+<script>
+
+    const businessId = '@businessId';
+
+    function formatDate(dateString){
+
+        if(!dateString) return "";
+
+        const date = new Date(dateString);
+
+        return date.toLocaleDateString() + " " +
+               date.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+
+    }
+
+    function formatCurrency(amount){
+
+        return "₹ " + Number(amount || 0).toLocaleString();
+
+    }
+
+    async function loadCustomers(){
+
+        try{
+
+            const response = await fetch(`/api/Business/Get_BusinessCustomer?BusinessId=${businessId}`);
+
+            const data = await response.json();
+
+            console.log("Customers:", data);
+
+            let rows = "";
+
+            if(data.length === 0){
+
+                rows = `
+                <tr>
+                    <td colspan="7" class="text-center p-4">
+                        No Customers Found
+                    </td>
+                </tr>
+                `;
+
+            }
+
+            data.forEach(cust => {
+
+                rows += `
+                <tr>
+
+                    <td>${cust.name}</td>
+
+                    <td>${cust.mobile}</td>
+
+                    <td>${cust.email}</td>
+
+                    <td>${cust.totalOrders}</td>
+
+                    <td>
+                        <span class="badge bg-success">
+                            ${formatCurrency(cust.totalSpent)}
+                        </span>
+                    </td>
+
+                    <td>${formatDate(cust.lastOrderDate)}</td>
+
+                    <td>
+
+                        <button class="btn btn-sm btn-primary"
+                            onclick="viewCustomer('${cust.userId}')">
+                            View
+                        </button>
+
+                    </td>
+
+                </tr>
+                `;
+
+            });
+
+            document.getElementById("customersTable").innerHTML = rows;
+
+        }
+        catch(error){
+
+            console.error("Error loading customers:", error);
+
+            document.getElementById("customersTable").innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center text-danger p-4">
+                    Failed to load customers
+                </td>
+            </tr>
+            `;
+
+        }
+
+    }
+
+    function viewCustomer(userId){
+
+        // 👉 open customer details page
+        window.location.href = "/Business/Home/CustomerDetails?userId=" + userId;
+
+    }
+
+    loadCustomers();
+
+</script>
