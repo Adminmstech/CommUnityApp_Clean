@@ -16,9 +16,27 @@ namespace CommUnityApp.InfrastructureLayer.Services
 
         }
 
-        public Task SendPasswordResetEmailAsync(string toEmail, string otp)
+        public async Task SendPasswordResetEmailAsync(string toEmail, string otp)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(toEmail))
+                return;
+
+            string subject = "CommUnityApp - Password Reset OTP";
+            string body = $@"
+<html>
+<body>
+    <p>Hello,</p>
+    <p>Your OTP for password reset is:</p>
+    <h2 style='color:#2563eb'>{otp}</h2>
+    <p>This OTP is valid for 5 minutes.</p>
+    <p>If you did not request this, please ignore this email.</p>
+    <br/>
+    <p>Regards,<br/>
+    CommUnityApp Team</p>
+</body>
+</html>";
+
+            await SendEmailAsync(toEmail, subject, body);
         }
 
         public Task SendPasswordResetSuccessEmailAsync(string toEmail)
@@ -166,7 +184,48 @@ namespace CommUnityApp.InfrastructureLayer.Services
             await smtpClient.SendMailAsync(mailMessage);
         }
 
-       
 
+        public async Task<bool> SendBulkEmailAsync(string toEmail, string subject, string body)
+        {
+            try
+            {
+                var smtp = _configuration.GetSection("SMTP");
+
+                var host = smtp["Host"];
+                var port = smtp["Port"];
+                var username = smtp["Username"];
+                var password = smtp["Password"];
+                var from = smtp["FromEmail"];
+
+                if (string.IsNullOrEmpty(host) || string.IsNullOrEmpty(port))
+                    throw new Exception("SMTP configuration missing");
+
+                using var smtpClient = new SmtpClient(host)
+                {
+                    Port = int.Parse(port),
+                    Credentials = new NetworkCredential(username, password),
+                    EnableSsl = true
+                };
+
+                using var mailMessage = new MailMessage
+                {
+                    From = new MailAddress(from, "CommUnityApp"),
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true
+                };
+
+                mailMessage.To.Add(toEmail);
+
+                await smtpClient.SendMailAsync(mailMessage);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                throw;
+            }
+        }
     }
 }

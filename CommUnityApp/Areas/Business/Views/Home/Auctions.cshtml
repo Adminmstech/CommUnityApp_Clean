@@ -1,0 +1,534 @@
+﻿@{
+    ViewData["Title"] = "Indian Community Network";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>@ViewData["Title"]</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+
+
+    <style>
+
+        @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --background: #0f0f0f;
+            --foreground: #e4e4e7;
+            --card: #1a1a1a;
+            --section: #222222;
+            --accent: #f6af3e;
+            --muted: #27272a;
+            --muted-foreground: #a1a1aa;
+            --border: #2e2e2e;
+            --danger: #ef4444;
+            --radius-lg: 20px;
+            --radius-md: 14px;
+            --shadow: 0 40px 80px rgba(0,0,0,.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter',sans-serif;
+            background: linear-gradient(180deg,#0c0c0c 0%,#121212 100%);
+            color: var(--foreground);
+            padding: 60px 20px;
+        }
+
+        /* TITLE */
+
+        .title-section {
+            text-align: center;
+            padding: 20px 0 40px;
+        }
+
+            .title-section h1 {
+                font-family: 'Plus Jakarta Sans',sans-serif;
+                font-size: 48px;
+                letter-spacing: 3px;
+                color: #fff;
+            }
+
+        .gold-line {
+            width: 120px;
+            height: 2px;
+            background: var(--accent);
+            margin: 15px auto;
+        }
+
+        /* MAIN CARD */
+
+        .main-card {
+            max-width: 1200px;
+            margin: auto;
+            background: var(--card);
+            border-radius: var(--radius-lg);
+            padding: 30px;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        /* LIVE HEADER */
+
+        .live-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .live-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .hammer {
+            background: linear-gradient(135deg,#f59e0b,#fbbf24);
+            padding: 10px 14px;
+            border-radius: 10px;
+            color: #111;
+        }
+
+        .timer-box {
+            border: 1px solid var(--accent);
+            padding: 10px 20px;
+            border-radius: 10px;
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* GRID */
+
+        .grid {
+            display: grid;
+            grid-template-columns: 220px 1fr;
+            gap: 30px;
+        }
+
+        /* SIDEBAR */
+
+        .sidebar {
+            border-right: 1px solid var(--border);
+            padding-right: 20px;
+        }
+
+            .sidebar h4 {
+                color: var(--accent);
+                font-size: 13px;
+                letter-spacing: 1px;
+                margin-bottom: 15px;
+            }
+
+            .sidebar ul {
+                list-style: none;
+            }
+
+            .sidebar li {
+                padding: 10px;
+                border-radius: 10px;
+                cursor: pointer;
+                font-size: 14px;
+                transition: .2s;
+            }
+
+                .sidebar li:hover {
+                    background: var(--muted);
+                }
+
+                .sidebar li.active {
+                    background: linear-gradient(135deg,#f59e0b,#fbbf24);
+                    color: #111;
+                    font-weight: 600;
+                }
+
+        /* SECTION TITLE */
+
+        .section-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            font-weight: 600;
+        }
+
+            .section-title span {
+                font-size: 14px;
+                color: var(--muted-foreground);
+            }
+
+        /* CARDS */
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(3,1fr);
+            gap: 25px;
+        }
+
+        /* CARD */
+
+        .card {
+            background: linear-gradient(135deg,#1e293b,#111827);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: .3s;
+        }
+
+            .card:hover {
+                transform: translateY(-6px);
+                box-shadow: 0 20px 40px rgba(0,0,0,.6);
+            }
+
+            .card img {
+                width: 100%;
+                height: 200px;
+                object-fit: cover;
+            }
+
+        /* CARD BODY */
+
+        .card-body {
+            padding: 18px;
+        }
+
+            .card-body h4 {
+                margin-bottom: 8px;
+                font-size: 15px;
+            }
+
+            .card-body .date {
+                color: var(--accent);
+                font-size: 13px;
+                margin-bottom: 10px;
+            }
+
+        /* BUTTONS */
+
+        .bid-btn {
+            padding: 8px 18px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(135deg,#f59e0b,#fbbf24);
+            font-weight: 700;
+            cursor: pointer;
+            color: #111;
+        }
+
+        .register-btn {
+            padding: 8px 18px;
+            border-radius: 999px;
+            border: none;
+            background: #08a594;
+            color: #000;
+            font-weight: 700;
+            cursor: pointer;
+            margin-left: 8px;
+        }
+
+        /* HEART */
+
+        .card-img {
+            position: relative;
+        }
+
+        .heart {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(120,120,120,.85);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            cursor: pointer;
+            transition: .3s;
+        }
+
+            .heart:hover {
+                transform: scale(1.1);
+            }
+
+            .heart.active {
+                background: linear-gradient(135deg,#ff4d6d,#ff0033);
+                color: #fff;
+            }
+
+        /* FOOTER */
+
+        .footer {
+            margin-top: 30px;
+            border-top: 1px solid var(--border);
+            padding-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            color: var(--muted-foreground);
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="title-section">
+        <h1>INDIAN COMMUNITY NETWORK</h1>
+        <div class="gold-line"></div>
+    </div>
+
+    <div class="main-card">
+
+        <div class="live-header">
+            <div class="live-left">
+                <div class="hammer">🔨</div>
+                LIVE AUCTION
+            </div>
+            <div class="timer-box" id="timerBox">--</div>
+        </div>
+
+        <div class="grid">
+
+            <!-- ✅ CATEGORIES SIDEBAR -->
+            <div class="sidebar">
+                <h4>CATEGORIES</h4>
+                <ul id="categoryList">
+                    <li data-filter="all" class="active">All</li>
+                </ul>
+            </div>
+
+            <div>
+
+                <div class="section-title">
+                    AUCTIONS
+                    <span id="lotCount">LOTS (0)</span>
+                </div>
+
+                <!-- ✅ CARDS CONTAINER -->
+                <div class="cards" id="auctionCards">
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <div>Secure Payment | Easy Returns | 24/7 Support</div>
+        </div>
+
+    </div>
+
+    <script>
+
+        const currentUserId = '@User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value';
+        const apiBase = "/api/Auction";
+
+        document.addEventListener("DOMContentLoaded", function () {
+            loadCategories();
+            loadAuctions();
+        });
+
+        // ================= LOAD CATEGORIES =================
+        async function loadCategories() {
+            const response = await fetch(`${apiBase}/Get_ItemType`);
+            const categories = await response.json();
+
+            const ul = document.getElementById("categoryList");
+
+            categories.forEach(cat => {
+                const li = document.createElement("li");
+                li.textContent = cat.itemTypeName;
+                li.setAttribute("data-filter", cat.itemTypeId);
+                ul.appendChild(li);
+            });
+
+            enableFiltering();
+        }
+
+        // ================= LOAD AUCTIONS =================
+        async function loadAuctions() {
+
+            const response = await fetch(`${apiBase}/Get_Auctions`);
+            const auctions = await response.json();
+
+            renderAuctions(auctions);
+        }
+
+        // ================= LOAD BY CATEGORY =================
+        async function loadAuctionsByCategory(itemTypeId) {
+
+            const response = await fetch(`/api/Auction/Get_AuctionByCategoryId?itemTypeId=${itemTypeId}`);
+            const auctions = await response.json();
+
+            renderAuctions(auctions);
+        }
+
+        // ================= RENDER AUCTIONS =================
+        function renderAuctions(auctions) {
+
+            const container = document.getElementById("auctionCards");
+            container.innerHTML = "";
+
+            document.getElementById("lotCount").innerText =
+                `LOTS (${auctions.length})`;
+
+            auctions.forEach(a => {
+
+                const primaryImage = a.images?.find(x => x.isPrimary)
+                    || a.images?.[0];
+
+                const imageUrl = primaryImage
+                    ? `/${primaryImage.imageUrl}`
+                    : "https://via.placeholder.com/400x300";
+
+                const startDate = new Date(a.startTime);
+                const formattedDate = startDate.toLocaleDateString();
+                const formattedTime = startDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+                const card = `
+                    <div class="card" data-category="${a.itemTypeId}">
+                        <div class="card-img">
+                            <img src="${imageUrl}">
+                            <div class="heart">♡</div>
+                        </div>
+                        <div class="card-body">
+                            <h4>${a.itemTitle}</h4>
+
+                            <div style="color:#facc15; font-size:13px; margin-bottom:10px;">
+                                Starts: ${formattedDate} | ${formattedTime}
+                            </div>
+
+                            <div style="display:flex; gap:10px;">
+                                <button class="bid-btn" onclick="goToBid(${a.auctionId})">
+                                    BID
+                                </button>
+
+                                <button class="register-btn"
+                                    onclick="registerForBid(event, ${a.auctionId}, ${a.minDeposite})">
+                                    REGISTER
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                container.innerHTML += card;
+            });
+
+            enableHearts();
+        }
+
+        // ================= REGISTER FOR BID =================
+        async function registerForBid(e, auctionId, minDeposite) {
+
+            if (!currentUserId) {
+                alert("Please login to register for bidding.");
+                window.location.href = "/Home/Login";
+                return;
+            }
+
+            const button = e.target;
+            button.disabled = true;
+            button.innerText = "Processing...";
+
+            try {
+
+                const response = await fetch("/api/Auction/create-checkout-session-dynamic", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        price: minDeposite,
+                        userId: currentUserId,
+                        auctionId: auctionId
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    alert("Unable to initiate payment.");
+                    button.disabled = false;
+                    button.innerText = "REGISTER";
+                }
+
+            } catch (error) {
+                console.error(error);
+                alert("Payment failed.");
+                button.disabled = false;
+                button.innerText = "REGISTER";
+            }
+        }
+
+        // ================= GO TO BID =================
+        function goToBid(id) {
+            window.location.href = `/Business/Home/AuctionDetails?AuctionId=${id}`;
+        }
+
+        // ================= FILTER LOGIC =================
+        function enableFiltering() {
+
+            const filters = document.querySelectorAll(".sidebar li");
+
+            filters.forEach(filter => {
+                filter.addEventListener("click", function () {
+
+                    filters.forEach(f => f.classList.remove("active"));
+                    this.classList.add("active");
+
+                    const value = this.getAttribute("data-filter");
+
+                    if (value === "all") {
+                        loadAuctions();
+                    } else {
+                        loadAuctionsByCategory(value);
+                    }
+                });
+            });
+        }
+
+        // ================= HEART TOGGLE =================
+        function enableHearts() {
+            document.querySelectorAll(".heart").forEach(heart => {
+                heart.addEventListener("click", function (e) {
+                    e.stopPropagation();
+                    this.classList.toggle("active");
+                    this.textContent =
+                        this.classList.contains("active") ? "♥" : "♡";
+                });
+            });
+        }
+
+        // ================= TIMER =================
+        setInterval(() => {
+
+            const now = new Date();
+            const hours = now.getHours().toString().padStart(2, '0');
+            const minutes = now.getMinutes().toString().padStart(2, '0');
+            const seconds = now.getSeconds().toString().padStart(2, '0');
+
+            document.getElementById("timerBox").innerText =
+                `${hours}H : ${minutes}M : ${seconds}S`;
+
+        }, 1000);
+
+    </script>
+
+
+</body>
+</html>

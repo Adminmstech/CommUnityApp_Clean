@@ -2,6 +2,7 @@
 using CommUnityApp.ApplicationCore.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Org.BouncyCastle.Bcpg;
 
 namespace CommUnityApp.Services
 {
@@ -27,19 +28,19 @@ namespace CommUnityApp.Services
         //    return Ok(data);
         //}
 
-        [HttpGet("Get_Products")]
-        public async Task<IActionResult> GetProducts()
-        {
-            var data = await _unitOfWork.Product.GetAllProducts();
-            return Ok(data);
-        }
+        //[HttpGet("Get_Products")]
+        //public async Task<IActionResult> GetProducts()
+        //{
+        //    var data = await _unitOfWork.Product.GetAllProducts();
+        //    return Ok(data);
+        //}
 
-        [HttpGet("Get_ProductById")]
-        public async Task<IActionResult> GetProductById(int productId)
-        {
-            var data = await _unitOfWork.Product.GetProductById(productId);
-            return Ok(data);
-        }
+        //[HttpGet("Get_ProductById")]
+        //public async Task<IActionResult> GetProductById(int productId)
+        //{
+        //    var data = await _unitOfWork.Product.GetProductById(productId);
+        //    return Ok(data);
+        //}
 
         [HttpPost("Add_ProductCategory")]
         public async Task<IActionResult> AddProductCategory(ProductCategories entity)
@@ -137,6 +138,240 @@ namespace CommUnityApp.Services
                 {
                     success = false,
                     message = ex.Message
+                });
+            }
+        }
+
+
+
+        [HttpGet("Get_Products")]
+        public async Task<IActionResult> GetProductsWithImages()
+        {
+            try
+            {
+                var products = await _unitOfWork.Product.GetAllProducts();
+
+                var productList = new List<ProductWithImagesModel>();
+
+                foreach (var product in products)
+                {
+                    var images = await _unitOfWork.Product.GetProductImageById(product.ProductId);
+
+                    var response = new ProductWithImagesModel
+                    {
+                        Product = product
+                    };
+
+                    if (images != null && images.Count > 0)
+                    {
+                        foreach (var image in images)
+                        {
+                            response.Images.Add(new ProductImageUpload
+                            {
+                                ProductImageId = image.ProductImageId,
+                                ProductId = image.ProductId,
+                                ImagePath = image.ImagePath,
+                                IsPrimary = image.IsPrimary
+                            });
+                        }
+                    }
+
+                    productList.Add(response);
+                }
+
+                return Ok(productList);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = "Error retrieving products",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("Get_ProductById")]
+        public async Task<IActionResult> GetProductById(int productId)
+        {
+            try
+            {
+                var product = await _unitOfWork.Product.GetProductById(productId);
+
+                if (product == null)
+                    return NotFound("Product not found");
+
+                var images = await _unitOfWork.Product.GetProductImageById(productId);
+
+                var response = new ProductFullResponse
+                {
+                    ProductDetails = new ProductDetails
+                    {
+                        ProductId = product.ProductId,
+                        BusinessId = product.BusinessId,
+                        CategoryId = product.CategoryId,
+                        ProductCategory = product.ProductCategory,
+                        ProductName = product.ProductName,
+                        Description = product.Description,
+                        Price = product.Price,
+                        DiscountPrice = product.DiscountPrice,
+                        StartDate = product.StartDate,
+                        EndDate = product.EndDate,
+                        RedemptionCoins = product.RedemptionCoins,
+                        ReferAFriend = product.ReferAFriend,
+                        IsActive = product.IsActive,
+                        CreatedAt = product.CreatedAt
+                    },
+
+                    ProductImages = images ?? new List<ProductImage>(),
+
+                    BusinessDetails = new BusinessDetails
+                    {
+                        BusinessName = product.BusinessName,
+                        OwnerName = product.OwnerName,
+                        Email = product.Email,
+                        Phone = product.Phone,
+                        Address = product.Address,
+                        City = product.City,
+                        State = product.State,
+                        Country = product.Country,
+                        Logo = product.Logo,
+                        Latitude = product.Latitude,
+                        Longitude = product.Longitude
+                    }
+                };
+
+                return Ok(new List<ProductFullResponse> { response });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = "Error retrieving product",
+                    Error = ex.Message
+                });
+            }
+        }
+
+
+        [HttpGet("Get_ProductByBusinessId")]
+        public async Task<IActionResult> GetProductByBusinessId(int BusinessId)
+        {
+            try
+            {
+                var products = await _unitOfWork.Product.GetProductByBusinessId(BusinessId);
+
+                var productList = new List<ProductWithImagesModel>();
+
+                foreach (var product in products)
+                {
+                    var images = await _unitOfWork.Product.GetProductImageById(product.ProductId);
+
+                    var response = new ProductWithImagesModel
+                    {
+                        Product = product
+                    };
+
+                    if (images != null)
+                    {
+                        foreach (var image in images)
+                        {
+                            response.Images.Add(new ProductImageUpload
+                            {
+                                ProductImageId = image.ProductImageId,
+                                ProductId = image.ProductId,
+                                ImagePath = image.ImagePath,
+                                IsPrimary = image.IsPrimary
+                            });
+                        }
+                    }
+
+                    productList.Add(response);
+                }
+
+                return Ok(productList);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = "Error retrieving products",
+                    Error = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("Add_FavouriteBusiness")]
+        public async Task<IActionResult> AddFavouriteBusiness(FavBusineess F )
+        {
+            var data = await _unitOfWork.Product.AddFavouriteBusiness(F);
+           return Ok(data);
+        }
+
+        [HttpGet("Get_UserFavBusiness")]
+        public async Task<IActionResult> GetFavBusiness(Guid UserId )
+        {
+            var data = await _unitOfWork.Product.GetFavBusiness(UserId);
+            return Ok(data);
+        }
+
+        [HttpPost("Add_ToCart")]
+        public async Task<IActionResult> AddToCart(AddToCartRequest F)
+        {
+            var data = await _unitOfWork.Product.AddToCart(F);
+            return Ok(data);
+        }
+
+        [HttpPost("Remove_fromCart")]
+        public async Task<IActionResult> Removefromcart(AddToCartRequest F)
+        {
+            var data = await _unitOfWork.Product.RemoveFromCart(F);
+            return Ok(data);
+        }
+
+        [HttpGet("Get_CartItems")]
+        public async Task<IActionResult> GetCart(Guid UserId)
+        {
+            try
+            {
+                var cartItems = await _unitOfWork.Product.GetCartItems(UserId);
+
+                var cartList = new List<CartWithImagesModel>();
+
+                foreach (var cart in cartItems)
+                {
+                    var images = await _unitOfWork.Product.GetProductImageById(cart.ProductId);
+
+                    var response = new CartWithImagesModel
+                    {
+                        Cart = cart
+                    };
+
+                    if (images != null)
+                    {
+                        foreach (var image in images)
+                        {
+                            response.Images.Add(new ProductImageUpload
+                            {
+                                ProductImageId = image.ProductImageId,
+                                ProductId = image.ProductId,
+                                ImagePath = image.ImagePath,
+                                IsPrimary = image.IsPrimary
+                            });
+                        }
+                    }
+
+                    cartList.Add(response);
+                }
+
+                return Ok(cartList);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    Message = "Error retrieving cart items",
+                    Error = ex.Message
                 });
             }
         }

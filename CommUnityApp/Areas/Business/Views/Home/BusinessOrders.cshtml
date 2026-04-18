@@ -1,0 +1,176 @@
+﻿@{
+    ViewData["Title"] = "Business Orders";
+    var businessId = ViewBag.BusinessId;
+    Layout = "_BusinessLayout";
+}
+
+<div class="container mt-4">
+
+    <h3>Business Orders</h3>
+
+    <table class="table table-bordered mt-3">
+        <thead>
+            <tr>
+                <th>Order Id</th>
+                <th>Customer</th>
+                <th>Total Items</th>
+                <th>Order Amount</th>
+                <th>Coins Used</th>
+                <th>Coins Earned</th>
+                <th>Final Paid</th>
+                <th>Status</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody id="ordersTable">
+            <tr>
+                <td colspan="10" class="text-center p-3">
+                    Loading Orders...
+                </td>
+            </tr>
+        </tbody>
+
+    </table>
+
+</div>
+
+<script>
+
+    const businessId = '@businessId';
+
+    function formatDate(dateString){
+        if(!dateString) return "";
+        const date = new Date(dateString);
+        return date.toLocaleDateString() + " " +
+               date.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+    }
+
+    function formatCurrency(amount){
+        return "₹ " + Number(amount || 0).toLocaleString();
+    }
+
+    function getStatusClass(status){
+        switch(status){
+            case "Placed": return "bg-primary";
+            case "Processing": return "bg-warning";
+            case "Shipped": return "bg-info";
+            case "Delivered": return "bg-success";
+            case "Cancelled": return "bg-danger";
+            default: return "bg-secondary";
+        }
+    }
+
+    async function loadOrders(){
+        try{
+            const response = await fetch(`/api/Order/Get_BusinessOrders?businessId=${businessId}`);
+            const data = await response.json();
+
+            let rows = "";
+
+            if(data.length === 0){
+                rows = `
+                <tr>
+                    <td colspan="10" class="text-center p-4">
+                        No Orders Found
+                    </td>
+                </tr>`;
+            }
+
+            data.forEach(order => {
+
+                rows += `
+                <tr>
+
+                    <td>${order.orderId}</td>
+
+                    <td>${order.customerName}</td>
+
+                    <td>${order.totalItems}</td>
+
+                    <td>${formatCurrency(order.orderAmount)}</td>
+
+                    <td>${order.coinsUsed ?? 0}</td>
+
+                    <td>${order.coinsEarned ?? 0}</td>
+
+                    <td>${formatCurrency(order.finalAmount)}</td>
+
+                    <td>
+                        <select class="form-select form-select-sm ${getStatusClass(order.orderStatus)} text-white"
+                            onchange="updateStatus(${order.orderId}, this.value)">
+
+                            <option value="Placed" ${order.orderStatus === 'Placed' ? 'selected' : ''}>Placed</option>
+
+                            <option value="Processing" ${order.orderStatus === 'Processing' ? 'selected' : ''}>Processing</option>
+
+                            <option value="Shipped" ${order.orderStatus === 'Shipped' ? 'selected' : ''}>Shipped</option>
+
+                            <option value="Delivered" ${order.orderStatus === 'Delivered' ? 'selected' : ''}>Delivered</option>
+
+                            <option value="Cancelled" ${order.orderStatus === 'Cancelled' ? 'selected' : ''}>Cancelled</option>
+
+                        </select>
+                    </td>
+
+                    <td>${formatDate(order.orderDate)}</td>
+
+                    <td>
+                        <button class="btn btn-sm btn-primary"
+                            onclick="viewDetails(${order.orderId})">
+                            Details
+                        </button>
+                    </td>
+
+                </tr>
+                `;
+            });
+
+            document.getElementById("ordersTable").innerHTML = rows;
+
+        }
+        catch(error){
+            console.error("Error loading orders:", error);
+
+            document.getElementById("ordersTable").innerHTML = `
+            <tr>
+                <td colspan="10" class="text-center text-danger p-4">
+                    Failed to load orders
+                </td>
+            </tr>`;
+        }
+    }
+
+    function viewDetails(orderId){
+        window.location.href = "/Business/Home/OrderDetails?orderId=" + orderId;
+    }
+
+    async function updateStatus(orderId, status){
+        try{
+
+            const response = await fetch("/api/Order/Update_OrderStatus",{
+                method:"POST",
+                headers:{
+                    "Content-Type":"application/json"
+                },
+                body: JSON.stringify({
+                    orderId: orderId,
+                    orderStatus: status
+                })
+            });
+
+            const result = await response.json();
+
+            console.log("Updated:", result);
+
+        }
+        catch(error){
+            console.error("Error updating status:", error);
+            alert("Failed to update status");
+        }
+    }
+
+    loadOrders();
+
+</script>

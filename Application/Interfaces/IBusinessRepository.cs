@@ -8,5 +8,9 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BusinessLoginResponse> LoginAsync(BusinessLoginRequest request);
         Task<BaseResponse> RegisterAsync(AddUpdateBusinessRequest request);
         Task<BusinessAddResponse> AddBusinessAsync(AddBusinessRequest request);
+        Task<List<BusinessDetailsDto>> GetAllBusinesses();
+        Task<BusinessDetailsDto> GetBusinessDetails(int BusinessId);
+        Task<List<CustomerModel>> GetBusinessCustomers(int BusinessId);
+        Task<List<Category>> GetBusinesscategory();
     }
 }

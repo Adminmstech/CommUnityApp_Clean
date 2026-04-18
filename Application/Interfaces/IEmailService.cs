@@ -7,5 +7,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task SendPasswordResetEmailAsync(string toEmail, string otp);
         Task SendPasswordResetSuccessEmailAsync(string toEmail);
         Task SendBusinessUserCredentialsEmailAsync(string toEmail, string password);
+        Task<bool> SendBulkEmailAsync(string toEmail, string subject, string body);
     }
 }
