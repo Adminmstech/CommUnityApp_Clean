@@ -1,0 +1,109 @@
+﻿@{
+    ViewData["Title"] = "Brand Game Results";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+}
+
+
+
+<div class="container mt-3">
+
+    <h4>Game Play Members</h4>
+
+    <div class="row mb-2">
+        <div class="col-md-4">
+            <input type="text" id="txtSearch" class="form-control" placeholder="Search name / mobile / game..." />
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100" onclick="loadData()">Search</button>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Mobile</th>
+                <th>Game</th>
+                <th>Attempts</th>
+                <th>Prize</th>
+                <th>Winner</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody id="tblData"></tbody>
+    </table>
+
+    <div class="d-flex justify-content-between">
+        <div id="rowInfo"></div>
+        <div>
+            <button class="btn btn-sm btn-primary" onclick="prev()">Prev</button>
+            <span id="pageNo">1</span>
+            <button class="btn btn-sm btn-primary" onclick="next()">Next</button>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+
+<script>
+    var page = 1;
+    var size = 5;
+    var total = 0;
+
+    $(document).ready(function () {
+        loadData();
+    });
+
+    function loadData() {
+
+        var search = $("#txtSearch").val();
+
+        $.get('/api/GameResults/GetGamePlayMembers?page=' + page + '&size=' + size + '&search=' + search, function (res) {
+
+            var html = "";
+
+            total = res.totalCount;
+
+            if (!res.data || res.data.length === 0) {
+                html = "<tr><td colspan='8' class='text-center'>No data</td></tr>";
+            } else {
+
+                $.each(res.data, function (i, x) {
+
+                    html += "<tr>";
+                    html += "<td>" + ((page - 1) * size + i + 1) + "</td>";
+                    html += "<td>" + x.fullName + "</td>";
+                    html += "<td>" + x.mobile + "</td>";
+                    html += "<td>" + x.brandGameTitle + "</td>";
+                    html += "<td>" + x.attemptNumber + "</td>";
+                    html += "<td>" + x.prizeType + "</td>";
+                    html += "<td>" + (x.isWinner ? "Yes" : "No") + "</td>";
+                    html += "<td>" + (x.playedAt ? new Date(x.playedAt).toLocaleString() : "-") + "</td>";
+                    html += "</tr>";
+                });
+            }
+
+            $("#tblData").html(html);
+
+            $("#pageNo").text(page);
+            $("#rowInfo").text("Showing " + ((page - 1) * size + 1) + " to " + (page * size) + " of " + total);
+        });
+    }
+
+    function next() {
+        if ((page * size) < total) {
+            page++;
+            loadData();
+        }
+    }
+
+    function prev() {
+        if (page > 1) {
+            page--;
+            loadData();
+        }
+    }
+</script>

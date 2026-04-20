@@ -97,7 +97,7 @@ namespace CommUnityApp.Areas.Community.Controllers
            return View();
         }
 
-         public IActionResult CreateMessageBoardPost()
+         public IActionResult ViewBrandGameResults()
         {
             return View();}
 
