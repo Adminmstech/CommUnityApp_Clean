@@ -1,5 +1,3 @@
-
-
 namespace CommUnityApp.ApplicationCore.Interfaces
 {
     public interface IUnitOfWork
@@ -15,5 +13,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         IRewardsRepository Rewards { get; }
         IOrderRepository Order { get; }
         IServiceRepository Service { get; }
+        ICampaignRepository Campaign { get; }
+        ISpinGameRepository Spingamemodels { get;}
+        INotificationRepository Notification { get; }
     }
 }

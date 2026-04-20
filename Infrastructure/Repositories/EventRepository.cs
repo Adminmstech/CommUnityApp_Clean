@@ -378,11 +378,12 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         {
             using var con = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection"));
+
             var result = await con.QueryAsync<EventSponsorModel>(
-              "sp_GetSponsorsByCommunity",
-              new { CommunityId = communityId },
-              commandType: CommandType.StoredProcedure
-          );
+                "sp_GetSponsorsByCommunity",
+                new { CommunityId = communityId },
+                commandType: CommandType.StoredProcedure
+            );
 
             return result.ToList();
         }
@@ -429,7 +430,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result.ToList();
         }
 
-          
+       
 
         public async Task AttachSponsorToEvent(EventSponsorMappingModel model)
         {
