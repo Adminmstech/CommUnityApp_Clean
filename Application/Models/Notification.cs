@@ -18,7 +18,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string Title { get; set; }
         public string MessageText { get; set; } 
         public string ImagePath { get; set; }
-        public DateTime CreatedDate { get; set; }
+        public DateTime CreatedDate { get; set; } 
     }
 
     public class CreatePostRequest
@@ -75,9 +75,9 @@ namespace CommUnityApp.ApplicationCore.Models
     public class CommentDto
     {
         public int CommentId { get; set; }
-        public string CommentText { get; set; }
         public string UserId { get; set; }
         public string FullName { get; set; }
+        public string CommentText { get; set; }    
         public DateTime CreatedDate { get; set; }
     }
     public class CategoryDto

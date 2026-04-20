@@ -141,28 +141,28 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         }
         public async Task<(int CharityItemId, string ItemCode)> AddCharityItem(AddCharityItemModel model, string imagePath)
         {
-           
-                using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-                {
-                    var result = await con.QueryFirstAsync(
-                        "SP_AddCharityItem",
-                        new
-                        {
-                            model.CommunityId,
-                            model.PostedByUserId,
-                            model.ItemName,
-                            model.ItemCategory,
-                            model.Description,
-                            model.Quantity,
-                            ImagePath = imagePath
-                        },
-                        commandType: CommandType.StoredProcedure);
 
-                    return ((int)result.CharityItemId, (string)result.ItemCode);
-                }
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await con.QueryFirstAsync(
+                    "SP_AddCharityItem",
+                    new
+                    {
+                        model.CommunityId,
+                        model.PostedByUserId,
+                        model.ItemName,
+                        model.ItemCategory,
+                        model.Description,
+                        model.Quantity,
+                        ImagePath = imagePath
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+                return ((int)result.CharityItemId, (string)result.ItemCode);
             }
+        }
 
-            public async Task UpdateCharityItemImage(int charityItemId, string imagePath)
+        public async Task UpdateCharityItemImage(int charityItemId, string imagePath)
         {
             using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
@@ -204,7 +204,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             }
         }
 
- 
+
 
         public async Task AssignVolunteerToRequest(AssignVolunteerModel model)
         {
@@ -253,81 +253,85 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     commandType: CommandType.StoredProcedure
                 );
 
-        public async Task<List<Community>> GetCommunities()
-        {
-            using var connection = new SqlConnection(
-                _configuration.GetConnectionString("DefaultConnection")
-            );
-
-            await connection.OpenAsync();
-
-            var result = await connection.QueryAsync<Community>("Get_AllCommunities", commandType: CommandType.StoredProcedure);
-
-            return result.ToList();
-        }
-
-        public async Task<List<MemberModel>> GetMembersByCommunity(int communityId)
-        {
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-            {
-                var result = await connection.QueryAsync<MemberModel>(
-                    "sp_GetMembersByCommunity",
-                    new { CommunityId = communityId },
-                    commandType: CommandType.StoredProcedure
-                );
-
                 return result.ToList();
             }
         }
 
-        public async Task<List<dynamic>> GetCommunityUsers(long communityId)
-        {
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-            {
-                var users = await connection.QueryAsync(
-                    "sp_GetCommunityUsers",
-                    new { CommunityId = communityId },
-                    commandType: CommandType.StoredProcedure);
-
-                return users.ToList();
-            }
-        }
-
-        // Send message
-        public async Task<int> SendMessage(long communityId, Guid receiverUserId, string message, string imagePath)
-        {
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-            {
-                var id = await connection.ExecuteScalarAsync<int>(
-                    "sp_SendCommunityMessage",
-                    new
+            public async Task<List<MemberModel>> GetMembersByCommunity(int communityId)
+                {
+                    using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
                     {
-                        CommunityId = communityId,
-                        ReceiverUserId = receiverUserId,
-                        MessageText = message,
-                        ImagePath = imagePath
-                    },
-                    commandType: CommandType.StoredProcedure);
+                        var result = await connection.QueryAsync<MemberModel>(
+                            "sp_GetMembersByCommunity",
+                            new { CommunityId = communityId },
+                            commandType: CommandType.StoredProcedure
+                        );
 
-                return id;
-            }
-        }
+                        return result.ToList();
+                    }
+                }
+                public async Task<List<Community>> GetCommunities()
+                {
+                    using var connection = new SqlConnection(
+                        _configuration.GetConnectionString("DefaultConnection")
+                    );
 
-        public async Task<List<dynamic>> GetMessages(long communityId, Guid receiverUserId)
-        {
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-            {
-                var data = await connection.QueryAsync(
-                    "sp_GetPrivateMessages",
-                    new
+                    await connection.OpenAsync();
+
+                    var result = await connection.QueryAsync<Community>("Get_AllCommunities", commandType: CommandType.StoredProcedure);
+
+                    return result.ToList();
+                }
+                public async Task<List<dynamic>> GetCommunityUsers(long communityId)
+                {
+                    using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
                     {
-                        CommunityId = communityId,
-                        ReceiverUserId = receiverUserId
-                    },
-                    commandType: CommandType.StoredProcedure);
+                        var users = await connection.QueryAsync(
+                            "sp_GetCommunityUsers",
+                            new { CommunityId = communityId },
+                            commandType: CommandType.StoredProcedure);
 
-                return data.ToList();
+                        return users.ToList();
+                    }
+                }
+
+                // Send message
+                public async Task<int> SendMessage(long communityId, Guid receiverUserId, string message, string imagePath)
+                {
+                    using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                    {
+                        var id = await connection.ExecuteScalarAsync<int>(
+                            "sp_SendCommunityMessage",
+                            new
+                            {
+                                CommunityId = communityId,
+                                ReceiverUserId = receiverUserId,
+                                MessageText = message,
+                                ImagePath = imagePath
+                            },
+                            commandType: CommandType.StoredProcedure);
+
+                        return id;
+                    }
+                }
+
+                public async Task<List<dynamic>> GetMessages(long communityId, Guid receiverUserId)
+                {
+                    using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                    {
+                        var data = await connection.QueryAsync(
+                            "sp_GetPrivateMessages",
+                            new
+                            {
+                                CommunityId = communityId,
+                                ReceiverUserId = receiverUserId
+                            },
+                            commandType: CommandType.StoredProcedure);
+
+                        return data.ToList();
+                    }
+                }
             }
+
         }
-    }
-}
+    

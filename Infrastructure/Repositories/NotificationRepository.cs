@@ -208,10 +208,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
                         post.Comments = postComments.Select(c => new CommentDto
                         {
-                            CommentId = c.CommentId,
+                            CommentId = c.CommentId,                          
+                            FullName = c.FullName,
                             CommentText = c.CommentText,
-                            UserId = c.UserId.ToString(),
-                             FullName = c.FullName
+                            UserId = c.UserId.ToString()
                         }).ToList();
 
                         post.CommentsCount = post.Comments.Count;
