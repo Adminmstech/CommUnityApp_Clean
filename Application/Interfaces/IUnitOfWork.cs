@@ -15,6 +15,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         IServiceRepository Service { get; }
         ICampaignRepository Campaign { get; }
         ISpinGameRepository Spingamemodels { get;}
+        IQuizGameRepository QuizGames { get; }
         INotificationRepository Notification { get; }
     }
 }

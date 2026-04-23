@@ -82,6 +82,18 @@ builder.Services.AddTransient<ISpinGameRepository>(provider =>
 
     return new SpinGameRepository(connectionFactory, dapper);
 });
+builder.Services.AddTransient<IQuizGameRepository>(provider =>
+{
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    var dapper = provider.GetRequiredService<IDapperWrapper>();
+
+    Func<System.Data.IDbConnection> connectionFactory = () =>
+        new Microsoft.Data.SqlClient.SqlConnection(
+            configuration.GetConnectionString("DefaultConnection")
+        );
+
+    return new QuizGameRepository(connectionFactory, dapper);
+});
 builder.Services.AddTransient<IDapperWrapper, DapperWrapper>(); // Added DapperWrapper registration
 builder.Services.AddTransient<ICampaignRepository, CampignRepository>();
 

@@ -1,0 +1,176 @@
+@model CommUnityApp.ApplicationCore.Models.AddUpdateQuizGameRequest
+@{
+    var isEditMode = Model.QuizId > 0;
+    ViewData["Title"] = isEditMode ? "Edit Quiz Game" : "Create Quiz Game";
+    Layout = "_BusinessLayout";
+}
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="~/css/brandgame.css" rel="stylesheet" />
+
+<div class="container-xxl px-3 px-md-4">
+    <div class="d-flex align-items-center mb-4">
+        <div>
+            <img src="~/img/gameimage.png" class="brand-image img-fluid me-4" alt="Quiz Icon" style="width: 60px;" />
+        </div>
+        <div class="me-auto">
+            <h2 class="fw-800 mb-1">@(isEditMode ? "Edit Quiz Game" : "Create New Quiz Game")</h2>
+            <p class="text-muted">Set up your quiz, configure scoring, and add questions.</p>
+        </div>
+        <a href="@Url.Action("Index", "QuizGame")" class="btn btn-light rounded-pill px-4 fw-600">
+            <i class="fa-solid fa-arrow-left me-2"></i> Back to List
+        </a>
+    </div>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger rounded-4 shadow-sm mb-4">
+            <i class="fa-solid fa-circle-exclamation me-2"></i> @ViewBag.Error
+        </div>
+    }
+
+    <form id="quizForm" enctype="multipart/form-data" class="game-form">
+        <input type="hidden" asp-for="QuizId" />
+        <input type="hidden" asp-for="BusinessId" />
+        <input type="hidden" asp-for="ConfigId" />
+        <input type="hidden" asp-for="Config.ConfigId" />
+
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card-header bg-white border-bottom-0 p-0">
+                <ul class="nav nav-pills custom-tabs" id="quizTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="general-tab" data-bs-toggle="pill" data-bs-target="#general" type="button" role="tab">
+                            <i class="fa-solid fa-info-circle me-2"></i> General Info
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="config-tab" data-bs-toggle="pill" data-bs-target="#config" type="button" role="tab">
+                            <i class="fa-solid fa-gears me-2"></i> Quiz Config
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="questions-tab" data-bs-toggle="pill" data-bs-target="#questions" type="button" role="tab">
+                            <i class="fa-solid fa-list-check me-2"></i> Questions Content
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="tab-content" id="quizTabsContent">
+                    <!-- 1. General Info -->
+                    <div class="tab-pane fade show active" id="general" role="tabpanel">
+                        <div class="row g-4">
+                            <div class="col-md-12">
+                                <label class="form-label fw-600">Quiz Title *</label>
+                                <input asp-for="GameName" class="form-control form-control-lg" placeholder="e.g. Summer Knowledge Challenge" required />
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-600">Description</label>
+                                <textarea asp-for="Description" class="form-control" rows="3" placeholder="What is this quiz about?"></textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-600">Banner Image</label>
+                                <input type="file" asp-for="QuizImageFile" class="form-control" accept="image/*" />
+                                @if (!string.IsNullOrEmpty(Model.QuizImage))
+                                {
+                                    <div class="mt-2">
+                                        <img src="@Model.QuizImage" style="max-width: 200px; border-radius: 8px;" />
+                                    </div>
+                                }
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-600">Status</label>
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" asp-for="IsActive" checked>
+                                    <label class="form-check-label" asp-for="IsActive">Active & Visible</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="wizard-footer mt-4">
+                            <button type="button" class="btn btn-next" onclick="goToTab('config')">
+                                Next: Configuration <i class="fa-solid fa-chevron-right ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Config -->
+                    <div class="tab-pane fade" id="config" role="tabpanel">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-600">Start Date *</label>
+                                <input asp-for="Config.GameStartDate" type="date" class="form-control" required />
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-600">End Date *</label>
+                                <input asp-for="Config.GameEndDate" type="date" class="form-control" required />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-600">Max Attempts Per Day</label>
+                                <input asp-for="Config.MaxAttemptsPerDay" type="number" class="form-control" min="1" />
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-600">Passing Score (%)</label>
+                                <div class="input-group">
+                                    <input asp-for="Config.PassingScore" type="number" class="form-control" min="0" max="100" />
+                                    <span class="input-group-text">%</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-600">Time Limit (Seconds)</label>
+                                <input asp-for="Config.TimeLimitInSeconds" type="number" class="form-control" placeholder="Optional" />
+                            </div>
+                        </div>
+                        <div class="wizard-footer mt-4">
+                            <button type="button" class="btn btn-back me-2" onclick="goToTab('general')">
+                                <i class="fa-solid fa-chevron-left me-1"></i> Back
+                            </button>
+                            <button type="button" class="btn btn-next" onclick="goToTab('questions')">
+                                Next: Questions <i class="fa-solid fa-chevron-right ms-1"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Questions -->
+                    <div class="tab-pane fade" id="questions" role="tabpanel">
+                        <div id="questionsContainer">
+                            @if (Model.Questions != null && Model.Questions.Any())
+                            {
+                                for (int i = 0; i < Model.Questions.Count; i++)
+                                {
+                                    @Html.Partial("_QuestionRow", (Model.Questions[i], i))
+                                }
+                            }
+                        </div>
+
+                        <button type="button" class="btn btn-outline-primary rounded-pill px-4 mt-3" id="btnAddQuestion">
+                            <i class="fa-solid fa-plus me-2"></i> Add Question
+                        </button>
+
+                        <div class="wizard-footer mt-5 border-top pt-4">
+                            <button type="button" class="btn btn-back me-2" onclick="goToTab('config')">
+                                <i class="fa-solid fa-chevron-left me-1"></i> Back
+                            </button>
+                            <button type="submit" class="btn btn-primary btn-lg rounded-pill px-5 fw-800">
+                                <i class="fa-solid fa-rocket me-2"></i> Save Quiz Game
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="~/js/quizgame.js"></script>
+    <script>
+        function goToTab(tabId) {
+            $(`#${tabId}-tab`).tab('show');
+        }
+        
+        $(document).ready(function() {
+            // Re-index helper if needed, but quizgame.js will handle dynamic additions
+        });
+    </script>
+}

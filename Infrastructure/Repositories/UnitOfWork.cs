@@ -19,6 +19,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         public IServiceRepository Service { get; }
         public ICampaignRepository Campaign { get; }
         public ISpinGameRepository Spingamemodels { get; }
+        public IQuizGameRepository QuizGames { get; }
         public INotificationRepository Notification { get; }
 
        
@@ -37,6 +38,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             IServiceRepository service,
             ICampaignRepository campaign,
             ISpinGameRepository spingamemodels,
+            IQuizGameRepository quizGames,
             INotificationRepository notification)
         {
             Community = community;
@@ -52,6 +54,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             Service = service;
             Campaign = campaign;
             Spingamemodels = spingamemodels;
+            QuizGames = quizGames;
             Notification = notification;
         }
     }
