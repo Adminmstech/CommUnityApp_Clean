@@ -93,7 +93,7 @@ namespace CommUnityApp.ApplicationCore.Models
             public List<TopEventDto>? Events { get; set; }
             public List<AuctionListModel>? Auctions { get; set; }
             public List<Community>? Communities { get; set; }
-            public List<BusinessDetailsDto> Businesses { get; set; }
+            public List<ProductWithImagesModel> Products { get; set; }
         }
     }
     public class UpdateStatusRequest
