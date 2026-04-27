@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommUnityApp.ApplicationCore.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,5 +11,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
     {
 
         Task<(IEnumerable<dynamic> Data, int Total)> GetGamePlayMembers(int page, int size, string search);
+
+        Task<(IEnumerable<dynamic> Data, int Total)> GetSpinGameResults(int page, int size, string search);
+        Task<bool> AssignPrize(AssignPrizeModel model);
     }
 }
