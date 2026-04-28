@@ -3,8 +3,6 @@
     Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
 }
 
-
-
 <div class="container mt-3">
 
     <h4>Game Play Members</h4>
@@ -27,8 +25,11 @@
                 <th>Game</th>
                 <th>Attempts</th>
                 <th>Prize</th>
+                <th>Prize Image</th>
                 <th>Winner</th>
+                <th>Status</th>
                 <th>Date</th>
+                <th>Action</th>
             </tr>
         </thead>
         <tbody id="tblData"></tbody>
@@ -45,10 +46,70 @@
 
 </div>
 
+<!-- Assign Prize Modal -->
+<div class="modal fade" id="assignModal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h5>Assign Prize</h5>
+                <button class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <!-- ✅ CHANGED TO USERID -->
+                <input type="hidden" id="hdnUserId" />
+
+                <div class="mb-2">
+                    <label>Name</label>
+                    <input type="text" id="txtName" class="form-control" readonly />
+                </div>
+
+                <div class="mb-2">
+                    <label>Mobile</label>
+                    <input type="text" id="txtMobile" class="form-control" readonly />
+                </div>
+
+                <div class="mb-2">
+                    <label>Prize</label>
+                    <input type="text" id="txtPrize" class="form-control" readonly />
+                </div>
+
+                <div class="mb-2">
+                    <label>Delivery Address</label>
+                    <textarea id="txtAddress" class="form-control"></textarea>
+                </div>
+
+                <div class="mb-2">
+                    <label>Assign Volunteer</label>
+                    <select id="ddlVolunteer" class="form-control">
+                        <option value="">-- Select Volunteer --</option>
+                    </select>
+                </div>
+
+                <div class="mb-2">
+                    <label>Delivery Type</label>
+                    <select id="ddlType" class="form-control">
+                        <option value="Courier">Courier</option>
+                        <option value="Pickup">Pickup</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-primary" onclick="savePrize()">Submit</button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-
 <script>
+
     var page = 1;
     var size = 5;
     var total = 0;
@@ -61,35 +122,154 @@
 
         var search = $("#txtSearch").val();
 
-        $.get('/api/GameResults/GetGamePlayMembers?page=' + page + '&size=' + size + '&search=' + search, function (res) {
+        $.get('/api/GameResults/GetBrandGamePlayMembers?page=' + page + '&size=' + size + '&search=' + search, function (res) {
 
             var html = "";
+            var data = res.data || res.Data;
+            total = res.totalCount || res.TotalCount;
 
-            total = res.totalCount;
-
-            if (!res.data || res.data.length === 0) {
-                html = "<tr><td colspan='8' class='text-center'>No data</td></tr>";
+            if (!data || data.length === 0) {
+                html = "<tr><td colspan='11' class='text-center'>No data</td></tr>";
             } else {
 
-                $.each(res.data, function (i, x) {
+                $.each(data, function (i, x) {
+
+                    var isWinner = x.isWinner || x.IsWinner;
+                    var prizeImage = x.prizeImage || x.PrizeImage;
+                    var status = x.status || x.Status || "Pending";
 
                     html += "<tr>";
+
                     html += "<td>" + ((page - 1) * size + i + 1) + "</td>";
-                    html += "<td>" + x.fullName + "</td>";
-                    html += "<td>" + x.mobile + "</td>";
-                    html += "<td>" + x.brandGameTitle + "</td>";
-                    html += "<td>" + x.attemptNumber + "</td>";
-                    html += "<td>" + x.prizeType + "</td>";
-                    html += "<td>" + (x.isWinner ? "Yes" : "No") + "</td>";
-                    html += "<td>" + (x.playedAt ? new Date(x.playedAt).toLocaleString() : "-") + "</td>";
+                    html += "<td>" + (x.fullName || x.FullName || '-') + "</td>";
+                    html += "<td>" + (x.mobile || x.Mobile || '-') + "</td>";
+                    html += "<td>" + (x.brandGameTitle || x.BrandGameTitle || '-') + "</td>";
+                    html += "<td>" + (x.attemptNumber || x.AttemptNumber || 0) + "</td>";
+                    html += "<td>" + (x.prizeType || x.PrizeType || '-') + "</td>";
+
+                    html += "<td>" +
+                        (prizeImage
+                            ? `<img src="/${prizeImage.replace('~/', '')}"
+                                    style="width:60px;height:60px;border-radius:6px;cursor:pointer"
+                                    onclick="window.open('/${prizeImage}','_blank')" />`
+                            : "-")
+                        + "</td>";
+
+                    html += "<td>" + (isWinner ? "Yes" : "No") + "</td>";
+
+                    var statusBadge = "";
+
+                    if (status === "Pending") {
+                        statusBadge = `<span class="badge bg-warning text-dark">Pending</span>`;
+                    }
+                    else if (status === "Won") {
+                        statusBadge = `<span class="badge bg-success">Won</span>`;
+                    }
+                    else if (status === "Assigned") {
+                        statusBadge = `<span class="badge bg-info text-dark">Assigned</span>`;
+                    }
+                    else if (status === "Delivered") {
+                        statusBadge = `<span class="badge bg-primary">Delivered</span>`;
+                    }
+                    else {
+                        statusBadge = `<span class="badge bg-secondary">${status}</span>`;
+                    }
+
+                    html += "<td>" + statusBadge + "</td>";
+
+                    html += "<td>" +
+                        ((x.playedAt || x.PlayedAt)
+                            ? new Date(x.playedAt || x.PlayedAt).toLocaleString()
+                            : "-") +
+                        "</td>";
+
+                    if (isWinner) {
+                        html += `<td>
+                                <button class="btn btn-success btn-sm"
+                                    onclick="assignPrize('${x.userId || x.UserId}',
+                                                          '${x.fullName || x.FullName}',
+                                                          '${x.mobile || x.Mobile}',
+                                                          '${x.prizeType || x.PrizeType}')">
+                                    Assign
+                                </button>
+                            </td>`;
+                    } else {
+                        html += "<td>-</td>";
+                    }
+
                     html += "</tr>";
                 });
             }
 
             $("#tblData").html(html);
-
             $("#pageNo").text(page);
-            $("#rowInfo").text("Showing " + ((page - 1) * size + 1) + " to " + (page * size) + " of " + total);
+            $("#rowInfo").text("Showing " + ((page - 1) * size + 1) + " to " + Math.min(page * size, total) + " of " + total);
+        });
+    }
+
+    function assignPrize(userId, name, mobile, prize) {
+
+        $("#hdnUserId").val(userId);
+        $("#txtName").val(name);
+        $("#txtMobile").val(mobile);
+        $("#txtPrize").val(prize);
+        $("#txtAddress").val("");
+
+        loadVolunteers();
+
+        $("#assignModal").modal('show');
+    }
+
+    function savePrize() {
+
+        var obj = {
+            UserId: $("#hdnUserId").val(), 
+            Address: $("#txtAddress").val(),
+            DeliveryType: $("#ddlType").val(),
+            VolunteerId: $("#ddlVolunteer").val()
+        };
+
+        if (!obj.VolunteerId) {
+            alert("Please select volunteer");
+            return;
+        }
+
+        $.ajax({
+            url: '/api/GameResults/AssignPrize',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(obj),
+            success: function (res) {
+                if (res.status) {
+                    alert("Prize assigned successfully!");
+                    $("#assignModal").modal('hide');
+                    loadData();
+                } else {
+                    alert("Failed");
+                }
+            }
+        });
+    }
+
+    function loadVolunteers() {
+
+        $.ajax({
+            url: '/api/Community/GetVolunteers',
+            type: 'GET',
+            success: function (res) {
+
+                var data = res.data || res.Data || res;
+
+                var html = "<option value=''>-- Select Volunteer --</option>";
+
+                $.each(data, function (i, x) {
+                    html += `<option value="${x.UserId}">
+                                    ${x.FullName} (${x.Mobile})
+                                 </option>`;
+                });
+
+                $("#ddlVolunteer").html(html);
+            }
         });
     }
 
@@ -106,4 +286,5 @@
             loadData();
         }
     }
+
 </script>

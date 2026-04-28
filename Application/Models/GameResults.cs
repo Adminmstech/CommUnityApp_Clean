@@ -6,7 +6,14 @@ using System.Threading.Tasks;
 
 namespace CommUnityApp.ApplicationCore.Models
 {
-    internal class GameResults
+    public class GameResults
     {
+    }
+
+    public class AssignPrizeModel
+    {
+        public int MemberId { get; set; }
+        public string Address { get; set; }
+        public string DeliveryType { get; set; }
     }
 }

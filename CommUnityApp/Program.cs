@@ -70,10 +70,6 @@ builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
 builder.Services.AddTransient<IVolunteerRepository, VolunteerRepository>();
 builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
 builder.Services.AddTransient<IGameResultsRepository, GameResultsRepository>();
-builder.Services.AddTransient<ISpinGameRepository>(provider =>
-{
-    var configuration = provider.GetRequiredService<IConfiguration>();
-    var dapper = provider.GetRequiredService<IDapperWrapper>();
 
     Func<System.Data.IDbConnection> connectionFactory = () =>
         new Microsoft.Data.SqlClient.SqlConnection(

@@ -101,5 +101,10 @@ namespace CommUnityApp.Areas.Community.Controllers
         {
             return View();}
 
+        public IActionResult ViewSpinGameGameResults()
+        {
+            return View();
+        }
+
     }
 }
