@@ -309,6 +309,70 @@ namespace CommUnityApp.Services
             return Ok(data);
         }
 
+
+        [HttpPost("User_Update")]
+        public async Task<IActionResult> UpdateUser([FromBody] Users entity)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                if (entity.UserId == null || entity.UserId == Guid.Empty)
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "UserId is required for update"
+                    });
+
+                // 🔥 FIXED IMAGE HANDLING
+                if (!string.IsNullOrWhiteSpace(entity.ProfileImageBase64))
+                {
+                    string base64 = entity.ProfileImageBase64;
+
+                    // ✅ REMOVE PREFIX (IMPORTANT FIX)
+                    if (base64.Contains(","))
+                        base64 = base64.Substring(base64.IndexOf(",") + 1);
+
+                    byte[] fileBytes;
+                    try
+                    {
+                        fileBytes = Convert.FromBase64String(base64);
+                    }
+                    catch
+                    {
+                        return BadRequest("Invalid image format.");
+                    }
+
+                    if (fileBytes.Length > 2097152)
+                        return BadRequest("Image size exceeds 2MB limit.");
+
+                    string fileName = $"{Guid.NewGuid():N}.jpg";
+                    string directoryPath = Path.Combine("wwwroot", "ProfilePics");
+                    Directory.CreateDirectory(directoryPath);
+
+                    string localFilePath = Path.Combine(directoryPath, fileName);
+                    await System.IO.File.WriteAllBytesAsync(localFilePath, fileBytes);
+
+                    entity.ProfileImagePath = $"ProfilePics/{fileName}";
+                }
+
+                var result = await _unitOfWork.User.UpdateUser(entity);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating user {UserId}", entity?.UserId);
+
+                return StatusCode(500, new
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+
     }
 }
 

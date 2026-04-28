@@ -10,11 +10,12 @@ namespace CommUnityApp.ApplicationCore.Interfaces
     {
         Task<BaseResponse> SaveUser(Users entity);
         Task<BaseResponse> AddOrUpdateUserWallet(UserWallets entity);
-        Task<Users> GetUserByUserId(Guid userId);
+        Task<UserDetailsResponse> GetUserByUserId(Guid userId);
         Task<BaseResponse> AddWalletTransaction(WalletTransactions entity);
         Task<LoginResponse> UserLogin(LoginRequest request);
         Task<BaseResponse> RegisterUser(RegisterRequest entity);
         Task<List<Roles>> GetRoles();
         Task<List<UserDropdownDto>> GetBusinessUsers();
+        Task<BaseResponse> UpdateUser(Users entity);
     }
 }

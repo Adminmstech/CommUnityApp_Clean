@@ -126,7 +126,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result;
         }
 
-        public async Task<Users> GetUserByUserId(Guid userId)
+        public async Task<UserDetailsResponse> GetUserByUserId(Guid userId)
         {
             using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection")
@@ -137,7 +137,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             var parameters = new DynamicParameters();
             parameters.Add("@UserId", userId, DbType.Guid);
 
-            var result = await connection.QueryFirstOrDefaultAsync<Users>("Get_UserByUserId",  parameters,commandType: CommandType.StoredProcedure);
+            var result = await connection.QueryFirstOrDefaultAsync<UserDetailsResponse>("Get_UserByUserId",  parameters,commandType: CommandType.StoredProcedure);
 
             return result;
         }
@@ -216,6 +216,48 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             var result = await connection.QueryAsync<UserDropdownDto>("Get_BusinessPeople", commandType: CommandType.StoredProcedure);
 
             return result.ToList();
+        }
+
+
+        public async Task<BaseResponse> UpdateUser(Users entity)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@UserId", entity.UserId);
+            parameters.Add("@CommunityId", entity.CommunityId);
+
+            parameters.Add("@FirstName", entity.FirstName);
+            parameters.Add("@LastName", entity.LastName);
+
+            parameters.Add("@Email", entity.Email);
+            parameters.Add("@Mobile", entity.Mobile);
+
+            // ⚠️ Your DB column is "Role" not RoleIds
+            parameters.Add("@Role", entity.RoleIds);
+
+            parameters.Add("@ProfileImagePath", entity.ProfileImagePath);
+
+            parameters.Add("@AddressLine1", entity.AddressLine1);
+            parameters.Add("@AddressLine2", entity.AddressLine2);
+            parameters.Add("@ZipCode", entity.ZipCode);
+            parameters.Add("@City", entity.City);
+
+            // 🔥 NEW FIELDS
+            parameters.Add("@Language", entity.Language);
+            parameters.Add("@AgeGroupId", entity.AgeGroupId);
+
+            var result = await connection.QueryFirstOrDefaultAsync<BaseResponse>(
+                "Update_User",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result;
         }
     }
 }

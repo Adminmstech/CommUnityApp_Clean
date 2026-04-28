@@ -14,6 +14,39 @@
             --primary: #4f46e5;
         }
 
+        .sidebar {
+            width: 250px;
+            background: #2c3e50;
+            color: white;
+            height: 100vh;
+            padding: 15px;
+        }
+
+        .sidebar h3 {
+            margin-bottom: 20px;
+        }
+
+        .nav a {
+            display: block;
+            color: white;
+            padding: 10px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+            .nav a:hover {
+                background: #34495e;
+            }
+
+        .submenu {
+            display: none;
+            padding-left: 15px;
+        }
+
+            .submenu a {
+                font-size: 14px;
+                padding: 8px;
+            }
 
         html, body {
             height: 100%;
@@ -177,14 +210,64 @@
             <h3>🏛 @Context.Session.GetString("CommunityName")</h3>
 
             <nav class="nav">
-                <a href="/Home" onclick="closeSidebar()">🏠 Dashboard</a>
-                <a href="/Community/Home/ViewEvents" onclick="closeSidebar()">📅 Events</a>
-                <a href="/Community/Home/AddEvent" onclick="closeSidebar()">➕ Create Event</a>
-                <a href="/Community/Home/CharityList" onclick="closeSidebar()">📅 Charity</a>
-                <a href="/Community/Home/ItemRequestList" onclick="closeSidebar()">📅 Charity Item Requests</a>
 
-                <a href="/Member" onclick="closeSidebar()">👥 Members</a>
+                <a href="/Home" onclick="closeSidebar()">🏠 Dashboard</a>
+
+                <!-- Events Menu -->
+                <div class="menu-item">
+                    <a href="#" onclick="toggleMenu('eventsMenu')">📅 Events ▾</a>
+                    <div id="eventsMenu" class="submenu">
+                        <a href="/Community/Home/AddEvent" onclick="closeSidebar()">➕ Add Event</a>
+                        <a href="/Community/Home/ViewEvents" onclick="closeSidebar()">📋 View Events</a>
+                    </div>
+                </div>
+
+                <!-- Sponsors Menu -->
+                <div class="menu-item">
+                    <a href="#" onclick="toggleMenu('sponsorMenu')">🤝 Sponsors ▾</a>
+                    <div id="sponsorMenu" class="submenu">
+                        <a href="/Community/Home/AddEventSponsors" onclick="closeSidebar()">➕ Add Sponsor</a>
+                        <a href="/Community/Home/EventSponsors" onclick="closeSidebar()">📋 View Sponsors</a>
+                        <a href="/Community/Home/AddSponsorsToEvent" onclick="closeSidebar()">➕ Add Sponsors To Event</a>
+                    </div>
+                </div>
+
+                <!-- Charity Menu -->
+                <div class="menu-item">
+                    <a href="#" onclick="toggleMenu('charityMenu')">🎁 Charity ▾</a>
+                    <div id="charityMenu" class="submenu">
+                        <a href="/Community/Home/CharityList" onclick="closeSidebar()">📋 Charity List</a>
+                        <a href="/Community/Home/ItemRequestList" onclick="closeSidebar()">📝 Item Requests</a>
+                        <a href="/Community/Home/DeliveryReport" onclick="closeSidebar()">🚚 Delivery Report</a>
+                    </div>
+                </div>
+
+                <!-- Members -->
+                <div class="menu-item">
+                    <a href="#" onclick="toggleMenu('memberMenu')">👥 Members ▾</a>
+                    <div id="memberMenu" class="submenu">
+                        <a href="/Member/AddMember" onclick="closeSidebar()">➕ Add Member</a>
+                        <a href="/Community/Home/ViewMembers" onclick="closeSidebar()">📋 View Members</a>
+                    </div>
+                </div>
+                 <div class="menu-item">
+                    <a href="#" onclick="toggleMenu('messagesMenu')">👥 Communication ▾</a>
+                    <div id="messagesMenu" class="submenu">
+                        <a href="/Community/Home/CommunityChat" onclick="closeSidebar()">➕ Send Message</a>
+                        <a href="/Community/Home/ViewMessageBoardPosts" onclick="closeSidebar()">📋 View MessageBoard Posts</a>
+                    </div>
+                </div>
+
+                <div class="menu-item">
+                    <a href="#" onclick="toggleMenu('gameMenu')">👥 Reports ▾</a>
+                    <div id="gameMenu" class="submenu">
+                        <a href="/Community/Home/ViewSpinGameGameResults" onclick="closeSidebar()">📋 View SpinGame Results</a>
+                        <a href="/Community/Home/ViewBrandGameResults" onclick="closeSidebar()">📋 View BrandGame Results</a>
+                    </div>
+                </div>
+                <!-- Settings -->
                 <a href="/Settings" onclick="closeSidebar()">⚙️ Settings</a>
+
             </nav>
         </aside>
 
@@ -243,6 +326,13 @@
         function closeSidebar() {
             sidebar.classList.remove("open");
             overlay.classList.remove("show");
+        }
+        function toggleMenu(menuId) {
+            var menu = document.getElementById(menuId);
+            if (menu.style.display === "block")
+                menu.style.display = "none";
+            else
+                menu.style.display = "block";
         }
     </script>
 

@@ -21,6 +21,15 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<EventCheckoutResponse> GetEventCheckoutAsync(Guid transactionId);
         Task<dynamic> AddEventPaymentAsync(EventPaymentRequest request);
         Task<EventCheckoutSummaryResponse> GetEventCheckoutSummaryAsync(Guid userId);
+        Task<int> AddEventSponsor(EventSponsorModel model, string logoPath);
+        Task<List<EventSponsorModel>> GetEventSponsors(int eventId);
+        Task<List<EventSponsorListModel>> GetAllSponsors();
+        Task<List<EventSponsorModel>> GetSponsorsByCommunity(int communityId);
+        Task AttachSponsorToEvent(EventSponsorMappingModel model);
+        Task<List<EventModel>> GetEventsByCommunity(int communityId);
+        Task<EventDetailsModel> GetEventDetailsWithSponsors(int eventId);
+
+        Task<List<SponsorModel>> GetSponsorsByEvent(int eventId);
 
         Task<List<Events>> GetEvents();
         Task<List<Events>> GetEventById(int EventId);

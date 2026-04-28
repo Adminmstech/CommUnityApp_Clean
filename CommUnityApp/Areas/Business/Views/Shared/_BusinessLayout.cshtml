@@ -177,7 +177,7 @@
                 <a href="@Url.Action("Index", "Home", new { area = "Business" })" >
                     <i class="fa-solid fa-chart-line"></i> Dashboard
                 </a>
-                <a href="@Url.Action("Index", "Game", new { area = "Business" })">
+                <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fa-solid fa-gamepad"></i> My Games
                 </a>
                 <a href="@Url.Action("Create", "Game", new { area = "Business" })">
@@ -191,6 +191,20 @@
                     <i class="fa-solid fa-clipboard-list"></i> Orders
                 </a>
                 <a href="@Url.Action("BusinessCustomers", "Home", new { area = "Business" })">
+                <ul class="dropdown-menu border-0 shadow-lg rounded-3 mt-1" style="background: var(--sidebar-hover); min-width: 220px;">
+                    <li><a class="dropdown-item py-3 px-4 text-white fw-600 rounded-2 m-1" href="@Url.Action("Index", "Game", new { area = "Business" })">
+                        <i class="fa-solid fa-hand-scissors me-3"></i> Scratch and Win 
+                    </a></li>
+                    <li><a class="dropdown-item py-3 px-4 text-white fw-600 rounded-2 m-1" href="@Url.Action("Index", "SpinGame", new { area = "Business" })">
+                        <i class="fa-solid fa-sync-alt me-3"></i> Spin and Win
+                    </a></li>
+                        <li>
+                            <a class="dropdown-item py-3 px-4 text-white fw-600 rounded-2 m-1" href="@Url.Action("Index", "QuizGame", new { area = "Business" })">
+                                <i class="fa-solid fa-sync-alt me-3"></i> Quiz Game
+                    </a></li>
+                </ul>
+               
+                <a href="#">
                     <i class="fa-solid fa-users"></i> Customers
                 </a>
                 <a href="@Url.Action("Communication", "Home", new { area = "Business" })">
@@ -199,6 +213,11 @@
                 <a href="@Url.Action("Appointments", "Home", new { area = "Business" })">
                     <i class="fa-solid fa-clipboard-list"></i>  Appointments
                 </a>
+
+                <a href="@Url.Action("Campaigns", "Home", new { area = "Business" })">
+                    <i class="fa-solid fa-bullseye"></i> Campaigns
+                </a>
+
                 <a href="@Url.Action("BusinessProfile", "Home", new { area = "Business" })">
                     <i class="fa-solid fa-gear"></i> Profile Settings
                 </a>

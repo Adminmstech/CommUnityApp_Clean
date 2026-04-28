@@ -327,6 +327,66 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return result;
             }
         }
+        public async Task<int> AddEventSponsor(EventSponsorModel model, string logoPath)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var id = await con.ExecuteScalarAsync<int>(
+                    "sp_AddEventSponsor",
+                   new
+                   {
+                       model.EventId,
+                       model.SponsorName,
+                       model.Mobile,
+                       model.Email,
+                       model.Amount,
+                       model.SponsorType,
+                       model.OtherInfo,
+                       model.CommunityId,
+                       LogoPath = logoPath
+                   },
+                    commandType: CommandType.StoredProcedure);
+
+                return id;
+            }
+        }
+
+        public async Task<List<EventSponsorModel>> GetEventSponsors(int eventId)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var list = await con.QueryAsync<EventSponsorModel>(
+                    "sp_GetEventSponsors",
+                    new { EventId = eventId },
+                    commandType: CommandType.StoredProcedure);
+
+                return list.ToList();
+            }
+        }
+        public async Task<List<EventSponsorListModel>> GetAllSponsors()
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var list = await con.QueryAsync<EventSponsorListModel>(
+                    "sp_GetAllEventSponsors",
+                    commandType: CommandType.StoredProcedure);
+
+                return list.ToList();
+            }
+        }
+        public async Task<List<EventSponsorModel>> GetSponsorsByCommunity(int communityId)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await con.QueryAsync<EventSponsorModel>(
+                "sp_GetSponsorsByCommunity",
+                new { CommunityId = communityId },
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
         public async Task<List<Events>> GetEvents()
         {
             using var connection = new SqlConnection(
@@ -370,6 +430,76 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result.ToList();
         }
 
+       
 
+        public async Task AttachSponsorToEvent(EventSponsorMappingModel model)
+        {
+            var sql = @"INSERT INTO EventSponsorMapping 
+                (EventId, SponsorId, Amount, SponsorType, CreatedDate)
+                VALUES (@EventId, @SponsorId, @Amount, @SponsorType, GETDATE())";
+
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                await con.ExecuteAsync(sql, model);
+            }
+        }
+        public async Task<List<EventModel>> GetEventsByCommunity(int communityId)
+        {
+            var sql = @"SELECT EventId, EventName 
+                FROM Events 
+                WHERE CommunityId = @CommunityId
+                ORDER BY EventId DESC";
+
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await con.QueryAsync<EventModel>(sql, new { CommunityId = communityId });
+                return result.ToList();
+            }
+        }
+
+        public async Task<EventDetailsModel> GetEventDetailsWithSponsors(int eventId)
+        {
+            EventDetailsModel eventData = null;
+
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await con.QueryAsync<EventDetailsModel, SponsorModel, EventDetailsModel>(
+                    "sp_GetEventDetailsWithSponsors",
+                    (eventObj, sponsorObj) =>
+                    {
+                        if (eventData == null)
+                        {
+                            eventData = eventObj;
+                            eventData.Sponsors = new List<SponsorModel>();
+                        }
+
+                        if (sponsorObj != null && sponsorObj.SponsorId != 0)
+                        {
+                            eventData.Sponsors.Add(sponsorObj);
+                        }
+
+                        return eventObj;
+                    },
+                    new { EventId = eventId },
+                    splitOn: "SponsorId",
+                    commandType: CommandType.StoredProcedure
+                );
+            }
+
+            return eventData;
+        }
+
+        public async Task<List<SponsorModel>> GetSponsorsByEvent(int eventId)
+        {
+            var sql = @"SELECT SponsorId, SponsorName, Amount, SponsorType, LogoPath
+                FROM EventSponsors
+                WHERE EventId = @EventId";
+
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await con.QueryAsync<SponsorModel>(sql, new { EventId = eventId });
+                return result.ToList();
+            }
+        }
     }
 }

@@ -115,7 +115,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public Guid UserId { get; set; }
         public int EventId { get; set; }
         public int NoOfTickets { get; set; }
-        public bool UsedWalletAmount { get; set; }
+        public bool UseWallet { get; set; }
     }
 
     public class BookingResponse
@@ -209,5 +209,85 @@ namespace CommUnityApp.ApplicationCore.Models
         public decimal CoinDiscount { get; set; }
         public decimal FinalAmount { get; set; }
         public int CoinsEarned { get; set; }
+    }
+    public class EventSponsorModel
+    {
+        public int CommunityId { get; set; }
+        public int SponsorId { get; set; }
+        public int EventId { get; set; }
+        public string SponsorName { get; set; }
+        public string Mobile { get; set; }
+        public string Email { get; set; }
+        public decimal Amount { get; set; }
+        public string SponsorType { get; set; }
+        public string OtherInfo { get; set; }
+
+        public string? LogoPath { get; set; }
+        public DateTime CreatedDate { get; set; }
+
+        public IFormFile? LogoFile { get; set; }
+    }
+
+    public class EventSponsorListModel
+    {
+        public int SponsorId { get; set; }
+        public int EventId { get; set; }
+        public string SponsorName { get; set; }
+        public string Mobile { get; set; }
+        public string Email { get; set; }
+        public decimal Amount { get; set; }
+        public string SponsorType { get; set; }
+        public string LogoPath { get; set; }
+        public string OtherInfo { get; set; }
+        public DateTime CreatedDate { get; set; }
+    }
+
+    public class EventSponsorViewModel
+    {
+        public int Id { get; set; }
+        public int EventId { get; set; }
+        public int SponsorId { get; set; }
+        public string SponsorName { get; set; }
+        public string Mobile { get; set; }
+        public string Email { get; set; }
+        public string LogoPath { get; set; }
+        public decimal Amount { get; set; }
+        public string SponsorType { get; set; }
+        public DateTime CreatedDate { get; set; }
+    }
+
+    public class EventSponsorMappingModel
+    {
+        public int EventId { get; set; }
+        public int SponsorId { get; set; }
+        public decimal Amount { get; set; }
+        public string SponsorType { get; set; }
+    }
+
+    public class EventModel
+    {
+        public int EventId { get; set; }
+        public string EventName { get; set; }
+    }
+
+    public class EventDetailsModel
+    {
+        public int EventId { get; set; }
+        public string EventName { get; set; }
+        public string EventImage { get; set; }
+        public string Description { get; set; }
+        public string Location { get; set; }
+        public DateTime StartDate { get; set; }
+
+        public List<SponsorModel> Sponsors { get; set; } = new List<SponsorModel>();
+    }
+
+    public class SponsorModel
+    {
+        public int SponsorId { get; set; }
+        public string SponsorName { get; set; }
+        public decimal Amount { get; set; }
+        public string SponsorType { get; set; }
+        public string LogoPath { get; set; }
     }
 }

@@ -17,6 +17,12 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         public IRewardsRepository Rewards { get; }
         public IOrderRepository Order { get; }
         public IServiceRepository Service { get; }
+        public ICampaignRepository Campaign { get; }
+        public ISpinGameRepository Spingamemodels { get; }
+        public IQuizGameRepository QuizGames { get; }
+        public INotificationRepository Notification { get; }
+
+       
 
         public UnitOfWork(
             ICommunityRepository community,
@@ -29,7 +35,11 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             IProductRepository product,
             IRewardsRepository rewards,
             IOrderRepository order,
-            IServiceRepository service)
+            IServiceRepository service,
+            ICampaignRepository campaign,
+            ISpinGameRepository spingamemodels,
+            IQuizGameRepository quizGames,
+            INotificationRepository notification)
         {
             Community = community;
             Events = events;
@@ -42,6 +52,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             Rewards = rewards;
             Order = order;
             Service = service;
+            Campaign = campaign;
+            Spingamemodels = spingamemodels;
+            QuizGames = quizGames;
+            Notification = notification;
         }
     }
 }

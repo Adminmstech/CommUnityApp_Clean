@@ -31,12 +31,15 @@ namespace CommUnityApp.ApplicationCore.Models
         public Guid PostedByUserId { get; set; }
         public string ItemName { get; set; }
         public string Description { get; set; }
+        public string ItemCategory { get; set; }
+        public string ItemCode { get; set; }
         public int Quantity { get; set; }
         public string ImagePath { get; set; }
         public string Status { get; set; }
         public Guid AssignedToUserId { get; set; }
         public DateTime? AssignedDate { get; set; }
-        public string AssignedDateString {
+        public string AssignedDateString
+        {
             get
             {
                 return AssignedDate.HasValue
@@ -90,7 +93,7 @@ namespace CommUnityApp.ApplicationCore.Models
             public List<TopEventDto>? Events { get; set; }
             public List<AuctionListModel>? Auctions { get; set; }
             public List<Community>? Communities { get; set; }
-            public List<BusinessDetailsDto> Businesses { get; set; }
+            public List<ProductWithImagesModel> Products { get; set; }
         }
     }
     public class UpdateStatusRequest
@@ -135,6 +138,8 @@ namespace CommUnityApp.ApplicationCore.Models
     {
         public int RequestId { get; set; }
         public int CharityItemId { get; set; }
+        public string ItemCode { get; set; }
+
         public string ItemName { get; set; }
         public string ImagePath { get; set; }
         public string Description { get; set; }
@@ -151,6 +156,7 @@ namespace CommUnityApp.ApplicationCore.Models
     {
         public long CommunityId { get; set; }
         public string ItemName { get; set; }
+        public string ItemCategory { get; set; }
         public string Description { get; set; }
         public int Quantity { get; set; }
         public Guid PostedByUserId { get; set; }
@@ -180,7 +186,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string Email { get; set; }
     }
 
-   
+
 
     public class AssignVolunteerModel
     {
@@ -242,5 +248,33 @@ namespace CommUnityApp.ApplicationCore.Models
         public string DeliveryStatus { get; set; }
         public string VolunteerName { get; set; }
         public string VolunteerMobile { get; set; }
+    }
+
+    public class ItemCategoryModel
+    {
+        public int CategoryId { get; set; }
+        public string ItemCategory { get; set; }
+    }
+
+    public class MemberModel
+    {
+        public Guid UserId { get; set; }
+        public int CommunityId { get; set; }
+        public string FirstName { get; set; }
+        public string LastName { get; set; }
+        public string Email { get; set; }
+        public string Mobile { get; set; }
+        public string Role { get; set; }
+        public bool IsActive { get; set; }
+        public string ProfileImagePath { get; set; }
+        public string City { get; set; }
+        public DateTime CreatedDate { get; set; }
+    }
+
+    public class CommunityMessageModel
+    {
+        public Guid ReceiverUserId { get; set; }
+        public string? MessageText { get; set; }
+        public IFormFile? ImageFile { get; set; }
     }
 }

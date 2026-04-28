@@ -55,6 +55,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddTransient<ICommunityRepository, CommunityRepository>();
 builder.Services.AddTransient<IEventRepository, EventRepository>();
 builder.Services.AddTransient<IBrandGameRepository, BrandGameRepository>();
+//builder.Services.AddTransient<ISpinGameRepository, SpinGameRepository>();
 builder.Services.AddTransient<IBusinessRepository, BusinessRepository>();
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<CommUnityApp.ApplicationCore.Interfaces.IEmailService, EmailService>();
@@ -66,7 +67,31 @@ builder.Services.AddTransient<IProductRepository, ProductRepository>();
 builder.Services.AddTransient<IRewardsRepository, RewardsRepository>();
 builder.Services.AddTransient<IOrderRepository, OrderRepository>();
 builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
+builder.Services.AddTransient<IVolunteerRepository, VolunteerRepository>();
+builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
+builder.Services.AddTransient<IGameResultsRepository, GameResultsRepository>();
 
+    Func<System.Data.IDbConnection> connectionFactory = () =>
+        new Microsoft.Data.SqlClient.SqlConnection(
+            configuration.GetConnectionString("DefaultConnection")
+        );
+
+    return new SpinGameRepository(connectionFactory, dapper);
+});
+builder.Services.AddTransient<IQuizGameRepository>(provider =>
+{
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    var dapper = provider.GetRequiredService<IDapperWrapper>();
+
+    Func<System.Data.IDbConnection> connectionFactory = () =>
+        new Microsoft.Data.SqlClient.SqlConnection(
+            configuration.GetConnectionString("DefaultConnection")
+        );
+
+    return new QuizGameRepository(connectionFactory, dapper);
+});
+builder.Services.AddTransient<IDapperWrapper, DapperWrapper>(); // Added DapperWrapper registration
+builder.Services.AddTransient<ICampaignRepository, CampignRepository>();
 
 builder.Services.AddSession();
 // ========================

@@ -2,6 +2,101 @@
     ViewData["Title"] = "Community Events";
     Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
 }
+
+<style>
+    .summary-card {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 18px;
+        border-radius: 12px;
+        color: #fff;
+        font-family: 'Segoe UI', sans-serif;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        transition: 0.3s ease;
+    }
+
+        .summary-card:hover {
+            transform: translateY(-4px);
+        }
+
+    /* Icon */
+    .summary-icon {
+        font-size: 28px;
+        background: rgba(255,255,255,0.2);
+        padding: 10px;
+        border-radius: 10px;
+    }
+
+    /* Text */
+    .summary-title {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .summary-value {
+        font-size: 22px;
+        font-weight: bold;
+    }
+
+    /* Color Themes */
+    .sponsors-card {
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+    }
+
+    .amount-card {
+        background: linear-gradient(135deg, #43e97b, #38f9d7);
+    }
+
+    .action-btn-group {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    /* Base button */
+    .action-btn {
+        font-size: 12px;
+        padding: 6px 10px;
+        border-radius: 6px;
+        text-decoration: none;
+        color: #fff;
+        border: none;
+        display: inline-block;
+        transition: 0.3s;
+        cursor: pointer;
+    }
+
+        /* Hover effect */
+        .action-btn:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
+
+    /* Individual styles */
+    .edit-btn {
+        background: #4e73df;
+    }
+
+    .post-btn {
+        background: #1cc88a;
+    }
+
+    .reg-btn {
+        background: #f6c23e;
+        color: #000;
+    }
+
+    .sponsor-btn {
+        background: #36b9cc;
+    }
+
+    /* Optional: active row highlight compatibility */
+    .selected-row .action-btn {
+        box-shadow: 0 0 5px rgba(0,0,0,0.2);
+    }
+
+</style>
 <div class="card">
     <div class="card-body">
         <h5 class="mb-3">Community Events</h5>
@@ -23,16 +118,76 @@
             </thead>
             <tbody id="eventTable"></tbody>
         </table>
+        <div class="d-flex justify-content-between mt-3">
+            <div>
+                <strong>Showing:</strong> <span id="pageInfo"></span>
+            </div>
+            <div>
+                <button class="btn btn-sm btn-primary" onclick="prevPage()">Prev</button>
+                <span id="currentPage" class="mx-2">1</span>
+                <button class="btn btn-sm btn-primary" onclick="nextPage()">Next</button>
+
+            </div>
+        </div>
     </div>
 </div>
 
+<div class="card mt-4" id="sponsorSection" style="display:none;">
+    <div class="card-body">
 
+        <h5 id="sponsorTitle">Event Sponsors</h5>
+
+        <div class="row mb-4">
+
+            <!-- Total Sponsors -->
+            <div class="col-md-3">
+                <div class="summary-card sponsors-card">
+                    <div class="summary-icon">👥</div>
+                    <div>
+                        <div class="summary-title">Total Sponsors</div>
+                        <div class="summary-value" id="totalSponsors">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Amount -->
+            <div class="col-md-3">
+                <div class="summary-card amount-card">
+                    <div class="summary-icon">💰</div>
+                    <div>
+                        <div class="summary-title">Total Amount</div>
+                        <div class="summary-value" id="totalAmount">₹ 0</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Logo</th>
+                    <th>Name</th>
+                    <th>Amount</th>
+                    <th>Type</th>
+                </tr>
+            </thead>
+            <tbody id="sponsorTableBody"></tbody>
+        </table>
+    </div>
+</div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
 <script>
+    var allEvents = [];
+    var pageSize = 5;
+    var currentPage = 1;
+
     $(document).ready(function () {
         loadEvents();
     });
+   
 
     function loadEvents() {
 
@@ -40,10 +195,28 @@
 
         $.get(`/api/Event/GetByCommunity/${communityId}`, function (res) {
 
-            let rows = "";
-            let index = 1;
+            allEvents = res || [];
+            currentPage = 1;
+            renderTable();
+        });
+    }
 
-            res.forEach(e => {
+    function renderTable() {
+
+        let rows = "";
+
+        var start = (currentPage - 1) * pageSize;
+        var end = start + pageSize;
+        var pageData = allEvents.slice(start, end);
+
+        if (pageData.length === 0) {
+            rows = "<tr><td colspan='9' class='text-center'>No records found</td></tr>";
+        }
+        else {
+
+            pageData.forEach((e, i) => {
+
+                let index = start + i + 1;
 
                 let imageUrl = e.eventImage
                     ? e.eventImage
@@ -51,73 +224,161 @@
 
                 let qrHtml = e.qrCodeImage
                     ? `<img src="${e.qrCodeImage}"
-                     style="width:70px;height:70px;
-                            border:1px solid #ddd;
-                            padding:4px;
-                            background:#fff;" />`
+                             style="width:70px;height:70px;
+                                    border:1px solid #ddd;
+                                    padding:4px;
+                                    background:#fff;" />`
                     : '-';
 
                 rows += `
-            <tr>
-                <td class="text-center">${index++}</td>
+                <tr>
+                    <td class="text-center">${index}</td>
 
-                <td class="text-center">
-                    <img src="${imageUrl}"
-                         style="width:70px;height:50px;
-                                object-fit:cover;
-                                border-radius:6px;
-                                border:1px solid #ddd;" />
-                </td>
+                    <td class="text-center">
+                        <img src="${imageUrl}"
+                             style="width:70px;height:50px;
+                                    object-fit:cover;
+                                    border-radius:6px;
+                                    border:1px solid #ddd;" />
+                    </td>
 
-                <td>${e.eventName}</td>
+                    <td>${e.eventName}</td>
+                    <td>${e.categoryName}</td>
 
-                <td>${e.categoryName}</td>
+                    <td>
+                        ${formatDate(e.startDate)}<br/>
+                        <small class="text-muted">
+                            to ${formatDate(e.endDate)}
+                        </small>
+                    </td>
 
-                <td>
-                    ${formatDate(e.startDate)}<br/>
-                    <small class="text-muted">
-                        to ${formatDate(e.endDate)}
-                    </small>
-                </td>
+                    <td>${e.location ?? '-'}</td>
 
-                <td>${e.location ?? '-'}</td>
+                    <td>
+                        <span class="badge ${e.isFundRaising == 1 ? 'bg-success' : 'bg-secondary'}">
+                            ${e.isFundRaising == 1 ? 'Yes' : 'No'}
+                        </span>
+                    </td>
 
-                <td>
-                    <span class="badge ${e.isFundRaising == 1 ? 'bg-success' : 'bg-secondary'}">
-                        ${e.isFundRaising == 1 ? 'Yes' : 'No'}
-                    </span>
-                </td>
+                    <td class="text-center">
+                        ${qrHtml}
+                    </td>
 
-                <td class="text-center">
-                    ${qrHtml}
-                </td>
+                          <td>
+        <div class="action-btn-group">
 
-                    <<td>
-        <a href="/Community/Home/AddEvent?eventId=${e.eventId}"
-           class="btn btn-sm btn-primary mb-1">
-            Edit
-        </a>
+            <a href="/Community/Home/AddEvent?eventId=${e.eventId}"
+               class="action-btn edit-btn">✏ Edit</a>
 
-        <a href="/Community/Home/PostEvent?eventId=${e.eventId}"
-           class="btn btn-sm btn-success mb-1">
-            Post
-        </a>
+            <a href="/Community/Home/PostEvent?eventId=${e.eventId}"
+               class="action-btn post-btn">🚀 Post</a>
 
-        <a href="/Community/Home/ViewRegistrations?eventId=${e.eventId}"
-           class="btn btn-sm btn-warning mb-1">
-            View Registrations
-        </a>
+            <a href="/Community/Home/ViewRegistrations?eventId=${e.eventId}"
+               class="action-btn reg-btn">📋 Registrations</a>
+
+            <button class="action-btn sponsor-btn"
+                    onclick="viewSponsors(${e.eventId}, '${e.eventName}')">
+                👁 Sponsors
+            </button>
+
+        </div>
     </td>
-
-            </tr>`;
+                </tr>`;
             });
+        }
 
+        $("#eventTable").html(rows);
 
-            $("#eventTable").html(rows);
-        });
+        $("#currentPage").text(currentPage);
+        $("#pageInfo").text((start + 1) + " - " + Math.min(end, allEvents.length) + " of " + allEvents.length);
+    }
+
+    function nextPage() {
+        if ((currentPage * pageSize) < allEvents.length) {
+            currentPage++;
+            renderTable();
+        }
+    }
+
+    function prevPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable();
+        }
     }
 
     function formatDate(date) {
         return new Date(date).toLocaleDateString();
     }
+    function viewSponsors(eventId, eventName) {
+
+        $("tr").removeClass("selected-row");
+        $("#eventRow_" + eventId).addClass("selected-row");
+
+        $("#sponsorSection").show();
+        $("#sponsorTableBody").html("<tr><td colspan='5' class='text-center'>Loading...</td></tr>");
+        $("#sponsorTitle").text("Sponsors for: " + eventName);
+
+        $.ajax({
+            url: '/api/Event/GetSponsorsByEvent?eventId=' + eventId,
+            type: 'GET',
+            success: function (res) {
+
+                var html = "";
+                var totalAmount = 0;
+
+                if (!res || res.length === 0) {
+
+                    html = "<tr><td colspan='5' class='text-center'>No sponsors found</td></tr>";
+                    $("#totalSponsors").text(0);
+                    $("#totalAmount").text("₹ 0");
+                }
+                else {
+
+                    var baseUrl = window.location.origin;
+
+                    $.each(res, function (i, item) {
+
+                        totalAmount += parseFloat(item.amount || 0);
+
+                        var logo = "-";
+
+                        if (item.logoPath) {
+                            if (item.logoPath.startsWith("http")) {
+                                logo = `<img src="${item.logoPath}" width="50"/>`;
+                            } else {
+                                logo = `<img src="${baseUrl}/uploads/sponsors/${item.logoPath}" width="50"/>`;
+                            }
+                        }
+
+                        html += `<tr>
+                            <td>${i + 1}</td>
+                            <td>${logo}</td>
+                            <td>${item.sponsorName}</td>
+                            <td>₹ ${item.amount}</td>
+                            <td>
+                                ${item.sponsorType === "Gold" ? "<span class='badge bg-warning'>Gold</span>" :
+                                item.sponsorType === "Silver" ? "<span class='badge bg-secondary'>Silver</span>" :
+                                    "<span class='badge bg-dark'>Bronze</span>"}
+                            </td>
+                        </tr>`;
+                    });
+
+                    $("#totalSponsors").text(res.length);
+                    $("#totalAmount").text("₹ " + totalAmount.toFixed(2));
+                }
+
+                $("#sponsorTableBody").html(html);
+
+                $('html, body').animate({
+                    scrollTop: $("#sponsorSection").offset().top
+                }, 400);
+            },
+            error: function (err) {
+                alert("Error loading sponsors");
+                console.log(err.responseText);
+            }
+        });
+    }
+    
 </script>

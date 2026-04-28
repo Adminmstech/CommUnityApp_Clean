@@ -8,6 +8,7 @@ using System.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using Dapper;
 using static CommUnityApp.ApplicationCore.Models.AssignVolunteerRequest;
 
 namespace CommUnityApp.Services
@@ -21,18 +22,19 @@ namespace CommUnityApp.Services
 
         private readonly ICommunityRepository _communityRepository;
         private readonly IWebHostEnvironment _env;
-        public CommunityController(IWebHostEnvironment env, ICommunityRepository communityRepository)
-        {
-            _env = env;
-            _communityRepository = communityRepository;
         private readonly ILogger<CommunityController> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
-
-
-
-        public CommunityController(ILogger<CommunityController> logger, IUnitOfWork unitOfWork, IConfiguration config)
+        public CommunityController(
+      IWebHostEnvironment env,
+      ICommunityRepository communityRepository,
+      ILogger<CommunityController> logger,
+      IUnitOfWork unitOfWork,
+      IConfiguration config)
         {
+            _env = env;
+            _communityRepository = communityRepository;
+
             _logger = logger;
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _config = config;
@@ -253,7 +255,7 @@ namespace CommUnityApp.Services
 
                     imagePath = "/uploads/charity/" + charityItemId + "/" + model.FileName;
 
-                    await _communityRepository.UpdateCharityItemImage(charityItemId, imagePath);
+                    //await _communityRepository.UpdateCharityItemImage(charityItemId, imagePath);
                 }
 
                 return Ok(new { message = "Item added successfully" });
@@ -375,12 +377,42 @@ namespace CommUnityApp.Services
                 var events = await _unitOfWork.Events.GetTop5Events();
                 var auctions = await _unitOfWork.Auction.GetTop5Auctions();
                 var communities = await _unitOfWork.Community.GetCommunities();
-                var businesses = await _unitOfWork.Business.GetAllBusinesses();
 
                 // ⭐ Rewards
                 var rewards = await _unitOfWork.Rewards.GetCoins(userId);
 
-                // Auction Images
+                // ⭐ Products with Images
+                var products = await _unitOfWork.Product.GetAllProducts();
+                var productList = new List<ProductWithImagesModel>();
+
+                foreach (var product in products)
+                {
+                    var images = await _unitOfWork.Product.GetProductImageById(product.ProductId);
+
+                    var productResponse = new ProductWithImagesModel
+                    {
+                        Product = product,
+                        Images = new List<ProductImageUpload>() // ✅ IMPORTANT (avoid null)
+                    };
+
+                    if (images != null && images.Count > 0)
+                    {
+                        foreach (var image in images)
+                        {
+                            productResponse.Images.Add(new ProductImageUpload
+                            {
+                                ProductImageId = image.ProductImageId,
+                                ProductId = image.ProductId,
+                                ImagePath = image.ImagePath,
+                                IsPrimary = image.IsPrimary
+                            });
+                        }
+                    }
+
+                    productList.Add(productResponse);
+                }
+
+                // ⭐ Auction Images
                 var auctionIds = auctions.Select(a => a.AuctionId).ToList();
                 var auctionImages = await _unitOfWork.Auction.GetAuctionImagesByIds(auctionIds);
 
@@ -395,11 +427,11 @@ namespace CommUnityApp.Services
                 response.ResultMessage = "Success";
                 response.Data = new DashboardData
                 {
-                    Rewards = rewards,  // ⭐ added
+                    Rewards = rewards,
                     Events = events,
                     Auctions = auctions,
                     Communities = communities,
-                    Businesses = businesses
+                    Products = productList // ✅ FIXED
                 };
 
                 return Ok(new List<DashboardResponse> { response });
@@ -413,5 +445,102 @@ namespace CommUnityApp.Services
             }
         }
 
+        [HttpGet]
+        [Route("GetItemCategories")]
+        public async Task<IActionResult> GetItemCategories()
+        {
+            var data = await _communityRepository.GetItemCategories();
+            return Ok(data);
+        }
+
+        [HttpGet("GetMembersByCommunity")]
+        public async Task<IActionResult> GetMembersByCommunity(int communityId)
+        {
+            if (communityId == 0)
+                return BadRequest("Invalid CommunityId");
+
+            var data = await _communityRepository.GetMembersByCommunity(communityId);
+
+            return Ok(data);
+        }
+
+
+        [HttpGet("GetCommunityUsers")]
+        public async Task<IActionResult> GetCommunityUsers(long communityId)
+        {
+            var users = await _communityRepository.GetCommunityUsers(communityId);
+            return Ok(users);
+        }
+        [HttpPost("SendMessage")]
+        public async Task<IActionResult> SendMessage([FromForm] CommunityMessageModel model)
+        {
+            try
+            {
+                var communityIdStr = HttpContext.Session.GetString("CommunityId");
+
+                if (string.IsNullOrEmpty(communityIdStr))
+                    return Unauthorized("Session expired");
+
+                long communityId = Convert.ToInt64(communityIdStr);
+
+                if (model.ReceiverUserId == Guid.Empty)
+                    return BadRequest("ReceiverUserId required");
+
+                if (string.IsNullOrWhiteSpace(model.MessageText) && model.ImageFile == null)
+                    return BadRequest("Message or Image is required");
+
+                string imagePath = "";
+
+                if (model.ImageFile != null)
+                {
+                    string folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads/chat");
+
+                    if (!Directory.Exists(folder))
+                        Directory.CreateDirectory(folder);
+
+                    string fileName = Guid.NewGuid() + Path.GetExtension(model.ImageFile.FileName);
+                    string filePath = Path.Combine(folder, fileName);
+
+                    using var stream = new FileStream(filePath, FileMode.Create);
+                    await model.ImageFile.CopyToAsync(stream);
+
+                    imagePath = "/uploads/chat/" + fileName;
+                }
+
+                var id = await _communityRepository.SendMessage(
+                    communityId,
+                    model.ReceiverUserId,
+                    model.MessageText ?? "",
+                    imagePath
+                );
+
+                return Ok(new { message = "Sent", id });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        [HttpGet("GetMessages")]
+        public async Task<IActionResult> GetMessages(long communityId, Guid receiverUserId)
+        {
+            if (communityId == 0)
+                return BadRequest("CommunityId required");
+
+            if (receiverUserId == Guid.Empty)
+                return BadRequest("ReceiverUserId required");
+
+            var data = await _communityRepository.GetMessages(communityId, receiverUserId);
+
+            string baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+            foreach (var item in data)
+            {
+                if (item.ImagePath != null)
+                    item.ImagePath = baseUrl + item.ImagePath;
+            }
+
+            return Ok(data);
+        }
     }
 }
