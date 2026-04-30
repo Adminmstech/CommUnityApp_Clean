@@ -70,7 +70,13 @@ builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
 builder.Services.AddTransient<IVolunteerRepository, VolunteerRepository>();
 builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
 builder.Services.AddTransient<IGameResultsRepository, GameResultsRepository>();
-
+builder.Services.AddTransient<ICareConnectRepository, CareConnectRepository>();
+builder.Services.AddTransient<IDapperWrapper, DapperWrapper>(); // Added DapperWrapper registration
+builder.Services.AddTransient<ICampaignRepository, CampignRepository>();
+builder.Services.AddTransient<ISpinGameRepository>(provider =>
+{
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    var dapper = provider.GetRequiredService<IDapperWrapper>();
     Func<System.Data.IDbConnection> connectionFactory = () =>
         new Microsoft.Data.SqlClient.SqlConnection(
             configuration.GetConnectionString("DefaultConnection")
@@ -78,9 +84,8 @@ builder.Services.AddTransient<IGameResultsRepository, GameResultsRepository>();
 
     return new SpinGameRepository(connectionFactory, dapper);
 });
-builder.Services.AddTransient<IDapperWrapper, DapperWrapper>(); // Added DapperWrapper registration
-builder.Services.AddTransient<ICampaignRepository, CampignRepository>();
 
+builder.Services.AddTransient<ICampaignRepository, CampignRepository>();
 builder.Services.AddSession();
 // ========================
 // COOKIE AUTHENTICATION

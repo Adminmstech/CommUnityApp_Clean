@@ -19,5 +19,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task FinalizeSupporter(FinalizeSupporterModel model);
         Task<long> CreateRequestWithSupporters(CreateRequestWithSupportersModel model);
         Task<IEnumerable<dynamic>> GetUserMessages(Guid userId);
+        Task<IEnumerable<dynamic>> GetSupporterRequestList(Guid supporterId);
     }
 }
