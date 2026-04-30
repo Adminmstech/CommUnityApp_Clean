@@ -187,6 +187,19 @@ namespace CommUnityApp.Services
                 Data = data
             });
         }
+        [HttpGet("GetCareConnectSupporterRequestList")]
+        public async Task<IActionResult> GetSupporterRequestList(Guid supporterId)
+        {
+            var data = await _careConnectRepository.GetSupporterRequestList(supporterId);
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
+        }
     }
 }
     

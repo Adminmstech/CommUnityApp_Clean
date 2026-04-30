@@ -17,5 +17,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         ISpinGameRepository Spingamemodels { get;}
         IQuizGameRepository QuizGames { get; }
         INotificationRepository Notification { get; }
+        IGameResultsRepository GameResults { get; }
+        ICareConnectRepository CareConnect { get; }
     }
 }

@@ -21,7 +21,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         public ISpinGameRepository Spingamemodels { get; }
         public IQuizGameRepository QuizGames { get; }
         public INotificationRepository Notification { get; }
-
+        public IGameResultsRepository GameResults { get; }
+        public ICareConnectRepository CareConnect { get; }
        
 
         public UnitOfWork(
@@ -38,8 +39,11 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             IServiceRepository service,
             ICampaignRepository campaign,
             ISpinGameRepository spingamemodels,
-            IQuizGameRepository quizGames,
-            INotificationRepository notification)
+            INotificationRepository notification,
+            IGameResultsRepository gameResults,
+            ICareConnectRepository careConnect)
+            IQuizGameRepository quizGames
+                    )
         {
             Community = community;
             Events = events;
@@ -56,6 +60,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             Spingamemodels = spingamemodels;
             QuizGames = quizGames;
             Notification = notification;
+            GameResults = gameResults;
+            CareConnect = careConnect;
         }
     }
 }

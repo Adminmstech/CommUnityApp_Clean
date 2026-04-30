@@ -282,6 +282,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             }
         }
 
+           
+              
             //public async Task<List<MemberModel>> GetMembersByCommunity(int communityId)
             //    {
             //        using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))

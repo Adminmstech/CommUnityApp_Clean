@@ -151,6 +151,17 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure
             );
         }
+
+        public async Task<IEnumerable<dynamic>> GetSupporterRequestList(Guid supporterId)
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            return await con.QueryAsync(
+                "sp_GetCareConnectSupporterRequestList",
+                new { SupporterId = supporterId },
+                commandType: CommandType.StoredProcedure
+            );
+        }
     }
 
 }
