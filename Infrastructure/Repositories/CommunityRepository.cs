@@ -284,6 +284,31 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
            
               
+            //public async Task<List<MemberModel>> GetMembersByCommunity(int communityId)
+            //    {
+            //        using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            //        {
+            //            var result = await connection.QueryAsync<MemberModel>(
+            //                "sp_GetMembersByCommunity",
+            //                new { CommunityId = communityId },
+            //                commandType: CommandType.StoredProcedure
+            //            );
+
+            //            return result.ToList();
+            //        }
+            //    }
+                //public async Task<List<Community>> GetCommunities()
+                //{
+                //    using var connection = new SqlConnection(
+                //        _configuration.GetConnectionString("DefaultConnection")
+                //    );
+
+                //    await connection.OpenAsync();
+
+                //    var result = await connection.QueryAsync<Community>("Get_AllCommunities", commandType: CommandType.StoredProcedure);
+
+                //    return result.ToList();
+                //}
                 public async Task<List<dynamic>> GetCommunityUsers(long communityId)
                 {
                     using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
