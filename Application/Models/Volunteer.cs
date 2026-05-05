@@ -12,8 +12,10 @@ namespace CommUnityApp.ApplicationCore.Models
 
     public class UpdateStatusModel
     {
-        public int RequestId { get; set; }
+        public int ApplicationId { get; set; }
         public string Status { get; set; } 
+        public string Remarks { get; set; }
+        public Guid UpdatedBy { get; set;}
     }
 
     public class VolunteerAssignedItemModel

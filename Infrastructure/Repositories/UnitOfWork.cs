@@ -23,6 +23,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         public INotificationRepository Notification { get; }
         public IGameResultsRepository GameResults { get; }
         public ICareConnectRepository CareConnect { get; }
+        public IJobRepository Job { get; }
        
 
         public UnitOfWork(
@@ -42,8 +43,6 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             INotificationRepository notification,
             IGameResultsRepository gameResults,
             ICareConnectRepository careConnect)
-            IQuizGameRepository quizGames
-                    )
         {
             Community = community;
             Events = events;
@@ -62,6 +61,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             Notification = notification;
             GameResults = gameResults;
             CareConnect = careConnect;
+            Job = job;
         }
     }
 }

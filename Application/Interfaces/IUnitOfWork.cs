@@ -19,5 +19,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         INotificationRepository Notification { get; }
         IGameResultsRepository GameResults { get; }
         ICareConnectRepository CareConnect { get; }
+        IJobRepository Job { get; }
     }
 }
