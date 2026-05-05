@@ -71,6 +71,7 @@ builder.Services.AddTransient<IVolunteerRepository, VolunteerRepository>();
 builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
 builder.Services.AddTransient<IGameResultsRepository, GameResultsRepository>();
 builder.Services.AddTransient<ICareConnectRepository, CareConnectRepository>();
+builder.Services.AddTransient<IJobRepository, JobRepository>();
 builder.Services.AddTransient<IDapperWrapper, DapperWrapper>(); // Added DapperWrapper registration
 builder.Services.AddTransient<ICampaignRepository, CampignRepository>();
 builder.Services.AddTransient<ISpinGameRepository>(provider =>
