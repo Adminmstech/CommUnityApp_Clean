@@ -19,5 +19,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<IEnumerable<dynamic>> GetApplicationsByJob(long jobId);
         Task<dynamic> UpdateApplicationStatus(UpdateStatusModel model);
         Task<IEnumerable<ApplicationHistoryModel>> GetApplicationHistory(long applicationId);
+
+        Task UpdateResumePath(long applicationId, string resumePath);
     }
 }
