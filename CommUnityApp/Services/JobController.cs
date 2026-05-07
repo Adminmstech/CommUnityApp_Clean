@@ -10,10 +10,13 @@ namespace CommUnityApp.Services
     {
 
         private readonly IJobRepository _jobsRepository;
+        private readonly IWebHostEnvironment _environment;
 
-        public JobController(IJobRepository jobsRepository)
+
+        public JobController(IJobRepository jobsRepository, IWebHostEnvironment environment)
         {
             _jobsRepository = jobsRepository;
+            _environment = environment; 
         }
 
         [HttpPost("PostJob")]
@@ -41,6 +44,54 @@ namespace CommUnityApp.Services
                 ApplicationId = appId
             });
         }
+
+        [HttpPost("ApplyForJob")]
+        public async Task<IActionResult> ApplyJobLink([FromForm] ApplyJobModel model)
+        {
+            var appId = await _jobsRepository.ApplyJob(model);
+
+            string resumePath = "";
+
+            if (model.ResumeFile != null && model.ResumeFile.Length > 0)
+            {
+                string folderPath = Path.Combine(
+                    _environment.WebRootPath,
+                    "Uploads",
+                    "JobApplications",
+                    appId.ToString()
+                );
+
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+
+                string extension = Path.GetExtension(model.ResumeFile.FileName);
+
+                string fileName = "Resume" + extension;
+
+                string filePath = Path.Combine(folderPath, fileName);
+
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await model.ResumeFile.CopyToAsync(stream);
+                }
+
+                resumePath = $"/Uploads/JobApplications/{appId}/{fileName}";
+
+                await _jobsRepository.UpdateResumePath(appId, resumePath);
+            }
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Applied successfully",
+                ApplicationId = appId,
+                ResumePath = resumePath
+            });
+        }
+
+
         [HttpGet("GetJobsByGroup")]
         public async Task<IActionResult> GetJobsByGroup(int groupId)
         {
@@ -53,6 +104,8 @@ namespace CommUnityApp.Services
                 Data = data
             });
         }
+
+
         [HttpGet("GetJobsByUser")]
         public async Task<IActionResult> GetJobsByUser(Guid userId)
         {

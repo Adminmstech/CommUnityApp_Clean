@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -53,12 +54,13 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string Qualification { get; set; }
 
-        public string ResumePath { get; set; }
+        public string? ResumePath { get; set; }
         public string CoverLetter { get; set; }
 
         public string CurrentLocation { get; set; }
         public decimal ExpectedSalary { get; set; }
         public string NoticePeriod { get; set; }
+        public IFormFile? ResumeFile { get; set; }
     }
 
     public class ApplicationHistoryModel

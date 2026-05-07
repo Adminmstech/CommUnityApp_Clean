@@ -42,7 +42,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             ISpinGameRepository spingamemodels,
             INotificationRepository notification,
             IGameResultsRepository gameResults,
-            ICareConnectRepository careConnect)
+            ICareConnectRepository careConnect,
+            IQuizGameRepository quizGames,
+            IJobRepository job)
         {
             Community = community;
             Events = events;

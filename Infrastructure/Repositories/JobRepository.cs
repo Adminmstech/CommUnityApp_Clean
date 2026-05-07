@@ -34,15 +34,46 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
         public async Task<long> ApplyJob(ApplyJobModel model)
         {
-            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var parameters = new
+            {
+                model.JobId,
+                model.ApplicantId,
+                model.FullName,
+                model.Email,
+                model.Phone,
+                model.DateOfBirth,
+                model.Gender,
+                model.TotalExperience,
+                model.Skills,
+                model.Qualification,
+                model.ResumePath,
+                model.CoverLetter,
+                model.CurrentLocation,
+                model.ExpectedSalary,
+                model.NoticePeriod
+            };
 
             return await con.ExecuteScalarAsync<long>(
                 "sp_ApplyJob",
-                model,
+                parameters,
                 commandType: CommandType.StoredProcedure
             );
         }
+        public async Task UpdateResumePath(long applicationId, string resumePath)
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
+            await con.ExecuteAsync(
+                "UPDATE CommunityJobApplications SET ResumePath = @ResumePath WHERE ApplicationId = @ApplicationId",
+                new
+                {
+                    ResumePath = resumePath,
+                    ApplicationId = applicationId
+                });
+        }
         public async Task<IEnumerable<dynamic>> GetJobsByGroup(int groupId)
         {
             using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
