@@ -339,7 +339,11 @@ namespace CommUnityApp.ApplicationCore.Models
         public DateTime StartDate { get; set; }
 
         public DateTime EndDate { get; set; }
+        public string StartDateString =>
+        StartDate.ToString("dd MMM yyyy hh:mm tt");
 
+        public string EndDateString =>
+            EndDate.ToString("dd MMM yyyy hh:mm tt");
         public string ContactName { get; set; }
 
         public string ContactPhone { get; set; }
