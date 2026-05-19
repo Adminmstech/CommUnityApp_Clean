@@ -3,7 +3,7 @@
     Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
 }
 
-<input type="hidden" id="EventId" value="@Context.Request.Query["eventId"]" />
+@*<input type="hidden" id="EventId" value="@Context.Request.Query["eventId"]" />
 
 <div class="card">
     <div class="card-body">
@@ -84,6 +84,72 @@
             },
             error: function (xhr) {
                 alert(xhr.responseText || "Failed to post event");
+            }
+        });
+    }
+
+</script>*@
+
+<input type="hidden"
+       id="EventId"
+       value="@Context.Request.Query["eventId"]" />
+
+<div class="card mt-3">
+    <div class="card-body">
+
+        <h4>Post Event To Community Users</h4>
+
+        <p>
+            Click below to send this event to all
+            users in your community.
+        </p>
+
+        <button class="btn btn-primary"
+                onclick="postEvent()">
+            Post Event
+        </button>
+
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+
+    function postEvent() {
+
+        let payload = {
+
+            eventId: $("#EventId").val(),
+
+            communityId:
+                "@Context.Session.GetString("CommunityId")"
+        };
+
+        $.ajax({
+
+            url: "/api/Event/PostEvent",
+
+            type: "POST",
+
+            contentType: "application/json",
+
+            data: JSON.stringify(payload),
+
+            success: function (res) {
+
+                alert(res.resultMessage);
+
+                window.location.href =
+                    "/Community/Home/ViewEvents";
+            },
+
+            error: function (xhr) {
+
+                alert(
+                    xhr.responseText ||
+                    "Failed to post event"
+                );
             }
         });
     }

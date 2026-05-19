@@ -20,23 +20,46 @@ namespace CommUnityApp.Areas.Community.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(string userName, string password)
+        public async Task<IActionResult> Login(
+     string userName,
+     string password)
         {
-            var request = new CommunityLoginRequest { UserName = userName, Password = password };
-            var response = await _communityRepository.LoginAsync(request);
-
-            if (response != null && response.CommunityId > 0)
+            var request = new CommunityLoginRequest
             {
-                HttpContext.Session.SetString("CommunityId", response.CommunityId.ToString());
-                HttpContext.Session.SetString("CommunityName", response.CommunityName);
+                UserName = userName,
+                Password = password
+            };
 
-                return RedirectToAction("ViewEvents", "Home", new { area = "Community" });
+            var response =
+                await _communityRepository.LoginAsync(request);
+
+           
+
+            if (response != null &&
+                response.CommunityId > 0)
+            {
+                HttpContext.Session.SetString(
+                    "CommunityId",
+                    response.CommunityId.ToString());
+
+                HttpContext.Session.SetString(
+                    "CommunityName",
+                    response.CommunityName);
+
+                return RedirectToAction(
+                    "ViewEvents",
+                    "Home",
+                    new { area = "Community" });
             }
 
-            ViewBag.Error = response?.ResultMessage ?? "Invalid username or password";
-            return View();
-        }
+        
 
+            ViewBag.Error =
+                response?.ResultMessage ??
+                "Invalid username or password";
+
+            return View("CommunityLogin");
+        }
         public IActionResult CommunityLogin()
         {
             return View();
