@@ -277,4 +277,94 @@ namespace CommUnityApp.ApplicationCore.Models
         public string? MessageText { get; set; }
         public IFormFile? ImageFile { get; set; }
     }
+
+    public class CommunityCategoryDto
+    {
+        public int CommunityCategoryId { get; set; }
+
+        public string? CategoryName { get; set; }
+
+        public string? Description { get; set; }
+
+        public string? CategoryImage { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class AddCommunityRequest
+    {
+        public int CommunityId { get; set; }
+
+        public int CommunityCategoryId { get; set; }
+
+        public string CommunityName { get; set; }
+
+        public string? LogoBase64 { get; set; }
+
+        public string? Logo { get; set; }
+
+        public string? Description { get; set; }
+
+        public string ContactName { get; set; }
+
+        public string ContactEmail { get; set; }
+
+        public string ContactPhone { get; set; }
+
+        public string? Website { get; set; }
+
+        public string? Address { get; set; }
+
+        public string? OtherInfo { get; set; }
+
+        public string UserName { get; set; }
+
+        public string? Password { get; set; }
+
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class CommunityDto
+    {
+        public int CommunityId { get; set; }
+
+        public int CommunityCategoryId { get; set; }
+
+        public string? CategoryName { get; set; }
+
+        public string? CommunityName { get; set; }
+
+        public string? Logo { get; set; }
+
+        public string? Description { get; set; }
+
+        public string? ContactName { get; set; }
+
+        public string? ContactEmail { get; set; }
+
+        public string? ContactPhone { get; set; }
+
+        public string? Website { get; set; }
+
+        public string? Address { get; set; }
+
+        public string? OtherInfo { get; set; }
+
+        public string? UserName { get; set; }
+
+        public string? Password { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public DateTime CreatedDate { get; set; }
+    }
+
+    public class UpdateUserCommunityRequest
+    {
+        public Guid UserId { get; set; }
+
+        public string CommunityId { get; set; }
+    }
 }

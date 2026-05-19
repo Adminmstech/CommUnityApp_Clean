@@ -86,6 +86,8 @@
     {
         public string Email { get; set; }
         public string Password { get; set; }
+        public string? DeviceToken { get; set; }
+        public string? DeviceType { get; set; }
     }
     public class LoginResponse
     {

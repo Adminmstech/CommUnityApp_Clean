@@ -86,6 +86,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     Info = request.Info,
                     Latitude = request.Latitude,
                     Longitude = request.Longitude,
+                    WebLink = request.WebLink,     
+                    Password = request.Password,   
                     IsVerified = request.IsVerified,
                     IsActive = request.IsActive
                 },

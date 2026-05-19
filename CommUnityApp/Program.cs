@@ -143,9 +143,11 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.MapControllers();
+
 app.MapControllerRoute(
-    name: "areas",
-    pattern: "{area:exists}/{controller=Account}/{action=Login}/{id?}"
+    name: "area_default",
+    pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}"
 );
 
 app.MapControllerRoute(

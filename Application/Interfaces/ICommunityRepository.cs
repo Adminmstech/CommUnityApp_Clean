@@ -38,7 +38,14 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<List<dynamic>> GetMessages(long communityId, Guid receiverUserId);
         Task<List<dynamic>> GetCommunityUsers(long communityId);
-        Task<int> SendMessage(long communityId, Guid receiverUserId, string message, string imagePath);       
+        Task<int> SendMessage(long communityId, Guid receiverUserId, string message, string imagePath);
+
+        Task<List<CommunityCategoryDto>> GetCommunityCategoriesAsync();
+        Task<BaseResponse> AddCommunityAsync(AddCommunityRequest entity);
+        Task<List<CommunityDto>> GetCommunitiesAsync();
+        Task<CommunityDto> GetCommunityDetailsAsync(int communityId);
+        Task<List<CommunityDto>> GetCommunitiesByCategoryAsync(int communityCategoryId);
+        Task<BaseResponse> UpdateUserCommunityAsync(UpdateUserCommunityRequest entity);
     }
 
 }

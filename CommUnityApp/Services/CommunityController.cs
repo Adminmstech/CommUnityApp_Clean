@@ -1,15 +1,16 @@
 ﻿using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
+using CommUnityApp.Domain.Entities;
 using CommUnityApp.InfrastructureLayer.Repositories;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
-using static Org.BouncyCastle.Math.EC.ECCurve;
-using System.Data;
+using Dapper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using System.Data;
 using System.IO;
-using Dapper;
 using static CommUnityApp.ApplicationCore.Models.AssignVolunteerRequest;
+using static Org.BouncyCastle.Math.EC.ECCurve;
 
 namespace CommUnityApp.Services
 {
@@ -542,5 +543,131 @@ namespace CommUnityApp.Services
 
             return Ok(data);
         }
+
+        [HttpGet("Get_CommunityCategories")]
+        public async Task<IActionResult> GetCommunityCategories()
+        {
+            try
+            {
+                var result = await _unitOfWork.Community.GetCommunityCategoriesAsync();
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("Add_Community")]
+        public async Task<IActionResult> AddCommunity([FromBody] AddCommunityRequest request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
+
+                string logoPath = request.Logo;
+
+                // Save Logo
+                if (!string.IsNullOrWhiteSpace(request.LogoBase64))
+                {
+                    if (!TryConvertFromBase64(request.LogoBase64, out byte[] fileBytes))
+                        return BadRequest("Invalid logo format.");
+
+                    if (fileBytes.Length > 2097152)
+                        return BadRequest("Logo size exceeds 2MB limit.");
+
+                    string fileName = $"{Guid.NewGuid():N}.jpg";
+                    string directoryPath = Path.Combine("wwwroot", "CommunityLogos");
+                    Directory.CreateDirectory(directoryPath);
+
+                    string localFilePath = Path.Combine(directoryPath, fileName);
+                    await System.IO.File.WriteAllBytesAsync(localFilePath, fileBytes);
+
+                    logoPath = $"CommunityLogos/{fileName}";
+                }
+
+                var result = await _unitOfWork.Community.AddCommunityAsync(new AddCommunityRequest
+                {
+                    CommunityId = request.CommunityId,
+                    CommunityCategoryId = request.CommunityCategoryId,
+                    CommunityName = request.CommunityName,
+                    Logo = logoPath,
+                    Description = request.Description,
+                    ContactName = request.ContactName,
+                    ContactEmail = request.ContactEmail,
+                    ContactPhone = request.ContactPhone,
+                    Website = request.Website,
+                    Address = request.Address,
+                    OtherInfo = request.OtherInfo,
+                    UserName = request.UserName,
+                    Password = request.Password,
+                    IsActive = request.IsActive
+                });
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+
+        private bool TryConvertFromBase64(string base64String, out byte[] fileBytes)
+        {
+            fileBytes = null;
+
+            try
+            {
+                if (base64String.Contains(","))
+                    base64String = base64String.Split(',')[1];
+
+                fileBytes = Convert.FromBase64String(base64String);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+  
+        [HttpGet("Get_AllCommunities")]
+        public async Task<IActionResult> GetAllCommunities()
+        {
+            var data = await _unitOfWork.Community.GetCommunitiesAsync();
+            return Ok(data);
+        }
+
+        [HttpGet("Get_CommunityDetails")]
+        public async Task<IActionResult> GetCommunityDetails(int communityId )
+        {
+            var data = await _unitOfWork.Community.GetCommunityDetailsAsync(communityId);
+            return Ok(data);
+        }
+
+        [HttpGet("Get_CommunitiesByCategory")]
+        public async Task<IActionResult> GetCommunitybyCategory(int communityCategoryId)
+        {
+            var data = await _unitOfWork.Community.GetCommunitiesByCategoryAsync(communityCategoryId);
+            return Ok(data);
+        }
+
+        [HttpPost("Update_UserCommunity")]
+        public async Task<IActionResult> UpdateUserCommunityAsync(UpdateUserCommunityRequest request)
+        {
+            var data = await _unitOfWork.Community.UpdateUserCommunityAsync(request);
+            return Ok(data);
+        }
+
     }
 }

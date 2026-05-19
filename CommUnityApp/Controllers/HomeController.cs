@@ -118,7 +118,7 @@ namespace CommUnityApp.Controllers
             // Role-based redirection
             if (roles.Contains("1")) // Admin
             {
-                return RedirectToAction("AddBusiness", "Home", new { area = "Admin" });
+                return RedirectToAction("AddBusiness", "Admin", new { area = "Admin" });
             }
             else if (roles.Contains("2")) // Business
             {
