@@ -137,14 +137,28 @@ namespace CommUnityApp.Services
             return Ok(categories);
         }
 
-
         [HttpPost("PostEvent")]
-        public async Task<IActionResult> PostEventToGroups(
-            [FromBody] PostEventToGroupsRequest model)
+        public async Task<IActionResult> PostEvent(
+     [FromBody] PostEventModel model)
         {
-            var result = await _repository.PostEventToGroupsAsync(model);
-            return Ok(result);
+            var result = await _repository
+                .PostEventToCommunityUsers(model);
+
+            return Ok(new
+            {
+                resultId = result.ResultId,
+                resultMessage = result.ResultMessage
+            });
         }
+
+        // [HttpPost("PostEvent")]
+        // public async Task<IActionResult> PostEventToGroups(
+        //    [FromBody] PostEventToGroupsRequest model)
+        //{
+        //   var result = await _repository.PostEventToGroupsAsync(model);
+        //   return Ok(result);
+        // }
+
         [HttpGet("GetByCommunity/{communityId}")]
         public async Task<IActionResult> GetByCommunity(long communityId)
         {
@@ -531,6 +545,46 @@ namespace CommUnityApp.Services
             return Ok(data);
         }
 
+            [HttpGet("GetUsersByCommunityId")]
+            public async Task<IActionResult> GetUsersByCommunityId(int communityId)
+            {
+                var result = await _unitOfWork.Events
+                    .GetUsersByCommunityId(communityId);
+
+                return Ok(new
+                {
+                    Status = true,
+                    Data = result
+                });
+            }
+
+         
+
+            [HttpPost("PostEventToCommunityUsers")]
+            public async Task<IActionResult> PostEventToCommunityUsers(
+                [FromBody] PostEventModel model)
+            {
+                var result = await _unitOfWork.Events
+                    .PostEventToCommunityUsers(model);
+
+                return Ok(new
+                {
+                    ResultId = result.ResultId,
+                    ResultMessage = result.ResultMessage
+                });
+            }
+        [HttpGet("GetPostedEventsByUser")]
+        public async Task<IActionResult> GetPostedEventsByUser(Guid userId)
+        {
+            var result = await _unitOfWork.Events
+                .GetPostedEventsByUser(userId);
+
+            return Ok(new
+            {
+                Status = true,
+                Data = result
+            });
+        }
 
     }
     }

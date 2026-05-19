@@ -50,6 +50,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public DateTime EndDate { get; set; }
         public string Location { get; set; }
         public string EventImage { get; set; }
+        public int IsPosted { get; set; }
         public string QRCodeImage { get; set; }
 
         public int IsFundRaising { get; set; }
@@ -289,5 +290,64 @@ namespace CommUnityApp.ApplicationCore.Models
         public decimal Amount { get; set; }
         public string SponsorType { get; set; }
         public string LogoPath { get; set; }
+    }
+
+    public class PostEventModel
+    {
+        public int EventId { get; set; }
+
+        public int CommunityId { get; set; }
+    }
+
+    public class UserModel
+    {
+        public Guid UserId { get; set; }
+
+        public string FirstName { get; set; }
+
+        public string LastName { get; set; }
+
+        public string Email { get; set; }
+
+        public string Mobile { get; set; }
+
+        public string DeviceToken { get; set; }
+    }
+
+    public class UserPostedEventModel
+    {
+        public int Id { get; set; }
+
+        public int EventId { get; set; }
+
+        public Guid UserId { get; set; }
+
+        public int CommunityId { get; set; }
+
+        public DateTime PostedDate { get; set; }
+
+        public bool IsViewed { get; set; }
+
+        public string EventName { get; set; }
+
+        public string Description { get; set; }
+
+        public string Location { get; set; }
+
+        public string EventImage { get; set; }
+
+        public DateTime StartDate { get; set; }
+
+        public DateTime EndDate { get; set; }
+        public string StartDateString =>
+        StartDate.ToString("dd MMM yyyy hh:mm tt");
+
+        public string EndDateString =>
+            EndDate.ToString("dd MMM yyyy hh:mm tt");
+        public string ContactName { get; set; }
+
+        public string ContactPhone { get; set; }
+
+        public string ContactEmail { get; set; }
     }
 }
