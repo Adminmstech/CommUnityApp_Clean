@@ -38,7 +38,17 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<List<dynamic>> GetMessages(long communityId, Guid receiverUserId);
         Task<List<dynamic>> GetCommunityUsers(long communityId);
-        Task<int> SendMessage(long communityId, Guid receiverUserId, string message, string imagePath);       
+        Task<int> SendMessage(long communityId, Guid receiverUserId, string message, string imagePath);
+
+
+        Task<dynamic> AddCommunityPost(
+    CommunityPostModel model);
+
+        Task<List<CommunityPostModel>>
+            GetCommunityPosts(int communityId);
+
+        Task<dynamic> DeleteCommunityPost(
+     int postId);
     }
 
 }

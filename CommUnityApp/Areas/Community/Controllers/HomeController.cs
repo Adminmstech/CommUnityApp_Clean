@@ -106,5 +106,14 @@ namespace CommUnityApp.Areas.Community.Controllers
             return View();
         }
 
+        public IActionResult AddCommunityPosts()
+        {
+            return View();
+        }
+
+        public IActionResult CommunityPosts()
+        {
+            return View();
+        }
     }
 }

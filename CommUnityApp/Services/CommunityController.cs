@@ -542,5 +542,95 @@ namespace CommUnityApp.Services
 
             return Ok(data);
         }
+
+
+        [HttpPost("AddCommunityPost")]
+        public async Task<IActionResult> AddCommunityPost(
+    [FromForm] CommunityPostModel model)
+        {
+            try
+            {
+                string imagePath = "";
+
+
+                if (model.ImageFile != null)
+                {
+                    string folderPath =
+                        Path.Combine(
+                            _env.WebRootPath,
+                            "Uploads",
+                            "CommunityPosts");
+
+                    if (!Directory.Exists(folderPath))
+                    {
+                        Directory.CreateDirectory(folderPath);
+                    }
+
+                    string fileName =
+                        Guid.NewGuid().ToString()
+                        +
+                        Path.GetExtension(
+                            model.ImageFile.FileName);
+
+                    string fullPath =
+                        Path.Combine(folderPath,
+                                     fileName);
+
+                    using (var stream =
+                        new FileStream(fullPath,
+                                       FileMode.Create))
+                    {
+                        await model.ImageFile
+                            .CopyToAsync(stream);
+                    }
+
+                    imagePath =
+                        "/Uploads/CommunityPosts/"
+                        + fileName;
+                }
+
+               
+
+                model.ImagePath = imagePath;
+
+                var result =
+                    await _communityRepository
+                    .AddCommunityPost(model);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+
+        [HttpGet("GetCommunityPosts/{communityId}")]
+        public async Task<IActionResult> GetPosts(
+            int communityId)
+        {
+            var result =
+                await _communityRepository
+                .GetCommunityPosts(communityId);
+
+            return Ok(new
+            {
+                Status = true,
+                Data = result
+            });
+        }
+
+        [HttpDelete("DeleteCommunityPost/{postId}")]
+        public async Task<IActionResult> DeleteCommunityPost(
+    int postId)
+        {
+            var result =
+                await _communityRepository
+                .DeleteCommunityPost(postId);
+
+            return Ok(result);
+        }
     }
 }
+

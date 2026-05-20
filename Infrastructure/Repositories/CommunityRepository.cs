@@ -358,7 +358,68 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                         return data.ToList();
                     }
                 }
+
+        public async Task<dynamic> AddCommunityPost(
+    CommunityPostModel model)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+
+            {
+                var result =
+                    await connection.QueryFirstOrDefaultAsync<dynamic>(
+                        "sp_AddCommunityPost",
+                        new
+                        {
+                            CommunityId = model.CommunityId,
+                            Title = model.Title,
+                            Message = model.Message,
+                            ImagePath = model.ImagePath,
+                            CreatedBy = model.CreatedBy
+                        },
+                        commandType:
+                        CommandType.StoredProcedure);
+
+                return result;
             }
+        }
+
+        public async Task<List<CommunityPostModel>>
+    GetCommunityPosts(int communityId)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+
+            {
+                var result =
+                    await connection.QueryAsync<CommunityPostModel>(
+                        "sp_GetCommunityPosts",
+                        new
+                        {
+                            CommunityId = communityId
+                        },
+                        commandType:
+                        CommandType.StoredProcedure);
+
+                return result.ToList();
+            }
+        }
+        public async Task<dynamic> DeleteCommunityPost(
+    int postId)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+
+            {
+                return await connection
+                    .QueryFirstOrDefaultAsync<dynamic>(
+                        "sp_DeleteCommunityPost",
+                        new
+                        {
+                            PostId = postId
+                        },
+                        commandType:
+                        CommandType.StoredProcedure);
+            }
+        }
+    }
 
         }
     
