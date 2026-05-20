@@ -135,10 +135,35 @@
             .close-btn:hover {
                 color: #000;
             }
+
+        .admin-login-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #111827;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            box-shadow: 0 8px 20px rgba(0,0,0,.2);
+            z-index: 1000;
+            transition: .3s;
+        }
+
+            .admin-login-btn:hover {
+                background: #2563eb;
+                transform: translateY(-2px);
+            }
     </style>
 </head>
 
 <body>
+
+    <!-- ADMIN LOGIN BUTTON -->
+    <a href="@Url.Content("~/Admin/Admin/Login")" class="admin-login-btn">
+        🔐 Admin Login
+    </a>
 
     <div class="container">
         <h1>Join the Indian Community Network – Australia</h1>
