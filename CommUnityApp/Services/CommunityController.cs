@@ -606,7 +606,7 @@ namespace CommUnityApp.Services
         }
 
 
-        [HttpGet("GetCommunityPosts/{communityId}")]
+        [HttpGet("GetCommunityPosts/{communityId}")] 
         public async Task<IActionResult> GetPosts(
             int communityId)
         {
