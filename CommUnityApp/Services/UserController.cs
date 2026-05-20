@@ -19,18 +19,21 @@ namespace CommUnityApp.Services
         private readonly IEmailService _emailService;
         private readonly IConfiguration _config;
         private readonly IPasswordService _passwordService;
+        private readonly IPushNotificationService _pushNotificationService;
 
         public UserController(
             ILogger<UserController> logger,
             IUnitOfWork unitOfWork,
             IEmailService emailService,
-            IPasswordService passwordService, IConfiguration config)
+            IPasswordService passwordService, IConfiguration config,
+            IPushNotificationService pushNotificationService)
         {
             _logger = logger;
             _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
             _passwordService = passwordService ?? throw new ArgumentNullException(nameof(passwordService));
             _config = config;
+            _pushNotificationService = pushNotificationService ;
         }
 
         [HttpGet("Get_Roles")]
@@ -365,6 +368,96 @@ namespace CommUnityApp.Services
             {
                 _logger.LogError(ex, "Error updating user {UserId}", entity?.UserId);
 
+                return StatusCode(500, new
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+
+
+
+        [HttpGet("Get_AllUsers")]
+        public async Task<IActionResult> getAllUsers()
+        {
+            var data = await _unitOfWork.User.GetAllUsersAsync();
+            return Ok(data);
+        }
+
+        [HttpGet("Get_UsersForCommunication")]
+        public async Task<IActionResult> GetUsersForCommunication()
+        {
+            try
+            {
+                var result = await _unitOfWork.User.GetUsersForCommunicationAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("Send_Communication")]
+        public async Task<IActionResult> SendCommunication(
+     [FromBody] SendCommunicationRequest request)
+        {
+            try
+            {
+                var users = await _unitOfWork.User.GetUsersForCommunicationAsync();
+
+                var selectedUsers = users
+                    .Where(x => request.UserIds.Contains(x.UserId))
+                    .ToList();
+
+                if (!selectedUsers.Any())
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "No users selected."
+                    });
+                }
+
+                // EMAIL
+                if (request.SendEmail)
+                {
+                    foreach (var user in selectedUsers.Where(x => !string.IsNullOrEmpty(x.Email)))
+                    {
+                        await _emailService.SendBulkEmailAsync(
+                            user.Email,
+                            request.Subject,
+                            request.Message
+                        );
+                    }
+                }
+
+                // PUSH NOTIFICATION
+                if (request.SendNotification)
+                {
+                    foreach (var user in selectedUsers.Where(x => !string.IsNullOrEmpty(x.DeviceToken)))
+                    {
+                        await _pushNotificationService.SendAsync(
+                            user.DeviceToken,
+                            request.Subject,
+                            request.Message
+                        );
+                    }
+                }
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Communication sent successfully."
+                });
+            }
+            catch (Exception ex)
+            {
                 return StatusCode(500, new
                 {
                     ResultId = -1,
