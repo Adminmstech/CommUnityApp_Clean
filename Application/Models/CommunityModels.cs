@@ -278,6 +278,24 @@ namespace CommUnityApp.ApplicationCore.Models
         public IFormFile? ImageFile { get; set; }
     }
 
+    public class CommunityPostModel
+    {
+        public int PostId { get; set; }
+
+        public int CommunityId { get; set; }
+
+        public string? Title { get; set; }
+
+        public string? Message { get; set; }
+
+        public string? ImagePath { get; set; }
+
+        public IFormFile? ImageFile { get; set; }
+
+        public int CreatedBy { get; set; }
+
+        public string? CreatedDateString { get; set; }
+    }
     public class CommunityCategoryDto
     {
         public int CommunityCategoryId { get; set; }
