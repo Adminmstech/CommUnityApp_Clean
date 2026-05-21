@@ -181,7 +181,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             var parameters = new DynamicParameters();
             parameters.Add("@Email", request.Email, DbType.String);
             parameters.Add("@Password", request.Password, DbType.String);
-           
+            parameters.Add("@DeviceToken", request.DeviceToken, DbType.String);
+            parameters.Add("@DeviceType", request.DeviceType, DbType.String);
+
             var result = await connection.QueryFirstOrDefaultAsync<LoginResponse>(
                 "Login_User_SHA512",
                 parameters,

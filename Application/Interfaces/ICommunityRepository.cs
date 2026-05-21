@@ -49,9 +49,12 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<dynamic> DeleteCommunityPost(
      int postId);
-
-        Task<List<CommunityPostModel>>
-    GetCommunityPostsByUser(Guid userId);
+        Task<List<CommunityCategoryDto>> GetCommunityCategoriesAsync();
+        Task<BaseResponse> AddCommunityAsync(AddCommunityRequest entity);
+        Task<List<CommunityDto>> GetCommunitiesAsync();
+        Task<CommunityDto> GetCommunityDetailsAsync(int communityId);
+        Task<List<CommunityDto>> GetCommunitiesByCategoryAsync(int communityCategoryId);
+        Task<BaseResponse> UpdateUserCommunityAsync(UpdateUserCommunityRequest entity);
     }
 
 }

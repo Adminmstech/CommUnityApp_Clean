@@ -1,0 +1,213 @@
+﻿@{
+    ViewData["Title"] = "Communities";
+    Layout = "AdminLayout";
+}
+
+<div class="container-fluid">
+    <div class="card shadow border-0 rounded-4">
+        <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center rounded-top-4">
+            <h4 class="mb-0">
+                <i class="fa fa-users me-2"></i> Community Management
+            </h4>
+
+            <a href="/Admin/Admin/AddCommunity" class="btn btn-light rounded-3">
+                <i class="fa fa-plus me-2"></i> Add Community
+            </a>
+        </div>
+
+        <div class="card-body">
+
+            <div class="mb-4">
+                <input type="text"
+                       id="searchBox"
+                       class="form-control"
+                       placeholder="Search communities..." />
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Logo</th>
+                            <th>Community</th>
+                            <th>Category</th>
+                            <th>Contact</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Website</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="communityTableBody">
+                        <tr>
+                            <td colspan="10" class="text-center py-4">
+                                Loading communities...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let allCommunities = [];
+        let categoryMap = {};
+
+        $(document).ready(function () {
+            loadCommunityCategories();
+
+            $("#searchBox").on("keyup", function () {
+                const search = $(this).val().toLowerCase();
+
+                const filtered = allCommunities.filter(item => {
+                    const categoryName = getCategoryName(item);
+
+                    return (
+                        (item.communityName || '').toLowerCase().includes(search) ||
+                        (item.contactName || '').toLowerCase().includes(search) ||
+                        (item.contactEmail || '').toLowerCase().includes(search) ||
+                        (item.contactPhone || '').toLowerCase().includes(search) ||
+                        categoryName.toLowerCase().includes(search)
+                    );
+                });
+
+                renderCommunities(filtered);
+            });
+        });
+
+        function loadCommunityCategories() {
+            $.ajax({
+                url: "/api/Community/Get_CommunityCategories",
+                type: "GET",
+
+                success: function (categories) {
+
+                    categoryMap = {};
+
+                    categories.forEach(cat => {
+                        const id = cat.communityCategoryId || cat.CommunityCategoryId;
+                        const name = cat.categoryName || cat.CategoryName;
+
+                        categoryMap[id] = name;
+                    });
+
+                    loadCommunities();
+                },
+
+                error: function () {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to load community categories."
+                    });
+                }
+            });
+        }
+
+        function loadCommunities() {
+            $.ajax({
+                url: "/api/Community/Get_Communities",
+                type: "GET",
+
+                success: function (response) {
+                    allCommunities = response;
+                    renderCommunities(response);
+                },
+
+                error: function () {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to load communities."
+                    });
+                }
+            });
+        }
+
+        function getCategoryName(item) {
+            const categoryId = item.communityCategoryId || item.CommunityCategoryId;
+            return categoryMap[categoryId] || "N/A";
+        }
+
+        function renderCommunities(data) {
+            const tbody = $("#communityTableBody");
+            tbody.empty();
+
+            if (!data || data.length === 0) {
+                tbody.html(`
+                    <tr>
+                        <td colspan="10" class="text-center py-4">
+                            No communities found.
+                        </td>
+                    </tr>
+                `);
+                return;
+            }
+
+            data.forEach(item => {
+                const logo = item.logo
+                    ? "/" + item.logo
+                    : "/images/no-image.png";
+
+                const categoryName = getCategoryName(item);
+
+                const activeBadge = item.isActive
+                    ? '<span class="badge bg-success">Active</span>'
+                    : '<span class="badge bg-danger">Inactive</span>';
+
+                tbody.append(`
+                    <tr>
+                        <td>
+                            <img src="${logo}"
+                                 style="width:60px;height:60px;object-fit:cover;border-radius:10px;" />
+                        </td>
+
+                        <td>
+                            <strong>${item.communityName || ''}</strong>
+                        </td>
+
+                        <td>${categoryName}</td>
+
+                        <td>${item.contactName || ''}</td>
+
+                        <td>${item.contactEmail || ''}</td>
+
+                        <td>${item.contactPhone || ''}</td>
+
+                        <td>
+                            ${item.website
+                                ? `<a href="${item.website}" target="_blank">Visit</a>`
+                                : ''
+                            }
+                        </td>
+
+                        <td>${activeBadge}</td>
+
+                        <td>${formatDate(item.createdDate)}</td>
+
+                        <td>
+                            <a href="/Admin/Admin/AddCommunity?id=${item.communityId}"
+                               class="btn btn-sm btn-primary rounded-3">
+                                <i class="fa fa-edit"></i>
+                            </a>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+
+            const d = new Date(dateString);
+            return d.toLocaleDateString();
+        }
+    </script>
+}

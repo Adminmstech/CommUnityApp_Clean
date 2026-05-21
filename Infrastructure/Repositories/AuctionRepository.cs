@@ -264,16 +264,17 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             var parameters = new DynamicParameters();
 
-            parameters.Add("@BidRegistrationId", entity.BidRegistrationId == Guid.Empty
-                ? (Guid?)null
-                : entity.BidRegistrationId);
-
+            parameters.Add("@BidRegistrationId", entity.BidRegistrationId);
             parameters.Add("@AuctionId", entity.AuctionId);
             parameters.Add("@UserId", entity.UserId);
             parameters.Add("@PaymentId", entity.PaymentId);
             parameters.Add("@PaymentStatusId", entity.PaymentStatusId);
 
-            var result = await connection.QueryAsync<BaseResponse>( "Add_BidRegistration",parameters,commandType: CommandType.StoredProcedure );
+            var result = await connection.QueryAsync<BaseResponse>(
+                "Add_BidRegistration",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
 
             return result.FirstOrDefault();
         }
