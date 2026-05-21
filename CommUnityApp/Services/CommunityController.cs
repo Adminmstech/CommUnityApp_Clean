@@ -631,6 +631,21 @@ namespace CommUnityApp.Services
 
             return Ok(result);
         }
+
+        [HttpGet("GetCommunityPostsByUser")]
+        public async Task<IActionResult>
+    GetCommunityPostsByUser(Guid userId)
+        {
+            var result =
+                await _communityRepository
+                .GetCommunityPostsByUser(userId);
+
+            return Ok(new
+            {
+                status = true,
+                data = result
+            });
+        }
     }
 }
 
