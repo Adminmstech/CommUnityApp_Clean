@@ -47,7 +47,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
              decimal longitude)
         {
             using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-
+             
             return await con.QueryAsync(
                 "sp_GetCareConnectSupportersByService",
                 new
