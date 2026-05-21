@@ -501,7 +501,8 @@ CommunityPostModel model)
                         commandType:
                         CommandType.StoredProcedure);
 
-            return result;
+                return result;
+            }
         }
 
 
@@ -524,10 +525,9 @@ CommunityPostModel model)
                 return result.ToList();
             }
         }
-    }
 
-        public async Task<List<CommunityPostModel>>
-    GetCommunityPosts(int communityId)
+
+        public async Task<List<CommunityPostModel>> GetCommunityPosts(int communityId)
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
 
@@ -545,19 +545,15 @@ CommunityPostModel model)
                 return result.ToList();
             }
         }
-        public async Task<dynamic> DeleteCommunityPost(
-    int postId)
+        public async Task<dynamic> DeleteCommunityPost(int postId)
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
 
             {
-                return await connection
-                    .QueryFirstOrDefaultAsync<dynamic>(
-                        "sp_DeleteCommunityPost",
-                        new
-                        {
-                            PostId = postId
-                        },
+                return await connection.QueryFirstOrDefaultAsync<dynamic>("sp_DeleteCommunityPost", new
+                {
+                    PostId = postId
+                },
                         commandType:
                         CommandType.StoredProcedure);
             }

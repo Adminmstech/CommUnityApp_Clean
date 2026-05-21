@@ -214,8 +214,7 @@ namespace CommUnityApp.Services
         public async Task<IActionResult> SendMessage( [FromBody] SendCareMessageModel model)
         {
             var result =
-                await _careConnectRepository
-                .SendCareConnectMessage(model);
+                await _careConnectRepository.SendCareConnectMessage(model);
 
             return Ok(result);
         }
