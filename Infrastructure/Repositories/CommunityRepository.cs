@@ -501,9 +501,30 @@ CommunityPostModel model)
                         commandType:
                         CommandType.StoredProcedure);
 
-                return result;
+            return result;
+        }
+
+
+        public async Task<List<CommunityPostModel>>
+    GetCommunityPostsByUser(Guid userId)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+
+            {
+                var result =
+                    await connection.QueryAsync<CommunityPostModel>(
+                        "sp_GetCommunityPostsByUser",
+                        new
+                        {
+                            UserId = userId
+                        },
+                        commandType:
+                        CommandType.StoredProcedure);
+
+                return result.ToList();
             }
         }
+    }
 
         public async Task<List<CommunityPostModel>>
     GetCommunityPosts(int communityId)

@@ -47,7 +47,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
              decimal longitude)
         {
             using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-
+             
             return await con.QueryAsync(
                 "sp_GetCareConnectSupportersByService",
                 new
@@ -83,7 +83,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
             return await con.QueryFirstAsync(
-                "sp_ConnectSupporter",
+                "sp_ConnectSupporter", 
                 model,
                 commandType: CommandType.StoredProcedure);
         }
@@ -161,6 +161,47 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 new { SupporterId = supporterId },
                 commandType: CommandType.StoredProcedure
             );
+        }
+        public async Task<dynamic> AddSupporterService(AddSupporterServiceModel model)
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+           
+            {
+                var result =
+                    await con
+                    .QueryFirstOrDefaultAsync<dynamic>(
+                        "sp_AddSupporterService",
+                        new
+                        {
+                            UserId = model.UserId,
+                            ServiceId = model.ServiceId
+                        },
+                        commandType:
+                        CommandType.StoredProcedure);
+
+                return result;
+            }
+        }
+
+        public async Task<dynamic>SendCareConnectMessage(SendCareMessageModel model)
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            {
+                return await con
+                    .QueryFirstOrDefaultAsync<dynamic>(
+                        "sp_SendCareConnectMessage",
+                        new
+                        {
+                            ChatThreadId = model.ChatThreadId,
+                            SenderId = model.SenderId,
+                            MessageText = model.MessageText,
+                            MessageType = model.MessageType
+                        },
+                        commandType:
+                        CommandType.StoredProcedure);
+            }
         }
     }
 
