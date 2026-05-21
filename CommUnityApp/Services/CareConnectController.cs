@@ -200,6 +200,25 @@ namespace CommUnityApp.Services
                 Data = data
             });
         }
+
+        [HttpPost("AddSupporterService")]
+        public async Task<IActionResult> AddSupporterService([FromBody] AddSupporterServiceModel model)
+        {
+            var result =
+                await _careConnectRepository
+                .AddSupporterService(model);
+
+            return Ok(result);
+        }
+        [HttpPost("SendCareConnectMessage")]
+        public async Task<IActionResult> SendMessage( [FromBody] SendCareMessageModel model)
+        {
+            var result =
+                await _careConnectRepository
+                .SendCareConnectMessage(model);
+
+            return Ok(result);
+        }
     }
 }
     

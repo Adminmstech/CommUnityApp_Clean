@@ -75,6 +75,13 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public List<Guid> SupporterIds { get; set; }
     }
+
+    public class AddSupporterServiceModel
+    {
+        public Guid UserId { get; set; }
+
+        public int ServiceId { get; set; }
+    }
 }
 
 
