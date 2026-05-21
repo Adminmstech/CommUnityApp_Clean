@@ -83,7 +83,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
             return await con.QueryFirstAsync(
-                "sp_ConnectSupporter",
+                "sp_ConnectSupporter", 
                 model,
                 commandType: CommandType.StoredProcedure);
         }
