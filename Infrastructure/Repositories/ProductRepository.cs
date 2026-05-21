@@ -299,6 +299,20 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result.ToList();
         }
 
+        public async Task<List<AdminPromotionDto>> GetAdminPromotionsAsync()
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
 
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<AdminPromotionDto>(
+                "Get_AdminPromotions",
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
     }
 }

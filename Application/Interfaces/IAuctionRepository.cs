@@ -18,8 +18,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<AuctionListModel>> GetTop5Auctions();
         Task<PlaceBidResponse> PlaceBid(PlaceBidRequest request);
         Task<List<BidDto>> GetRecentBids(int auctionId);
-
         Task<BaseResponse> SaveBidRegistration(BidRegistration entity);
+        Task<List<AdminLiveAuctionDto>> GetAdminLiveAuctionsAsync();
 
     }
 }

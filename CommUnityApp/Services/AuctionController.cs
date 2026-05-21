@@ -560,5 +560,12 @@ namespace CommUnityApp.Services
 
             return Ok(); // Prevent Stripe retries
         }
+
+        [HttpGet("Get_AdminLiveAuctions")]
+        public async Task<IActionResult> Get_AdminLiveAuctions()
+        {
+            var data = await _unitOfWork.Auction.GetAdminLiveAuctionsAsync();
+            return Ok(data);
+        }
     }
 }

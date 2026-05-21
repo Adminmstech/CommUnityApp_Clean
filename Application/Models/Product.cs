@@ -224,4 +224,39 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public List<ProductImageUpload> Images { get; set; } = new List<ProductImageUpload>();
     }
+
+    public class AdminPromotionDto
+    {
+        public int ProductId { get; set; }
+
+        public int BusinessId { get; set; }
+
+        public string? BusinessName { get; set; }
+
+        public int CategoryId { get; set; }
+
+        public string? ProductCategory { get; set; }
+
+        public string? ProductName { get; set; }
+
+        public string? Description { get; set; }
+
+        public decimal Price { get; set; }
+
+        public decimal? DiscountPrice { get; set; }
+
+        public DateTime? StartDate { get; set; }
+
+        public DateTime? Enddate { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public int? RedemptionCoins { get; set; }
+
+        public bool ReferAFriend { get; set; }
+
+        public string? PromotionStatus { get; set; }
+    }
 }

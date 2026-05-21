@@ -269,21 +269,21 @@
                 </a> *@
 
                 <div class="nav-section-title">Communication</div>
-                <a href="@Url.Action("Notifications", "Communication", new { area = "Admin" })">
+                <a href="@Url.Action("Communication", "Admin", new { area = "Admin" })">
                     <i class="fa-solid fa-bell"></i> Send Notification
                 </a>
-                <a href="@Url.Action("Broadcast", "Communication", new { area = "Admin" })">
+               @*  <a href="@Url.Action("Broadcast", "Communication", new { area = "Admin" })">
                     <i class="fa-solid fa-bullhorn"></i> Broadcast Message
                 </a>
                 <a href="@Url.Action("EmailUsers", "Communication", new { area = "Admin" })">
                     <i class="fa-solid fa-envelope"></i> Email Users
-                </a>
+                </a> *@
 
                 <div class="nav-section-title">Management</div>
-                <a href="@Url.Action("Promotions", "Promotion", new { area = "Admin" })">
+                <a href="@Url.Action("Promotions", "Admin", new { area = "Admin" })">
                     <i class="fa-solid fa-tags"></i> Promotions
                 </a>
-                <a href="@Url.Action("LiveAuctions", "Auction", new { area = "Admin" })">
+                <a href="@Url.Action("LiveAuctions", "Admin", new { area = "Admin" })">
                     <i class="fa-solid fa-gavel"></i> Live Auctions
                 </a>
                 <a href="@Url.Action("Appointments", "Appointment", new { area = "Admin" })">
