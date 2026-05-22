@@ -80,7 +80,7 @@ namespace CommUnityApp.ApplicationCore.Models
     {
         public Guid UserId { get; set; }
 
-        public int ServiceId { get; set; }
+        public string ServiceIds { get; set; }
     }
 
     public class SendCareMessageModel
@@ -92,6 +92,11 @@ namespace CommUnityApp.ApplicationCore.Models
         public string MessageText { get; set; }
 
         public string MessageType { get; set; } = "Text";
+    }
+
+    public class VolunteerRequestModel
+    {
+        public Guid UserId { get; set; }
     }
 }
 

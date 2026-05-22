@@ -22,5 +22,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<IEnumerable<dynamic>> GetSupporterRequestList(Guid supporterId);
         Task<dynamic> AddSupporterService(AddSupporterServiceModel model);
         Task<dynamic> SendCareConnectMessage(SendCareMessageModel model);
+        Task<dynamic> AddVolunteerRole(Guid userId);
     }
 }
