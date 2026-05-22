@@ -28,33 +28,22 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<MyRequestedItemsModel>> GetMyRequestedItems(Guid userId);
         
         Task<List<Community>> GetCommunities();
-
-    
         Task<List<ItemCategoryModel>> GetItemCategories();
-
-       
-
         Task<List<MemberModel>> GetMembersByCommunity(int communityId);
-
         Task<List<dynamic>> GetMessages(long communityId, Guid receiverUserId);
         Task<List<dynamic>> GetCommunityUsers(long communityId);
         Task<int> SendMessage(long communityId, Guid receiverUserId, string message, string imagePath);
 
-
-        Task<dynamic> AddCommunityPost(
-    CommunityPostModel model);
-
-        Task<List<CommunityPostModel>>
-            GetCommunityPosts(int communityId);
-
-        Task<dynamic> DeleteCommunityPost(
-     int postId);
+        Task<dynamic> AddCommunityPost(CommunityPostModel model);
+        Task<List<CommunityPostModel>>GetCommunityPosts(int communityId);
+        Task<dynamic> DeleteCommunityPost(int postId);
         Task<List<CommunityCategoryDto>> GetCommunityCategoriesAsync();
         Task<BaseResponse> AddCommunityAsync(AddCommunityRequest entity);
         Task<List<CommunityDto>> GetCommunitiesAsync();
         Task<CommunityDto> GetCommunityDetailsAsync(int communityId);
         Task<List<CommunityDto>> GetCommunitiesByCategoryAsync(int communityCategoryId);
         Task<BaseResponse> UpdateUserCommunityAsync(UpdateUserCommunityRequest entity);
+        Task<List<CommunityPostModel>> GetCommunityPostsByUser(Guid userId);
     }
 
 }

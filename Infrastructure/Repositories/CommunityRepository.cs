@@ -506,8 +506,7 @@ CommunityPostModel model)
         }
 
 
-        public async Task<List<CommunityPostModel>>
-    GetCommunityPostsByUser(Guid userId)
+        public async Task<List<CommunityPostModel>>GetCommunityPostsByUser(Guid userId)
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
 
@@ -560,6 +559,6 @@ CommunityPostModel model)
 
         }
 
+        
     }
 }
-

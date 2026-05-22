@@ -262,4 +262,39 @@ namespace CommUnityApp.ApplicationCore.Models
         public string? AuctionDisplayStatus { get; set; }
     }
 
+    public class AuctionWinnerSellerDetailsResponse 
+    {
+        public int AuctionId { get; set; }
+
+        public string? ItemTitle { get; set; }
+
+        public string? ItemDescription { get; set; }
+
+        public string? ItemLocation { get; set; }
+
+        public int? DeleveryMethodId { get; set; }
+
+        public string? CreatedBy { get; set; }
+
+        public Guid? SellerUserId { get; set; }
+
+        public string? SellerName { get; set; }
+
+        public string? SellerEmail { get; set; }
+
+        public string? SellerPhone { get; set; }
+
+        public int? BusinessId { get; set; }
+
+        public string? BusinessName { get; set; }
+
+        public string? OwnerName { get; set; }
+
+        public string? BusinessEmail { get; set; }
+
+        public string? BusinessPhone { get; set; }
+
+        public string? BusinessAddress { get; set; }
+    }
+
 }

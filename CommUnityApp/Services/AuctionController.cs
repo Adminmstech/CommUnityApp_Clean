@@ -567,5 +567,33 @@ namespace CommUnityApp.Services
             var data = await _unitOfWork.Auction.GetAdminLiveAuctionsAsync();
             return Ok(data);
         }
+
+        [HttpGet("Get_AuctionWinnerSellerDetails")]
+        public async Task<IActionResult> GetAuctionWinnerSellerDetails(int auctionId, Guid userId)
+        {
+            try
+            {
+                var result = await _unitOfWork.Auction.GetAuctionWinnerSellerDetailsAsync(auctionId, userId);
+
+                if (result == null)
+                {
+                    return Ok(new BaseResponse
+                    {
+                        ResultId = 0,
+                        ResultMessage = "No details found."
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
     }
 }

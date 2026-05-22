@@ -385,4 +385,6 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public int CommunityId { get; set; }
     }
+
+   
 }
