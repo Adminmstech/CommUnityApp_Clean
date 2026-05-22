@@ -228,7 +228,7 @@ namespace CommUnityApp.Services
                 .AddVolunteerRole(model.UserId);
 
             return Ok(new
-            {
+            { 
                 ResultId = result.ResultId,
                 ResultMessage = result.ResultMessage,
                 Status = true
