@@ -219,6 +219,21 @@ namespace CommUnityApp.Services
 
             return Ok(result);
         }
+
+        [HttpPost("BecomeVolunteer")]
+        public async Task<IActionResult>BecomeVolunteer([FromBody]VolunteerRequestModel model)
+        {
+            var result =
+                await _careConnectRepository
+                .AddVolunteerRole(model.UserId);
+
+            return Ok(new
+            { 
+                ResultId = result.ResultId,
+                ResultMessage = result.ResultMessage,
+                Status = true
+            });
+        }
     }
 }
     

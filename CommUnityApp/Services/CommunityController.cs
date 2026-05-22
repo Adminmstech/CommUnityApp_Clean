@@ -240,26 +240,77 @@ namespace CommUnityApp.Services
             {
                 string imagePath = "";
 
-                var charityItemId = await _communityRepository.AddCharityItem(model, "");
+             
+                var result =
+                    await _communityRepository
+                    .AddCharityItem(model, "");
+
+                int charityItemId =
+                    result.CharityItemId;        
 
                 if (!string.IsNullOrEmpty(model.ImagePath))
                 {
-                    string folderPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "charity", charityItemId.ToString());
+                    string folderPath =
+                        Path.Combine(
+                            Directory.GetCurrentDirectory(),
+                            "wwwroot",
+                            "uploads",
+                            "charity",
+                            charityItemId.ToString());
+
 
                     if (!Directory.Exists(folderPath))
+                    {
                         Directory.CreateDirectory(folderPath);
+                    }
+                  
+                    string base64String =
+                        model.ImagePath;
 
-                    string filePath = Path.Combine(folderPath, model.FileName);
+                    if (base64String.Contains(","))
+                    {
+                        base64String =
+                            base64String.Substring(
+                                base64String.IndexOf(",") + 1);
+                    }                
+                    string fileName =
+                        Guid.NewGuid().ToString()
+                        + Path.GetExtension(model.FileName);
 
-                    byte[] imageBytes = Convert.FromBase64String(model.ImagePath);
-                    System.IO.File.WriteAllBytes(filePath, imageBytes);
+                    string filePath =
+                        Path.Combine(folderPath, fileName);
 
-                    imagePath = "/uploads/charity/" + charityItemId + "/" + model.FileName;
 
-                    //await _communityRepository.UpdateCharityItemImage(charityItemId, imagePath);
+                    byte[] imageBytes =
+                        Convert.FromBase64String(base64String);
+
+                    System.IO.File.WriteAllBytes(
+                        filePath,
+                        imageBytes);
+
+
+                    imagePath =
+                        "/uploads/charity/"
+                        + charityItemId
+                        + "/"
+                        + fileName;
+
+                    await _communityRepository
+                        .UpdateCharityItemImage(
+                            charityItemId,
+                            imagePath);
                 }
 
-                return Ok(new { message = "Item added successfully" });
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage =
+                        "Item added successfully",
+
+                    CharityItemId = charityItemId,
+
+                    ImagePath = imagePath
+                });
             }
             catch (Exception ex)
             {
@@ -755,6 +806,20 @@ int postId)
 
         return Ok(result);
     }
+
+        [HttpGet("GetCommunityPostsByUser")]
+        public async Task<IActionResult> GetCommunityPostsByUser(Guid userId)
+        {
+            var result =
+                await _communityRepository
+                .GetCommunityPostsByUser(userId);
+
+            return Ok(new
+            {
+                status = true, 
+                data = result
+            });
+        }
     }
 }
 

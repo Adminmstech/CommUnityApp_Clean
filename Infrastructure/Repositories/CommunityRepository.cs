@@ -164,15 +164,24 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
         public async Task UpdateCharityItemImage(int charityItemId, string imagePath)
         {
-            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            using (var con =
+                new SqlConnection(
+                    _configuration.GetConnectionString(
+                        "DefaultConnection")))
             {
                 await con.ExecuteAsync(
-                    "UPDATE CharityItems SET ImagePath=@ImagePath WHERE CharityItemId=@CharityItemId",
-                    new { CharityItemId = charityItemId, ImagePath = imagePath });
+                    "SP_UpdateCharityItemImage",
+                    new
+                    {
+                        CharityItemId = charityItemId,
+                        ImagePath = imagePath
+                    },
+                    commandType:
+                    CommandType.StoredProcedure);
             }
         }
 
-        public async Task<int> RequestCharityItem(RequestCharityItemModel model)
+            public async Task<int> RequestCharityItem(RequestCharityItemModel model)
         {
             using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
@@ -363,7 +372,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
-                var result = await connection.QueryAsync<CommunityCategoryDto>( "Get_CommunityCategories",commandType: CommandType.StoredProcedure );
+                var result = await connection.QueryAsync<CommunityCategoryDto>("Get_CommunityCategories", commandType: CommandType.StoredProcedure);
                 return result.ToList();
             }
         }
@@ -480,30 +489,30 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result.FirstOrDefault();
         }
-        
-            public async Task<dynamic> AddCommunityPost(
+
+        public async Task<dynamic> AddCommunityPost(
 CommunityPostModel model)
-    {
-        using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-
         {
-            var result =
-                await connection.QueryFirstOrDefaultAsync<dynamic>(
-                    "sp_AddCommunityPost",
-                    new
-                    {
-                        CommunityId = model.CommunityId,
-                        Title = model.Title,
-                        Message = model.Message,
-                        ImagePath = model.ImagePath,
-                        CreatedBy = model.CreatedBy
-                    },
-                    commandType:
-                    CommandType.StoredProcedure);
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
 
-            return result;
+            {
+                var result =
+                    await connection.QueryFirstOrDefaultAsync<dynamic>(
+                        "sp_AddCommunityPost",
+                        new
+                        {
+                            CommunityId = model.CommunityId,
+                            Title = model.Title,
+                            Message = model.Message,
+                            ImagePath = model.ImagePath,
+                            CreatedBy = model.CreatedBy
+                        },
+                        commandType:
+                        CommandType.StoredProcedure);
+
+                return result;
+            }
         }
-
 
         public async Task<List<CommunityPostModel>>
     GetCommunityPostsByUser(Guid userId)
@@ -524,45 +533,49 @@ CommunityPostModel model)
                 return result.ToList();
             }
         }
-    }
 
-    public async Task<List<CommunityPostModel>>
-GetCommunityPosts(int communityId)
-    {
-        using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
 
+        public async Task<List<CommunityPostModel>>
+    GetCommunityPosts(int communityId)
         {
-            var result =
-                await connection.QueryAsync<CommunityPostModel>(
-                    "sp_GetCommunityPosts",
-                    new
-                    {
-                        CommunityId = communityId
-                    },
-                    commandType:
-                    CommandType.StoredProcedure);
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
 
-            return result.ToList();
+            {
+                var result =
+                    await connection.QueryAsync<CommunityPostModel>(
+                        "sp_GetCommunityPosts",
+                        new
+                        {
+                            CommunityId = communityId
+                        },
+                        commandType:
+                        CommandType.StoredProcedure);
+
+                return result.ToList();
+            }
         }
-    }
-    public async Task<dynamic> DeleteCommunityPost(
-int postId)
-    {
-        using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-
+        public async Task<dynamic> DeleteCommunityPost(
+    int postId)
         {
-            return await connection
-                .QueryFirstOrDefaultAsync<dynamic>(
-                    "sp_DeleteCommunityPost",
-                    new
-                    {
-                        PostId = postId
-                    },
-                    commandType:
-                    CommandType.StoredProcedure);
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+
+            {
+                return await connection
+                    .QueryFirstOrDefaultAsync<dynamic>(
+                        "sp_DeleteCommunityPost",
+                        new
+                        {
+                            PostId = postId
+                        },
+                        commandType:
+                        CommandType.StoredProcedure);
+            }
+
         }
+
         
+        }
+
     }
 
-}
 
