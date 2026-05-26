@@ -141,7 +141,7 @@ else
                     <input type="email" id="email" class="form-control mb-2" placeholder="Email *" />
                     <input type="text" id="phone" class="form-control mb-2" placeholder="Phone *" />
 
-                    <input type="date" id="dob" class="form-control mb-2" />
+                    @*<input type="date" id="dob" class="form-control mb-2" />
 
                     <select id="gender" class="form-control mb-2">
                         <option value="">Gender</option>
@@ -155,7 +155,7 @@ else
 
                     <input type="text" id="location" class="form-control mb-2" placeholder="Current Location" />
                     <input type="number" id="salary" class="form-control mb-2" placeholder="Expected Salary" />
-                    <input type="text" id="notice" class="form-control mb-2" placeholder="Notice Period" />
+                    <input type="text" id="notice" class="form-control mb-2" placeholder="Notice Period" />*@
 
                     <textarea id="coverLetter" class="form-control mb-3" placeholder="Cover Letter"></textarea>
                     <input type="file"
@@ -198,7 +198,7 @@ else
             formData.append("Phone",
                 document.getElementById("phone").value);
 
-            formData.append("DateOfBirth",
+            @*formData.append("DateOfBirth",
                 document.getElementById("dob").value);
 
             formData.append("Gender",
@@ -220,7 +220,7 @@ else
                 document.getElementById("salary").value || 0);
 
             formData.append("NoticePeriod",
-                document.getElementById("notice").value);
+                document.getElementById("notice").value);*@
 
             formData.append("CoverLetter",
                 document.getElementById("coverLetter").value);
