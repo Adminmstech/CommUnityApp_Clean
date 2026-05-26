@@ -181,7 +181,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             }
         }
 
-            public async Task<int> RequestCharityItem(RequestCharityItemModel model)
+        public async Task<int> RequestCharityItem(RequestCharityItemModel model)
         {
             using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
@@ -515,7 +515,7 @@ CommunityPostModel model)
         }
 
 
-        public async Task<List<CommunityPostModel>>GetCommunityPostsByUser(Guid userId)
+        public async Task<List<CommunityPostModel>> GetCommunityPostsByUser(Guid userId)
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
 
@@ -534,10 +534,10 @@ CommunityPostModel model)
             }
         }
 
-    public async Task<List<CommunityPostModel>>
-GetCommunityPosts(int communityId)
-    {
-        using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+        public async Task<List<CommunityPostModel>>
+    GetCommunityPosts(int communityId)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
 
             {
                 var result =
@@ -550,27 +550,28 @@ GetCommunityPosts(int communityId)
                         commandType:
                         CommandType.StoredProcedure);
 
-            return result.ToList();
+                return result.ToList();
+            }
         }
-    }
-    public async Task<dynamic> DeleteCommunityPost(
-int postId)
-    {
-        using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-
+        public async Task<dynamic> DeleteCommunityPost(
+    int postId)
         {
-            return await connection
-                .QueryFirstOrDefaultAsync<dynamic>(
-                    "sp_DeleteCommunityPost",
-                    new
-                    {
-                        PostId = postId
-                    },
-                    commandType:
-                    CommandType.StoredProcedure);
-        }
-        
-    }
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
 
+            {
+                return await connection
+                    .QueryFirstOrDefaultAsync<dynamic>(
+                        "sp_DeleteCommunityPost",
+                        new
+                        {
+                            PostId = postId
+                        },
+                        commandType:
+                        CommandType.StoredProcedure);
+            }
+
+        }
+
+    }
 }
 

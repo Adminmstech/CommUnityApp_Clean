@@ -296,7 +296,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         }
 
 
-        public async Task<AuctionWinnerSellerDetailsResponse> GetAuctionWinnerSellerDetailsAsync(int auctionId,Guid userId)
+        public async Task<AuctionWinnerSellerDetailsResponse> GetAuctionWinnerSellerDetailsAsync(Guid userId)
         {
             using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection")
@@ -306,7 +306,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             var parameters = new DynamicParameters();
 
-            parameters.Add("@AuctionId", auctionId);
+           
             parameters.Add("@UserId", userId);
 
             var result = await connection.QueryFirstOrDefaultAsync<AuctionWinnerSellerDetailsResponse>(

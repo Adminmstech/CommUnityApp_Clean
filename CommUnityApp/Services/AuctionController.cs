@@ -569,11 +569,11 @@ namespace CommUnityApp.Services
         }
 
         [HttpGet("Get_AuctionWinnerSellerDetails")]
-        public async Task<IActionResult> GetAuctionWinnerSellerDetails(int auctionId, Guid userId)
+        public async Task<IActionResult> GetAuctionWinnerSellerDetails( Guid userId)
         {
             try
             {
-                var result = await _unitOfWork.Auction.GetAuctionWinnerSellerDetailsAsync(auctionId, userId);
+                var result = await _unitOfWork.Auction.GetAuctionWinnerSellerDetailsAsync( userId);
 
                 if (result == null)
                 {

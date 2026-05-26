@@ -20,7 +20,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<BidDto>> GetRecentBids(int auctionId);
         Task<BaseResponse> SaveBidRegistration(BidRegistration entity);
         Task<List<AdminLiveAuctionDto>> GetAdminLiveAuctionsAsync();
-        Task<AuctionWinnerSellerDetailsResponse> GetAuctionWinnerSellerDetailsAsync(int auctionId, Guid userId);
+        Task<AuctionWinnerSellerDetailsResponse> GetAuctionWinnerSellerDetailsAsync( Guid userId);
 
     }
 }
