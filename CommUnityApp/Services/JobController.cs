@@ -45,7 +45,7 @@ namespace CommUnityApp.Services
 
             if (!string.IsNullOrEmpty(model.ResumePath))
             {
-                string folderPath =
+                string folderPath = 
                     Path.Combine(
                         _environment.WebRootPath,
                         "Uploads",
