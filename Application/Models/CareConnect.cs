@@ -80,7 +80,23 @@ namespace CommUnityApp.ApplicationCore.Models
     {
         public Guid UserId { get; set; }
 
-        public int ServiceId { get; set; }
+        public string ServiceIds { get; set; }
+    }
+
+    public class SendCareMessageModel
+    {
+        public long ChatThreadId { get; set; }
+
+        public Guid SenderId { get; set; }
+
+        public string MessageText { get; set; }
+
+        public string MessageType { get; set; } = "Text";
+    }
+
+    public class VolunteerRequestModel
+    {
+        public Guid UserId { get; set; }
     }
     public class SendCareMessageModel
     {

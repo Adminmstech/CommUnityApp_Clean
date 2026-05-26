@@ -175,7 +175,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                         new
                         {
                             UserId = model.UserId,
-                            ServiceId = model.ServiceId
+                            ServiceIds = model.ServiceIds
                         },
                         commandType:
                         CommandType.StoredProcedure);
@@ -201,6 +201,26 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                         },
                         commandType:
                         CommandType.StoredProcedure);
+            }
+        }
+
+        public async Task<dynamic> AddVolunteerRole( Guid userId)
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            {
+                var result =
+                    await con
+                    .QueryFirstOrDefaultAsync<dynamic>(
+                        "sp_AddUserAsVolunteer",
+                        new
+                        {
+                            UserId = userId
+                        },
+                        commandType:
+                        CommandType.StoredProcedure);
+
+                return result;
             }
         }
     }
