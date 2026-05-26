@@ -1,0 +1,322 @@
+﻿@{
+    ViewData["Title"] = "Community Posts";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+
+}
+
+<div class="container mt-3">
+
+    <h4 class="mb-3">All Posts</h4>
+
+    <!-- 🔍 SEARCH -->
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <input type="text" id="txtSearch" class="form-control" placeholder="Search by category or description..." />
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100" onclick="filterData()">Search</button>
+        </div>
+    </div>
+
+    <!-- 📊 TABLE -->
+    <div class="card shadow-sm">
+        <div class="card-body">
+
+            <table class="table table-bordered table-striped" id="tblPosts">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Image</th>
+                        <th>Category</th>
+                        <th>Description</th>
+                        <th>Location</th>
+                        <th>Date</th>
+                        <th>Comments</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="8" class="text-center">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <!-- 📄 PAGINATION -->
+            <div class="d-flex justify-content-between mt-3">
+                <div>
+                    <strong>Showing:</strong> <span id="pageInfo"></span>
+                </div>
+                <div>
+                    <button class="btn btn-sm btn-primary" onclick="prevPage()">Prev</button>
+                    <span id="currentPage" class="mx-2">1</span>
+                    <button class="btn btn-sm btn-primary" onclick="nextPage()">Next</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <div class="modal fade" id="postModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title">Post Details</h5>
+                    <button class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+
+                <div class="modal-body" id="postDetailsBody">
+                    Loading...
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 💬 COMMENTS -->
+    <div id="commentsSection" class="mt-4"></div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    var allData = [];
+    var filteredData = [];
+    var pageSize = 5;
+    var currentPage = 1;
+
+    $(document).ready(function () {
+        loadPosts();
+    });
+
+    function loadPosts() {
+        $.ajax({
+            url: '/api/Notification/GetPosts',
+            type: 'GET',
+            success: function (res) {
+
+                allData = res || [];
+                filteredData = allData;
+
+                currentPage = 1;
+                renderTable();
+            }
+        });
+    }
+
+    function filterData() {
+        var search = $("#txtSearch").val().toLowerCase();
+
+        filteredData = allData.filter(x =>
+            (x.category && x.category.toLowerCase().includes(search)) ||
+            (x.description && x.description.toLowerCase().includes(search))
+        );
+
+        currentPage = 1;
+        renderTable();
+    }
+
+    function renderTable() {
+
+        var html = "";
+
+        var start = (currentPage - 1) * pageSize;
+        var end = start + pageSize;
+
+        var pageData = filteredData.slice(start, end);
+
+        if (pageData.length === 0) {
+            html += "<tr><td colspan='8' class='text-center'>No records found</td></tr>";
+        }
+        else {
+            $.each(pageData, function (i, p) {
+
+                var rowNumber = start + i + 1;
+
+                html += "<tr>";
+                html += "<td>" + rowNumber + "</td>";
+
+                html += "<td>";
+                if (p.ImagePath) {
+                    html += "<img src='" + p.ImagePath + "' style='width:80px;height:80px' class='img-thumbnail'/>";
+                } else {
+                    html += "<img src='/images/noimage.png' style='width:80px;height:80px' class='img-thumbnail'/>";
+                }
+                html += "</td>";
+
+                html += "<td>" + (p.Category || "") + "</td>";
+                html += "<td>" + (p.Description || "") + "</td>";
+                html += "<td>" + (p.Location || "") + "</td>";
+                html += "<td>" + new Date(p.CreatedDate).toLocaleDateString() + "</td>";
+
+                html += "<td>" + p.CommentCount + "</td>";
+
+                html += "<td>";
+                html += "<button class='btn btn-sm btn-info me-1' onclick='viewComments(" + p.PostId + ")'>View</button>";
+                html += "<button class='btn btn-sm btn-danger' onclick='deletePost(" + p.PostId + ")'>Delete</button>";
+                html += "<button class='btn btn-sm btn-primary me-1' onclick='viewPostDetails(" + p.PostId + ")'>View Details</button>";
+                html += "</td>";
+
+                html += "</tr>";
+            });
+        }
+
+        $("#tblPosts tbody").html(html);
+
+        $("#currentPage").text(currentPage);
+        $("#pageInfo").text((start + 1) + " - " + Math.min(end, filteredData.length) + " of " + filteredData.length);
+    }
+
+    function nextPage() {
+        if ((currentPage * pageSize) < filteredData.length) {
+            currentPage++;
+            renderTable();
+        }
+    }
+
+    function prevPage() {
+        if (currentPage > 1) {
+            currentPage--;
+            renderTable();
+        }
+    }
+
+    function viewComments(postId) {
+
+        $.get('/api/Notification/GetComments?postId=' + postId, function (res) {
+
+            var html = "<h5>Comments</h5>";
+
+            if (res.length === 0) {
+                html += "<p>No comments</p>";
+            }
+
+            $.each(res, function (i, c) {
+
+                html += "<div class='border p-2 mb-2'>";
+                html += "<b>" + c.FullName + "</b><br/>";
+
+                html += "<b>" + (c.CommentText || "") + "</b><br/>";
+                html += "<small>" + new Date(c.CreatedDate).toLocaleString() + "</small><br/>";
+
+                html += "<button class='btn btn-sm btn-danger mt-1' onclick='deleteComment(" + c.CommentId + ")'>Delete</button>";
+
+                html += "</div>";
+            });
+
+            $("#commentsSection").html(html);
+        });
+    }
+    function deleteComment(id) {
+        $.ajax({
+            url: '/api/Notification/DeleteComment?commentId=' + id,
+            type: 'DELETE',
+            success: function () {
+                alert("Comment deleted");
+                loadPosts();
+            }
+        });
+    }
+
+    function deletePost(id) {
+        if (!confirm("Are you sure?")) return;
+
+        $.ajax({
+            url: '/api/Notification/DeletePost?postId=' + id,
+            type: 'DELETE',
+            success: function () {
+                alert("Post deleted");
+                loadPosts();
+            }
+        });
+    }
+
+    function viewPostDetails(postId) {
+        $.get('/api/Notification/GetPostDetails?postId=' + postId, function (p) {
+            console.log("API Response:", p);
+
+            var html = "";
+
+            var category = p.Category || p.category || "No Category";
+            var description = p.Description || p.description || "";
+            var location = p.Location || p.location || "";
+
+            var memberName = p.FullName || p.fullName || p.UserName || p.userName || "Unknown Member";
+            var createdDate = p.CreatedDate || p.createdDate;
+
+            var images = p.Images || p.images || [];
+            var comments = p.Comments || p.comments || [];
+
+            html += "<h5>" + category + "</h5>";
+            html += "<p><b>Posted By:</b> " + memberName + "</p>"; 
+            html += "<p>" + description + "</p>";
+            html += "<p><b>Location:</b> " + location + "</p>";
+
+            if (createdDate) {
+                html += "<p><b>Date:</b> " + new Date(createdDate).toLocaleString() + "</p>";
+            }
+
+            if (images.length > 0) {
+                html += "<div class='mb-3'>";
+                $.each(images, function (i, img) {
+                    html += "<img src='" + img + "' style='width:120px;margin:5px' class='img-thumbnail'/>";
+                });
+                html += "</div>";
+            }
+
+            html += "<h6 class='mt-3 border-top pt-2'>Comments</h6>";
+
+            if (comments.length === 0) {
+                html += "<p class='text-muted'>No comments yet.</p>";  
+            } else {
+                $.each(comments, function (i, c) {
+                    var cId = c.CommentId || c.commentId;
+                    var cUser = c.FullName || c.fullName || c.UserName || c.userName || "User";
+                    var cText = c.CommentText || c.commentText || "";
+
+                    // 🔍 Try all possible date property names
+                    var cDate = c.CreatedDate || c.createdDate || c.dateCreated || c.commentDate || c.postedDate;
+
+                    html += "<div class='border p-2 mb-2 rounded bg-light'>";
+                    html += "<b>" + cUser + "</b><br/>";
+                    html += "<span>" + cText + "</span><br/>";
+
+                    if (cDate) {
+                        html += "<small class='text-muted'>" + new Date(cDate).toLocaleString() + "</small><br/>";
+                    } else {
+                        html += "<small class='text-danger'>Date property missing</small><br/>";
+                    }
+
+                    if (cId) {
+                        html += "<button class='btn btn-sm btn-outline-danger mt-1' onclick='deleteCommentFromModal(" + cId + "," + postId + ")'>Delete</button>";
+                    }
+                    html += "</div>";
+                });
+            }
+
+            $("#postDetailsBody").html(html);
+            new bootstrap.Modal(document.getElementById('postModal')).show();
+        });
+    }
+    function deleteCommentFromModal(commentId, postId) {
+
+        if (!confirm("Delete this comment?")) return;
+
+        $.ajax({
+            url: '/api/Notification/DeleteComment?commentId=' + commentId,
+            type: 'DELETE',
+            success: function () {
+
+                alert("Comment deleted");
+
+                viewPostDetails(postId);
+            },
+            error: function (err) {
+                console.log(err);
+                alert("Delete failed");
+            }
+        });
+    }
+    
+</script>

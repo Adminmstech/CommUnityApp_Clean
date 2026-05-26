@@ -6,7 +6,8 @@
     <title>@ViewData["Title"] - Indian Community</title>
 
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         :root {
             --sidebar-bg: #020617;
@@ -211,54 +212,198 @@
 
             <nav class="nav">
 
-                <a href="/Home" onclick="closeSidebar()">🏠 Dashboard</a>
+                <a href="/Home" onclick="closeSidebar()">
+                    <i class="bi bi-speedometer2"></i>
+                    Dashboard
+                </a>
 
-                <!-- Events Menu -->
+                <!-- Events -->
                 <div class="menu-item">
-                    <a href="#" onclick="toggleMenu('eventsMenu')">📅 Events ▾</a>
+                    <a href="#" onclick="toggleMenu('eventsMenu')">
+                        <i class="bi bi-calendar-event"></i>
+                        Events
+                    </a>
+
                     <div id="eventsMenu" class="submenu">
-                        <a href="/Community/Home/AddEvent" onclick="closeSidebar()">➕ Add Event</a>
-                        <a href="/Community/Home/ViewEvents" onclick="closeSidebar()">📋 View Events</a>
+
+                        <a href="/Community/Home/AddEvent"
+                           onclick="closeSidebar()">
+                            <i class="bi bi-plus-circle"></i>
+                            Add Event
+                        </a>
+
+                        <a href="/Community/Home/ViewEvents"
+                           onclick="closeSidebar()">
+                            <i class="bi bi-card-list"></i>
+                            View Events
+                        </a>
+
                     </div>
                 </div>
 
-                <!-- Sponsors Menu -->
+                <!-- Sponsors -->
                 <div class="menu-item">
-                    <a href="#" onclick="toggleMenu('sponsorMenu')">🤝 Sponsors ▾</a>
+
+                    <a href="#"
+                       onclick="toggleMenu('sponsorMenu')">
+
+                        <i class="bi bi-people-fill"></i>
+                        Sponsors
+                    </a>
+
                     <div id="sponsorMenu" class="submenu">
-                        <a href="/Community/Home/AddEventSponsors" onclick="closeSidebar()">➕ Add Sponsor</a>
-                        <a href="/Community/Home/EventSponsors" onclick="closeSidebar()">📋 View Sponsors</a>
-                        <a href="/Community/Home/AddSponsorsToEvent" onclick="closeSidebar()">➕ Add Sponsors To Event</a>
+
+                        <a href="/Community/Home/AddEventSponsors">
+                            <i class="bi bi-plus-circle"></i>
+                            Add Sponsor
+                        </a>
+
+                        <a href="/Community/Home/EventSponsors">
+                            <i class="bi bi-card-list"></i>
+                            View Sponsors
+                        </a>
+
+                        <a href="/Community/Home/AddSponsorsToEvent">
+                            <i class="bi bi-link-45deg"></i>
+                            Add Sponsors To Event
+                        </a>
+
                     </div>
                 </div>
 
-                <!-- Charity Menu -->
+                <!-- Charity -->
                 <div class="menu-item">
-                    <a href="#" onclick="toggleMenu('charityMenu')">🎁 Charity ▾</a>
+
+                    <a href="#"
+                       onclick="toggleMenu('charityMenu')">
+
+                        <i class="bi bi-gift-fill"></i>
+                        Charity
+                    </a>
+
                     <div id="charityMenu" class="submenu">
-                        <a href="/Community/Home/CharityList" onclick="closeSidebar()">📋 Charity List</a>
-                        <a href="/Community/Home/ItemRequestList" onclick="closeSidebar()">📝 Item Requests</a>
-                        <a href="/Community/Home/DeliveryReport" onclick="closeSidebar()">🚚 Delivery Report</a>
+
+                        <a href="/Community/Home/CharityList">
+                            <i class="bi bi-list-ul"></i>
+                            Charity List
+                        </a>
+
+                        <a href="/Community/Home/ItemRequestList">
+                            <i class="bi bi-journal-text"></i>
+                            Item Requests
+                        </a>
+
+                        <a href="/Community/Home/DeliveryReport">
+                            <i class="bi bi-truck"></i>
+                            Delivery Report
+                        </a>
+
                     </div>
                 </div>
 
                 <!-- Members -->
                 <div class="menu-item">
-                    <a href="#" onclick="toggleMenu('memberMenu')">👥 Members ▾</a>
+
+                    <a href="#"
+                       onclick="toggleMenu('memberMenu')">
+
+                        <i class="bi bi-people"></i>
+                        Members
+                    </a>
+
                     <div id="memberMenu" class="submenu">
-                        <a href="/Member/AddMember" onclick="closeSidebar()">➕ Add Member</a>
-                        <a href="/Community/Home/ViewMembers" onclick="closeSidebar()">📋 View Members</a>
+
+                        <a href="/Member/AddMember">
+                            <i class="bi bi-person-plus"></i>
+                            Add Member
+                        </a>
+
+                        <a href="/Community/Home/ViewMembers">
+                            <i class="bi bi-card-list"></i>
+                            View Members
+                        </a>
+
                     </div>
                 </div>
-                 <div class="menu-item">
-                    <a href="#" onclick="toggleMenu('messagesMenu')">👥 Communication ▾</a>
+
+                <!-- Communication -->
+                <div class="menu-item">
+
+                    <a href="#"
+                       onclick="toggleMenu('messagesMenu')">
+
+                        <i class="bi bi-chat-dots"></i>
+                        Communication
+                    </a>
+
                     <div id="messagesMenu" class="submenu">
-                        <a href="/Community/Home/CommunityChat" onclick="closeSidebar()">➕ Send Message</a>
-                        <a href="/Community/Home/ViewMembers" onclick="closeSidebar()">📋 View Members</a>
+
+                        <a href="/Community/Home/CommunityChat">
+                            <i class="bi bi-send"></i>
+                            Send Message
+                        </a>
+
+                        <a href="/Community/Home/ViewMessageBoardPosts">
+                            <i class="bi bi-chat-square-text"></i>
+                            MessageBoard Posts
+                        </a>
+
                     </div>
                 </div>
+                <div class="menu-item">
+
+                    <a href="#"
+                       onclick="toggleMenu('communicationMenu')">
+
+                        <i class="bi bi-chat-dots"></i>
+                        Community Posts
+                    </a>
+
+                    <div id="communicationMenu" class="submenu">
+
+                        <a href="/Community/Home/CommunityPosts">
+                            <i class="bi bi-controller"></i>
+                            Community Posts
+                        </a>
+
+                        <a href="/Community/Home/AddCommunityPosts">
+                            <i class="bi bi-send"></i>
+                            Send Community Post
+                        </a>
+
+                    </div>
+                </div>
+                <!-- Reports -->
+                <div class="menu-item">
+
+                    <a href="#"
+                       onclick="toggleMenu('gameMenu')">
+
+                        <i class="bi bi-bar-chart"></i>
+                        Reports
+                    </a>
+
+                    <div id="gameMenu" class="submenu">
+
+                        <a href="/Community/Home/ViewSpinGameGameResults">
+                            <i class="bi bi-controller"></i>
+                            SpinGame Results
+                        </a>
+
+                        <a href="/Community/Home/ViewBrandGameResults">
+                            <i class="bi bi-trophy"></i>
+                            BrandGame Results
+                        </a>
+
+                    </div>
+                </div>
+
                 <!-- Settings -->
-                <a href="/Settings" onclick="closeSidebar()">⚙️ Settings</a>
+
+                <a href="/Settings">
+                    <i class="bi bi-gear"></i>
+                    Settings
+                </a>
 
             </nav>
         </aside>
@@ -274,13 +419,20 @@
                 </div>
 
                 <div class="dropdown">
-                    <button class="user-btn" data-bs-toggle="dropdown">
-                        👤 Admin
+                    <button class="user-btn"
+                            data-bs-toggle="dropdown">
+
+                        <i class="bi bi-person-circle"></i>
+                        Admin
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         <li>
-                            <a class="dropdown-item" href="/Account/Logout">
-                                🚪 Logout
+                            <a class="dropdown-item text-danger"
+                               href="javascript:void(0)"
+                               onclick="logout()">
+
+                                <i class="bi bi-box-arrow-right"></i>
+                                Logout
                             </a>
                         </li>
                     </ul>
@@ -325,6 +477,14 @@
                 menu.style.display = "none";
             else
                 menu.style.display = "block";
+        }
+
+        function logout() {
+
+            localStorage.clear();
+            sessionStorage.clear();
+
+            window.location.replace("/Community/Account/CommunityLogin");
         }
     </script>
 

@@ -1,0 +1,235 @@
+﻿@{
+    ViewData["Title"] = "Add / Edit Community";
+    Layout = "AdminLayout";
+
+    var communityId = Context.Request.Query["id"].ToString();
+}
+
+<div class="container-fluid">
+    <div class="card shadow border-0 rounded-4">
+        <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fa fa-users me-2"></i>
+                Add / Edit Community
+            </h4>
+
+            <a href="/Admin/Admin/ManageCommunity" class="btn btn-light rounded-3">
+                <i class="fa fa-arrow-left me-2"></i> Back
+            </a>
+        </div>
+
+        <div class="card-body p-4">
+            <form id="communityForm">
+
+                <input type="hidden" id="CommunityId" value="@communityId" />
+
+                <div class="row g-4">
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Community Category</label>
+                        <select id="CommunityCategoryId" class="form-select">
+                            <option value="">Select Category</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Community Name</label>
+                        <input type="text" id="CommunityName" class="form-control" />
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold">Description</label>
+                        <textarea id="Description" rows="4" class="form-control"></textarea>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Contact Name</label>
+                        <input type="text" id="ContactName" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Contact Email</label>
+                        <input type="email" id="ContactEmail" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Contact Phone</label>
+                        <input type="text" id="ContactPhone" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Website</label>
+                        <input type="text" id="Website" class="form-control" />
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold">Address</label>
+                        <input type="text" id="Address" class="form-control" />
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold">Other Info</label>
+                        <textarea id="OtherInfo" rows="3" class="form-control"></textarea>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Username</label>
+                        <input type="text" id="UserName" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Password</label>
+                        <input type="text" id="Password" class="form-control" />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Logo Upload</label>
+                        <input type="file" id="LogoFile" class="form-control" accept="image/*" />
+                    </div>
+
+                    <div class="col-md-6 d-flex align-items-center">
+                        <div class="form-check mt-4">
+                            <input type="checkbox" id="IsActive" class="form-check-input" checked />
+                            <label class="form-check-label fw-semibold">Active</label>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <img id="LogoPreview"
+                             src=""
+                             style="max-height:120px;display:none;border-radius:10px;" />
+                    </div>
+
+                </div>
+
+                <div class="mt-4 text-end">
+                    <button type="button" class="btn btn-primary px-5 rounded-3" onclick="saveCommunity()">
+                        <i class="fa fa-save me-2"></i> Save Community
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let logoBase64 = "";
+        let existingLogo = "";
+
+        $(document).ready(function () {
+            loadCategories();
+
+            const communityId = $("#CommunityId").val();
+
+            if (communityId && communityId !== "0") {
+                loadCommunityDetails(communityId);
+            }
+        });
+
+        $("#LogoFile").change(function (e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+
+            reader.onload = function (evt) {
+                logoBase64 = evt.target.result;
+                $("#LogoPreview").attr("src", logoBase64).show();
+            };
+
+            reader.readAsDataURL(file);
+        });
+
+        function loadCategories() {
+            $.ajax({
+                url: "/api/Community/Get_CommunityCategories",
+                type: "GET",
+                success: function (res) {
+                    $("#CommunityCategoryId").empty();
+                    $("#CommunityCategoryId").append(`<option value="">Select Category</option>`);
+
+                    res.forEach(item => {
+                        $("#CommunityCategoryId").append(
+                            `<option value="${item.communityCategoryId}">${item.categoryName}</option>`
+                        );
+                    });
+                }
+            });
+        }
+
+        function loadCommunityDetails(id) {
+            $.ajax({
+                url: `/api/Community/Get_CommunityDetails?CommunityId=${id}`,
+                type: "GET",
+                success: function (res) {
+                    $("#CommunityCategoryId").val(res.communityCategoryId);
+                    $("#CommunityName").val(res.communityName);
+                    $("#Description").val(res.description);
+                    $("#ContactName").val(res.contactName);
+                    $("#ContactEmail").val(res.contactEmail);
+                    $("#ContactPhone").val(res.contactPhone);
+                    $("#Website").val(res.website);
+                    $("#Address").val(res.address);
+                    $("#OtherInfo").val(res.otherInfo);
+                    $("#UserName").val(res.userName);
+                    $("#Password").val(res.password);
+                    $("#IsActive").prop("checked", res.isActive);
+
+                    if (res.logo) {
+                        existingLogo = res.logo;
+                        $("#LogoPreview").attr("src", "/" + res.logo).show();
+                    }
+                }
+            });
+        }
+
+        function saveCommunity() {
+            const payload = {
+                communityId: parseInt($("#CommunityId").val()) || 0,
+                communityCategoryId: parseInt($("#CommunityCategoryId").val()),
+                communityName: $("#CommunityName").val(),
+
+                logoBase64: logoBase64 && logoBase64.trim() !== "" ? logoBase64 : null,
+                logo: existingLogo,
+
+                description: $("#Description").val(),
+                contactName: $("#ContactName").val(),
+                contactEmail: $("#ContactEmail").val(),
+                contactPhone: $("#ContactPhone").val(),
+                website: $("#Website").val(),
+                address: $("#Address").val(),
+                otherInfo: $("#OtherInfo").val(),
+                userName: $("#UserName").val(),
+                password: $("#Password").val(),
+                isActive: $("#IsActive").is(":checked")
+            };
+
+            $.ajax({
+                url: "/api/Community/Add_Community",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(payload),
+
+                success: function (res) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Success",
+                        text: res.resultMessage
+                    }).then(() => {
+                        window.location.href = "/Admin/Admin/ManageCommunity";
+                    });
+                },
+
+                error: function (xhr) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: xhr.responseJSON?.resultMessage || "Failed to save community"
+                    });
+                }
+            });
+        }
+    </script>
+}

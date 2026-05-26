@@ -16,6 +16,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BaseResponse> AddUpdateConfigAsync(SpinGameConfigRequest model);
         Task<BaseResponse> AddUpdateSectionAsync(SpinSectionRequest model);
         Task<BaseResponse> DeleteSectionAsync(int sectionId);
+        Task<PlaySpinResponse> PlaySpinGameAsync(PlaySpinRequest request);
+        Task<IEnumerable<GameSpinResultDto>> GetGameSpinResultsAsync(int? gameId, Guid? userId);
     }
 }
 

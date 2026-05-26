@@ -37,28 +37,45 @@ namespace CommUnityApp.ApplicationCore.Models
     public class AddBusinessRequest
     {
         public int BusinessId { get; set; }
+
         public int CategoryId { get; set; }
+
         public string BusinessName { get; set; }
+
         public string? BusinessNumber { get; set; }
 
         public string OwnerName { get; set; }
+
         public string Email { get; set; }
+
         public string Phone { get; set; }
 
         public string Address { get; set; }
+
         public string City { get; set; }
+
         public string State { get; set; }
+
         public string? Country { get; set; }
+
         public string? Suburb { get; set; }
 
         public string? LogoBase64 { get; set; }
+
         public string? Logo { get; set; }
+
         public string? Info { get; set; }
 
         public decimal? Latitude { get; set; }
+
         public decimal? Longitude { get; set; }
 
+        public string? WebLink { get; set; }      // Added
+
+        public string? Password { get; set; }     // Added
+
         public bool IsVerified { get; set; }
+
         public int IsActive { get; set; } = 1;
     }
 
@@ -82,6 +99,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public int CategoryId { get; set; }
 
         public string? CategoryName { get; set; }
+
+        public Guid? UserId { get; set; }          
 
         public string? OwnerName { get; set; }
 
@@ -107,9 +126,14 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public decimal? Longitude { get; set; }
 
+        public string? WebLink { get; set; }       
+
+        public string? Password { get; set; }      
+
         public bool IsVerified { get; set; }
 
         public bool IsActive { get; set; }
+
         public bool IsFavorite { get; set; }
 
         public DateTime CreatedAt { get; set; }

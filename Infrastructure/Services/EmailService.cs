@@ -161,19 +161,23 @@ namespace CommUnityApp.InfrastructureLayer.Services
 
         private async Task SendEmailAsync(string toEmail, string subject, string body)
         {
-            var smtpClient = new SmtpClient(_configuration["Email:SmtpHost"])
+            var smtp = _configuration.GetSection("SMTP");
+
+            var host = smtp["Host"];
+            var port = int.TryParse(smtp["Port"], out var p) ? p : 587;
+            var username = smtp["Username"];
+            var password = smtp["Password"];
+            var from = smtp["FromEmail"];
+
+            var smtpClient = new SmtpClient(host, port)
             {
-                Port = int.Parse(_configuration["Email:Port"]),
-                Credentials = new NetworkCredential(
-                    _configuration["Email:Username"],
-                    _configuration["Email:Password"]
-                ),
+                Credentials = new NetworkCredential(username, password),
                 EnableSsl = true
             };
 
             var mailMessage = new MailMessage
             {
-                From = new MailAddress(_configuration["Email:From"]),
+                From = new MailAddress(from),
                 Subject = subject,
                 Body = body,
                 IsBodyHtml = true
@@ -183,7 +187,6 @@ namespace CommUnityApp.InfrastructureLayer.Services
 
             await smtpClient.SendMailAsync(mailMessage);
         }
-
 
         public async Task<bool> SendBulkEmailAsync(string toEmail, string subject, string body)
         {

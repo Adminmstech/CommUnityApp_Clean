@@ -51,6 +51,7 @@ namespace CommUnityApp.Areas.Business.Controllers
                 {
                     model.GameName = game.GameName ?? "";
                     model.Description = game.Description;
+                    model.GameImage = game.GameImage;
                     model.ConfigId = game.ConfigId;
                     model.IsActive = game.IsActive;
 
@@ -90,7 +91,24 @@ namespace CommUnityApp.Areas.Business.Controllers
                 return View(model);
             }
 
-            // Save game first
+            if (model.GameImageFile != null && model.GameImageFile.Length > 0)
+            {
+                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images", "spingames");
+                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+
+                var uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(model.GameImageFile.FileName);
+                var filePath = Path.Combine(uploadsFolder, uniqueFileName);
+
+                using (var fileStream = new FileStream(filePath, FileMode.Create))
+                {
+                    await model.GameImageFile.CopyToAsync(fileStream);
+                }
+                model.GameImage = "/images/spingames/" + uniqueFileName;
+            }
+
+            bool isNewGame = model.GameId == 0;
+
+            // Save game, config, and sections in one transaction
             var gameResponse = await _spinGameRepository.AddUpdateSpinGameAsync(model);
             if (gameResponse.ResultId <= 0)
             {
@@ -100,32 +118,7 @@ namespace CommUnityApp.Areas.Business.Controllers
 
             model.GameId = gameResponse.ResultId;
 
-            // Save config
-            var config = model.Configs.FirstOrDefault();
-            if (config != null)
-            {
-                config.ConfigId = model.ConfigId > 0 ? model.ConfigId : 0;
-                var configResponse = await _spinGameRepository.AddUpdateConfigAsync(config);
-                if (configResponse.ResultId > 0)
-                {
-                    model.ConfigId = configResponse.ResultId;
-                }
-            }
-
-            // Update game with config id if new
-            if (model.ConfigId == 0 && config != null)
-            {
-                await _spinGameRepository.AddUpdateSpinGameAsync(model);
-            }
-
-            // Save sections
-            foreach (var section in model.Sections)
-            {
-                section.GameId = model.GameId;
-                await _spinGameRepository.AddUpdateSectionAsync(section);
-            }
-
-            TempData["Success"] = model.GameId == 0 ? "Spin game created successfully!" : "Spin game updated successfully!";
+            TempData["Success"] = isNewGame ? "Spin game created successfully!" : "Spin game updated successfully!";
             return RedirectToAction("Index");
         }
 

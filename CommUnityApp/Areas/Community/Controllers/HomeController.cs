@@ -91,5 +91,29 @@ namespace CommUnityApp.Areas.Community.Controllers
             return View();
         }
 
+        public IActionResult ViewMessageBoardPosts()
+        {
+
+           return View();
+        }
+
+         public IActionResult ViewBrandGameResults()
+        {
+            return View();}
+
+        public IActionResult ViewSpinGameGameResults()
+        {
+            return View();
+        }
+
+        public IActionResult AddCommunityPosts()
+        {
+            return View();
+        }
+
+        public IActionResult CommunityPosts()
+        {
+            return View();
+        }
     }
 }

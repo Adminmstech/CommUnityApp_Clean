@@ -111,6 +111,7 @@
                     <th>Date</th>
                     <th>Location</th>
                     <th>Fundraising</th>
+                    <th style="width:120px;">Posted Status</th>
                     <th style="width:100px;">QR Code</th>
 
                     <th style="width:160px;">Actions</th>
@@ -259,7 +260,18 @@
                             ${e.isFundRaising == 1 ? 'Yes' : 'No'}
                         </span>
                     </td>
+                               <td>
+        ${e.isPosted
 
+                        ? `<span class="badge bg-success">
+                    ✅ Posted
+               </span>`
+
+                        : `<span class="badge bg-warning text-dark">
+                    ⏳ Not Posted
+               </span>`
+                    }
+    </td>
                     <td class="text-center">
                         ${qrHtml}
                     </td>

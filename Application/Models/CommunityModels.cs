@@ -93,7 +93,7 @@ namespace CommUnityApp.ApplicationCore.Models
             public List<TopEventDto>? Events { get; set; }
             public List<AuctionListModel>? Auctions { get; set; }
             public List<Community>? Communities { get; set; }
-            public List<BusinessDetailsDto> Businesses { get; set; }
+            public List<ProductWithImagesModel> Products { get; set; }
         }
     }
     public class UpdateStatusRequest
@@ -277,4 +277,114 @@ namespace CommUnityApp.ApplicationCore.Models
         public string? MessageText { get; set; }
         public IFormFile? ImageFile { get; set; }
     }
+
+    public class CommunityPostModel
+    {
+        public int PostId { get; set; }
+
+        public int CommunityId { get; set; }
+
+        public string? Title { get; set; }
+
+        public string? Message { get; set; }
+
+        public string? ImagePath { get; set; }
+
+        public IFormFile? ImageFile { get; set; }
+
+        public int CreatedBy { get; set; }
+
+        public string? CreatedDateString { get; set; }
+    }
+    public class CommunityCategoryDto
+    {
+        public int CommunityCategoryId { get; set; }
+
+        public string? CategoryName { get; set; }
+
+        public string? Description { get; set; }
+
+        public string? CategoryImage { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class AddCommunityRequest
+    {
+        public int CommunityId { get; set; }
+
+        public int CommunityCategoryId { get; set; }
+
+        public string CommunityName { get; set; }
+
+        public string? LogoBase64 { get; set; }
+
+        public string? Logo { get; set; }
+
+        public string? Description { get; set; }
+
+        public string ContactName { get; set; }
+
+        public string ContactEmail { get; set; }
+
+        public string ContactPhone { get; set; }
+
+        public string? Website { get; set; }
+
+        public string? Address { get; set; }
+
+        public string? OtherInfo { get; set; }
+
+        public string UserName { get; set; }
+
+        public string? Password { get; set; }
+
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class CommunityDto
+    {
+        public int CommunityId { get; set; }
+
+        public int CommunityCategoryId { get; set; }
+
+        public string? CategoryName { get; set; }
+
+        public string? CommunityName { get; set; }
+
+        public string? Logo { get; set; }
+
+        public string? Description { get; set; }
+
+        public string? ContactName { get; set; }
+
+        public string? ContactEmail { get; set; }
+
+        public string? ContactPhone { get; set; }
+
+        public string? Website { get; set; }
+
+        public string? Address { get; set; }
+
+        public string? OtherInfo { get; set; }
+
+        public string? UserName { get; set; }
+
+        public string? Password { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public DateTime CreatedDate { get; set; }
+    }
+
+    public class UpdateUserCommunityRequest
+    {
+        public Guid UserId { get; set; }
+
+        public int CommunityId { get; set; }
+    }
+
+   
 }

@@ -1,0 +1,108 @@
+﻿@{
+    ViewData["Title"] = "Spin Game Results";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+}
+
+
+
+<div class="container mt-3">
+
+    <h4>Spin Game Results</h4>
+
+    <div class="row mb-2">
+        <div class="col-md-4">
+            <input type="text" id="txtSearch" class="form-control" placeholder="Search name / mobile / game..." />
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100" onclick="loadData()">Search</button>
+        </div>
+    </div>
+
+    <table class="table table-bordered table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Name</th>
+                <th>Mobile</th>
+                <th>Game</th>
+                <th>Section</th>
+                <th>Points</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody id="tblData"></tbody>
+    </table>
+
+    <div class="d-flex justify-content-between">
+        <div id="rowInfo"></div>
+        <div>
+            <button class="btn btn-sm btn-primary" onclick="prev()">Prev</button>
+            <span id="pageNo">1</span>
+            <button class="btn btn-sm btn-primary" onclick="next()">Next</button>
+        </div>
+    </div>
+
+</div>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    var page = 1;
+    var size = 5;
+    var total = 0;
+
+    $(document).ready(function () {
+        loadData();
+    });
+
+    function loadData() {
+
+        var search = $("#txtSearch").val();
+
+        $.get('/api/GameResults/GetSpinGameResults?page=' + page + '&size=' + size + '&search=' + search, function (res) {
+
+            console.log(res);
+
+            var html = "";
+
+            var data = res.data || res.Data;
+            total = res.totalCount || res.TotalCount;
+
+            if (!data || data.length === 0) {
+                html = "<tr><td colspan='7' class='text-center'>No data</td></tr>";
+            } else {
+
+                $.each(data, function (i, x) {
+
+                    html += "<tr>";
+                    html += "<td>" + ((page - 1) * size + i + 1) + "</td>";
+                    html += "<td>" + (x.fullName || x.FullName) + "</td>";
+                    html += "<td>" + (x.mobile || x.Mobile) + "</td>";
+                    html += "<td>" + (x.gameName || x.GameName) + "</td>";
+                    html += "<td>" + (x.selectedSectionId || x.SelectedSectionId) + "</td>";
+                    html += "<td>" + (x.pointsAwarded || x.PointsAwarded) + "</td>";
+                    html += "<td>" + ((x.spinDate || x.SpinDate) ? new Date(x.spinDate || x.SpinDate).toLocaleString() : "-") + "</td>";
+                    html += "</tr>";
+                });
+            }
+
+            $("#tblData").html(html);
+
+            $("#pageNo").text(page);
+            $("#rowInfo").text("Showing " + ((page - 1) * size + 1) + " to " + Math.min(page * size, total) + " of " + total);
+        });
+    }
+
+    function next() {
+        if ((page * size) < total) {
+            page++;
+            loadData();
+        }
+    }
+
+    function prev() {
+        if (page > 1) {
+            page--;
+            loadData();
+        }
+    }
+</script>

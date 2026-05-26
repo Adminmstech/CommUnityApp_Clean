@@ -34,5 +34,10 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<Events>> GetEvents();
         Task<List<Events>> GetEventById(int EventId);
         Task<List<TopEventDto>> GetTop5Events();
+        Task<dynamic> PostEventToCommunityUsers(PostEventModel model);
+
+        Task<List<UserModel>> GetUsersByCommunityId(int communityId);
+
+        Task<List<UserPostedEventModel>> GetPostedEventsByUser(Guid userId);
     }
 }

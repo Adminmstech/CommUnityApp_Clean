@@ -1,0 +1,191 @@
+﻿@{
+    ViewData["Title"] = "Businesses";
+    Layout = "AdminLayout";
+}
+
+<div class="container-fluid">
+    <div class="card shadow border-0 rounded-4">
+        <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center rounded-top-4">
+            <h4 class="mb-0">
+                <i class="fa fa-building me-2"></i> Business Management
+            </h4>
+
+            <a href="/Admin/Admin/AddBusiness" class="btn btn-light rounded-3">
+                <i class="fa fa-plus me-2"></i>Add Business
+            </a>
+        </div>
+
+        <div class="card-body">
+
+            <div class="mb-4">
+                <input type="text" id="searchBox" class="form-control" placeholder="Search businesses..." />
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle" id="businessTable">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Logo</th>
+                            <th>Business</th>
+                            <th>Category</th>
+                            <th>Owner</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Verified</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="businessTableBody">
+                        <tr>
+                            <td colspan="11" class="text-center py-4">
+                                Loading businesses...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let allBusinesses = [];
+
+        $(document).ready(function () {
+            loadBusinesses();
+
+            $("#searchBox").on("keyup", function () {
+                const search = $(this).val().toLowerCase();
+
+                const filtered = allBusinesses.filter(x =>
+                    x.businessName?.toLowerCase().includes(search) ||
+                    x.ownerName?.toLowerCase().includes(search) ||
+                    x.businessEmail?.toLowerCase().includes(search) ||
+                    x.phone?.toLowerCase().includes(search)
+                );
+
+                renderBusinesses(filtered);
+            });
+        });
+
+        function loadBusinesses() {
+            $.ajax({
+                url: '/api/Business/Get_Businesses',
+                type: 'GET',
+
+                success: function (response) {
+                    allBusinesses = response;
+                    renderBusinesses(response);
+                },
+
+                error: function () {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to load businesses.'
+                    });
+                }
+            });
+        }
+
+        function renderBusinesses(data) {
+            const tbody = $("#businessTableBody");
+            tbody.empty();
+
+            if (!data || data.length === 0) {
+                tbody.html(`
+                    <tr>
+                        <td colspan="11" class="text-center py-4">
+                            No businesses found.
+                        </td>
+                    </tr>
+                `);
+                return;
+            }
+
+            data.forEach(item => {
+                const logo = item.logo
+                    ? `/${item.logo}`
+                    : '/images/no-image.png';
+
+                const verifiedBadge = item.isVerified
+                    ? '<span class="badge bg-success">Yes</span>'
+                    : '<span class="badge bg-secondary">No</span>';
+
+                const activeBadge = item.isActive
+                    ? '<span class="badge bg-success">Active</span>'
+                    : '<span class="badge bg-danger">Inactive</span>';
+
+                tbody.append(`
+                    <tr>
+                        <td>
+                            <img src="${logo}"
+                                 style="width:60px;height:60px;object-fit:cover;border-radius:10px;" />
+                        </td>
+
+                        <td>
+                            <strong>${item.businessName}</strong><br/>
+                            <small>${item.businessNumber ?? ''}</small>
+                        </td>
+
+                        <td>${item.categoryName}</td>
+
+                        <td>${item.ownerName}</td>
+
+                        <td>${item.businessEmail}</td>
+
+                        <td>${item.phone}</td>
+
+                        <td>
+                            ${item.city}, ${item.state}
+                        </td>
+
+                        <td>${activeBadge}</td>
+
+                        <td>${verifiedBadge}</td>
+
+                        <td>${formatDate(item.createdAt)}</td>
+
+                        <td>
+                            <a href="/Admin/Admin/AddBusiness?id=${item.businessId}"
+                               class="btn btn-sm btn-primary rounded-3">
+                               <i class="fa fa-edit"></i>
+                            </a>
+
+                            <button class="btn btn-sm btn-danger rounded-3"
+                                    onclick="deleteBusiness(${item.businessId})">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `);
+            });
+        }
+
+        function formatDate(dateString) {
+            const d = new Date(dateString);
+            return d.toLocaleDateString();
+        }
+
+        function deleteBusiness(id) {
+            Swal.fire({
+                title: 'Delete Business?',
+                text: 'This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                confirmButtonText: 'Delete'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    console.log("Delete business:", id);
+                }
+            });
+        }
+    </script>
+}

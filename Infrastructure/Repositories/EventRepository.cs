@@ -378,6 +378,15 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         {
             using var con = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await con.QueryAsync<EventSponsorModel>(
+                "sp_GetSponsorsByCommunity",
+                new { CommunityId = communityId },
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
         public async Task<List<Events>> GetEvents()
         {
             using var connection = new SqlConnection(
@@ -421,14 +430,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result.ToList();
         }
 
-            var result = await con.QueryAsync<EventSponsorModel>(
-                "sp_GetSponsorsByCommunity",
-                new { CommunityId = communityId },
-                commandType: CommandType.StoredProcedure
-            );
-
-            return result.ToList();
-        }
+       
 
         public async Task AttachSponsorToEvent(EventSponsorMappingModel model)
         {
@@ -496,6 +498,54 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
                 var result = await con.QueryAsync<SponsorModel>(sql, new { EventId = eventId });
+                return result.ToList();
+            }
+        }
+
+        public async Task<dynamic> PostEventToCommunityUsers(PostEventModel model)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await con.QueryFirstOrDefaultAsync<dynamic>(
+                    "sp_PostEventToCommunityUsers",
+                    new
+                    {
+                        EventId = model.EventId,
+                        CommunityId = model.CommunityId
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+                return result;
+            }
+        }
+        public async Task<List<UserModel>> GetUsersByCommunityId(int communityId)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await con.QueryAsync<UserModel>(
+                    "sp_GetUsersByCommunity",
+                    new
+                    {
+                        CommunityId = communityId
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+                return result.ToList();
+            }
+        }
+
+        public async Task<List<UserPostedEventModel>> GetPostedEventsByUser(Guid userId)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await con.QueryAsync<UserPostedEventModel>(
+                    "sp_GetPostedEventsByUser",
+                    new
+                    {
+                        UserId = userId
+                    },
+                    commandType: CommandType.StoredProcedure);
+
                 return result.ToList();
             }
         }

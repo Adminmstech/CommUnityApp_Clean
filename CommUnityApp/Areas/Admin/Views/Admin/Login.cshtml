@@ -1,0 +1,262 @@
+﻿@{
+    ViewData["Title"] = "Admin Login – Indian Community Network";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #111827;
+            --primary-hover: #1f2937;
+            --bg: linear-gradient(135deg, #111827, #1e3a8a);
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --input-border: #e2e8f0;
+            --input-focus: #2563eb;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 440px;
+            background: white;
+            padding: 48px 40px;
+            border-radius: 24px;
+            box-shadow: 0 25px 60px rgba(0,0,0,.25);
+            text-align: center;
+        }
+
+        .logo-box {
+            width: 72px;
+            height: 72px;
+            background: rgba(17,24,39,.08);
+            color: #111827;
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            margin: 0 auto 24px;
+        }
+
+        h2 {
+            margin: 0 0 8px;
+            font-size: 30px;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            margin-bottom: 36px;
+            font-size: 15px;
+        }
+
+        .form-group {
+            text-align: left;
+            margin-bottom: 22px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+            .input-wrapper i {
+                position: absolute;
+                left: 16px;
+                top: 50%;
+                transform: translateY(-50%);
+                color: #64748b;
+            }
+
+        input {
+            width: 100%;
+            height: 54px;
+            padding: 0 16px 0 48px;
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            outline: none;
+            font-size: 15px;
+            transition: .3s;
+        }
+
+            input:focus {
+                border-color: #2563eb;
+                box-shadow: 0 0 0 4px rgba(37,99,235,.1);
+            }
+
+        .btn-login {
+            width: 100%;
+            height: 56px;
+            border: none;
+            border-radius: 14px;
+            background: #111827;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: .3s;
+        }
+
+            .btn-login:hover {
+                background: #1f2937;
+                transform: translateY(-2px);
+            }
+
+        .error-msg {
+            display: none;
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .back-link {
+            margin-top: 25px;
+        }
+
+            .back-link a {
+                color: #2563eb;
+                text-decoration: none;
+                font-weight: 600;
+            }
+
+        @@media (max-width: 480px) {
+            .login-card {
+                padding: 40px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <div class="logo-box">
+            <i class="fa-solid fa-user-shield"></i>
+        </div>
+
+        <h2>Admin Portal</h2>
+        <p class="subtitle">Secure access to admin dashboard</p>
+
+        <div id="errorBox" class="error-msg"></div>
+
+        <form id="adminLoginForm">
+
+            <div class="form-group">
+                <label>Email Address</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-envelope"></i>
+                    <input type="email"
+                           id="Email"
+                           placeholder="Enter admin email"
+                           required />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Password</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password"
+                           id="Password"
+                           placeholder="••••••••"
+                           required />
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login">
+                Sign In
+            </button>
+        </form>
+
+        <div class="back-link">
+            <a href="/">← Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        $("#adminLoginForm").submit(function (e) {
+            e.preventDefault();
+
+            $("#errorBox").hide();
+
+            const payload = {
+                email: $("#Email").val(),
+                password: $("#Password").val()
+            };
+
+            $.ajax({
+                url: "/api/User/Login",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(payload),
+
+                success: function (res) {
+
+                    if (res.resultId === 1) {
+
+                        if (!res.user || parseInt(res.user.role) !== 1) {
+                            $("#errorBox")
+                                .text("Access denied. Admin only.")
+                                .show();
+                            return;
+                        }
+
+                        localStorage.setItem("adminToken", res.token);
+                        localStorage.setItem("adminUser", JSON.stringify(res.user));
+
+                        window.location.href = "/Admin/Admin/AddBusiness";
+                    }
+                    else {
+                        $("#errorBox")
+                            .text(res.resultMessage || "Invalid login")
+                            .show();
+                    }
+                },
+
+                error: function (xhr) {
+                    $("#errorBox")
+                        .text(xhr.responseJSON?.resultMessage || "Login failed")
+                        .show();
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

@@ -264,19 +264,58 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             var parameters = new DynamicParameters();
 
-            parameters.Add("@BidRegistrationId", entity.BidRegistrationId == Guid.Empty
-                ? (Guid?)null
-                : entity.BidRegistrationId);
-
+            parameters.Add("@BidRegistrationId", entity.BidRegistrationId);
             parameters.Add("@AuctionId", entity.AuctionId);
             parameters.Add("@UserId", entity.UserId);
             parameters.Add("@PaymentId", entity.PaymentId);
             parameters.Add("@PaymentStatusId", entity.PaymentStatusId);
 
-            var result = await connection.QueryAsync<BaseResponse>( "Add_BidRegistration",parameters,commandType: CommandType.StoredProcedure );
+            var result = await connection.QueryAsync<BaseResponse>(
+                "Add_BidRegistration",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
 
             return result.FirstOrDefault();
         }
 
+        public async Task<List<AdminLiveAuctionDto>> GetAdminLiveAuctionsAsync()
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<AdminLiveAuctionDto>(
+                "Get_AdminLiveAuctions",
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+
+
+        public async Task<AuctionWinnerSellerDetailsResponse> GetAuctionWinnerSellerDetailsAsync(Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+           
+            parameters.Add("@UserId", userId);
+
+            var result = await connection.QueryFirstOrDefaultAsync<AuctionWinnerSellerDetailsResponse>(
+                "Get_AuctionWinnerSellerDetails",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result;
+        }
     }
 }

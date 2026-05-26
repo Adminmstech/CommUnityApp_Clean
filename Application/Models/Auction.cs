@@ -215,6 +215,86 @@ namespace CommUnityApp.ApplicationCore.Models
         public DateTime CreatedAt { get; set; }
     }
 
+    public class AdminLiveAuctionDto
+    {
+        public int AuctionId { get; set; }
 
+        public int BusinessId { get; set; }
+
+        public string? BusinessName { get; set; }
+
+        public Guid UserId { get; set; }
+
+        public string? UserName { get; set; }
+
+        public int ItemTypeId { get; set; }
+
+        public string? ItemTitle { get; set; }
+
+        public string? ItemDescription { get; set; }
+
+        public string? ItemCondition { get; set; }
+
+        public decimal PriceIncrement { get; set; }
+
+        public decimal ReservePrice { get; set; }
+
+        public decimal MinDeposite { get; set; }
+
+        public DateTime StartTime { get; set; }
+
+        public DateTime EndTime { get; set; }
+
+        public string? ItemLocation { get; set; }
+
+        public int? DeleveryMethodId { get; set; }
+
+        public int AuctionStatus { get; set; }
+
+        public DateTime? RegistrationStartDate { get; set; }
+
+        public DateTime? RegistrationEndDate { get; set; }
+
+        public string? CreatedBy { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public string? AuctionDisplayStatus { get; set; }
+    }
+
+    public class AuctionWinnerSellerDetailsResponse 
+    {
+        public int AuctionId { get; set; }
+
+        public string? ItemTitle { get; set; }
+
+        public string? ItemDescription { get; set; }
+
+        public string? ItemLocation { get; set; }
+
+        public int? DeleveryMethodId { get; set; }
+
+        public string? CreatedBy { get; set; }
+
+        public Guid? SellerUserId { get; set; }
+
+        public string? SellerName { get; set; }
+
+        public string? SellerEmail { get; set; }
+
+        public string? SellerPhone { get; set; }
+
+        public int? BusinessId { get; set; }
+
+        public string? BusinessName { get; set; }
+
+        public string? OwnerName { get; set; }
+
+        public string? BusinessEmail { get; set; }
+
+        public string? BusinessPhone { get; set; }
+
+        public string? BusinessAddress { get; set; }
+    }
 
 }

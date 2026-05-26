@@ -375,5 +375,12 @@ namespace CommUnityApp.Services
                 });
             }
         }
+
+        [HttpGet("Get_AdminPromotions")]
+        public async Task<IActionResult> Get_AdminPromotions()
+        {
+            var data = await _unitOfWork.Product.GetAdminPromotionsAsync();
+            return Ok(data);
+        }
     }
 }

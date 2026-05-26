@@ -1,0 +1,246 @@
+﻿@{
+    ViewData["Title"] = "User Communication";
+    Layout = "AdminLayout";
+}
+
+<div class="container-fluid">
+    <div class="card shadow border-0 rounded-4">
+        <div class="card-header bg-primary text-white py-3 rounded-top-4">
+            <h4 class="mb-0">
+                <i class="fa fa-paper-plane me-2"></i>
+                User Communication Center
+            </h4>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <!-- LEFT -->
+                <div class="col-lg-7">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Subject</label>
+                        <input type="text"
+                               id="subject"
+                               class="form-control"
+                               placeholder="Enter subject" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Message</label>
+                        <textarea id="message"
+                                  rows="8"
+                                  class="form-control"
+                                  placeholder="Type your message here..."></textarea>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Communication Type</label>
+
+                        <div class="d-flex gap-4 mt-2">
+                            <div class="form-check">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       id="sendEmail"
+                                       checked>
+                                <label class="form-check-label">
+                                    Email
+                                </label>
+                            </div>
+
+                            <div class="form-check">
+                                <input class="form-check-input"
+                                       type="checkbox"
+                                       id="sendNotification">
+                                <label class="form-check-label">
+                                    Push Notification
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="btn btn-primary btn-lg rounded-3"
+                            onclick="sendCommunication()">
+                        <i class="fa fa-paper-plane me-2"></i>
+                        Send Communication
+                    </button>
+
+                </div>
+
+                <!-- RIGHT -->
+                <div class="col-lg-5">
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">Select Users</h5>
+
+                        <div>
+                            <input type="checkbox" id="selectAll" />
+                            <label for="selectAll">Select All</label>
+                        </div>
+                    </div>
+
+                    <input type="text"
+                           id="searchUsers"
+                           class="form-control mb-3"
+                           placeholder="Search users..." />
+
+                    <div id="usersContainer"
+                         style="max-height: 500px; overflow-y: auto;">
+                        Loading users...
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let allUsers = [];
+
+        $(document).ready(function () {
+            loadUsers();
+
+            $("#searchUsers").on("keyup", function () {
+                const search = $(this).val().toLowerCase();
+
+                const filtered = allUsers.filter(user =>
+                    (user.fullName || '').toLowerCase().includes(search) ||
+                    (user.email || '').toLowerCase().includes(search)
+                );
+
+                renderUsers(filtered);
+            });
+
+            $("#selectAll").change(function () {
+                $(".user-checkbox").prop("checked", $(this).is(":checked"));
+            });
+        });
+
+        function loadUsers() {
+            $.ajax({
+                url: "/api/User/Get_UsersForCommunication",
+                type: "GET",
+
+                success: function (response) {
+                    allUsers = response;
+                    renderUsers(response);
+                },
+
+                error: function () {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to load users."
+                    });
+                }
+            });
+        }
+
+        function renderUsers(users) {
+            const container = $("#usersContainer");
+            container.empty();
+
+            if (!users || users.length === 0) {
+                container.html("<p>No users found.</p>");
+                return;
+            }
+
+            users.forEach(user => {
+                container.append(`
+                    <div class="card mb-2 shadow-sm border-0">
+                        <div class="card-body py-2 px-3">
+                            <div class="d-flex align-items-center">
+
+                                <input type="checkbox"
+                                       class="form-check-input me-3 user-checkbox"
+                                       value="${user.userId}" />
+
+                                <div>
+                                    <div class="fw-bold">
+                                        ${user.fullName || ''}
+                                    </div>
+
+                                    <small class="text-muted">
+                                        ${user.email || 'No Email'}
+                                    </small>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        function sendCommunication() {
+
+            const selectedUserIds = [];
+
+            $(".user-checkbox:checked").each(function () {
+                selectedUserIds.push($(this).val());
+            });
+
+            if (selectedUserIds.length === 0) {
+                Swal.fire("Please select at least one user.");
+                return;
+            }
+
+            const subject = $("#subject").val();
+            const message = $("#message").val();
+
+            if (!subject || !message) {
+                Swal.fire("Subject and message are required.");
+                return;
+            }
+
+            const sendEmail = $("#sendEmail").is(":checked");
+            const sendNotification = $("#sendNotification").is(":checked");
+
+            if (!sendEmail && !sendNotification) {
+                Swal.fire("Select Email or Push Notification.");
+                return;
+            }
+
+            const payload = {
+                userIds: selectedUserIds,
+                subject: subject,
+                message: message,
+                sendEmail: sendEmail,
+                sendNotification: sendNotification
+            };
+
+            $.ajax({
+                url: "/api/User/Send_Communication",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(payload),
+
+                success: function (res) {
+                    Swal.fire({
+                        icon: "success",
+                        title: "Success",
+                        text: res.resultMessage
+                    });
+
+                    $("#subject").val('');
+                    $("#message").val('');
+                    $(".user-checkbox").prop("checked", false);
+                    $("#selectAll").prop("checked", false);
+                },
+
+                error: function (xhr) {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: xhr.responseJSON?.resultMessage || "Failed to send communication."
+                    });
+                }
+            });
+        }
+    </script>
+}

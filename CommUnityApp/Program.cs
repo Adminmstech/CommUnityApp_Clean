@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.InfrastructureLayer.Repositories;
 using CommUnityApp.InfrastructureLayer.Services;
@@ -5,16 +7,48 @@ using CommUnityApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.OpenApi;
 using Stripe;
-
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 
 var builder = WebApplication.CreateBuilder(args);
 
-StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+// Resolve firebase credential path: config -> env var -> content root
+string firebasePath = builder.Configuration["Firebase:ServiceAccountPath"]
+                      ?? Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")
+                      ?? Path.Combine(builder.Environment.ContentRootPath ?? Directory.GetCurrentDirectory(), "firebase-service-account.json");
+
+if (Directory.Exists(firebasePath))
+{
+    Console.Error.WriteLine($"Firebase service account path is a directory: '{firebasePath}'. Remove or rename that folder, or provide a valid file path.");
+}
+else if (System.IO.File.Exists(firebasePath))
+{
+    try
+    {
+        FirebaseApp.Create(new AppOptions
+        {
+            Credential = GoogleCredential.FromFile(firebasePath)
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Failed to initialize Firebase with '{firebasePath}': {ex.Message}");
+    }
+}
+else
+{
+    Console.Error.WriteLine($"Firebase service account file not found: '{firebasePath}'. Set 'Firebase:ServiceAccountPath' in configuration or 'GOOGLE_APPLICATION_CREDENTIALS' env var, or add the file to the content root.");
+}
+
+var stripeSecretKey = builder.Configuration["Stripe:SecretKey"];
+if (!string.IsNullOrWhiteSpace(stripeSecretKey))
+{
+    StripeConfiguration.ApiKey = stripeSecretKey;
+}
 
 // MVC + API
 builder.Services.AddControllersWithViews();
-
-// Swagger
+builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -40,22 +74,16 @@ builder.Services.AddSession(options =>
 // SignalR
 builder.Services.AddSignalR();
 
-builder.Configuration.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
-Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense("Mgo+DSMBMAY9C3t2U1hhQlJBfV5CQmdWfFN0QXNYflRxfF9CaEwxOX1dQl9nSXdTckdgXHtac3FWRGM=");
-builder.Services.AddHttpClient();
-builder.Services.AddControllersWithViews();
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddControllers();
-builder.Services.AddControllers();
+var syncfusionLicenseKey = builder.Configuration["Syncfusion:LicenseKey"];
+if (!string.IsNullOrWhiteSpace(syncfusionLicenseKey))
+{
+    Syncfusion.Licensing.SyncfusionLicenseProvider.RegisterLicense(syncfusionLicenseKey);
+}
 
-
-builder.Services.AddHttpContextAccessor();
-
+builder.Services.AddTransient<IDapperWrapper, DapperWrapper>();
 builder.Services.AddTransient<ICommunityRepository, CommunityRepository>();
 builder.Services.AddTransient<IEventRepository, EventRepository>();
 builder.Services.AddTransient<IBrandGameRepository, BrandGameRepository>();
-builder.Services.AddTransient<ISpinGameRepository, SpinGameRepository>();
 builder.Services.AddTransient<IBusinessRepository, BusinessRepository>();
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<CommUnityApp.ApplicationCore.Interfaces.IEmailService, EmailService>();
@@ -69,9 +97,38 @@ builder.Services.AddTransient<IOrderRepository, OrderRepository>();
 builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
 builder.Services.AddTransient<IVolunteerRepository, VolunteerRepository>();
 builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
+builder.Services.AddTransient<IGameResultsRepository, GameResultsRepository>();
+builder.Services.AddTransient<ICareConnectRepository, CareConnectRepository>();
+builder.Services.AddTransient<IJobRepository, JobRepository>();
+builder.Services.AddTransient<IDapperWrapper, DapperWrapper>();
+builder.Services.AddTransient<ICampaignRepository, CampignRepository>();
+builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
+builder.Services.AddTransient<ISpinGameRepository>(provider =>
+{
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    var dapper = provider.GetRequiredService<IDapperWrapper>();
+    Func<System.Data.IDbConnection> connectionFactory = () =>
+        new Microsoft.Data.SqlClient.SqlConnection(
+            configuration.GetConnectionString("DefaultConnection")
+        );
 
+    return new SpinGameRepository(connectionFactory, dapper);
+});
 
 builder.Services.AddSession();
+builder.Services.AddTransient<IQuizGameRepository>(provider =>
+{
+    var configuration = provider.GetRequiredService<IConfiguration>();
+    var dapper = provider.GetRequiredService<IDapperWrapper>();
+
+    Func<System.Data.IDbConnection> connectionFactory = () =>
+        new Microsoft.Data.SqlClient.SqlConnection(
+            configuration.GetConnectionString("DefaultConnection")
+        );
+
+    return new QuizGameRepository(connectionFactory, dapper);
+});
+
 // ========================
 // COOKIE AUTHENTICATION
 // ========================
@@ -88,7 +145,6 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 
 builder.Services.AddAuthorization();
 
-
 var app = builder.Build();
 
 if (!app.Environment.IsDevelopment())
@@ -96,12 +152,16 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("Swagger:Enabled"))
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CommUnityApp API v1");
-    c.RoutePrefix = "swagger";
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CommUnityApp API v1");
+        c.RoutePrefix = "swagger";
+    });
+}
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
@@ -110,13 +170,16 @@ app.UseRouting();
 
 app.UseSession();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
+app.MapControllers();
+
 app.MapControllerRoute(
-    name: "areas",
-    pattern: "{area:exists}/{controller=Account}/{action=Login}/{id?}"
+    name: "area_default",
+    pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}"
 );
 
 app.MapControllerRoute(

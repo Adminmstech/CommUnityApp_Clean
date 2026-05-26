@@ -86,6 +86,8 @@
     {
         public string Email { get; set; }
         public string Password { get; set; }
+        public string? DeviceToken { get; set; }
+        public string? DeviceType { get; set; }
     }
     public class LoginResponse
     {
@@ -189,5 +191,62 @@
         // 🔥 NEW FIELDS
         public string Language { get; set; }
         public int? AgeGroupId { get; set; }
+    }
+
+    public class UserDto
+    {
+        public Guid UserId { get; set; }
+
+        public string? FirstName { get; set; }
+
+        public string? LastName { get; set; }
+
+        public string? FullName { get; set; }
+
+        public string? Email { get; set; }
+
+        public string? Mobile { get; set; }
+      
+        public string? Role { get; set; }
+
+        public string? CommunityId { get; set; }
+
+        public string? CommunityNames { get; set; }
+
+        public string? DeviceToken { get; set; }
+
+        public string? DeviceType { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public DateTime CreatedDate { get; set; }
+    }
+
+    public class UserCommunicationDto
+    {
+        public Guid UserId { get; set; }
+
+        public string? FullName { get; set; }
+
+        public string? Email { get; set; }
+
+        public string? DeviceToken { get; set; }
+
+        public string? DeviceType { get; set; }
+
+        public bool IsActive { get; set; }
+    }
+
+    public class SendCommunicationRequest
+    {
+        public List<Guid> UserIds { get; set; } = new();
+
+        public string? Subject { get; set; }
+
+        public string? Message { get; set; }
+
+        public bool SendEmail { get; set; }
+
+        public bool SendNotification { get; set; }
     }
 }

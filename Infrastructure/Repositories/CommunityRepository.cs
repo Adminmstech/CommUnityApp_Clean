@@ -141,34 +141,43 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         }
         public async Task<(int CharityItemId, string ItemCode)> AddCharityItem(AddCharityItemModel model, string imagePath)
         {
-           
-                using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-                {
-                    var result = await con.QueryFirstAsync(
-                        "SP_AddCharityItem",
-                        new
-                        {
-                            model.CommunityId,
-                            model.PostedByUserId,
-                            model.ItemName,
-                            model.ItemCategory,
-                            model.Description,
-                            model.Quantity,
-                            ImagePath = imagePath
-                        },
-                        commandType: CommandType.StoredProcedure);
 
-                    return ((int)result.CharityItemId, (string)result.ItemCode);
-                }
-            }
-
-            public async Task UpdateCharityItemImage(int charityItemId, string imagePath)
-        {
             using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
+                var result = await con.QueryFirstAsync(
+                    "SP_AddCharityItem",
+                    new
+                    {
+                        model.CommunityId,
+                        model.PostedByUserId,
+                        model.ItemName,
+                        model.ItemCategory,
+                        model.Description,
+                        model.Quantity,
+                        ImagePath = imagePath
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+                return ((int)result.CharityItemId, (string)result.ItemCode);
+            }
+        }
+
+        public async Task UpdateCharityItemImage(int charityItemId, string imagePath)
+        {
+            using (var con =
+                new SqlConnection(
+                    _configuration.GetConnectionString(
+                        "DefaultConnection")))
+            {
                 await con.ExecuteAsync(
-                    "UPDATE CharityItems SET ImagePath=@ImagePath WHERE CharityItemId=@CharityItemId",
-                    new { CharityItemId = charityItemId, ImagePath = imagePath });
+                    "SP_UpdateCharityItemImage",
+                    new
+                    {
+                        CharityItemId = charityItemId,
+                        ImagePath = imagePath
+                    },
+                    commandType:
+                    CommandType.StoredProcedure);
             }
         }
 
@@ -204,7 +213,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             }
         }
 
- 
+
 
         public async Task AssignVolunteerToRequest(AssignVolunteerModel model)
         {
@@ -252,7 +261,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     "SP_GetItemCategories",
                     commandType: CommandType.StoredProcedure
                 );
-
+                return result.ToList();
+            }
+        }
         public async Task<List<Community>> GetCommunities()
         {
             using var connection = new SqlConnection(
@@ -280,6 +291,33 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             }
         }
 
+
+
+        //public async Task<List<MemberModel>> GetMembersByCommunity(int communityId)
+        //    {
+        //        using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+        //        {
+        //            var result = await connection.QueryAsync<MemberModel>(
+        //                "sp_GetMembersByCommunity",
+        //                new { CommunityId = communityId },
+        //                commandType: CommandType.StoredProcedure
+        //            );
+
+        //            return result.ToList();
+        //        }
+        //    }
+        //public async Task<List<Community>> GetCommunities()
+        //{
+        //    using var connection = new SqlConnection(
+        //        _configuration.GetConnectionString("DefaultConnection")
+        //    );
+
+        //    await connection.OpenAsync();
+
+        //    var result = await connection.QueryAsync<Community>("Get_AllCommunities", commandType: CommandType.StoredProcedure);
+
+        //    return result.ToList();
+        //}
         public async Task<List<dynamic>> GetCommunityUsers(long communityId)
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
@@ -329,5 +367,211 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return data.ToList();
             }
         }
+
+        public async Task<List<CommunityCategoryDto>> GetCommunityCategoriesAsync()
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await connection.QueryAsync<CommunityCategoryDto>("Get_CommunityCategories", commandType: CommandType.StoredProcedure);
+                return result.ToList();
+            }
+        }
+
+        public async Task<BaseResponse> AddCommunityAsync(AddCommunityRequest entity)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@CommunityId", entity.CommunityId);
+            parameters.Add("@CommunityCategoryId", entity.CommunityCategoryId);
+            parameters.Add("@CommunityName", entity.CommunityName);
+            parameters.Add("@Logo", entity.Logo);
+            parameters.Add("@Description", entity.Description);
+            parameters.Add("@ContactName", entity.ContactName);
+            parameters.Add("@ContactEmail", entity.ContactEmail);
+            parameters.Add("@ContactPhone", entity.ContactPhone);
+            parameters.Add("@Website", entity.Website);
+            parameters.Add("@Address", entity.Address);
+            parameters.Add("@OtherInfo", entity.OtherInfo);
+            parameters.Add("@UserName", entity.UserName);
+            parameters.Add("@Password", entity.Password);
+            parameters.Add("@IsActive", entity.IsActive);
+
+            var result = await connection.QueryAsync<BaseResponse>(
+                "Add_Community",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.FirstOrDefault();
+        }
+
+        public async Task<List<CommunityDto>> GetCommunitiesAsync()
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<CommunityDto>(
+                "Get_Communities",
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+
+        public async Task<CommunityDto> GetCommunityDetailsAsync(int communityId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@CommunityId", communityId);
+
+            var result = await connection.QueryAsync<CommunityDto>(
+                "Get_CommunityDetails",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.FirstOrDefault();
+        }
+
+        public async Task<List<CommunityDto>> GetCommunitiesByCategoryAsync(int communityCategoryId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@CommunityCategoryId", communityCategoryId);
+
+            var result = await connection.QueryAsync<CommunityDto>(
+                "Get_CommunitiesByCategory",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+
+
+        public async Task<BaseResponse> UpdateUserCommunityAsync(UpdateUserCommunityRequest entity)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@UserId", entity.UserId);
+            parameters.Add("@CommunityId", entity.CommunityId);
+
+            var result = await connection.QueryAsync<BaseResponse>(
+                "Update_UserCommunityMembership",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.FirstOrDefault();
+        }
+
+        public async Task<dynamic> AddCommunityPost(
+CommunityPostModel model)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+
+            {
+                var result =
+                    await connection.QueryFirstOrDefaultAsync<dynamic>(
+                        "sp_AddCommunityPost",
+                        new
+                        {
+                            CommunityId = model.CommunityId,
+                            Title = model.Title,
+                            Message = model.Message,
+                            ImagePath = model.ImagePath,
+                            CreatedBy = model.CreatedBy
+                        },
+                        commandType:
+                        CommandType.StoredProcedure);
+
+                return result;
+            }
+        }
+
+
+        public async Task<List<CommunityPostModel>> GetCommunityPostsByUser(Guid userId)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+
+            {
+                var result =
+                    await connection.QueryAsync<CommunityPostModel>(
+                        "sp_GetCommunityPostsByUser",
+                        new
+                        {
+                            UserId = userId
+                        },
+                        commandType:
+                        CommandType.StoredProcedure);
+
+                return result.ToList();
+            }
+        }
+
+        public async Task<List<CommunityPostModel>>
+    GetCommunityPosts(int communityId)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+
+            {
+                var result =
+                    await connection.QueryAsync<CommunityPostModel>(
+                        "sp_GetCommunityPosts",
+                        new
+                        {
+                            CommunityId = communityId
+                        },
+                        commandType:
+                        CommandType.StoredProcedure);
+
+                return result.ToList();
+            }
+        }
+        public async Task<dynamic> DeleteCommunityPost(
+    int postId)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+
+            {
+                return await connection
+                    .QueryFirstOrDefaultAsync<dynamic>(
+                        "sp_DeleteCommunityPost",
+                        new
+                        {
+                            PostId = postId
+                        },
+                        commandType:
+                        CommandType.StoredProcedure);
+            }
+
+        }
+
     }
 }
+

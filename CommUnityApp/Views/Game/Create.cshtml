@@ -1,0 +1,363 @@
+﻿@using System.Security.Claims
+@{
+    ViewData["Title"] = "Spin Game Enrolment";
+    Layout = null;
+
+    // 🔹 Get UserId from Cookie Claim
+    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>@ViewData["Title"]</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* ✅ UI NOT CHANGED */
+        span {
+            color: #ef4444; /* red color */
+            font-weight: 600;
+            margin-left: 4px;
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: 'Inter',sans-serif;
+        }
+
+        body {
+            margin: 0;
+            padding: 60px 20px;
+            background: linear-gradient(rgba(10,15,35,.92),rgba(10,15,35,.92)), url('https://images.unsplash.com/photo-1609947017136-9daf32a5eb16');
+            background-size: cover;
+            background-position: center;
+            color: #fff;
+        }
+
+        .form-wrapper {
+            max-width: 1000px;
+            margin: auto;
+            background: linear-gradient(135deg,#0f172a,#1e293b);
+            border-radius: 28px;
+            padding: 50px;
+            border: 1px solid rgba(212,175,55,.3);
+            box-shadow: 0 40px 80px rgba(0,0,0,.7);
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 38px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            color: #facc15;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #cbd5e1;
+            margin-bottom: 40px;
+        }
+
+        section {
+            background: rgba(255,255,255,.03);
+            border-radius: 22px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+
+            section h2 {
+                font-size: 18px;
+                margin-bottom: 20px;
+                color: #facc15;
+            }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 18px;
+        }
+
+        input, select, textarea {
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,.15);
+            background: rgba(255,255,255,.05);
+            color: #fff;
+            font-size: 14px;
+        }
+
+        select {
+            background-color: #1e293b;
+            color: #fff;
+        }
+
+            select option {
+                background-color: #1e293b;
+                color: #fff;
+            }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+            gap: 20px;
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 14px;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .primary {
+            padding: 14px 32px;
+            border-radius: 999px;
+            font-weight: 700;
+            background: linear-gradient(135deg,#d4af37,#facc15);
+            color: #111;
+            border: none;
+            cursor: pointer;
+        }
+
+        .duration-display {
+            color: #22c55e;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .section-fields {
+            border: 1px dashed rgba(255,255,255,.1);
+            padding: 20px;
+            margin-top: 15px;
+            border-radius: 10px;
+        }
+        .section-fields h3 {
+            color: #facc15;
+            font-size: 16px;
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="form-wrapper">
+
+        <h1>SPIN GAME ENROLMENT FORM</h1>
+        <p class="subtitle">Create and configure your exciting new spin game!</p>
+
+        <form id="spinGameForm">
+
+            <input type="hidden" id="GameId" value="0">
+            <input type="hidden" id="BusinessId" value="1"> @* Assuming a default business for now *@
+            <input type="hidden" id="CreatedByAdminId" value="@userId">
+            <input type="hidden" id="ConfigId" value="0"> @* Will be set if updating an existing config *@
+
+            <section>
+                <h2>1. Game Basic Details</h2>
+                <div class="grid-2">
+                    <div class="field">
+                        <label for="GameName">Game Name<span>*</span></label>
+                        <input type="text" id="GameName" required>
+                    </div>
+                    <div class="field">
+                        <label for="IsGameActive">Is Game Active?</label>
+                        <input type="checkbox" id="IsGameActive" checked>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="Description">Description</label>
+                    <textarea id="Description" rows="3"></textarea>
+                </div>
+            </section>
+
+            <section>
+                <h2>2. Game Configuration</h2>
+                <div class="grid-2">
+                    <div class="field">
+                        <label for="MaxSpinsPerDay">Max Spins Per Day<span>*</span></label>
+                        <input type="number" id="MaxSpinsPerDay" value="1" min="1" required>
+                    </div>
+                    <div class="field">
+                        <label for="NumberOfSections">Number of Sections<span>*</span></label>
+                        <input type="number" id="NumberOfSections" value="8" min="2" max="20" required>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="field">
+                        <label for="GameStartDate">Start Date<span>*</span></label>
+                        <input type="datetime-local" id="GameStartDate" required>
+                    </div>
+                    <div class="field">
+                        <label for="GameEndDate">End Date<span>*</span></label>
+                        <input type="datetime-local" id="GameEndDate" required>
+                    </div>
+                </div>
+                <div class="field">
+                    <label for="IsConfigActive">Is Configuration Active?</label>
+                    <input type="checkbox" id="IsConfigActive" checked>
+                </div>
+            </section>
+
+            <section>
+                <h2>3. Spin Wheel Sections</h2>
+                <div id="sectionsContainer">
+                    @* Dynamic sections will be added here by JavaScript *@
+                </div>
+            </section>
+
+            <div class="actions">
+                <button type="submit" class="primary">Create Spin Game</button>
+            </div>
+
+        </form>
+    </div>
+
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const numberOfSectionsInput = document.getElementById("NumberOfSections");
+            const sectionsContainer = document.getElementById("sectionsContainer");
+            const gameStartDateInput = document.getElementById("GameStartDate");
+            const gameEndDateInput = document.getElementById("GameEndDate");
+
+            // Set default dates
+            const now = new Date();
+            const in30Days = new Date();
+            in30Days.setDate(now.getDate() + 30);
+
+            gameStartDateInput.value = formatDateTimeLocal(now);
+            gameEndDateInput.value = formatDateTimeLocal(in30Days);
+
+            function formatDateTimeLocal(date) {
+                const year = date.getFullYear();
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const day = date.getDate().toString().padStart(2, '0');
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                return `${year}-${month}-${day}T${hours}:${minutes}`;
+            }
+
+            function generateSections() {
+                sectionsContainer.innerHTML = '';
+                const numSections = parseInt(numberOfSectionsInput.value);
+
+                for (let i = 1; i <= numSections; i++) {
+                    const sectionDiv = document.createElement('div');
+                    sectionDiv.className = 'section-fields';
+                    sectionDiv.innerHTML = `
+                        <h3>Section ${i}</h3>
+                        <input type="hidden" class="section-id" value="0">
+                        <input type="hidden" class="section-number" value="${i}">
+                        <div class="grid-2">
+                            <div class="field">
+                                <label for="prizeText${i}">Prize Text<span>*</span></label>
+                                <input type="text" id="prizeText${i}" class="prize-text" value="Try Again" required>
+                            </div>
+                            <div class="field">
+                                <label for="points${i}">Points (Optional)</label>
+                                <input type="number" id="points${i}" class="points" min="0">
+                            </div>
+                        </div>
+                        <div class="grid-2">
+                            <div class="field">
+                                <label for="promotionId${i}">Promotion ID (Optional)</label>
+                                <input type="number" id="promotionId${i}" class="promotion-id" min="1">
+                            </div>
+                            <div class="field">
+                                <label for="color${i}">Color</label>
+                                <input type="color" id="color${i}" class="color" value="#3498db">
+                            </div>
+                        </div>
+                    `;
+                    sectionsContainer.appendChild(sectionDiv);
+                }
+            }
+
+            numberOfSectionsInput.addEventListener("change", generateSections);
+            numberOfSectionsInput.addEventListener("keyup", generateSections); // Also update on keyup
+
+            // Initial generation
+            generateSections();
+
+            document.getElementById("spinGameForm").addEventListener("submit", async function (e) {
+                e.preventDefault();
+
+                const gameNameInput = document.getElementById("GameName");
+                if (!gameNameInput.value.trim()) {
+                    alert("Game Name is required.");
+                    gameNameInput.focus();
+                    return; // Stop form submission
+                }
+
+                try {
+                    const sections = [];
+                    document.querySelectorAll("#sectionsContainer .section-fields").forEach(sectionDiv => {
+                        sections.push({
+                            sectionId: parseInt(sectionDiv.querySelector(".section-id").value),
+                            gameId: 0, // Will be set by backend
+                            sectionNumber: parseInt(sectionDiv.querySelector(".section-number").value),
+                            points: sectionDiv.querySelector(".points").value ? parseInt(sectionDiv.querySelector(".points").value) : null,
+                            promotionId: sectionDiv.querySelector(".promotion-id").value ? parseInt(sectionDiv.querySelector(".promotion-id").value) : null,
+                            prizeText: sectionDiv.querySelector(".prize-text").value,
+                            color: sectionDiv.querySelector(".color").value
+                        });
+                    });
+
+                    const requestData = {
+                        gameId: parseInt(document.getElementById("GameId").value),
+                        businessId: parseInt(document.getElementById("BusinessId").value),
+                        gameName: document.getElementById("GameName").value,
+                        description: document.getElementById("Description").value,
+                        configId: parseInt(document.getElementById("ConfigId").value),
+                        createdByAdminId: document.getElementById("CreatedByAdminId").value,
+                        isActive: document.getElementById("IsGameActive").checked,
+                        configs: [
+                            {
+                                configId: parseInt(document.getElementById("ConfigId").value), // Re-using ConfigId from hidden field
+                                maxSpinsPerDay: parseInt(document.getElementById("MaxSpinsPerDay").value),
+                                numberOfSections: parseInt(document.getElementById("NumberOfSections").value),
+                                gameStartDate: document.getElementById("GameStartDate").value,
+                                gameEndDate: document.getElementById("GameEndDate").value,
+                                isActive: document.getElementById("IsConfigActive").checked
+                            }
+                        ],
+                        sections: sections
+                    };
+
+                    console.log("Submitting:", requestData); // For debugging
+
+                    const response = await fetch("/api/Game/AddUpdateSpinGame", { // Assuming this API endpoint
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    const result = await response.json();
+
+                    if (!response.ok || result.resultId <= 0) {
+                        alert("Failed to submit Spin Game: " + (result.resultMessage || "Unknown error"));
+                        return;
+                    }
+
+                    alert("Spin Game Submitted Successfully");
+                    location.reload(); // Reload page to clear form
+
+                } catch (error) {
+                    console.error("Error submitting spin game:", error);
+                    alert("Something went wrong. Check console for details.");
+                }
+            });
+        });
+    </script>
+
+</body>
+</html>

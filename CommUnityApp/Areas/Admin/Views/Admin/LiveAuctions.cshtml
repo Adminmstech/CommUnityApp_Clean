@@ -1,0 +1,183 @@
+﻿@{
+    ViewData["Title"] = "Live Auctions";
+    Layout = "AdminLayout";
+}
+
+<div class="container-fluid">
+    <div class="card shadow border-0 rounded-4">
+        <div class="card-header bg-primary text-white py-3 rounded-top-4 d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fa fa-gavel me-2"></i> Live Auctions Management
+            </h4>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <input type="text"
+                           id="searchBox"
+                           class="form-control"
+                           placeholder="Search by item, business, user..." />
+                </div>
+
+                <div class="col-md-3">
+                    <select id="statusFilter" class="form-select">
+                        <option value="">All Auctions</option>
+                        <option value="Live">Live</option>
+                        <option value="Upcoming">Upcoming</option>
+                        <option value="Closed">Closed</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Item</th>
+                            <th>Business</th>
+                            <th>User</th>
+                            <th>Condition</th>
+                            <th>Reserve Price</th>
+                            <th>Min Deposit</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="auctionTableBody">
+                        <tr>
+                            <td colspan="10" class="text-center py-4">
+                                Loading auctions...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let allAuctions = [];
+
+        $(document).ready(function () {
+            loadAuctions();
+
+            $("#searchBox").on("keyup", filterAuctions);
+            $("#statusFilter").on("change", filterAuctions);
+        });
+
+        function loadAuctions() {
+            $.ajax({
+                url: "/api/Auction/Get_AdminLiveAuctions",
+                type: "GET",
+
+                success: function (response) {
+                    allAuctions = response;
+                    renderAuctions(response);
+                },
+
+                error: function () {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to load auctions."
+                    });
+                }
+            });
+        }
+
+        function filterAuctions() {
+            const search = $("#searchBox").val().toLowerCase();
+            const status = $("#statusFilter").val();
+
+            const filtered = allAuctions.filter(item => {
+
+                const matchesSearch =
+                    (item.itemTitle || '').toLowerCase().includes(search) ||
+                    (item.businessName || '').toLowerCase().includes(search) ||
+                    (item.userName || '').toLowerCase().includes(search);
+
+                const matchesStatus =
+                    !status || item.auctionDisplayStatus === status;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            renderAuctions(filtered);
+        }
+
+        function renderAuctions(auctions) {
+            const tbody = $("#auctionTableBody");
+            tbody.empty();
+
+            if (!auctions || auctions.length === 0) {
+                tbody.html(`
+                    <tr>
+                        <td colspan="10" class="text-center py-4">
+                            No auctions found.
+                        </td>
+                    </tr>
+                `);
+                return;
+            }
+
+            auctions.forEach(item => {
+
+                let statusBadge = '';
+
+                if (item.auctionDisplayStatus === "Live") {
+                    statusBadge = '<span class="badge bg-success">Live</span>';
+                }
+                else if (item.auctionDisplayStatus === "Upcoming") {
+                    statusBadge = '<span class="badge bg-warning text-dark">Upcoming</span>';
+                }
+                else {
+                    statusBadge = '<span class="badge bg-secondary">Closed</span>';
+                }
+
+                tbody.append(`
+                    <tr>
+                        <td>
+                            <strong>${item.itemTitle || ''}</strong>
+                            <div class="text-muted small">
+                                ${item.itemDescription || ''}
+                            </div>
+                        </td>
+
+                        <td>${item.businessName || 'Admin Auction'}</td>
+
+                        <td>${item.userName || ''}</td>
+
+                        <td>${item.itemCondition || '-'}</td>
+
+                        <td>$${item.reservePrice || 0}</td>
+
+                        <td>$${item.minDeposite || 0}</td>
+
+                        <td>${formatDateTime(item.startTime)}</td>
+
+                        <td>${formatDateTime(item.endTime)}</td>
+
+                        <td>${item.itemLocation || '-'}</td>
+
+                        <td>${statusBadge}</td>
+                    </tr>
+                `);
+            });
+        }
+
+        function formatDateTime(dateString) {
+            if (!dateString) return '-';
+
+            const d = new Date(dateString);
+            return d.toLocaleString();
+        }
+    </script>
+}

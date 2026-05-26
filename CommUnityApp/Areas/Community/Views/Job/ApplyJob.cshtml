@@ -1,0 +1,282 @@
+﻿@{
+    ViewData["Title"] = "Apply Job";
+    var job = ViewBag.Job;
+    var jobId = job != null ? job.JobId : 0;
+    var userId = User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+<style>
+    body {
+        background: #f1f5f9;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    .page-container {
+        max-width: 1200px;
+        margin: auto;
+    }
+
+    .job-header {
+        background: linear-gradient(135deg, #4f46e5, #06b6d4);
+        color: white;
+        padding: 30px;
+        border-radius: 16px;
+        margin-bottom: 20px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    }
+
+        .job-header h2 {
+            font-weight: 700;
+        }
+
+    .job-meta span {
+        margin-right: 20px;
+        font-size: 14px;
+    }
+
+    .card-pro {
+        background: white;
+        border-radius: 16px;
+        padding: 25px;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+    }
+
+    .section-title {
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #111827;
+    }
+
+    .form-control {
+        border-radius: 10px;
+        padding: 10px;
+    }
+
+    .btn-apply {
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        border: none;
+        padding: 14px;
+        font-size: 16px;
+        font-weight: 600;
+        border-radius: 10px;
+        transition: 0.3s;
+    }
+
+        .btn-apply:hover {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+
+    .badge-skill {
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 6px 10px;
+        border-radius: 20px;
+        margin-right: 5px;
+        font-size: 12px;
+    }
+
+    .sticky-box {
+        position: sticky;
+        top: 20px;
+    }
+</style>
+
+@if (job == null)
+{
+    <div class="container mt-5">
+        <div class="alert alert-danger text-center">
+            ❌ Job not found
+        </div>
+    </div>
+}
+else
+{
+    <div class="page-container mt-4">
+
+        <!-- HEADER -->
+        <div class="job-header">
+            <h2>@job.JobTitle</h2>
+            <h6>@job.CompanyName</h6>
+
+            <div class="job-meta mt-3">
+                <span>📍 @job.Location</span>
+                <span>💼 @job.Experience</span>
+                <span>💰 @job.SalaryMin - @job.SalaryMax</span>
+            </div>
+        </div>
+
+        <div class="row">
+
+            <!-- LEFT SIDE (JOB DETAILS) -->
+            <div class="col-lg-7">
+
+                <div class="card-pro mb-4">
+                    <h5 class="section-title">Job Description</h5>
+                    <p>@job.Description</p>
+                </div>
+
+                <div class="card-pro">
+                    <h5 class="section-title">Skills Required</h5>
+                    <div>
+                        <span class="badge-skill">C#</span>
+                        <span class="badge-skill">.NET</span>
+                        <span class="badge-skill">SQL</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- RIGHT SIDE (APPLY FORM) -->
+            <div class="col-lg-5">
+
+                <div class="card-pro sticky-box">
+                    <h5 class="section-title">Apply Now 🚀</h5>
+
+                    <input type="hidden" id="jobId" value="@jobId" />
+
+                    <input type="text" id="fullName" class="form-control mb-2" placeholder="Full Name *" />
+                    <input type="email" id="email" class="form-control mb-2" placeholder="Email *" />
+                    <input type="text" id="phone" class="form-control mb-2" placeholder="Phone *" />
+
+                    @*<input type="date" id="dob" class="form-control mb-2" />
+
+                    <select id="gender" class="form-control mb-2">
+                        <option value="">Gender</option>
+                        <option>Male</option>
+                        <option>Female</option>
+                    </select>
+
+                    <input type="text" id="experience" class="form-control mb-2" placeholder="Experience" />
+                    <input type="text" id="skills" class="form-control mb-2" placeholder="Skills" />
+                    <input type="text" id="qualification" class="form-control mb-2" placeholder="Qualification" />
+
+                    <input type="text" id="location" class="form-control mb-2" placeholder="Current Location" />
+                    <input type="number" id="salary" class="form-control mb-2" placeholder="Expected Salary" />
+                    <input type="text" id="notice" class="form-control mb-2" placeholder="Notice Period" />*@
+
+                    <textarea id="coverLetter" class="form-control mb-3" placeholder="Cover Letter"></textarea>
+                    <input type="file"
+                           id="resumeFile"
+                           class="form-control mb-3"
+                           accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" />
+                    <button class="btn btn-apply w-100" onclick="applyJob()">
+                        Apply Now
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+}
+
+<script>
+
+    async function applyJob() {
+
+        try {
+
+            const applicantId = "00000000-0000-0000-0000-000000000000";
+
+            const formData = new FormData();
+
+            formData.append("JobId",
+                document.getElementById("jobId").value);
+
+            formData.append("ApplicantId", applicantId);
+
+            formData.append("FullName",
+                document.getElementById("fullName").value);
+
+            formData.append("Email",
+                document.getElementById("email").value);
+
+            formData.append("Phone",
+                document.getElementById("phone").value);
+
+            @*formData.append("DateOfBirth",
+                document.getElementById("dob").value);
+
+            formData.append("Gender",
+                document.getElementById("gender").value);
+
+            formData.append("TotalExperience",
+                document.getElementById("experience").value);
+
+            formData.append("Skills",
+                document.getElementById("skills").value);
+
+            formData.append("Qualification",
+                document.getElementById("qualification").value);
+
+            formData.append("CurrentLocation",
+                document.getElementById("location").value);
+
+            formData.append("ExpectedSalary",
+                document.getElementById("salary").value || 0);
+
+            formData.append("NoticePeriod",
+                document.getElementById("notice").value);*@
+
+            formData.append("CoverLetter",
+                document.getElementById("coverLetter").value);
+
+            // FILE
+            const fileInput = document.getElementById("resumeFile");
+
+            if (fileInput.files.length > 0) {
+
+                formData.append(
+                    "ResumeFile",
+                    fileInput.files[0]
+                );
+            }
+
+            const response = await fetch("/api/job/ApplyForJob", {
+                method: "POST",
+                body: formData
+            });
+
+            console.log("STATUS:", response.status);
+
+            // READ RAW RESPONSE
+            const text = await response.text();
+
+            console.log("RAW RESPONSE:", text);
+
+            // TRY JSON
+            let res;
+
+            try {
+                res = JSON.parse(text);
+            }
+            catch {
+                alert("Server returned invalid response");
+                return;
+            }
+
+            if (res.resultId == 1) {
+
+                alert("Application submitted successfully");
+
+                location.reload();
+            }
+            else {
+
+                alert(res.resultMessage);
+            }
+
+        }
+        catch (err) {
+
+            console.log(err);
+
+            alert("Error occurred");
+        }
+    }
+
+</script>

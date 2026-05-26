@@ -1,0 +1,185 @@
+﻿@{
+    ViewData["Title"] = "Promotions Management";
+    Layout = "AdminLayout";
+}
+
+<div class="container-fluid">
+    <div class="card shadow border-0 rounded-4">
+        <div class="card-header bg-primary text-white py-3 rounded-top-4 d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fa fa-tags me-2"></i> Promotions Management
+            </h4>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <input type="text"
+                           id="searchBox"
+                           class="form-control"
+                           placeholder="Search by product, business, category..." />
+                </div>
+
+                <div class="col-md-3">
+                    <select id="statusFilter" class="form-select">
+                        <option value="">All Promotions</option>
+                        <option value="Current">Current</option>
+                        <option value="Upcoming">Upcoming</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Product</th>
+                            <th>Business</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Discount</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>Coins</th>
+                            <th>Refer Friend</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="promotionTableBody">
+                        <tr>
+                            <td colspan="10" class="text-center py-4">
+                                Loading promotions...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let allPromotions = [];
+
+        $(document).ready(function () {
+            loadPromotions();
+
+            $("#searchBox").on("keyup", filterPromotions);
+            $("#statusFilter").on("change", filterPromotions);
+        });
+
+        function loadPromotions() {
+            $.ajax({
+                url: "/api/Product/Get_AdminPromotions",
+                type: "GET",
+
+                success: function (response) {
+                    allPromotions = response;
+                    renderPromotions(response);
+                },
+
+                error: function () {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to load promotions."
+                    });
+                }
+            });
+        }
+
+        function filterPromotions() {
+            const search = $("#searchBox").val().toLowerCase();
+            const status = $("#statusFilter").val();
+
+            const filtered = allPromotions.filter(item => {
+
+                const matchesSearch =
+                    (item.productName || '').toLowerCase().includes(search) ||
+                    (item.businessName || '').toLowerCase().includes(search) ||
+                    (item.productCategory || '').toLowerCase().includes(search);
+
+                const matchesStatus =
+                    !status || item.promotionStatus === status;
+
+                return matchesSearch && matchesStatus;
+            });
+
+            renderPromotions(filtered);
+        }
+
+        function renderPromotions(promotions) {
+            const tbody = $("#promotionTableBody");
+            tbody.empty();
+
+            if (!promotions || promotions.length === 0) {
+                tbody.html(`
+                    <tr>
+                        <td colspan="10" class="text-center py-4">
+                            No promotions found.
+                        </td>
+                    </tr>
+                `);
+                return;
+            }
+
+            promotions.forEach(item => {
+
+                let statusBadge = '';
+
+                if (item.promotionStatus === "Current") {
+                    statusBadge = '<span class="badge bg-success">Current</span>';
+                }
+                else if (item.promotionStatus === "Upcoming") {
+                    statusBadge = '<span class="badge bg-warning text-dark">Upcoming</span>';
+                }
+
+                const referBadge = item.referAFriend
+                    ? '<span class="badge bg-info">Yes</span>'
+                    : '<span class="badge bg-secondary">No</span>';
+
+                tbody.append(`
+                    <tr>
+                        <td>
+                            <strong>${item.productName || ''}</strong>
+                            <div class="text-muted small">
+                                ${item.description || ''}
+                            </div>
+                        </td>
+
+                        <td>${item.businessName || ''}</td>
+
+                        <td>${item.productCategory || ''}</td>
+
+                        <td>$${item.price || 0}</td>
+
+                        <td>
+                            ${item.discountPrice ? '$' + item.discountPrice : '-'}
+                        </td>
+
+                        <td>${formatDate(item.startDate)}</td>
+
+                        <td>${formatDate(item.enddate)}</td>
+
+                        <td>${item.redemptionCoins || 0}</td>
+
+                        <td>${referBadge}</td>
+
+                        <td>${statusBadge}</td>
+                    </tr>
+                `);
+            });
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+
+            const d = new Date(dateString);
+            return d.toLocaleDateString();
+        }
+    </script>
+}
