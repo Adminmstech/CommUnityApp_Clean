@@ -44,16 +44,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 model.FullName,
                 model.Email,
                 model.Phone,
-                model.DateOfBirth,
-                model.Gender,
-                model.TotalExperience,
-                model.Skills,
-                model.Qualification,
+              
                 model.ResumePath,
-                model.CoverLetter,
-                model.CurrentLocation,
-                model.ExpectedSalary,
-                model.NoticePeriod
+                model.CoverLetter
             };
 
             return await con.ExecuteScalarAsync<long>(
