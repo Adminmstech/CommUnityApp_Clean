@@ -37,7 +37,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public DateTime LastDateToApply { get; set; }
     }
 
-    public class ApplyJobModel
+    public class ApplyAppJobModel
     {
         public long JobId { get; set; }
         public Guid ApplicantId { get; set; }
@@ -62,7 +62,38 @@ namespace CommUnityApp.ApplicationCore.Models
         public string NoticePeriod { get; set; }
         public IFormFile? ResumeFile { get; set; }
     }
+    public class ApplyJobModel
+    {
+        public long JobId { get; set; }
+        public Guid ApplicantId { get; set; }
 
+        public string FullName { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
+        public string? ResumePath { get; set; }
+        public string CoverLetter { get; set; }
+        public IFormFile? ResumeFile { get; set; }
+    }
+    public class ApplyJobModelForApp
+    {
+        public long JobId { get; set; }
+
+        public Guid ApplicantId { get; set; }
+
+        public string? FullName { get; set; }
+
+        public string? Email { get; set; }
+
+        public string? Phone { get; set; }
+
+        public string? ResumePath { get; set; }
+
+        public string? ResumeBase64 { get; set; }
+
+        public string? CoverLetter { get; set; }
+
+        public IFormFile? ResumeFile { get; set; }
+    }
     public class ApplicationHistoryModel
     {
         public long HistoryId { get; set; }
