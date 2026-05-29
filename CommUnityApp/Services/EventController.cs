@@ -12,6 +12,7 @@ using Dapper;
 using Microsoft.AspNetCore.Authorization;
 using System.Drawing.Imaging;
 using static Org.BouncyCastle.Math.EC.ECCurve;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CommUnityApp.Services
 {
@@ -346,9 +347,9 @@ namespace CommUnityApp.Services
         }
 
         [HttpGet("GetEventCheckoutSummaryByUser")]
-        public async Task<IActionResult> GetEventCheckoutSummary(Guid userId)
+        public async Task<IActionResult> GetEventCheckoutSummary(Guid userId, int eventId, int ticketTypeId, int quantity, bool useWallet)
         {
-            var result = await _repository.GetEventCheckoutSummaryAsync(userId);
+            var result = await _repository.GetEventCheckoutSummaryAsync(userId,eventId,ticketTypeId,quantity,useWallet);
 
             if (result == null)
             {
@@ -492,13 +493,11 @@ namespace CommUnityApp.Services
 
             var baseUrl = $"{Request.Scheme}://{Request.Host}";
 
-            // Event Image
             if (!string.IsNullOrEmpty(data.EventImage))
             {
                 data.EventImage = baseUrl + "/uploads/Events/" + data.EventImage;
             }
 
-            // Sponsor Logos
             foreach (var s in data.Sponsors)
             {
                 if (!string.IsNullOrEmpty(s.LogoPath))
@@ -586,6 +585,92 @@ namespace CommUnityApp.Services
             });
         }
 
+        [HttpPost("AddBookEvent")]
+        public async Task<IActionResult> AddBookEvent(BookEventRequest model)
+        {
+            var result = await _repository.AddBookEvent(model);
+
+            return Ok(result);
+        }
+
+
+
+        [HttpGet("GetUserTicketDetails")]
+        public async Task<IActionResult> GetUserTicketDetails(int ticketId)
+        {
+            var result = await _repository.GetUserTicketDetails(ticketId);
+
+            if (result == null)
+            {
+                return NotFound();
+            }
+
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+            if (result.TicketDetails != null &&
+                !string.IsNullOrEmpty(result.TicketDetails.EventImage))
+            {
+                result.TicketDetails.EventImage =
+                    $"{baseUrl}{result.TicketDetails.EventImage}";
+            }
+
+            if (result.TicketDetails != null &&
+                !string.IsNullOrEmpty(result.TicketDetails.QRCodePath))
+            {
+                result.TicketDetails.QRCodePath =
+                    $"{baseUrl}{result.TicketDetails.QRCodePath}";
+            }
+
+            if (result.Sponsors != null && result.Sponsors.Any())
+            {
+                foreach (var s in result.Sponsors)
+                {
+                    if (!string.IsNullOrEmpty(s.LogoPath))
+                    {
+                        s.LogoPath =
+                            $"{baseUrl}/uploads/sponsors/{s.LogoPath}";
+                    }
+                }
+            }
+
+            return Ok(result);
+        }
+
+        [HttpGet("GetSponsorDetailsById")]
+        public async Task<IActionResult> GetSponsorDetailsById(int sponsorId)
+        {
+            var result = await _repository.GetSponsorDetailsById(sponsorId);
+
+            if (result?.SponsorDetails != null)
+            {
+                var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+                if (!string.IsNullOrEmpty(result.SponsorDetails.LogoPath))
+                {
+                    result.SponsorDetails.LogoPath =
+                        $"{baseUrl}/uploads/sponsors/{result.SponsorDetails.LogoPath}";
+                }
+            }
+
+            return Ok(result);
+        }
+
+        [HttpGet("GetBookedTicketsByUserId")]
+        public async Task<IActionResult> GetBookedTicketsByUserId(Guid userId)
+        {
+            var result = await _repository
+                .GetBookedTicketsByUserId(userId);
+
+            return Ok(result);
+        }
+
+        [HttpGet("CheckInTicket")]
+        public async Task<IActionResult> CheckInTicket(string ticketCode)
+        {
+            var result = await _repository.CheckInTicket(ticketCode);
+
+            return Ok(result);
+        }
     }
     }
 
