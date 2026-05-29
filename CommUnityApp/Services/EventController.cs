@@ -473,7 +473,7 @@ namespace CommUnityApp.Services
                 await _repository.AttachSponsorToEvent(model);
 
                 return Ok("Sponsor linked successfully");
-            }
+            } 
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
