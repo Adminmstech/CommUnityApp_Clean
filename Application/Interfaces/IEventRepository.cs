@@ -20,7 +20,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<IEnumerable<UserBookingResponse>> GetUserBookingsAsync(Guid userId);
         Task<EventCheckoutResponse> GetEventCheckoutAsync(Guid transactionId);
         Task<dynamic> AddEventPaymentAsync(EventPaymentRequest request);
-        Task<EventCheckoutSummaryResponse> GetEventCheckoutSummaryAsync(Guid userId);
+        Task<EventCheckoutSummaryResponse> GetEventCheckoutSummaryAsync(Guid userId, int eventId, int ticketTypeId, int quantity, bool useWallet);
         Task<int> AddEventSponsor(EventSponsorModel model, string logoPath);
         Task<List<EventSponsorModel>> GetEventSponsors(int eventId);
         Task<List<EventSponsorListModel>> GetAllSponsors();
@@ -39,5 +39,14 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<UserModel>> GetUsersByCommunityId(int communityId);
 
         Task<List<UserPostedEventModel>> GetPostedEventsByUser(Guid userId);
+
+        Task<dynamic> AddBookEvent(BookEventRequest model);
+
+        Task<UserTicketDetailsResponse> GetUserTicketDetails(int ticketId);
+        Task<SponsorDetailsResponse> GetSponsorDetailsById(int sponsorId);
+
+        Task<dynamic> GetBookedTicketsByUserId(Guid userId);
+
+        Task<dynamic> CheckInTicket(string ticketCode);
     }
 }

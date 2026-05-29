@@ -10,6 +10,7 @@ using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
 
+
 namespace CommUnityApp.InfrastructureLayer.Repositories
 {
     public class EventRepository : IEventRepository
@@ -311,12 +312,17 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return result;
             }
         }
-        public async Task<EventCheckoutSummaryResponse> GetEventCheckoutSummaryAsync(Guid userId)
+        public async Task<EventCheckoutSummaryResponse> GetEventCheckoutSummaryAsync(Guid userId,int eventId,int ticketTypeId,int quantity, bool useWallet)
         {
             using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
                 var parameters = new DynamicParameters();
+
                 parameters.Add("@UserId", userId);
+                parameters.Add("@EventId", eventId);
+                parameters.Add("@TicketTypeId", ticketTypeId);
+                parameters.Add("@Quantity", quantity);
+                parameters.Add("@UseWallet", useWallet);
 
                 var result = await con.QueryFirstOrDefaultAsync<EventCheckoutSummaryResponse>(
                     "SP_EventCheckoutSummary_ByUser",
@@ -547,6 +553,348 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     commandType: CommandType.StoredProcedure);
 
                 return result.ToList();
+            }
+        }
+
+        public async Task<dynamic> AddBookEvent(BookEventRequest model)
+        {
+
+            using (var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
+            {
+                await con.OpenAsync();
+
+                using (var transaction = con.BeginTransaction())
+                {
+                    try
+                    {
+
+
+                        DynamicParameters param = new DynamicParameters();
+
+                        param.Add("@UserId", model.UserId);
+                        param.Add("@EventId", model.EventId);
+                        param.Add("@TicketTypeId", model.TicketTypeId);
+                        param.Add("@Quantity", model.Quantity);
+                        param.Add("@UseWallet", model.UseWallet);
+                        param.Add("@PaymentMethod", model.PaymentMethod);
+                        param.Add("@TransactionId", model.TransactionId);
+
+                        var bookingResult = await con.QueryFirstOrDefaultAsync<dynamic>(
+                            "SP_EventBookTickets",
+                            param,
+                            transaction: transaction,
+                            commandType: CommandType.StoredProcedure);
+
+                        if (bookingResult == null || bookingResult.Status == 0)
+                        {
+                            transaction.Rollback();
+
+                            return new
+                            {
+                                status = 0,
+                                message = "Booking failed"
+                            };
+                        }
+
+                        int bookingId = bookingResult.BookingId;
+
+
+
+                        var tickets = (await con.QueryAsync<dynamic>(
+                            @"SELECT 
+                        TicketId,
+                        TicketCode
+                      FROM EventTickets
+                      WHERE BookingId=@BookingId",
+                            new { BookingId = bookingId },
+                            transaction)).ToList();
+
+
+
+                        /*foreach (var ticket in tickets)
+                        {
+                            string qrPath = await GenerateQRCode(
+                                ticket.TicketCode.ToString(),
+                                Convert.ToInt32(ticket.TicketId));
+
+                            await con.ExecuteAsync(
+                                @"UPDATE EventTickets
+                          SET QRCodePath=@QRCodePath
+                          WHERE TicketId=@TicketId",
+                                new
+                                {
+                                    QRCodePath = qrPath,
+                                    TicketId = ticket.TicketId
+                                },
+                                transaction);
+                        }*/
+                        var ticket = tickets.FirstOrDefault();
+
+                        if (ticket != null)
+                        {
+                            string qrPath = await GenerateQRCode(
+                                ticket.TicketCode.ToString(),
+                                Convert.ToInt32(ticket.TicketId));
+
+                            await con.ExecuteAsync(
+                                @"UPDATE EventTickets
+          SET QRCodePath=@QRCodePath
+          WHERE TicketId=@TicketId",
+                                new
+                                {
+                                    QRCodePath = qrPath,
+                                    TicketId = ticket.TicketId
+                                },
+                                transaction);
+                        }
+
+                        transaction.Commit();
+
+
+
+                        return new
+                        {
+                            status = 1,
+                            message = "Booking successful",
+                            bookingId = bookingId,
+                            payableAmount = bookingResult.PayableAmount,
+                            rewardCoins = bookingResult.RewardCoins
+                        };
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+
+                        return new
+                        {
+                            status = 0,
+                            message = ex.Message
+                        };
+                    }
+                }
+            }
+        }
+
+        public async Task<UserTicketDetailsResponse> GetUserTicketDetails(int ticketId)
+        {
+            using (var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
+            {
+                await con.OpenAsync();
+
+                DynamicParameters param = new DynamicParameters();
+
+                param.Add("@TicketId", ticketId);
+
+                using (var multi = await con.QueryMultipleAsync(
+                    "SP_GetUserTicketDetails",
+                    param,
+                    commandType: CommandType.StoredProcedure))
+                {
+                    var ticket = await multi.ReadFirstOrDefaultAsync<TicketDetails>();
+
+                    var sponsors = (await multi.ReadAsync<SponsorResponse>()).ToList();
+
+                    return new UserTicketDetailsResponse
+                    {
+                        Status = 1,
+                        TicketDetails = ticket,
+                        Sponsors = sponsors
+                    };
+                }
+            }
+        }
+
+        /*   public async Task<string> GenerateQRCode(string ticketCode, int ticketId)
+           {
+               try
+               {
+                   string rootPath = Path.Combine(
+                       Directory.GetCurrentDirectory(),
+                       "wwwroot");
+
+                   string folderPath = Path.Combine(
+                       rootPath,
+                       "Uploads",
+                       "EventTickets",
+                       ticketId.ToString());
+
+                   if (!Directory.Exists(folderPath))
+                   {
+                       Directory.CreateDirectory(folderPath);
+                   }
+
+                   string fileName = "qr.png";
+
+                   string fullPath = Path.Combine(folderPath, fileName);
+
+                   using (QRCodeGenerator qrGenerator =
+                       new QRCodeGenerator())
+                   {
+                       // QR URL
+                       string qrContent =
+                           $"https://localhost:7176/api/Event/CheckInTicket?ticketCode={ticketCode}";
+
+                       QRCodeData qrCodeData =
+                           qrGenerator.CreateQrCode(
+                               qrContent,
+                               QRCodeGenerator.ECCLevel.Q);
+
+                       using (QRCode qrCode =
+                           new QRCode(qrCodeData))
+                       {
+                           using (Bitmap qrCodeImage =
+                               qrCode.GetGraphic(20))
+                           {
+                               qrCodeImage.Save(
+                                   fullPath,
+                                   ImageFormat.Png);
+                           }
+                       }
+                   }
+
+                   return "/Uploads/EventTickets/"
+                          + ticketId +
+                          "/qr.png";
+               }
+               catch (Exception ex)
+               {
+                   throw new Exception(ex.Message);
+               }
+           }*/
+        public async Task<string> GenerateQRCode(string ticketCode, int ticketId)
+        {
+            try
+            {
+                string rootPath = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot");
+
+                string folderPath = Path.Combine(
+                    rootPath,
+                    "Uploads",
+                    "EventTickets",
+                    ticketId.ToString());
+
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                }
+
+                string fileName = "qr.png";
+
+                string fullPath = Path.Combine(folderPath, fileName);
+
+                using (QRCodeGenerator qrGenerator =
+                    new QRCodeGenerator())
+                {
+                    string qrContent =
+                        $"https://localhost:7176/api/Event/CheckInTicket?ticketCode={ticketCode}";
+
+                    QRCodeData qrCodeData =
+                        qrGenerator.CreateQrCode(
+                            qrContent,
+                            QRCodeGenerator.ECCLevel.Q);
+
+                    using (QRCode qrCode =
+                        new QRCode(qrCodeData))
+                    {
+                        using (Bitmap qrCodeImage =
+                            qrCode.GetGraphic(20))
+                        {
+                            qrCodeImage.Save(
+                                fullPath,
+                                ImageFormat.Png);
+                        }
+                    }
+                }
+
+                return "/Uploads/EventTickets/"
+                       + ticketId +
+                       "/qr.png";
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+        }
+
+        public async Task<SponsorDetailsResponse> GetSponsorDetailsById(int sponsorId)
+        {
+            using (var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
+            {
+                await con.OpenAsync();
+
+                DynamicParameters param = new DynamicParameters();
+
+                param.Add("@SponsorId", sponsorId);
+
+                var result = await con.QueryFirstOrDefaultAsync<SponsorResponse>(
+                    "SP_GetSponsorDetailsById",
+                    param,
+                    commandType: CommandType.StoredProcedure);
+
+                if (result == null)
+                {
+                    return new SponsorDetailsResponse
+                    {
+                        Status = 0,
+                        Message = "Sponsor not found",
+                        SponsorDetails = null
+                    };
+                }
+
+                return new SponsorDetailsResponse
+                {
+                    Status = 1,
+                    Message = "Success",
+                    SponsorDetails = result
+                };
+            }
+        }
+
+        public async Task<dynamic> GetBookedTicketsByUserId(Guid userId)
+        {
+            using (var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
+            {
+                await con.OpenAsync();
+
+                DynamicParameters param = new DynamicParameters();
+
+                param.Add("@UserId", userId);
+
+                var result = (await con.QueryAsync<dynamic>(
+                    "SP_GetBookedTicketsByUserId",
+                    param,
+                    commandType: CommandType.StoredProcedure))
+                    .ToList();
+
+                return new
+                {
+                    status = 1,
+                    tickets = result
+                };
+            }
+        }
+
+        public async Task<dynamic> CheckInTicket(string ticketCode)
+        {
+            using (var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
+            {
+                DynamicParameters param = new DynamicParameters();
+
+                param.Add("@TicketCode", ticketCode);
+
+                var result = await con.QueryFirstOrDefaultAsync(
+                    "SP_EventTicketCheckIn",
+                    param,
+                    commandType: CommandType.StoredProcedure);
+
+                return result;
             }
         }
     }
