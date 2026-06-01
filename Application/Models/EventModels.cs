@@ -281,6 +281,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public DateTime StartDate { get; set; }
 
         public List<SponsorModel> Sponsors { get; set; } = new List<SponsorModel>();
+        public List<EventTicketTypeResponse> TicketTypes { get; set; }
+
     }
 
     public class SponsorModel
@@ -349,5 +351,114 @@ namespace CommUnityApp.ApplicationCore.Models
         public string ContactPhone { get; set; }
 
         public string ContactEmail { get; set; }
+    }
+
+
+    public class BookEventRequest
+    {
+        public Guid UserId { get; set; }
+        public int EventId { get; set; }
+        public int TicketTypeId { get; set; }
+        public int Quantity { get; set; }
+        public bool UseWallet { get; set; }
+        public string PaymentMethod { get; set; }
+        public string TransactionId { get; set; }
+    }
+
+    public class SponsorResponse
+    {
+            public int SponsorId { get; set; }
+
+            public int EventId { get; set; }
+
+            public string SponsorName { get; set; }
+
+            public string Mobile { get; set; }
+
+            public string Email { get; set; }
+
+            public string LogoPath { get; set; }
+
+            public string OtherInfo { get; set; }
+
+    }
+
+    public class SponsorDetailsResponse
+    {
+        public int Status { get; set; }
+        public string Message { get; set; }
+        public SponsorResponse SponsorDetails { get; set; }
+    }
+
+    public class UserTicketDetailsResponse
+    {
+        public int Status { get; set; }
+        public TicketDetails TicketDetails { get; set; }
+        public List<SponsorResponse> Sponsors { get; set; }
+
+
+    }
+
+    public class EventTicketTypeResponse
+    {
+        public int TicketTypeId { get; set; }
+
+        public int EventId { get; set; }
+
+        public string TicketTypeName { get; set; }
+
+        public decimal Price { get; set; }
+
+        public int TotalTickets { get; set; }
+
+        public int SoldTickets { get; set; }
+
+        public int MaxPerUser { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public DateTime CreatedDate { get; set; }
+
+        public int RemainingTickets { get; set; }
+    }
+    public class TicketDetails
+    {
+        public int TicketId { get; set; }
+        public string TicketCode { get; set; }
+        public string DisplayName { get; set; }
+        public string QRCodePath { get; set; }
+        public DateTime? ExpiryDate { get; set; }
+        public string ConditionsApply { get; set; }
+        public string TicketStatus { get; set; }
+
+        public string EventName { get; set; }
+        public string EventImage { get; set; }
+        public string Location { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+
+        public string TicketTypeName { get; set; }
+        public decimal Price { get; set; }
+    }
+
+    public class EventTicketTypeModel
+    {
+        public int TicketTypeId { get; set; }
+
+        public int EventId { get; set; }
+
+        public string TicketTypeName { get; set; }
+
+        public decimal Price { get; set; }
+
+        public int TotalTickets { get; set; }
+
+        public int SoldTickets { get; set; }
+
+        public int MaxPerUser { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public int RemainingTickets { get; set; }
     }
 }
