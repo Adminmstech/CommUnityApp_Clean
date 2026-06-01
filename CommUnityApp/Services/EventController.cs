@@ -671,6 +671,47 @@ namespace CommUnityApp.Services
 
             return Ok(result);
         }
+
+        [HttpGet("GetTicketTypesByEventId")]
+        public async Task<IActionResult> GetTicketTypesByEventId(int eventId)
+        {
+            var result = await _repository.GetTicketTypesByEventId(eventId);
+
+            return Ok(new
+            {
+                Status = 1,
+                TicketTypes = result
+            });
+        }
+
+        [HttpPost("AddEventTicketType")]
+        public async Task<IActionResult> AddEventTicketType([FromBody] AddEventTicketTypeModel model)
+        {
+            var result = await _repository.AddEventTicketType(model);
+            return Ok(result);
+        }
+
+        [HttpGet("GetEventsDropdown")]
+        public async Task<IActionResult> GetEventsDropdown()
+        {
+            var result = await _repository.GetEventsDropdown();
+
+            return Ok(result);
+        }
+        [HttpGet("GetEventTicketTypes")]
+        public async Task<IActionResult> GetEventTicketTypes()
+        {
+            var result = await _repository.GetEventTicketTypes();
+
+            return Ok(result);
+        }
+        [HttpDelete("DeleteEventTicketType")]
+        public async Task<IActionResult> DeleteEventTicketType(int ticketTypeId)
+        {
+            var result = await _repository.DeleteEventTicketType(ticketTypeId);
+
+            return Ok(result);
+        }
     }
     }
 

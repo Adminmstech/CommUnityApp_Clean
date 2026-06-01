@@ -461,4 +461,47 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public int RemainingTickets { get; set; }
     }
+
+    public class AddEventTicketTypeModel
+    {
+        public int EventId { get; set; }
+
+        public string TicketTypeName { get; set; }
+
+        public decimal Price { get; set; }
+
+        public int TotalTickets { get; set; }
+
+        public int MaxPerUser { get; set; }
+
+        public string ConditionsApply { get; set; }
+
+        public string RefundPolicy { get; set; }
+
+        public bool IsTransferable { get; set; }
+    }
+    public class EventDropdownModel
+    {
+        public int EventId { get; set; }
+
+        public string EventName { get; set; }
+    }
+
+    public class EventTicketTypeListModel
+    {
+        public int TicketTypeId { get; set; }
+        public int EventId { get; set; }
+        public string EventName { get; set; }
+        public string TicketTypeName { get; set; }
+        public decimal Price { get; set; }
+        public int TotalTickets { get; set; }
+        public int SoldTickets { get; set; }
+        public int RemainingTickets { get; set; }
+        public int MaxPerUser { get; set; }
+        public string ConditionsApply { get; set; }
+        public string RefundPolicy { get; set; }
+        public bool IsTransferable { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedDate { get; set; }
+    }
 }

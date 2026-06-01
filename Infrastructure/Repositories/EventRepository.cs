@@ -897,5 +897,86 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return result;
             }
         }
+
+        public async Task<List<EventTicketTypeModel>> GetTicketTypesByEventId(int eventId)
+        {
+            using (var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
+            {
+                var param = new DynamicParameters();
+
+                param.Add("@EventId", eventId);
+
+                var result = await con.QueryAsync<EventTicketTypeModel>(
+                    "SP_GetTicketTypesByEventId",
+                    param,
+                    commandType: CommandType.StoredProcedure);
+
+                return result.ToList();
+            }
+        }
+
+        public async Task<dynamic> AddEventTicketType(AddEventTicketTypeModel model)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                DynamicParameters param = new DynamicParameters();
+
+                param.Add("@EventId", model.EventId);
+                param.Add("@TicketTypeName", model.TicketTypeName);
+                param.Add("@Price", model.Price);
+                param.Add("@TotalTickets", model.TotalTickets);
+                param.Add("@MaxPerUser", model.MaxPerUser);
+                param.Add("@ConditionsApply", model.ConditionsApply);
+                param.Add("@RefundPolicy", model.RefundPolicy);
+                param.Add("@IsTransferable", model.IsTransferable);
+
+                var result = await con.QueryFirstOrDefaultAsync<dynamic>(
+                    "SP_AddEventTicketType",
+                    param,
+                    commandType: CommandType.StoredProcedure);
+
+                return result;
+            }
+        }
+
+        public async Task<List<EventDropdownModel>> GetEventsDropdown()
+        {
+            using (var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await con.QueryAsync<EventDropdownModel>(
+                    "SP_GetEventsDropdown",
+                    commandType: CommandType.StoredProcedure);
+
+                return result.ToList();
+            }
+        }
+
+        public async Task<List<EventTicketTypeListModel>> GetEventTicketTypes()
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await con.QueryAsync<EventTicketTypeListModel>(
+                    "SP_GetEventTicketTypes",
+                    commandType: CommandType.StoredProcedure);
+
+                return result.ToList();
+            }
+        }
+        public async Task<dynamic> DeleteEventTicketType(int ticketTypeId)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                DynamicParameters param = new DynamicParameters();
+
+                param.Add("@TicketTypeId", ticketTypeId);
+
+                return await con.QueryFirstOrDefaultAsync(
+                    "SP_DeleteEventTicketType",
+                    param,
+                    commandType: CommandType.StoredProcedure);
+            }
+        }
     }
 }

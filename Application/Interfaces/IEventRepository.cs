@@ -48,5 +48,10 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<dynamic> GetBookedTicketsByUserId(Guid userId);
 
         Task<dynamic> CheckInTicket(string ticketCode);
+        Task<List<EventTicketTypeModel>> GetTicketTypesByEventId(int eventId);
+        Task<dynamic> AddEventTicketType(AddEventTicketTypeModel model);
+        Task<List<EventDropdownModel>> GetEventsDropdown();
+        Task<List<EventTicketTypeListModel>> GetEventTicketTypes();
+        Task<dynamic> DeleteEventTicketType(int ticketTypeId);
     }
 }

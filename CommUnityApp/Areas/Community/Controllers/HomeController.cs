@@ -22,6 +22,15 @@ namespace CommUnityApp.Areas.Community.Controllers
         {
             return View();
         }
+        public IActionResult AddEventTicketType()
+        {
+            return View();
+        }
+
+        public IActionResult ViewEventTicketType()
+        {
+            return View();
+        }
         public IActionResult PostEvent()
         {
             return View();
@@ -73,6 +82,7 @@ namespace CommUnityApp.Areas.Community.Controllers
            
             return View();
         }
+
 
         public IActionResult EventSponsors()
         {
