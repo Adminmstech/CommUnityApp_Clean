@@ -346,10 +346,10 @@ namespace CommUnityApp.Services
             });
         }
 
-        [HttpGet("GetEventCheckoutSummaryByUser")]
-        public async Task<IActionResult> GetEventCheckoutSummary(Guid userId, int eventId, int ticketTypeId, int quantity, bool useWallet)
+        [HttpPost("GetEventCheckoutSummaryByUser")]
+        public async Task<IActionResult> GetEventCheckoutSummary(EventCheckoutSummaryRequest model)
         {
-            var result = await _repository.GetEventCheckoutSummaryAsync(userId,eventId,ticketTypeId,quantity,useWallet);
+            var result = await _repository.GetEventCheckoutSummaryAsync(model);
 
             if (result == null)
             {
