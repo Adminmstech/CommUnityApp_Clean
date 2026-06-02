@@ -20,7 +20,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<IEnumerable<UserBookingResponse>> GetUserBookingsAsync(Guid userId);
         Task<EventCheckoutResponse> GetEventCheckoutAsync(Guid transactionId);
         Task<dynamic> AddEventPaymentAsync(EventPaymentRequest request);
-        Task<EventCheckoutSummaryResponse> GetEventCheckoutSummaryAsync(Guid userId, int eventId, int ticketTypeId, int quantity, bool useWallet);
+        Task<EventCheckoutSummaryResponse> GetEventCheckoutSummaryAsync(EventCheckoutSummaryRequest model);
         Task<int> AddEventSponsor(EventSponsorModel model, string logoPath);
         Task<List<EventSponsorModel>> GetEventSponsors(int eventId);
         Task<List<EventSponsorListModel>> GetAllSponsors();

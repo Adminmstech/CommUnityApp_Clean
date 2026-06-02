@@ -9,6 +9,7 @@ using QRCoder;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Text.Json;
 
 
 namespace CommUnityApp.InfrastructureLayer.Repositories
@@ -312,26 +313,28 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return result;
             }
         }
-        public async Task<EventCheckoutSummaryResponse> GetEventCheckoutSummaryAsync(Guid userId,int eventId,int ticketTypeId,int quantity, bool useWallet)
+        public async Task<EventCheckoutSummaryResponse> GetEventCheckoutSummaryAsync(EventCheckoutSummaryRequest model)
         {
-            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-            {
-                var parameters = new DynamicParameters();
+            using var con =
+                new SqlConnection(
+                    _configuration.GetConnectionString("DefaultConnection"));
 
-                parameters.Add("@UserId", userId);
-                parameters.Add("@EventId", eventId);
-                parameters.Add("@TicketTypeId", ticketTypeId);
-                parameters.Add("@Quantity", quantity);
-                parameters.Add("@UseWallet", useWallet);
+            DynamicParameters parameters =
+                new DynamicParameters();
 
-                var result = await con.QueryFirstOrDefaultAsync<EventCheckoutSummaryResponse>(
-                    "SP_EventCheckoutSummary_ByUser",
-                    parameters,
-                    commandType: CommandType.StoredProcedure
-                );
+            parameters.Add("@UserId", model.UserId);
 
-                return result;
-            }
+            parameters.Add("@EventId", model.EventId);
+
+            parameters.Add("@TicketsJson",JsonSerializer.Serialize(model.Tickets));
+
+            parameters.Add("@UseWallet", model.UseWallet);
+
+            return await con.QueryFirstOrDefaultAsync<EventCheckoutSummaryResponse>(
+                "SP_EventCheckoutSummary_ByUser",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
         }
         public async Task<int> AddEventSponsor(EventSponsorModel model, string logoPath)
         {
@@ -574,12 +577,14 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
                         param.Add("@UserId", model.UserId);
                         param.Add("@EventId", model.EventId);
-                        param.Add("@TicketTypeId", model.TicketTypeId);
-                        param.Add("@Quantity", model.Quantity);
+                       
                         param.Add("@UseWallet", model.UseWallet);
                         param.Add("@PaymentMethod", model.PaymentMethod);
                         param.Add("@TransactionId", model.TransactionId);
+                        var ticketsJson = JsonSerializer.Serialize(model.Tickets);
+                        param.Add("@TicketsJson", ticketsJson);
 
+                        Console.WriteLine(ticketsJson);
                         var bookingResult = await con.QueryFirstOrDefaultAsync<dynamic>(
                             "SP_EventBookTickets",
                             param,
@@ -593,7 +598,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                             return new
                             {
                                 status = 0,
-                                message = "Booking failed"
+                                message = bookingResult?.Message
                             };
                         }
 
@@ -790,7 +795,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     new QRCodeGenerator())
                 {
                     string qrContent =
-                        $"https://localhost:7176/api/Event/CheckInTicket?ticketCode={ticketCode}";
+                        $"https://indocommunity.com/api/Event/CheckInTicket?ticketCode={ticketCode}";
 
                     QRCodeData qrCodeData =
                         qrGenerator.CreateQrCode(
