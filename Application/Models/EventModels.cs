@@ -358,12 +358,18 @@ namespace CommUnityApp.ApplicationCore.Models
     {
         public Guid UserId { get; set; }
         public int EventId { get; set; }
-        public int TicketTypeId { get; set; }
-        public int Quantity { get; set; }
+        public string TransactionId { get; set; }
         public bool UseWallet { get; set; }
         public string PaymentMethod { get; set; }
-        public string TransactionId { get; set; }
-    }
+         public List<BookTicketItem> Tickets { get; set; }
+}
+
+public class BookTicketItem
+{
+    public int TicketTypeId { get; set; }
+
+    public int Quantity { get; set; }
+}
 
     public class SponsorResponse
     {
@@ -503,5 +509,23 @@ namespace CommUnityApp.ApplicationCore.Models
         public bool IsTransferable { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedDate { get; set; }
+    }
+
+    public class EventCheckoutSummaryRequest
+    {
+        public Guid UserId { get; set; }
+
+        public int EventId { get; set; }
+
+        public bool UseWallet { get; set; }
+
+        public List<BookTickets> Tickets { get; set; }
+    }
+
+    public class BookTickets
+    {
+        public int TicketTypeId { get; set; }
+
+        public int Quantity { get; set; }
     }
 }
