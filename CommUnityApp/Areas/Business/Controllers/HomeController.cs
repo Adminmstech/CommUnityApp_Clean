@@ -197,5 +197,32 @@ namespace CommUnityApp.Areas.Business.Controllers
 
             return View();
         }
+
+        public IActionResult AddPromotion()
+        {
+            var businessId = HttpContext.Session.GetString("BusinessId");
+
+            if (string.IsNullOrEmpty(businessId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            ViewBag.BusinessId = businessId;
+
+            return View();
+        }
+
+        public IActionResult BusinessPromotions()
+        {
+            ViewBag.BusinessId =
+                HttpContext.Session.GetString("BusinessId");
+
+            return View();
+        }
+
+        public IActionResult PromotionDetails()
+        {
+            return View();
+        }
     }
 }

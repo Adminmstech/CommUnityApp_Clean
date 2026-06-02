@@ -1,0 +1,285 @@
+﻿@{
+    ViewData["Title"] = "My Promotions";
+    Layout = "_BusinessLayout";
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <h3 class="mb-0">
+            <i class="fa fa-tags me-2"></i>
+            My Promotions
+        </h3>
+
+        <a href="/Business/Home/AddPromotion"
+           class="btn btn-primary">
+            <i class="fa fa-plus me-1"></i>
+            Add Promotion
+        </a>
+
+    </div>
+
+    <div class="card shadow border-0">
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover align-middle">
+
+                    <thead class="table-dark">
+
+                        <tr>
+                            <th>#</th>
+                            <th>Product</th>
+                            <th>Promotion Type</th>
+                            <th>Promo Code</th>
+                            <th>Discount</th>
+                            <th>Redeemed</th>
+                            <th>Start Date</th>
+                            <th>End Date</th>
+                            <th>QR Code</th>
+                            <th>Status</th>
+                            <th width="220">Actions</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="promotionTableBody">
+
+                        <tr>
+                            <td colspan="11" class="text-center">
+                                Loading Promotions...
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- QR Modal -->
+
+<div class="modal fade"
+     id="qrModal"
+     tabindex="-1">
+
+    <div class="modal-dialog modal-dialog-centered">
+
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+
+                <h5 class="modal-title">
+                    Promotion QR Code
+                </h5>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body text-center">
+
+                <img id="qrPreview"
+                     class="img-fluid rounded shadow" />
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        const businessId = @ViewBag.BusinessId;
+
+        $(document).ready(function () {
+
+            loadPromotions();
+
+        });
+
+        function loadPromotions() {
+
+            $.ajax({
+
+                url: '/api/product/Get_BusinessPromotions?businessId=' + businessId,
+
+                type: 'GET',
+
+                success: function (response) {
+
+                    bindPromotions(response);
+
+                },
+
+                error: function () {
+
+                    Swal.fire(
+                        "Error",
+                        "Failed to load promotions",
+                        "error"
+                    );
+                }
+            });
+        }
+
+        function bindPromotions(data) {
+
+            let html = '';
+
+            if (!data || data.length === 0) {
+
+                html = `
+                    <tr>
+                        <td colspan="11" class="text-center">
+                            No promotions found.
+                        </td>
+                    </tr>
+                `;
+
+                $("#promotionTableBody").html(html);
+                return;
+            }
+
+            data.forEach(function (item, index) {
+
+                html += `
+
+                <tr>
+
+                    <td>${index + 1}</td>
+
+                    <td>
+                        <strong>${item.productName}</strong>
+                    </td>
+
+                    <td>
+                        <span class="badge bg-primary">
+                            ${item.promotionType}
+                        </span>
+                    </td>
+
+                    <td>
+                        ${item.promoCode || '-'}
+                    </td>
+
+                    <td>
+                        ${item.discountValue || 0}
+                    </td>
+
+                    <td>
+                        ${item.redeemedCount}
+                    </td>
+
+                    <td>
+                        ${formatDate(item.startDate)}
+                    </td>
+
+                    <td>
+                        ${formatDate(item.endDate)}
+                    </td>
+
+                    <td class="text-center">
+
+                        <img src="${item.qrCodeImage}"
+                             class="img-thumbnail"
+                             style="width:80px;height:80px;cursor:pointer"
+                             onclick="showQR('${item.qrCodeImage}')"/>
+
+                    </td>
+
+                    <td>
+
+                        ${item.isActive
+                            ? '<span class="badge bg-success">Active</span>'
+                            : '<span class="badge bg-danger">Inactive</span>'}
+
+                    </td>
+
+                    <td>
+
+                        <button
+                            class="btn btn-primary btn-sm"
+                            onclick="viewPromotion(${item.promotionId})">
+
+                            <i class="fa fa-eye"></i>
+                        </button>
+
+                        <button
+                            class="btn btn-success btn-sm"
+                            onclick="sharePromotion('${item.promotionUrl}')">
+
+                            <i class="fa fa-share-alt"></i>
+                        </button>
+
+                        <a href="${item.qrCodeImage}"
+                           download
+                           class="btn btn-info btn-sm">
+
+                            <i class="fa fa-download"></i>
+
+                        </a>
+
+                    </td>
+
+                </tr>
+                `;
+            });
+
+            $("#promotionTableBody").html(html);
+        }
+
+        function showQR(imageUrl) {
+
+            $("#qrPreview").attr("src", imageUrl);
+
+            const modal = new bootstrap.Modal(
+                document.getElementById("qrModal")
+            );
+
+            modal.show();
+        }
+
+        function sharePromotion(url) {
+
+            window.open(
+                "https://wa.me/?text=" +
+                encodeURIComponent(url),
+                "_blank"
+            );
+        }
+
+        function viewPromotion(id) {
+
+            window.location.href =
+                "/Business/Home/PromotionDetails?promotionId=" + id;
+        }
+
+        function formatDate(dateString) {
+
+            if (!dateString)
+                return "-";
+
+            return new Date(dateString)
+                .toLocaleDateString();
+        }
+
+    </script>
+
+}

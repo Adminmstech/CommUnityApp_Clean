@@ -539,5 +539,85 @@ namespace CommUnityApp.Services
                 });
             }
         }
+
+
+        // =====================================
+        // Business Promotions
+        // =====================================
+
+        [HttpGet("Get_BusinessPromotions")]
+        public async Task<IActionResult> GetBusinessPromotions(int businessId)
+        {
+            try
+            {
+                var result =
+                    await _unitOfWork.Product
+                        .GetBusinessPromotionsAsync(businessId);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+
+        // =====================================
+        // Promotion Details
+        // =====================================
+
+        [HttpGet("Get_PromotionDetails")]
+        public async Task<IActionResult> GetPromotionDetails(int promotionId)
+        {
+            try
+            {
+                var result =
+                    await _unitOfWork.Product
+                        .GetPromotionDetailsAsync(promotionId);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+
+        // =====================================
+        // Scan QR / Token
+        // =====================================
+
+        [HttpPost("Get_PromotionByToken")]
+        public async Task<IActionResult> GetPromotionByToken(
+            [FromBody] GetPromotionByTokenRequest request)
+        {
+            try
+            {
+                var result =
+                    await _unitOfWork.Product
+                        .GetPromotionByTokenAsync(
+                            request.PromotionToken,
+                            request.UserId);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
     }
 }
+

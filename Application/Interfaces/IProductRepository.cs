@@ -24,6 +24,10 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<CartItemResponse>> GetCartItems(Guid UserId);
         Task<List<AdminPromotionDto>> GetAdminPromotionsAsync();
         Task<PromotionResult> AddUpdatePromotion(ProductPromotionModel entity);
+
+        Task<List<PromotionListModel>> GetBusinessPromotionsAsync(int businessId);
+        Task<PromotionDetailsModel> GetPromotionDetailsAsync(int promotionId);
+        Task<PromotionDetailsModel> GetPromotionByTokenAsync(Guid promotionToken, Guid? userId);
     }
 }
 
