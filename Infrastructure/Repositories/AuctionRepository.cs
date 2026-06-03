@@ -279,5 +279,43 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result.FirstOrDefault();
         }
 
+        public async Task<List<AdminLiveAuctionDto>> GetAdminLiveAuctionsAsync()
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<AdminLiveAuctionDto>(
+                "Get_AdminLiveAuctions",
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+
+
+        public async Task<AuctionWinnerSellerDetailsResponse> GetAuctionWinnerSellerDetailsAsync(Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+           
+            parameters.Add("@UserId", userId);
+
+            var result = await connection.QueryFirstOrDefaultAsync<AuctionWinnerSellerDetailsResponse>(
+                "Get_AuctionWinnerSellerDetails",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result;
+        }
     }
 }

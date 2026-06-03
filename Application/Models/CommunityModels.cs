@@ -383,6 +383,8 @@ namespace CommUnityApp.ApplicationCore.Models
     {
         public Guid UserId { get; set; }
 
-        public string CommunityId { get; set; }
+        public int CommunityId { get; set; }
     }
+
+   
 }

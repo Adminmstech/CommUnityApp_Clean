@@ -1,3 +1,5 @@
+using System;
+using System.IO;
 using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.InfrastructureLayer.Repositories;
 using CommUnityApp.InfrastructureLayer.Services;
@@ -5,8 +7,38 @@ using CommUnityApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.OpenApi;
 using Stripe;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Resolve firebase credential path: config -> env var -> content root
+string firebasePath = builder.Configuration["Firebase:ServiceAccountPath"]
+                      ?? Environment.GetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS")
+                      ?? Path.Combine(builder.Environment.ContentRootPath ?? Directory.GetCurrentDirectory(), "firebase-service-account.json");
+
+if (Directory.Exists(firebasePath))
+{
+    Console.Error.WriteLine($"Firebase service account path is a directory: '{firebasePath}'. Remove or rename that folder, or provide a valid file path.");
+}
+else if (System.IO.File.Exists(firebasePath))
+{
+    try
+    {
+        FirebaseApp.Create(new AppOptions
+        {
+            Credential = GoogleCredential.FromFile(firebasePath)
+        });
+    }
+    catch (Exception ex)
+    {
+        Console.Error.WriteLine($"Failed to initialize Firebase with '{firebasePath}': {ex.Message}");
+    }
+}
+else
+{
+    Console.Error.WriteLine($"Firebase service account file not found: '{firebasePath}'. Set 'Firebase:ServiceAccountPath' in configuration or 'GOOGLE_APPLICATION_CREDENTIALS' env var, or add the file to the content root.");
+}
 
 var stripeSecretKey = builder.Configuration["Stripe:SecretKey"];
 if (!string.IsNullOrWhiteSpace(stripeSecretKey))
@@ -68,8 +100,9 @@ builder.Services.AddTransient<INotificationRepository, NotificationRepository>()
 builder.Services.AddTransient<IGameResultsRepository, GameResultsRepository>();
 builder.Services.AddTransient<ICareConnectRepository, CareConnectRepository>();
 builder.Services.AddTransient<IJobRepository, JobRepository>();
-builder.Services.AddTransient<IDapperWrapper, DapperWrapper>(); // Added DapperWrapper registration
+builder.Services.AddTransient<IDapperWrapper, DapperWrapper>();
 builder.Services.AddTransient<ICampaignRepository, CampignRepository>();
+builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
 builder.Services.AddTransient<ISpinGameRepository>(provider =>
 {
     var configuration = provider.GetRequiredService<IConfiguration>();
@@ -111,7 +144,6 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddAuthorization();
-
 
 var app = builder.Build();
 

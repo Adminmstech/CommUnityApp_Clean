@@ -15,7 +15,7 @@ using static Org.BouncyCastle.Math.EC.ECCurve;
 namespace CommUnityApp.Services
 {
 
-  
+
     [ApiController]
     [Route("api/[controller]")]
     public class CommunityController : ControllerBase
@@ -691,7 +691,7 @@ namespace CommUnityApp.Services
             }
         }
 
-  
+
         [HttpGet("Get_AllCommunities")]
         public async Task<IActionResult> GetAllCommunities()
         {
@@ -700,7 +700,7 @@ namespace CommUnityApp.Services
         }
 
         [HttpGet("Get_CommunityDetails")]
-        public async Task<IActionResult> GetCommunityDetails(int communityId )
+        public async Task<IActionResult> GetCommunityDetails(int communityId)
         {
             var data = await _unitOfWork.Community.GetCommunityDetailsAsync(communityId);
             return Ok(data);
@@ -719,107 +719,110 @@ namespace CommUnityApp.Services
             var data = await _unitOfWork.Community.UpdateUserCommunityAsync(request);
             return Ok(data);
         }
-    [HttpPost("AddCommunityPost")]
-    public async Task<IActionResult> AddCommunityPost(
-[FromForm] CommunityPostModel model)
-    {
-        try
+        [HttpPost("AddCommunityPost")]
+        public async Task<IActionResult> AddCommunityPost(
+    [FromForm] CommunityPostModel model)
         {
-            string imagePath = "";
-
-
-            if (model.ImageFile != null)
+            try
             {
-                string folderPath =
-                    Path.Combine(
-                        _env.WebRootPath,
-                        "Uploads",
-                        "CommunityPosts");
+                string imagePath = "";
 
-                if (!Directory.Exists(folderPath))
+
+                if (model.ImageFile != null)
                 {
-                    Directory.CreateDirectory(folderPath);
+                    string folderPath =
+                        Path.Combine(
+                            _env.WebRootPath,
+                            "Uploads",
+                            "CommunityPosts");
+
+                    if (!Directory.Exists(folderPath))
+                    {
+                        Directory.CreateDirectory(folderPath);
+                    }
+
+                    string fileName =
+                        Guid.NewGuid().ToString()
+                        +
+                        Path.GetExtension(
+                            model.ImageFile.FileName);
+
+                    string fullPath =
+                        Path.Combine(folderPath,
+                                     fileName);
+
+                    using (var stream =
+                        new FileStream(fullPath,
+                                       FileMode.Create))
+                    {
+                        await model.ImageFile
+                            .CopyToAsync(stream);
+                    }
+
+                    imagePath =
+                        "/Uploads/CommunityPosts/"
+                        + fileName;
                 }
 
-                string fileName =
-                    Guid.NewGuid().ToString()
-                    +
-                    Path.GetExtension(
-                        model.ImageFile.FileName);
 
-                string fullPath =
-                    Path.Combine(folderPath,
-                                 fileName);
 
-                using (var stream =
-                    new FileStream(fullPath,
-                                   FileMode.Create))
-                {
-                    await model.ImageFile
-                        .CopyToAsync(stream);
-                }
+                model.ImagePath = imagePath;
 
-                imagePath =
-                    "/Uploads/CommunityPosts/"
-                    + fileName;
+                var result =
+                    await _communityRepository
+                    .AddCommunityPost(model);
+
+                return Ok(result);
             }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
-           
 
-            model.ImagePath = imagePath;
-
+        [HttpGet("GetCommunityPosts/{communityId}")]
+        public async Task<IActionResult> GetPosts(
+            int communityId)
+        {
             var result =
                 await _communityRepository
-                .AddCommunityPost(model);
+                .GetCommunityPosts(communityId);
+
+            return Ok(new
+            {
+                Status = true,
+                Data = result
+            });
+        }
+
+        [HttpDelete("DeleteCommunityPost/{postId}")]
+        public async Task<IActionResult> DeleteCommunityPost(int postId)
+        {
+            var result =
+                await _communityRepository
+                .DeleteCommunityPost(postId);
 
             return Ok(result);
         }
-        catch (Exception ex)
-        {
-            return BadRequest(ex.Message);
-        }
-    }
-
-
-    [HttpGet("GetCommunityPosts/{communityId}")] 
-    public async Task<IActionResult> GetPosts(
-        int communityId)
-    {
-        var result =
-            await _communityRepository
-            .GetCommunityPosts(communityId);
-
-        return Ok(new
-        {
-            Status = true,
-            Data = result
-        });
-    }
-
-    [HttpDelete("DeleteCommunityPost/{postId}")]
-    public async Task<IActionResult> DeleteCommunityPost(
-int postId)
-    {
-        var result =
-            await _communityRepository
-            .DeleteCommunityPost(postId);
-
-        return Ok(result);
-    }
 
         [HttpGet("GetCommunityPostsByUser")]
         public async Task<IActionResult> GetCommunityPostsByUser(Guid userId)
         {
             var result =
-                await _communityRepository
-                .GetCommunityPostsByUser(userId);
+           await _communityRepository.GetCommunityPostsByUser(userId);
 
             return Ok(new
             {
-                status = true, 
+                status = true,
                 data = result
             });
         }
+
+
+
     }
+
+
 }
 

@@ -560,5 +560,40 @@ namespace CommUnityApp.Services
 
             return Ok(); // Prevent Stripe retries
         }
+
+        [HttpGet("Get_AdminLiveAuctions")]
+        public async Task<IActionResult> Get_AdminLiveAuctions()
+        {
+            var data = await _unitOfWork.Auction.GetAdminLiveAuctionsAsync();
+            return Ok(data);
+        }
+
+        [HttpGet("Get_AuctionWinnerSellerDetails")]
+        public async Task<IActionResult> GetAuctionWinnerSellerDetails( Guid userId)
+        {
+            try
+            {
+                var result = await _unitOfWork.Auction.GetAuctionWinnerSellerDetailsAsync( userId);
+
+                if (result == null)
+                {
+                    return Ok(new BaseResponse
+                    {
+                        ResultId = 0,
+                        ResultMessage = "No details found."
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
     }
 }

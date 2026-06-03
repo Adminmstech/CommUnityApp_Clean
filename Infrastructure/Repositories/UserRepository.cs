@@ -261,5 +261,38 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result;
         }
+
+
+        public async Task<List<UserDto>> GetAllUsersAsync()
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<UserDto>(
+                "Get_AllUsers",
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+
+        public async Task<List<UserCommunicationDto>> GetUsersForCommunicationAsync()
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<UserCommunicationDto>(
+                "Get_UsersForCommunication",
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
     }
 }

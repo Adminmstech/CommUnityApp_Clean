@@ -299,6 +299,74 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result.ToList();
         }
 
+        public async Task<List<AdminPromotionDto>> GetAdminPromotionsAsync()
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
 
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<AdminPromotionDto>(
+                "Get_AdminPromotions",
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+
+
+        public async Task<PromotionResult> AddUpdatePromotion(ProductPromotionModel entity)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@PromotionId", entity.PromotionId);
+
+            parameters.Add("@ProductId", entity.ProductId);
+
+            parameters.Add("@BusinessId", entity.BusinessId);
+
+            parameters.Add("@PromotionType", entity.PromotionType);
+
+            parameters.Add("@OtherPromotionText", entity.OtherPromotionText);
+
+            parameters.Add("@PromoCode", entity.PromoCode);
+
+            parameters.Add("@DiscountValue", entity.DiscountValue);
+
+            parameters.Add("@CashbackValue", entity.CashbackValue);
+
+            parameters.Add("@MinimumPurchaseAmount", entity.MinimumPurchaseAmount);
+
+            parameters.Add("@MaxRedemptionLimit", entity.MaxRedemptionLimit);
+
+            parameters.Add("@BuyGetDetails", entity.BuyGetDetails);
+
+            parameters.Add("@ComboOfferDetails", entity.ComboOfferDetails);
+
+            parameters.Add("@IsLimitedDeal", entity.IsLimitedDeal);
+
+            parameters.Add("@PromotionImage", entity.PromotionImage);
+
+            parameters.Add("@StartDate", entity.StartDate);
+
+            parameters.Add("@EndDate", entity.EndDate);
+
+            parameters.Add("@IsActive", entity.IsActive);
+
+            var result = await connection.QueryAsync<PromotionResult>(
+                "InsertUpdate_ProductPromotion",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.FirstOrDefault();
+        }
     }
 }

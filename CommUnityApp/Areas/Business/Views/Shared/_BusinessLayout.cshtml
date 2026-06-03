@@ -177,20 +177,20 @@
                 <a href="@Url.Action("Index", "Home", new { area = "Business" })" >
                     <i class="fa-solid fa-chart-line"></i> Dashboard
                 </a>
-                <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+               @*  <a href="#" class="dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                     <i class="fa-solid fa-gamepad"></i> My Games
-                </a>
-                <a href="@Url.Action("Create", "Game", new { area = "Business" })">
+                </a> *@
+               @*  <a href="@Url.Action("Create", "Game", new { area = "Business" })">
                     <i class="fa-solid fa-plus-circle"></i> Create New Game
-                </a>
+                </a> *@
 
                 <a href="@Url.Action("Promotions", "Home", new { area = "Business" })">
                     <i class="fa-solid fa-bullhorn"></i> Promotions
                 </a>
-                <a href="@Url.Action("BusinessOrders", "Home", new { area = "Business" })">
+               @*  <a href="@Url.Action("BusinessOrders", "Home", new { area = "Business" })">
                     <i class="fa-solid fa-clipboard-list"></i> Orders
                 </a>
-               
+                *@
                 <ul class="dropdown-menu border-0 shadow-lg rounded-3 mt-1" style="background: var(--sidebar-hover); min-width: 220px;">
                     <li><a class="dropdown-item py-3 px-4 text-white fw-600 rounded-2 m-1" href="@Url.Action("Index", "Game", new { area = "Business" })">
                         <i class="fa-solid fa-hand-scissors me-3"></i> Scratch and Win 
@@ -210,9 +210,9 @@
                 <a href="@Url.Action("Communication", "Home", new { area = "Business" })">
                     <i class="fa-solid fa-bullhorn"></i> Communication
                 </a>
-                <a href="@Url.Action("Appointments", "Home", new { area = "Business" })">
+               @*  <a href="@Url.Action("Appointments", "Home", new { area = "Business" })">
                     <i class="fa-solid fa-clipboard-list"></i>  Appointments
-                </a>
+                </a> *@
 
                 <a href="@Url.Action("Campaigns", "Home", new { area = "Business" })">
                     <i class="fa-solid fa-bullseye"></i> Campaigns
@@ -224,7 +224,7 @@
             </nav>
 
             <div class="mt-auto">
-                <a href="@Url.Action("Logout", "Account", new { area = "Business" })" class="nav-link text-danger fw-bold d-flex align-items-center gap-2 px-3">
+                <a href="@Url.Action("Login", "Account", new { area = "Business" })" class="nav-link text-danger fw-bold d-flex align-items-center gap-2 px-3">
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </a>
             </div>

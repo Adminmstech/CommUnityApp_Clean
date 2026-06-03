@@ -22,6 +22,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BaseResponse> AddToCart(AddToCartRequest entity);
         Task<BaseResponse> RemoveFromCart(AddToCartRequest entity);
         Task<List<CartItemResponse>> GetCartItems(Guid UserId);
+        Task<List<AdminPromotionDto>> GetAdminPromotionsAsync();
+        Task<PromotionResult> AddUpdatePromotion(ProductPromotionModel entity);
     }
 }
 
