@@ -233,6 +233,19 @@ namespace CommUnityApp.Services
                 Status = true
             });
         }
+
+        [HttpGet("GetCareConnectRequestsList")]
+        public async Task<IActionResult> GetCareConnectRequests()
+        {
+            var result = await _careConnectRepository.GetCareConnectRequests();
+
+            return Ok(new
+            {
+                Status = 1,
+                Message = "Success",
+                Data = result
+            });
+        }
     }
 }
     
