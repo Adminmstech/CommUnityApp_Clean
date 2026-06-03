@@ -223,6 +223,26 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return result;
             }
         }
+
+        public async Task<CareConnectDashboardResponse> GetCareConnectRequests()
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            using var multi = await con.QueryMultipleAsync(
+                "SP_GetAdminCareConnectList",
+                commandType: CommandType.StoredProcedure);
+
+            var counts = await multi.ReadFirstOrDefaultAsync<dynamic>();
+
+            var requests = (await multi.ReadAsync<CareConnectRequestItem>()).ToList();
+
+            return new CareConnectDashboardResponse
+            {
+                TotalRequests = counts.TotalRequests,
+                TotalUsers = counts.TotalUsers,
+                Requests = requests
+            };
+        }
     }
 
 }

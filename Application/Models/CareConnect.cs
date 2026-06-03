@@ -98,6 +98,24 @@ namespace CommUnityApp.ApplicationCore.Models
     {
         public Guid UserId { get; set; }
     }
+
+    public class CareConnectDashboardResponse
+    {
+        public int TotalRequests { get; set; }
+        public int TotalUsers { get; set; }
+        public List<CareConnectRequestItem> Requests { get; set; }
+    }
+
+    public class CareConnectRequestItem
+    {
+        public int RequestId { get; set; }
+        public string UserName { get; set; }
+        public string Mobile { get; set; }
+        public string Description { get; set; }
+        public string Address { get; set; }
+        public string Status { get; set; }
+        public DateTime CreatedDate { get; set; }
+    }
 }
 
 
