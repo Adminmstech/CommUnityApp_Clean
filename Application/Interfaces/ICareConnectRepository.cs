@@ -23,5 +23,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<dynamic> AddSupporterService(AddSupporterServiceModel model);
         Task<dynamic> SendCareConnectMessage(SendCareMessageModel model);
         Task<dynamic> AddVolunteerRole(Guid userId);
+        Task<CareConnectDashboardResponse> GetCareConnectRequests();
     }
 }

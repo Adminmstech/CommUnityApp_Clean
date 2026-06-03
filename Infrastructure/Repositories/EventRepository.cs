@@ -7,8 +7,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using QRCoder;
 using System.Data;
-using System.Drawing;
-using System.Drawing.Imaging;
+
 using System.Text.Json;
 
 
@@ -802,17 +801,13 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                             qrContent,
                             QRCodeGenerator.ECCLevel.Q);
 
-                    using (QRCode qrCode =
-                        new QRCode(qrCodeData))
-                    {
-                        using (Bitmap qrCodeImage =
-                            qrCode.GetGraphic(20))
-                        {
-                            qrCodeImage.Save(
-                                fullPath,
-                                ImageFormat.Png);
-                        }
-                    }
+                    var qrCode = new PngByteQRCode(qrCodeData);
+
+                    byte[] qrBytes = qrCode.GetGraphic(20);
+
+                    await File.WriteAllBytesAsync(
+                        fullPath,
+                        qrBytes);
                 }
 
                 return "/Uploads/EventTickets/"

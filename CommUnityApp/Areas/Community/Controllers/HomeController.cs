@@ -1,11 +1,22 @@
 ﻿using CommUnityApp.ApplicationCore.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Net.Http;
 
 namespace CommUnityApp.Areas.Community.Controllers
 {
     [Area("Community")]
     public class HomeController : Controller
     {
+        private readonly IHttpClientFactory _httpClientFactory;
+        private readonly IConfiguration _configuration;
+
+        public HomeController(
+            IHttpClientFactory httpClientFactory,
+            IConfiguration configuration)
+        {
+            _httpClientFactory = httpClientFactory;
+            _configuration = configuration;
+        }
 
         public IActionResult Index()
         {
@@ -124,6 +135,24 @@ namespace CommUnityApp.Areas.Community.Controllers
         public IActionResult CommunityPosts()
         {
             return View();
+        }
+
+        public IActionResult CareConnectList()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> GetCareConnectList()
+        {
+            var client = _httpClientFactory.CreateClient();
+
+            var response = await client.GetAsync(
+                $"{_configuration["ApiBaseUrl"]}/api/CareConnect/GetCareConnectDashboard");
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            return Json(json);
         }
     }
 }

@@ -1,0 +1,146 @@
+﻿@{
+    ViewData["Title"] = "Care Connect Requests";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+}
+
+<link rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+
+<div class="container-fluid">
+
+    <div class="row mb-4">
+
+        <div class="col-md-6">
+            <div class="card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3 id="totalRequests">0</h3>
+                    <h5>Total Requests</h5>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3 id="totalUsers">0</h3>
+                    <h5>Total Users</h5>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h4>Care Connect Requests</h4>
+        </div>
+        <div class="card-body">
+
+            <table id="tblRequests" class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>S.No</th>
+                        <th>User Name</th>
+                        <th>Mobile</th>
+                        <th>Description</th> 
+                        <th>Address</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+<script>
+
+    $(document).ready(function () {
+
+        LoadDashboard();
+
+    });
+
+    function LoadDashboard() {
+
+        $.ajax({
+            url: '/api/CareConnect/GetCareConnectRequestsList',
+            type: 'GET',
+            dataType: 'json',
+
+            success: function (response) {
+
+                console.log(response);
+
+                if (response.status != 1) {
+                    alert('Failed to load data');
+                    return;
+                }
+
+                $("#totalRequests").text(response.data.totalRequests);
+                $("#totalUsers").text(response.data.totalUsers);
+
+                var rows = '';
+
+                $.each(response.data.requests, function (i, item) {
+
+                    rows += `
+                            <tr>
+                                <td>${i + 1}</td>
+                                <td>${item.userName}</td>
+                                <td>${item.mobile}</td>
+                                <td>${item.description}</td>
+                                <td>${item.address ? item.address : '-'}</td>
+                                <td>${item.status}</td>
+                                <td>${formatDate(item.createdDate)}</td>
+                            </tr>`;
+                });
+
+                if ($.fn.DataTable.isDataTable('#tblRequests')) {
+                    $('#tblRequests').DataTable().destroy();
+                }
+
+                $('#tblRequests tbody').html(rows);
+
+                $('#tblRequests').DataTable({
+                    pageLength: 10,
+                    searching: true,
+                    ordering: true,
+                    info: true,
+                    responsive: true
+                });
+            },
+
+            error: function (xhr, status, error) {
+
+                console.log(xhr.responseText);
+                console.log(error);
+
+                alert('Error loading data');
+            }
+        });
+    }
+
+    function formatDate(dateString) {
+
+        if (!dateString)
+            return '-';
+
+        var date = new Date(dateString);
+
+        return date.toLocaleDateString('en-GB') + ' ' +
+            date.toLocaleTimeString('en-GB', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+    }
+
+</script>
