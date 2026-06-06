@@ -370,7 +370,7 @@ public class BookTicketItem
 {
     public int TicketTypeId { get; set; }
 
-    public int Quantity { get; set; }
+    public int Quantity { get; set; } 
 }
 
     public class SponsorResponse
