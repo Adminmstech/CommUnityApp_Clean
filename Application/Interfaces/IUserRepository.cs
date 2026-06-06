@@ -17,5 +17,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<Roles>> GetRoles();
         Task<List<UserDropdownDto>> GetBusinessUsers();
         Task<BaseResponse> UpdateUser(Users entity);
+        Task<List<UserDto>> GetAllUsersAsync();
+        Task<List<UserCommunicationDto>> GetUsersForCommunicationAsync();
     }
 }

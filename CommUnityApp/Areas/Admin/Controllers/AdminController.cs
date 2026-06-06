@@ -29,5 +29,41 @@ namespace CommUnityApp.Areas.Admin.Controllers
         {
             return View();
         }
+
+
+        public IActionResult Login()
+        {
+            return View();
+        }
+
+        public IActionResult Users()
+        {
+            return View();
+        }
+
+        public IActionResult Communication()
+        {
+            return View();
+        }
+
+        public IActionResult Promotions()
+        {
+            return View();
+        }
+
+        public IActionResult LiveAuctions()
+        {
+            return View();
+        }
+
+        public IActionResult Services()
+        {
+            return View();
+        }
+        public IActionResult AddService()
+        {
+            return View();
+        }
+
     }
 }

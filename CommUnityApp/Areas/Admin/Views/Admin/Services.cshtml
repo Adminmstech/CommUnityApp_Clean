@@ -1,0 +1,297 @@
+﻿@{
+    ViewData["Title"] = "Services Management";
+    Layout = "AdminLayout";
+}
+
+<div class="container-fluid">
+    <div class="card shadow border-0 rounded-4">
+        <div class="card-header bg-primary text-white py-3 rounded-top-4 d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fa fa-concierge-bell me-2"></i>
+                Services Management
+            </h4>
+
+            <a href="/Admin/Admin/AddService" class="btn btn-light">
+                <i class="fa fa-plus me-1"></i> Add Service
+            </a>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row mb-4">
+                <div class="col-md-5">
+                    <input type="text"
+                           id="searchText"
+                           class="form-control"
+                           placeholder="Search services..." />
+                </div>
+
+                <div class="col-md-5">
+                    <select id="businessFilter" class="form-select">
+                        <option value="0">All Businesses</option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100" onclick="searchServices()">
+                        Search
+                    </button>
+                </div>
+            </div>
+
+            <div class="row" id="servicesContainer">
+                <div class="col-12 text-center py-5">
+                    Loading services...
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- DETAILS MODAL -->
+<div class="modal fade" id="serviceDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content rounded-4 border-0 shadow">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Service Details</h5>
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div class="row">
+
+                    <div class="col-md-5">
+                        <img id="detailPrimaryImage"
+                             src="/images/no-image.png"
+                             class="img-fluid rounded shadow"
+                             style="width:100%;height:350px;object-fit:cover;" />
+
+                        <div class="row mt-3" id="detailImages"></div>
+                    </div>
+
+                    <div class="col-md-7">
+                        <h3 id="detailServiceName"></h3>
+                        <p id="detailDescription" class="text-muted"></p>
+
+                        <table class="table table-bordered">
+                            <tr>
+                                <th>Service ID</th>
+                                <td id="detailServiceId"></td>
+                            </tr>
+                            <tr>
+                                <th>Business Name</th>
+                                <td id="detailBusinessName"></td>
+                            </tr>
+                            <tr>
+                                <th>Category</th>
+                                <td id="detailCategory"></td>
+                            </tr>
+                            <tr>
+                                <th>Address</th>
+                                <td id="detailAddress"></td>
+                            </tr>
+                            <tr>
+                                <th>City</th>
+                                <td id="detailCity"></td>
+                            </tr>
+                            <tr>
+                                <th>State</th>
+                                <td id="detailState"></td>
+                            </tr>
+                            <tr>
+                                <th>Booking Required</th>
+                                <td id="detailBooking"></td>
+                            </tr>
+                            <tr>
+                                <th>Website</th>
+                                <td id="detailWebsite"></td>
+                            </tr>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            loadBusinesses();
+            loadAllServices();
+
+            $("#businessFilter").change(searchServices);
+
+            $("#searchText").keyup(function (e) {
+                if (e.key === "Enter") {
+                    searchServices();
+                }
+            });
+        });
+
+        function loadBusinesses() {
+            $.get("/api/Business/Get_Businesses", function (response) {
+                $("#businessFilter").empty()
+                    .append('<option value="0">All Businesses</option>');
+
+                response.forEach(function (business) {
+                    $("#businessFilter").append(`
+                        <option value="${business.businessId}">
+                            ${business.businessName}
+                        </option>
+                    `);
+                });
+            });
+        }
+
+        function loadAllServices() {
+            $.ajax({
+                url: "/api/Service/Get_services",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    searchText: "",
+                    categoryId: 0,
+                    businessId: 0
+                }),
+                success: function (response) {
+                    bindServices(response.topServices || []);
+                }
+            });
+        }
+
+        function searchServices() {
+            const payload = {
+                searchText: $("#searchText").val().trim(),
+                categoryId: 0,
+                businessId: parseInt($("#businessFilter").val()) || 0
+            };
+
+            $.ajax({
+                url: "/api/Service/Get_services",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify(payload),
+                success: function (response) {
+                    bindServices(response.topServices || []);
+                }
+            });
+        }
+
+        function bindServices(data) {
+            const container = $("#servicesContainer");
+            container.empty();
+
+            if (!data.length) {
+                container.html(`
+                    <div class="col-12 text-center py-5">
+                        No services found.
+                    </div>
+                `);
+                return;
+            }
+
+            data.forEach(function (item) {
+                const service = item.service;
+                if (!service) return;
+
+                let imageUrl = "/images/no-image.png";
+
+                if (item.images?.length > 0) {
+                    const primary = item.images.find(x => x.isPrimary);
+                    imageUrl = "/" + (primary ? primary.imageUrl : item.images[0].imageUrl);
+                }
+
+                container.append(`
+                    <div class="col-md-4 mb-4">
+                        <div class="card shadow border-0 rounded-4 h-100">
+                            <img src="${imageUrl}"
+                                 class="card-img-top"
+                                 style="height:250px;object-fit:cover;" />
+
+                            <div class="card-body d-flex flex-column">
+                                <h5>${service.serviceName}</h5>
+
+                                <p class="text-muted">
+                                    ${truncate(service.description, 120)}
+                                </p>
+
+                                <button class="btn btn-primary mt-auto"
+                                        onclick="viewDetails(${service.serviceId})">
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+
+        function viewDetails(serviceId) {
+            $.get("/api/Service/service_details?serviceId=" + serviceId, function (response) {
+
+                if (!response || !response.data) {
+                    Swal.fire("No details found.");
+                    return;
+                }
+
+                const service = response.data.service;
+                const images = response.data.images;
+
+                $("#detailServiceId").text(service.serviceId);
+                $("#detailServiceName").text(service.serviceName);
+                $("#detailDescription").text(service.description);
+                $("#detailBusinessName").text(service.businessName);
+                $("#detailCategory").text(service.categoryName);
+                $("#detailAddress").text(service.address);
+                $("#detailCity").text(service.city);
+                $("#detailState").text(service.state);
+                $("#detailBooking").text(service.isBookingRequired ? "Yes" : "No");
+                $("#detailWebsite").text(service.webLink || "-");
+
+                $("#detailImages").empty();
+
+                if (images?.length > 0) {
+                    const primary = images.find(x => x.isPrimary);
+
+                    $("#detailPrimaryImage").attr(
+                        "src",
+                        "/" + (primary ? primary.imageUrl : images[0].imageUrl)
+                    );
+
+                    images.forEach(function (img) {
+                        $("#detailImages").append(`
+                            <div class="col-md-4 mb-2">
+                                <img src="/${img.imageUrl}"
+                                     class="img-fluid rounded shadow"
+                                     style="height:100px;object-fit:cover;cursor:pointer;"
+                                     onclick="changePrimaryImage('/${img.imageUrl}')"/>
+                            </div>
+                        `);
+                    });
+                }
+
+                const modal = new bootstrap.Modal(
+                    document.getElementById('serviceDetailsModal')
+                );
+
+                modal.show();
+            });
+        }
+
+        function changePrimaryImage(url) {
+            $("#detailPrimaryImage").attr("src", url);
+        }
+
+        function truncate(text, max) {
+            if (!text) return '';
+            return text.length > max ? text.substring(0, max) + "..." : text;
+        }
+    </script>
+}

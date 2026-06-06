@@ -50,4 +50,6 @@
     <Folder Include="Areas\Admin\Models\" />
   </ItemGroup>
 
+  <!-- If you add the JSON credential file to the project, include it so it is copied to output -->
+
 </Project>

@@ -181,7 +181,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             }
         }
 
-            public async Task<int> RequestCharityItem(RequestCharityItemModel model)
+        public async Task<int> RequestCharityItem(RequestCharityItemModel model)
         {
             using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
@@ -514,8 +514,8 @@ CommunityPostModel model)
             }
         }
 
-        public async Task<List<CommunityPostModel>>
-    GetCommunityPostsByUser(Guid userId)
+
+        public async Task<List<CommunityPostModel>> GetCommunityPostsByUser(Guid userId)
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
 
@@ -533,7 +533,6 @@ CommunityPostModel model)
                 return result.ToList();
             }
         }
-
 
         public async Task<List<CommunityPostModel>>
     GetCommunityPosts(int communityId)
@@ -573,9 +572,6 @@ CommunityPostModel model)
 
         }
 
-        
-        }
-
     }
-
+}
 

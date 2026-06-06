@@ -1,0 +1,152 @@
+﻿@{
+    ViewData["Title"] = "Users Management";
+    Layout = "AdminLayout";
+}
+
+<div class="container-fluid">
+    <div class="card shadow border-0 rounded-4">
+        <div class="card-header bg-primary text-white py-3 rounded-top-4 d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fa fa-users me-2"></i> Users Management
+            </h4>
+        </div>
+
+        <div class="card-body">
+
+            <div class="mb-4">
+                <input type="text"
+                       id="searchBox"
+                       class="form-control"
+                       placeholder="Search users by name, email, role, community..." />
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Mobile</th>
+                            <th>Role</th>
+                            <th>Communities</th>
+                            <th>Device</th>
+                            <th>Status</th>
+                            <th>Created Date</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="usersTableBody">
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                Loading users...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let allUsers = [];
+
+        $(document).ready(function () {
+            loadUsers();
+
+            $("#searchBox").on("keyup", function () {
+                const search = $(this).val().toLowerCase();
+
+                const filtered = allUsers.filter(user =>
+                    (user.fullName || '').toLowerCase().includes(search) ||
+                    (user.email || '').toLowerCase().includes(search) ||
+                    (user.mobile || '').toLowerCase().includes(search) ||
+                    (user.role || '').toLowerCase().includes(search) ||
+                    (user.communityNames || '').toLowerCase().includes(search)
+                );
+
+                renderUsers(filtered);
+            });
+        });
+
+        function loadUsers() {
+            $.ajax({
+                url: "/api/User/Get_AllUsers",
+                type: "GET",
+
+                success: function (response) {
+                    allUsers = response;
+                    renderUsers(response);
+                },
+
+                error: function () {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to load users."
+                    });
+                }
+            });
+        }
+
+        function renderUsers(users) {
+            const tbody = $("#usersTableBody");
+            tbody.empty();
+
+            if (!users || users.length === 0) {
+                tbody.html(`
+                    <tr>
+                        <td colspan="8" class="text-center py-4">
+                            No users found.
+                        </td>
+                    </tr>
+                `);
+                return;
+            }
+
+            users.forEach(user => {
+
+                const statusBadge = user.isActive
+                    ? '<span class="badge bg-success">Active</span>'
+                    : '<span class="badge bg-danger">Inactive</span>';
+
+                tbody.append(`
+                    <tr>
+                        <td>
+                            <strong>${user.fullName || ''}</strong>
+                        </td>
+
+                        <td>${user.email || ''}</td>
+
+                        <td>${user.mobile || ''}</td>
+
+                        <td>
+                            <span class="badge bg-info text-dark">
+                                ${user.role || ''}
+                            </span>
+                        </td>
+
+                        <td>${user.communityNames || ''}</td>
+
+                        <td>
+                            ${user.deviceType || 'N/A'}
+                        </td>
+
+                        <td>${statusBadge}</td>
+
+                        <td>${formatDate(user.createdDate)}</td>
+                    </tr>
+                `);
+            });
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return '';
+
+            const d = new Date(dateString);
+            return d.toLocaleDateString();
+        }
+    </script>
+}
