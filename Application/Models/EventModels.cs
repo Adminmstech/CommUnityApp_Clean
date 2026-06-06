@@ -374,7 +374,7 @@ public class BookTicketItem
 }
 
     public class SponsorResponse
-    {
+    { 
             public int SponsorId { get; set; }
 
             public int EventId { get; set; }
