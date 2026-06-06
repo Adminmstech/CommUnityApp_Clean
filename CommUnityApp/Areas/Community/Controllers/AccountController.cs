@@ -33,10 +33,9 @@ namespace CommUnityApp.Areas.Community.Controllers
             var response =
                 await _communityRepository.LoginAsync(request);
 
-           
 
-            if (response != null &&
-                response.CommunityId > 0)
+
+            if (response != null && response.CommunityId > 0)
             {
                 HttpContext.Session.SetString(
                     "CommunityId",
@@ -46,13 +45,33 @@ namespace CommUnityApp.Areas.Community.Controllers
                     "CommunityName",
                     response.CommunityName);
 
+                Response.Cookies.Append(
+                    "CommunityId",
+                    response.CommunityId.ToString(),
+                    new CookieOptions
+                    {
+                        Expires = DateTime.Now.AddYears(1),
+                        HttpOnly = true,
+                        IsEssential = true
+                    });
+
+                Response.Cookies.Append(
+                    "CommunityName",
+                    response.CommunityName,
+                    new CookieOptions
+                    {
+                        Expires = DateTime.Now.AddYears(1),
+                        HttpOnly = true,
+                        IsEssential = true
+                    });
+
                 return RedirectToAction(
                     "ViewEvents",
                     "Home",
                     new { area = "Community" });
             }
 
-        
+
 
             ViewBag.Error =
                 response?.ResultMessage ??

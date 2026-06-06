@@ -279,9 +279,11 @@ namespace CommUnityApp.ApplicationCore.Models
         public string Description { get; set; }
         public string Location { get; set; }
         public DateTime StartDate { get; set; }
-
+        public int TotalTickets { get; set; }
+        public int SoldTickets { get; set; }
+        public string TicketStatus { get; set; }
         public List<SponsorModel> Sponsors { get; set; } = new List<SponsorModel>();
-        public List<EventTicketTypeResponse> TicketTypes { get; set; }
+        //public List<EventTicketTypeResponse> TicketTypes { get; set; }
 
     }
 

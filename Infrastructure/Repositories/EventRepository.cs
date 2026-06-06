@@ -464,39 +464,32 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return result.ToList();
             }
         }
-
         public async Task<EventDetailsModel> GetEventDetailsWithSponsors(int eventId)
         {
-            EventDetailsModel eventData = null;
-
-            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            using (var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
             {
-                var result = await con.QueryAsync<EventDetailsModel, SponsorModel, EventDetailsModel>(
+                await con.OpenAsync();
+
+                using (var multi = await con.QueryMultipleAsync(
                     "sp_GetEventDetailsWithSponsors",
-                    (eventObj, sponsorObj) =>
-                    {
-                        if (eventData == null)
-                        {
-                            eventData = eventObj;
-                            eventData.Sponsors = new List<SponsorModel>();
-                        }
-
-                        if (sponsorObj != null && sponsorObj.SponsorId != 0)
-                        {
-                            eventData.Sponsors.Add(sponsorObj);
-                        }
-
-                        return eventObj;
-                    },
                     new { EventId = eventId },
-                    splitOn: "SponsorId",
-                    commandType: CommandType.StoredProcedure
-                );
+                    commandType: CommandType.StoredProcedure))
+                {
+                    var eventData =
+                        await multi.ReadFirstOrDefaultAsync<EventDetailsModel>();
+
+                    if (eventData != null)
+                    {
+                        eventData.Sponsors =
+                            (await multi.ReadAsync<SponsorModel>())
+                            .ToList();
+                    }
+
+                    return eventData;
+                }
             }
-
-            return eventData;
         }
-
         public async Task<List<SponsorModel>> GetSponsorsByEvent(int eventId)
         {
             var sql = @"SELECT SponsorId, SponsorName, Amount, SponsorType, LogoPath
@@ -616,7 +609,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
 
 
-                        /*foreach (var ticket in tickets)
+                        foreach (var ticket in tickets)
                         {
                             string qrPath = await GenerateQRCode(
                                 ticket.TicketCode.ToString(),
@@ -632,8 +625,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                     TicketId = ticket.TicketId
                                 },
                                 transaction);
-                        }*/
-                        var ticket = tickets.FirstOrDefault();
+                        }
+                        /*var ticket = tickets.FirstOrDefault();
 
                         if (ticket != null)
                         {
@@ -651,7 +644,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                     TicketId = ticket.TicketId
                                 },
                                 transaction);
-                        }
+                        }*/
 
                         transaction.Commit();
 
@@ -666,14 +659,14 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                             rewardCoins = bookingResult.RewardCoins
                         };
                     }
-                    catch (Exception ex)
+                    catch (Exception ex) 
                     {
                         transaction.Rollback();
 
                         return new
                         {
                             status = 0,
-                            message = ex.Message
+                            message = ex.ToString()
                         };
                     }
                 }
