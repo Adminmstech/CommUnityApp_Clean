@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 using QRCoder;
 using System.Data;
 
-using System.Text.Json; 
+using System.Text.Json;  
 
 
 namespace CommUnityApp.InfrastructureLayer.Repositories
