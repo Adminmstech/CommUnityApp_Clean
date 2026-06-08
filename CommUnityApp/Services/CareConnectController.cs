@@ -61,13 +61,13 @@ namespace CommUnityApp.Services
             int serviceId,
             int communityId,
             decimal latitude,
-            decimal longitude)
+            decimal longitude, Guid userId)
         {
             var data = await _careConnectRepository.GetSupporters(
                 serviceId,
                 communityId,
                 latitude,
-                longitude);
+                longitude,userId);
 
             return Ok(new
             {

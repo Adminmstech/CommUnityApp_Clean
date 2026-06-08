@@ -44,7 +44,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
              int serviceId,
              int communityId,
              decimal latitude,
-             decimal longitude)
+             decimal longitude,
+             Guid userId)
         {
             using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
              
@@ -55,7 +56,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     ServiceId = serviceId,
                     CommunityId = communityId,
                     Latitude = latitude,
-                    Longitude = longitude
+                    Longitude = longitude,
+                    UserId=userId
                 },
                 commandType: CommandType.StoredProcedure);
         }
