@@ -10,7 +10,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
     public interface ICareConnectRepository
     {
         Task<IEnumerable<dynamic>> GetServices();
-        Task<IEnumerable<dynamic>> GetSupporters(int serviceId, int communityId, decimal latitude, decimal longitude);
+        Task<IEnumerable<dynamic>> GetSupporters(int serviceId, int communityId, decimal latitude, decimal longitude,Guid userId);
         Task<dynamic> ConnectSupporter(ConnectSupporterModel model);
         Task<long> CreateRequest(CareRequestModel model);
         Task SendMessage(SendMessageModel model);
