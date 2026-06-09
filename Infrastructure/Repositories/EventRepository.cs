@@ -2,7 +2,7 @@ using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using CommUnityApp.Domain.Entities;
 using Dapper;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http; 
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using QRCoder;
