@@ -2,13 +2,13 @@ using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using CommUnityApp.Domain.Entities;
 using Dapper;
-using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http; 
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using QRCoder;
 using System.Data;
-using System.Drawing;
-using System.Drawing.Imaging;
+
+using System.Text.Json;   
 
 
 namespace CommUnityApp.InfrastructureLayer.Repositories
@@ -312,26 +312,28 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return result;
             }
         }
-        public async Task<EventCheckoutSummaryResponse> GetEventCheckoutSummaryAsync(Guid userId,int eventId,int ticketTypeId,int quantity, bool useWallet)
+        public async Task<EventCheckoutSummaryResponse> GetEventCheckoutSummaryAsync(EventCheckoutSummaryRequest model)
         {
-            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-            {
-                var parameters = new DynamicParameters();
+            using var con =
+                new SqlConnection(
+                    _configuration.GetConnectionString("DefaultConnection"));
 
-                parameters.Add("@UserId", userId);
-                parameters.Add("@EventId", eventId);
-                parameters.Add("@TicketTypeId", ticketTypeId);
-                parameters.Add("@Quantity", quantity);
-                parameters.Add("@UseWallet", useWallet);
+            DynamicParameters parameters =
+                new DynamicParameters();
 
-                var result = await con.QueryFirstOrDefaultAsync<EventCheckoutSummaryResponse>(
-                    "SP_EventCheckoutSummary_ByUser",
-                    parameters,
-                    commandType: CommandType.StoredProcedure
-                );
+            parameters.Add("@UserId", model.UserId);
 
-                return result;
-            }
+            parameters.Add("@EventId", model.EventId);
+
+            parameters.Add("@TicketsJson",JsonSerializer.Serialize(model.Tickets));
+
+            parameters.Add("@UseWallet", model.UseWallet);
+
+            return await con.QueryFirstOrDefaultAsync<EventCheckoutSummaryResponse>(
+                "SP_EventCheckoutSummary_ByUser",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
         }
         public async Task<int> AddEventSponsor(EventSponsorModel model, string logoPath)
         {
@@ -462,39 +464,32 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return result.ToList();
             }
         }
-
         public async Task<EventDetailsModel> GetEventDetailsWithSponsors(int eventId)
         {
-            EventDetailsModel eventData = null;
-
-            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            using (var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
             {
-                var result = await con.QueryAsync<EventDetailsModel, SponsorModel, EventDetailsModel>(
+                await con.OpenAsync();
+
+                using (var multi = await con.QueryMultipleAsync(
                     "sp_GetEventDetailsWithSponsors",
-                    (eventObj, sponsorObj) =>
-                    {
-                        if (eventData == null)
-                        {
-                            eventData = eventObj;
-                            eventData.Sponsors = new List<SponsorModel>();
-                        }
-
-                        if (sponsorObj != null && sponsorObj.SponsorId != 0)
-                        {
-                            eventData.Sponsors.Add(sponsorObj);
-                        }
-
-                        return eventObj;
-                    },
                     new { EventId = eventId },
-                    splitOn: "SponsorId",
-                    commandType: CommandType.StoredProcedure
-                );
+                    commandType: CommandType.StoredProcedure))
+                {
+                    var eventData =
+                        await multi.ReadFirstOrDefaultAsync<EventDetailsModel>();
+
+                    if (eventData != null)
+                    {
+                        eventData.Sponsors =
+                            (await multi.ReadAsync<SponsorModel>())
+                            .ToList();
+                    }
+
+                    return eventData;
+                }
             }
-
-            return eventData;
         }
-
         public async Task<List<SponsorModel>> GetSponsorsByEvent(int eventId)
         {
             var sql = @"SELECT SponsorId, SponsorName, Amount, SponsorType, LogoPath
@@ -574,12 +569,14 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
                         param.Add("@UserId", model.UserId);
                         param.Add("@EventId", model.EventId);
-                        param.Add("@TicketTypeId", model.TicketTypeId);
-                        param.Add("@Quantity", model.Quantity);
+                       
                         param.Add("@UseWallet", model.UseWallet);
                         param.Add("@PaymentMethod", model.PaymentMethod);
                         param.Add("@TransactionId", model.TransactionId);
+                        var ticketsJson = JsonSerializer.Serialize(model.Tickets);
+                        param.Add("@TicketsJson", ticketsJson);
 
+                        Console.WriteLine(ticketsJson);
                         var bookingResult = await con.QueryFirstOrDefaultAsync<dynamic>(
                             "SP_EventBookTickets",
                             param,
@@ -593,7 +590,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                             return new
                             {
                                 status = 0,
-                                message = "Booking failed"
+                                message = bookingResult?.Message
                             };
                         }
 
@@ -612,7 +609,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
 
 
-                        /*foreach (var ticket in tickets)
+                        foreach (var ticket in tickets)
                         {
                             string qrPath = await GenerateQRCode(
                                 ticket.TicketCode.ToString(),
@@ -628,8 +625,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                     TicketId = ticket.TicketId
                                 },
                                 transaction);
-                        }*/
-                        var ticket = tickets.FirstOrDefault();
+                        }
+                        /*var ticket = tickets.FirstOrDefault();
 
                         if (ticket != null)
                         {
@@ -647,7 +644,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                     TicketId = ticket.TicketId
                                 },
                                 transaction);
-                        }
+                        }*/
 
                         transaction.Commit();
 
@@ -662,14 +659,14 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                             rewardCoins = bookingResult.RewardCoins
                         };
                     }
-                    catch (Exception ex)
+                    catch (Exception ex) 
                     {
                         transaction.Rollback();
 
                         return new
                         {
                             status = 0,
-                            message = ex.Message
+                            message = ex.ToString()
                         };
                     }
                 }
@@ -790,24 +787,20 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     new QRCodeGenerator())
                 {
                     string qrContent =
-                        $"https://localhost:7176/api/Event/CheckInTicket?ticketCode={ticketCode}";
+                        $"https://indocommunity.com/api/Event/CheckInTicket?ticketCode={ticketCode}";
 
                     QRCodeData qrCodeData =
                         qrGenerator.CreateQrCode(
                             qrContent,
                             QRCodeGenerator.ECCLevel.Q);
 
-                    using (QRCode qrCode =
-                        new QRCode(qrCodeData))
-                    {
-                        using (Bitmap qrCodeImage =
-                            qrCode.GetGraphic(20))
-                        {
-                            qrCodeImage.Save(
-                                fullPath,
-                                ImageFormat.Png);
-                        }
-                    }
+                    var qrCode = new PngByteQRCode(qrCodeData);
+
+                    byte[] qrBytes = qrCode.GetGraphic(20);
+
+                    await File.WriteAllBytesAsync(
+                        fullPath,
+                        qrBytes);
                 }
 
                 return "/Uploads/EventTickets/"
@@ -895,6 +888,87 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     commandType: CommandType.StoredProcedure);
 
                 return result;
+            }
+        }
+
+        public async Task<List<EventTicketTypeModel>> GetTicketTypesByEventId(int eventId)
+        {
+            using (var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
+            {
+                var param = new DynamicParameters();
+
+                param.Add("@EventId", eventId);
+
+                var result = await con.QueryAsync<EventTicketTypeModel>(
+                    "SP_GetTicketTypesByEventId",
+                    param,
+                    commandType: CommandType.StoredProcedure);
+
+                return result.ToList();
+            }
+        }
+
+        public async Task<dynamic> AddEventTicketType(AddEventTicketTypeModel model)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                DynamicParameters param = new DynamicParameters();
+
+                param.Add("@EventId", model.EventId);
+                param.Add("@TicketTypeName", model.TicketTypeName);
+                param.Add("@Price", model.Price);
+                param.Add("@TotalTickets", model.TotalTickets);
+                param.Add("@MaxPerUser", model.MaxPerUser);
+                param.Add("@ConditionsApply", model.ConditionsApply);
+                param.Add("@RefundPolicy", model.RefundPolicy);
+                param.Add("@IsTransferable", model.IsTransferable);
+
+                var result = await con.QueryFirstOrDefaultAsync<dynamic>(
+                    "SP_AddEventTicketType",
+                    param,
+                    commandType: CommandType.StoredProcedure);
+
+                return result;
+            }
+        }
+
+        public async Task<List<EventDropdownModel>> GetEventsDropdown()
+        {
+            using (var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await con.QueryAsync<EventDropdownModel>(
+                    "SP_GetEventsDropdown",
+                    commandType: CommandType.StoredProcedure);
+
+                return result.ToList();
+            }
+        }
+
+        public async Task<List<EventTicketTypeListModel>> GetEventTicketTypes()
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await con.QueryAsync<EventTicketTypeListModel>(
+                    "SP_GetEventTicketTypes",
+                    commandType: CommandType.StoredProcedure);
+
+                return result.ToList();
+            }
+        }
+        public async Task<dynamic> DeleteEventTicketType(int ticketTypeId)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                DynamicParameters param = new DynamicParameters();
+
+                param.Add("@TicketTypeId", ticketTypeId);
+
+                return await con.QueryFirstOrDefaultAsync(
+                    "SP_DeleteEventTicketType",
+                    param,
+                    commandType: CommandType.StoredProcedure);
             }
         }
     }

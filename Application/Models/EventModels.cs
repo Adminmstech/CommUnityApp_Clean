@@ -279,9 +279,11 @@ namespace CommUnityApp.ApplicationCore.Models
         public string Description { get; set; }
         public string Location { get; set; }
         public DateTime StartDate { get; set; }
-
+        public int TotalTickets { get; set; }
+        public int SoldTickets { get; set; }
+        public string TicketStatus { get; set; }
         public List<SponsorModel> Sponsors { get; set; } = new List<SponsorModel>();
-        public List<EventTicketTypeResponse> TicketTypes { get; set; }
+        //public List<EventTicketTypeResponse> TicketTypes { get; set; }
 
     }
 
@@ -358,15 +360,21 @@ namespace CommUnityApp.ApplicationCore.Models
     {
         public Guid UserId { get; set; }
         public int EventId { get; set; }
-        public int TicketTypeId { get; set; }
-        public int Quantity { get; set; }
+        public string TransactionId { get; set; }
         public bool UseWallet { get; set; }
         public string PaymentMethod { get; set; }
-        public string TransactionId { get; set; }
-    }
+         public List<BookTicketItem> Tickets { get; set; }
+}
+
+public class BookTicketItem
+{
+    public int TicketTypeId { get; set; }
+
+    public int Quantity { get; set; } 
+}
 
     public class SponsorResponse
-    {
+    { 
             public int SponsorId { get; set; }
 
             public int EventId { get; set; }
@@ -460,5 +468,66 @@ namespace CommUnityApp.ApplicationCore.Models
         public bool IsActive { get; set; }
 
         public int RemainingTickets { get; set; }
+    }
+
+    public class AddEventTicketTypeModel
+    {
+        public int EventId { get; set; }
+
+        public string TicketTypeName { get; set; }
+
+        public decimal Price { get; set; }
+
+        public int TotalTickets { get; set; }
+
+        public int MaxPerUser { get; set; }
+
+        public string ConditionsApply { get; set; }
+
+        public string RefundPolicy { get; set; }
+
+        public bool IsTransferable { get; set; }
+    }
+    public class EventDropdownModel
+    {
+        public int EventId { get; set; }
+
+        public string EventName { get; set; }
+    }
+
+    public class EventTicketTypeListModel
+    {
+        public int TicketTypeId { get; set; }
+        public int EventId { get; set; }
+        public string EventName { get; set; }
+        public string TicketTypeName { get; set; }
+        public decimal Price { get; set; }
+        public int TotalTickets { get; set; }
+        public int SoldTickets { get; set; }
+        public int RemainingTickets { get; set; }
+        public int MaxPerUser { get; set; }
+        public string ConditionsApply { get; set; }
+        public string RefundPolicy { get; set; }
+        public bool IsTransferable { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedDate { get; set; }
+    }
+
+    public class EventCheckoutSummaryRequest
+    {
+        public Guid UserId { get; set; }
+
+        public int EventId { get; set; }
+
+        public bool UseWallet { get; set; }
+
+        public List<BookTickets> Tickets { get; set; }
+    }
+
+    public class BookTickets
+    {
+        public int TicketTypeId { get; set; }
+
+        public int Quantity { get; set; }
     }
 }

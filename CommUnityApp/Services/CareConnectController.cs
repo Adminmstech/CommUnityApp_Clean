@@ -61,13 +61,13 @@ namespace CommUnityApp.Services
             int serviceId,
             int communityId,
             decimal latitude,
-            decimal longitude)
+            decimal longitude, Guid userId)
         {
             var data = await _careConnectRepository.GetSupporters(
                 serviceId,
                 communityId,
                 latitude,
-                longitude);
+                longitude,userId);
 
             return Ok(new
             {
@@ -231,6 +231,19 @@ namespace CommUnityApp.Services
                 ResultId = result.ResultId,
                 ResultMessage = result.ResultMessage,
                 Status = true
+            });
+        }
+
+        [HttpGet("GetCareConnectRequestsList")]
+        public async Task<IActionResult> GetCareConnectRequests()
+        {
+            var result = await _careConnectRepository.GetCareConnectRequests();
+
+            return Ok(new
+            {
+                Status = 1,
+                Message = "Success",
+                Data = result
             });
         }
     }

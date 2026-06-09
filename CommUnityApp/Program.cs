@@ -102,7 +102,6 @@ builder.Services.AddTransient<ICareConnectRepository, CareConnectRepository>();
 builder.Services.AddTransient<IJobRepository, JobRepository>();
 builder.Services.AddTransient<IDapperWrapper, DapperWrapper>();
 builder.Services.AddTransient<ICampaignRepository, CampignRepository>();
-builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
 builder.Services.AddTransient<ISpinGameRepository>(provider =>
 {
     var configuration = provider.GetRequiredService<IConfiguration>();
