@@ -24,7 +24,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public DateTime EndDate { get; set; }
 
         public int IsFundRaising { get; set; }
-        public IFormFile EventImage { get; set; }
+        public IFormFile? EventImage { get; set; }
     }
 
     public class BaseResponse

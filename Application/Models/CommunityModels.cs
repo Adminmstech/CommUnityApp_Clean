@@ -168,7 +168,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public int CharityItemId { get; set; }
         public Guid RequestedByUserId { get; set; }
         public int RequestedQuantity { get; set; }
-        public string Description { get; set; }  // NEW
+        public string Description { get; set; } 
     }
 
     public class RequestedUserModel
@@ -386,5 +386,24 @@ namespace CommUnityApp.ApplicationCore.Models
         public int CommunityId { get; set; }
     }
 
-   
+    public class GetUserCommunitiesRequest
+    {
+        public Guid UserId { get; set; }
+    }
+
+    public class UserCommunityResponse
+    {
+        public long CommunityId { get; set; }
+        public string CommunityName { get; set; }
+        public string Logo { get; set; }
+        public string Description { get; set; }
+        public string ContactName { get; set; }
+        public string ContactEmail { get; set; }
+        public string ContactPhone { get; set; }
+        public string Website { get; set; }
+        public string Address { get; set; }
+        public int CommunityCategoryId { get; set; }
+    }
+
+
 }
