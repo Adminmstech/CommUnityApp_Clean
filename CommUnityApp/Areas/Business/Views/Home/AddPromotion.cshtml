@@ -1,0 +1,398 @@
+﻿@{
+    ViewData["Title"] = "Add Promotion";
+    Layout = "_BusinessLayout";
+}
+
+<div class="container-fluid">
+
+    <div class="card shadow border-0 rounded-4">
+
+        <div class="card-header bg-primary text-white">
+            <h4 class="mb-0">
+                <i class="fa fa-tags me-2"></i>
+                Add Promotion
+            </h4>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <!-- Product -->
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Product</label>
+
+                    <select id="productId" class="form-select">
+                        <option value="">Select Product</option>
+                    </select>
+                </div>
+
+                <!-- Promotion Type -->
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Promotion Type</label>
+
+                    <select id="promotionType" class="form-select">
+                        <option value="Discount">Discount</option>
+                        <option value="Cashback">Cashback</option>
+                        <option value="BuyOneGetOne">Buy One Get One</option>
+                        <option value="ComboOffer">Combo Offer</option>
+                        <option value="PromoCode">Promo Code</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <!-- Product Details -->
+
+                <div class="col-md-6 mb-3">
+                    <label>Product Price</label>
+                    <input type="text"
+                           id="productPrice"
+                           class="form-control"
+                           readonly />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Current Discount Price</label>
+                    <input type="text"
+                           id="discountPrice"
+                           class="form-control"
+                           readonly />
+                </div>
+
+                <!-- Other Promotion -->
+
+                <div class="col-md-12 mb-3">
+                    <label>Other Promotion Text</label>
+
+                    <textarea id="otherPromotionText"
+                              rows="3"
+                              class="form-control"></textarea>
+                </div>
+
+                <!-- Promo -->
+
+                <div class="col-md-4 mb-3">
+                    <label>Promo Code</label>
+
+                    <input type="text"
+                           id="promoCode"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label>Discount Value</label>
+
+                    <input type="number"
+                           id="discountValue"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label>Cashback Value</label>
+
+                    <input type="number"
+                           id="cashbackValue"
+                           class="form-control" />
+                </div>
+
+                <!-- Amounts -->
+
+                <div class="col-md-6 mb-3">
+                    <label>Minimum Purchase Amount</label>
+
+                    <input type="number"
+                           id="minimumPurchaseAmount"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Max Redemption Limit</label>
+
+                    <input type="number"
+                           id="maxRedemptionLimit"
+                           class="form-control" />
+                </div>
+
+                <!-- Buy Get -->
+
+                <div class="col-md-6 mb-3">
+                    <label>Buy/Get Details</label>
+
+                    <textarea id="buyGetDetails"
+                              rows="3"
+                              class="form-control"></textarea>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Combo Offer Details</label>
+
+                    <textarea id="comboOfferDetails"
+                              rows="3"
+                              class="form-control"></textarea>
+                </div>
+
+                <!-- Dates -->
+
+                <div class="col-md-6 mb-3">
+                    <label>Start Date</label>
+
+                    <input type="datetime-local"
+                           id="startDate"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>End Date</label>
+
+                    <input type="datetime-local"
+                           id="endDate"
+                           class="form-control" />
+                </div>
+
+                <!-- Switches -->
+
+                <div class="col-md-6 mb-3">
+                    <label>Limited Deal</label>
+
+                    <select id="isLimitedDeal"
+                            class="form-select">
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label>Status</label>
+
+                    <select id="isActive"
+                            class="form-select">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+
+                <!-- Image -->
+
+                <div class="col-md-12 mb-3">
+                    <label>Promotion Image</label>
+
+                    <input type="file"
+                           id="promotionImage"
+                           accept="image/*"
+                           class="form-control" />
+                </div>
+
+                <div class="col-md-12 mb-3">
+                    <img id="previewImage"
+                         style="max-height:250px;display:none"
+                         class="img-thumbnail" />
+                </div>
+
+                <!-- Save -->
+
+                <div class="col-md-12">
+                    <button class="btn btn-success"
+                            onclick="savePromotion()">
+                        <i class="fa fa-save me-2"></i>
+                        Save Promotion
+                    </button>
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        const currentBusinessId = @ViewBag.BusinessId;
+
+        let selectedImageBase64 = "";
+        let productsCache = [];
+
+        $(document).ready(function () {
+
+            console.log("BusinessId:", currentBusinessId);
+
+            loadProducts(currentBusinessId);
+
+            $("#productId").change(function () {
+
+                const productId = $(this).val();
+
+                const selectedProduct = productsCache.find(
+                    x => x.product.productId == productId
+                );
+
+                if (!selectedProduct) return;
+
+                $("#productPrice").val(selectedProduct.product.price);
+                $("#discountPrice").val(selectedProduct.product.discountPrice);
+            });
+
+            $("#promotionImage").change(function () {
+
+                const file = this.files[0];
+
+                if (!file) return;
+
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+
+                    selectedImageBase64 = e.target.result;
+
+                    $("#previewImage")
+                        .attr("src", e.target.result)
+                        .show();
+                };
+
+                reader.readAsDataURL(file);
+            });
+
+        });
+
+        function loadProducts(businessId) {
+
+            $.ajax({
+                url: '/api/Product/Get_ProductByBusinessId?BusinessId=' + businessId,
+                type: 'GET',
+
+                success: function (response) {
+
+                    productsCache = response;
+
+                    $("#productId").empty();
+
+                    $("#productId").append(`
+                        <option value="">Select Product</option>
+                    `);
+
+                    response.forEach(function (item) {
+
+                        if (!item.product) return;
+
+                        $("#productId").append(`
+                            <option value="${item.product.productId}">
+                                ${item.product.productName}
+                            </option>
+                        `);
+                    });
+                },
+
+                error: function () {
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to load products'
+                    });
+                }
+            });
+        }
+
+        function savePromotion() {
+
+            if (!$("#productId").val()) {
+                Swal.fire("Please select a product");
+                return;
+            }
+
+            const payload = {
+
+                promotion: {
+
+                    promotionId: 0,
+
+                    productId: parseInt($("#productId").val()),
+
+                    businessId: parseInt(currentBusinessId),
+
+                    promotionType: $("#promotionType").val(),
+
+                    otherPromotionText: $("#otherPromotionText").val(),
+
+                    promoCode: $("#promoCode").val(),
+
+                    discountValue: parseFloat($("#discountValue").val() || 0),
+
+                    cashbackValue: parseFloat($("#cashbackValue").val() || 0),
+
+                    minimumPurchaseAmount:
+                        parseFloat($("#minimumPurchaseAmount").val() || 0),
+
+                    maxRedemptionLimit:
+                        parseInt($("#maxRedemptionLimit").val() || 0),
+
+                    buyGetDetails:
+                        $("#buyGetDetails").val(),
+
+                    comboOfferDetails:
+                        $("#comboOfferDetails").val(),
+
+                    isLimitedDeal:
+                        $("#isLimitedDeal").val() === "true",
+
+                    promotionImage: "",
+
+                    startDate:
+                        $("#startDate").val(),
+
+                    endDate:
+                        $("#endDate").val(),
+
+                    isActive:
+                        $("#isActive").val() === "true"
+                },
+
+                promotionImageBase64:
+                    selectedImageBase64 || ""
+            };
+
+            console.log(payload);
+
+            $.ajax({
+
+                url: '/api/Product/UploadPromotion',
+
+                type: 'POST',
+
+                contentType: 'application/json',
+
+                data: JSON.stringify(payload),
+
+                success: function (response) {
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: 'Promotion added successfully'
+                    }).then(() => {
+
+                        location.reload();
+                    });
+                },
+
+                error: function (xhr) {
+
+                    console.log(xhr.responseText);
+
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: xhr.responseText
+                    });
+                }
+            });
+        }
+
+    </script>
+
+}

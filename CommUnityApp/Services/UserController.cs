@@ -404,8 +404,7 @@ namespace CommUnityApp.Services
         }
 
         [HttpPost("Send_Communication")]
-        public async Task<IActionResult> SendCommunication(
-     [FromBody] SendCommunicationRequest request)
+        public async Task<IActionResult> SendCommunication([FromBody] SendCommunicationRequest request)
         {
             try
             {

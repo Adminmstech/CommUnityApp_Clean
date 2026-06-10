@@ -368,5 +368,54 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result.FirstOrDefault();
         }
+
+
+        public async Task<List<PromotionListModel>> GetBusinessPromotionsAsync(int businessId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@BusinessId", businessId);
+
+            var result = await connection.QueryAsync<PromotionListModel>(
+                "Get_BusinessPromotions",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+        public async Task<PromotionDetailsModel> GetPromotionDetailsAsync(int promotionId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@PromotionId", promotionId);
+
+            return await connection.QueryFirstOrDefaultAsync<PromotionDetailsModel>(
+                "Get_PromotionDetails",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<PromotionDetailsModel> GetPromotionByTokenAsync(
+            Guid promotionToken,
+            Guid? userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@PromotionToken", promotionToken);
+            parameters.Add("@UserId", userId);
+
+            return await connection.QueryFirstOrDefaultAsync<PromotionDetailsModel>(
+                "Get_PromotionByToken",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+        }
     }
 }
