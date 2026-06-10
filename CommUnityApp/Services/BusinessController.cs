@@ -28,6 +28,7 @@ namespace CommUnityApp.Services
         }
 
 
+
         [HttpPost("Add_Business")]
         public async Task<IActionResult> AddBusiness([FromBody] AddBusinessRequest request)
         {
@@ -36,9 +37,9 @@ namespace CommUnityApp.Services
                 if (!ModelState.IsValid)
                     return BadRequest(ModelState);
 
-                string logoPath = null;
+                string logoPath = request.Logo;
 
-                // ✅ Save Logo
+                // Save New Logo Only If Selected
                 if (!string.IsNullOrWhiteSpace(request.LogoBase64))
                 {
                     if (!TryConvertFromBase64(request.LogoBase64, out byte[] fileBytes))
@@ -48,10 +49,13 @@ namespace CommUnityApp.Services
                         return BadRequest("Logo size exceeds 2MB limit.");
 
                     string fileName = $"{Guid.NewGuid():N}.jpg";
+
                     string directoryPath = Path.Combine("wwwroot", "BusinessLogos");
+
                     Directory.CreateDirectory(directoryPath);
 
                     string localFilePath = Path.Combine(directoryPath, fileName);
+
                     await System.IO.File.WriteAllBytesAsync(localFilePath, fileBytes);
 
                     logoPath = $"BusinessLogos/{fileName}";
@@ -76,8 +80,8 @@ namespace CommUnityApp.Services
                     Info = request.Info,
                     Latitude = request.Latitude,
                     Longitude = request.Longitude,
-                    WebLink=request.WebLink,
-                    Password=request.Password,
+                    WebLink = request.WebLink,
+                    Password = request.Password,
                     IsVerified = request.IsVerified,
                     IsActive = request.IsActive
                 });
@@ -104,22 +108,22 @@ namespace CommUnityApp.Services
         }
 
         private bool TryConvertFromBase64(string base64String, out byte[] fileBytes)
-{
-    fileBytes = null;
+        {
+            fileBytes = null;
 
-    try
-    {
-        if (base64String.Contains(","))
-            base64String = base64String.Split(',')[1];
+            try
+            {
+                if (base64String.Contains(","))
+                    base64String = base64String.Split(',')[1];
 
-        fileBytes = Convert.FromBase64String(base64String);
-        return true;
-    }
-    catch
-    {
-        return false;
-    }
-}
+                fileBytes = Convert.FromBase64String(base64String);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
 
 
@@ -132,7 +136,7 @@ namespace CommUnityApp.Services
 
 
         [HttpGet("Get_BusinessDetails")]
-        public async Task<IActionResult> GetBusinessDetails( int BusinessId)
+        public async Task<IActionResult> GetBusinessDetails(int BusinessId)
         {
             var data = await _unitOfWork.Business.GetBusinessDetails(BusinessId);
             return Ok(data);

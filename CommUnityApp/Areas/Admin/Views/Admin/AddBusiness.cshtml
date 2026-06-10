@@ -6,183 +6,397 @@
 }
 
 <div class="container-fluid">
+
     <div class="card shadow border-0 rounded-4">
+
         <div class="card-header bg-primary text-white py-3 d-flex justify-content-between align-items-center">
+
             <h4 class="mb-0">
                 <i class="fa fa-building me-2"></i>
                 Add / Edit Business
             </h4>
 
-            <a href="/Admin/Admin/Business" class="btn btn-light rounded-3">
-                <i class="fa fa-arrow-left me-2"></i> Back
+            <a href="/Admin/Admin/Business"
+               class="btn btn-light rounded-3">
+
+                <i class="fa fa-arrow-left me-2"></i>
+                Back
+
             </a>
+
         </div>
 
         <div class="card-body p-4">
+
             <form id="businessForm">
 
-                <input type="hidden" id="BusinessId" value="@businessId" />
+                <input type="hidden"
+                       id="BusinessId"
+                       value="@businessId" />
+
+                <input type="hidden"
+                       id="ExistingLogo" />
 
                 <div class="row g-4">
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Category</label>
-                        <select id="CategoryId" class="form-select">
-                            <option value="">Select Category</option>
-                            <option value="1">Care & Community</option>
-                            <option value="2">Electronics</option>
-                            <option value="3">Business & Professional</option>
-                            <option value="4">Beauty & Salon</option>
+
+                        <label class="form-label fw-semibold">
+                            Category
+                        </label>
+
+                        <select id="CategoryId"
+                                class="form-select">
+
+                            <option value="">
+                                Loading Categories...
+                            </option>
+
                         </select>
+
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Business Name</label>
-                        <input type="text" id="BusinessName" class="form-control" />
+
+                        <label class="form-label fw-semibold">
+                            Business Name
+                        </label>
+
+                        <input type="text"
+                               id="BusinessName"
+                               class="form-control" />
+
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Business Number</label>
-                        <input type="text" id="BusinessNumber" class="form-control" />
+
+                        <label class="form-label fw-semibold">
+                            Business Number
+                        </label>
+
+                        <input type="text"
+                               id="BusinessNumber"
+                               class="form-control" />
+
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Owner Name</label>
-                        <input type="text" id="OwnerName" class="form-control" />
+
+                        <label class="form-label fw-semibold">
+                            Owner Name
+                        </label>
+
+                        <input type="text"
+                               id="OwnerName"
+                               class="form-control" />
+
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Email</label>
-                        <input type="email" id="Email" class="form-control" />
+
+                        <label class="form-label fw-semibold">
+                            Email
+                        </label>
+
+                        <input type="email"
+                               id="Email"
+                               class="form-control" />
+
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Phone</label>
-                        <input type="text" id="Phone" class="form-control" />
+
+                        <label class="form-label fw-semibold">
+                            Phone
+                        </label>
+
+                        <input type="text"
+                               id="Phone"
+                               class="form-control" />
+
                     </div>
 
                     <div class="col-md-12">
-                        <label class="form-label fw-semibold">Address</label>
-                        <input type="text" id="Address" class="form-control" />
+
+                        <label class="form-label fw-semibold">
+                            Address
+                        </label>
+
+                        <input type="text"
+                               id="Address"
+                               class="form-control" />
+
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">City</label>
-                        <input type="text" id="City" class="form-control" />
+
+                        <label class="form-label fw-semibold">
+                            City
+                        </label>
+
+                        <input type="text"
+                               id="City"
+                               class="form-control" />
+
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">State</label>
-                        <input type="text" id="State" class="form-control" />
+
+                        <label class="form-label fw-semibold">
+                            State
+                        </label>
+
+                        <input type="text"
+                               id="State"
+                               class="form-control" />
+
                     </div>
 
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">Country</label>
-                        <input type="text" id="Country" class="form-control" />
+
+                        <label class="form-label fw-semibold">
+                            Country
+                        </label>
+
+                        <input type="text"
+                               id="Country"
+                               class="form-control" />
+
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Suburb</label>
-                        <input type="text" id="Suburb" class="form-control" />
+
+                        <label class="form-label fw-semibold">
+                            Suburb
+                        </label>
+
+                        <input type="text"
+                               id="Suburb"
+                               class="form-control" />
+
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Website Link</label>
-                        <input type="text" id="WebLink" class="form-control" />
+
+                        <label class="form-label fw-semibold">
+                            Website Link
+                        </label>
+
+                        <input type="text"
+                               id="WebLink"
+                               class="form-control" />
+
                     </div>
 
                     <div class="col-md-12">
-                        <label class="form-label fw-semibold">Info</label>
-                        <textarea id="Info" rows="4" class="form-control"></textarea>
+
+                        <label class="form-label fw-semibold">
+                            Info
+                        </label>
+
+                        <textarea id="Info"
+                                  rows="4"
+                                  class="form-control"></textarea>
+
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Latitude</label>
-                        <input type="number" step="any" id="Latitude" class="form-control" />
+
+                        <label class="form-label fw-semibold">
+                            Latitude
+                        </label>
+
+                        <input type="number"
+                               step="any"
+                               id="Latitude"
+                               class="form-control" />
+
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Longitude</label>
-                        <input type="number" step="any" id="Longitude" class="form-control" />
+
+                        <label class="form-label fw-semibold">
+                            Longitude
+                        </label>
+
+                        <input type="number"
+                               step="any"
+                               id="Longitude"
+                               class="form-control" />
+
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Password</label>
-                        <input type="text" id="Password" class="form-control" />
+
+                        <label class="form-label fw-semibold">
+                            Password
+                        </label>
+
+                        <input type="text"
+                               id="Password"
+                               class="form-control" />
+
                     </div>
 
                     <div class="col-md-6">
-                        <label class="form-label fw-semibold">Logo Upload</label>
-                        <input type="file" id="LogoFile" class="form-control" accept="image/*" />
+
+                        <label class="form-label fw-semibold">
+                            Logo Upload
+                        </label>
+
+                        <input type="file"
+                               id="LogoFile"
+                               class="form-control"
+                               accept="image/*" />
+
                     </div>
 
                     <div class="col-md-12">
+
                         <img id="LogoPreview"
                              src=""
                              style="max-height:120px;display:none;border-radius:10px;" />
+
                     </div>
 
                     <div class="col-md-6">
+
                         <div class="form-check mt-4">
-                            <input type="checkbox" id="IsVerified" class="form-check-input" />
-                            <label class="form-check-label fw-semibold">Verified</label>
+
+                            <input type="checkbox"
+                                   id="IsVerified"
+                                   class="form-check-input" />
+
+                            <label class="form-check-label fw-semibold">
+                                Verified
+                            </label>
+
                         </div>
+
                     </div>
 
                     <div class="col-md-6">
+
                         <div class="form-check mt-4">
-                            <input type="checkbox" id="IsActive" class="form-check-input" />
-                            <label class="form-check-label fw-semibold">Active</label>
+
+                            <input type="checkbox"
+                                   id="IsActive"
+                                   class="form-check-input" />
+
+                            <label class="form-check-label fw-semibold">
+                                Active
+                            </label>
+
                         </div>
+
                     </div>
 
                 </div>
 
                 <div class="mt-4 text-end">
-                    <button type="button" class="btn btn-primary px-5 rounded-3" onclick="saveBusiness()">
-                        <i class="fa fa-save me-2"></i> Save Business
+
+                    <button type="button"
+                            class="btn btn-primary px-5 rounded-3"
+                            onclick="saveBusiness()">
+
+                        <i class="fa fa-save me-2"></i>
+                        Save Business
+
                     </button>
+
                 </div>
 
             </form>
+
         </div>
+
     </div>
+
 </div>
 
 @section Scripts {
+
     <script>
+
         let logoBase64 = "";
         let existingLogo = "";
 
         $(document).ready(function () {
+
+            loadCategories();
+
             const businessId = $("#BusinessId").val();
 
             if (businessId && businessId !== "0") {
+
                 loadBusinessDetails(businessId);
             }
         });
 
+        function loadCategories() {
+
+            $.ajax({
+
+                url: "/api/Business/Get_BusinessCategory",
+                type: "GET",
+
+                success: function (response) {
+
+                    $("#CategoryId").empty();
+
+                    $("#CategoryId").append(`
+                        <option value="">
+                            Select Category
+                        </option>
+                    `);
+
+                    response.forEach(function (item) {
+
+                        $("#CategoryId").append(`
+                            <option value="${item.categoryId}">
+                                ${item.categoryName}
+                            </option>
+                        `);
+                    });
+                }
+            });
+        }
+
         $("#LogoFile").change(function (e) {
+
             const file = e.target.files[0];
+
             if (!file) return;
 
             const reader = new FileReader();
 
             reader.onload = function (evt) {
+
                 logoBase64 = evt.target.result;
-                $("#LogoPreview").attr("src", logoBase64).show();
+
+                $("#LogoPreview")
+                    .attr("src", logoBase64)
+                    .show();
             };
 
             reader.readAsDataURL(file);
         });
 
         function loadBusinessDetails(id) {
+
             $.ajax({
+
                 url: `/api/Business/Get_BusinessDetails?BusinessId=${id}`,
                 type: "GET",
 
                 success: function (res) {
-                    $("#CategoryId").val(res.categoryId);
+
+                    setTimeout(function(){
+
+                        $("#CategoryId").val(res.categoryId);
+
+                    },300);
+
                     $("#BusinessName").val(res.businessName);
                     $("#BusinessNumber").val(res.businessNumber);
                     $("#OwnerName").val(res.ownerName);
@@ -198,70 +412,130 @@
                     $("#Longitude").val(res.longitude);
                     $("#WebLink").val(res.webLink);
                     $("#Password").val(res.password);
+
                     $("#IsVerified").prop("checked", res.isVerified);
                     $("#IsActive").prop("checked", res.isActive);
 
                     if (res.logo) {
-                        existingLogo = res.logo;
-                        $("#LogoPreview").attr("src", "/" + res.logo).show();
-                    }
-                },
 
-                error: function () {
-                    Swal.fire("Error", "Failed to load business details.", "error");
+                        existingLogo = res.logo;
+
+                        $("#ExistingLogo").val(res.logo);
+
+                        $("#LogoPreview")
+                            .attr("src", "/" + res.logo)
+                            .show();
+                    }
                 }
             });
         }
 
         function saveBusiness() {
+
             const payload = {
-                businessId: parseInt($("#BusinessId").val()) || 0,
-                categoryId: parseInt($("#CategoryId").val()),
-                businessName: $("#BusinessName").val(),
-                businessNumber: $("#BusinessNumber").val(),
-                ownerName: $("#OwnerName").val(),
-                email: $("#Email").val(),
-                phone: $("#Phone").val(),
-                address: $("#Address").val(),
-                city: $("#City").val(),
-                state: $("#State").val(),
-                country: $("#Country").val(),
-                suburb: $("#Suburb").val(),
-                logoBase64: logoBase64,
-                logo: existingLogo,
-                info: $("#Info").val(),
-                latitude: parseFloat($("#Latitude").val()) || null,
-                longitude: parseFloat($("#Longitude").val()) || null,
-                webLink: $("#WebLink").val(),
-                password: $("#Password").val(),
-                isVerified: $("#IsVerified").is(":checked"),
-                isActive: $("#IsActive").is(":checked") ? 1 : 0
+
+                businessId:
+                    parseInt($("#BusinessId").val()) || 0,
+
+                categoryId:
+                    parseInt($("#CategoryId").val()),
+
+                businessName:
+                    $("#BusinessName").val(),
+
+                businessNumber:
+                    $("#BusinessNumber").val(),
+
+                ownerName:
+                    $("#OwnerName").val(),
+
+                email:
+                    $("#Email").val(),
+
+                phone:
+                    $("#Phone").val(),
+
+                address:
+                    $("#Address").val(),
+
+                city:
+                    $("#City").val(),
+
+                state:
+                    $("#State").val(),
+
+                country:
+                    $("#Country").val(),
+
+                suburb:
+                    $("#Suburb").val(),
+
+                logoBase64:
+                    logoBase64,
+
+                logo:
+                    logoBase64
+                        ? ""
+                        : $("#ExistingLogo").val(),
+
+                info:
+                    $("#Info").val(),
+
+                latitude:
+                    parseFloat($("#Latitude").val()) || null,
+
+                longitude:
+                    parseFloat($("#Longitude").val()) || null,
+
+                webLink:
+                    $("#WebLink").val(),
+
+                password:
+                    $("#Password").val(),
+
+                isVerified:
+                    $("#IsVerified").is(":checked"),
+
+                isActive:
+                    $("#IsActive").is(":checked") ? 1 : 0
             };
 
             $.ajax({
+
                 url: "/api/Business/Add_Business",
+
                 type: "POST",
+
                 contentType: "application/json",
+
                 data: JSON.stringify(payload),
 
                 success: function (res) {
+
                     Swal.fire({
                         icon: "success",
                         title: "Success",
                         text: res.resultMessage
                     }).then(() => {
-                        window.location.href = "/Admin/Admin/Business";
+
+                        window.location.href =
+                            "/Admin/Admin/Business";
                     });
                 },
 
                 error: function (xhr) {
+
                     Swal.fire({
                         icon: "error",
                         title: "Error",
-                        text: xhr.responseJSON?.resultMessage || "Failed to save business"
+                        text:
+                            xhr.responseJSON?.resultMessage
+                            || "Failed to save business"
                     });
                 }
             });
         }
+
     </script>
+
 }
