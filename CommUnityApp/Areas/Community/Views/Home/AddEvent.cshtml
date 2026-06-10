@@ -105,31 +105,46 @@
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
+
     const urlParams = new URLSearchParams(window.location.search);
     const editEventId = urlParams.get("eventId");
 
     $(document).ready(function () {
 
-        loadCategories();
-
         if (editEventId && parseInt(editEventId) > 0) {
-            loadEvent(editEventId);
-        } else {
+
+            loadCategories(function () {
+                loadEvent(editEventId);
+            });
+
+        }
+        else {
+
+            loadCategories();
             $("#qrPreview").hide();
+
         }
     });
 
-    function loadCategories() {
+    function loadCategories(callback) {
+
         $.get("/api/Event/GetCategories", function (res) {
 
+            console.log("Categories:", res);
+
             $("#CategoryId").empty();
-            $("#CategoryId").append(`<option value="">Select Category</option>`);
 
             res.forEach(c => {
+
+                console.log(c.categoryId, c.categoryName);
+
                 $("#CategoryId").append(
                     `<option value="${c.categoryId}">${c.categoryName}</option>`
                 );
             });
+
+            if (callback)
+                callback();
         });
     }
 
@@ -139,9 +154,14 @@
 
             $("#EventId").val(res.eventId);
             $("#EventName").val(res.eventName);
-            $("#CategoryId").val(res.categoryId);
+
+           
+                $("#CategoryId").val(res.categoryId);
+          
+
             $("#StartDate").val(res.startDate?.replace(" ", "T"));
             $("#EndDate").val(res.endDate?.replace(" ", "T"));
+
             $("#Location").val(res.location);
             $("#Description").val(res.description);
             $("#ContactName").val(res.contactName);
@@ -150,15 +170,20 @@
             $("#IsFundRaising").val(res.isFundRaising);
 
             if (res.eventImage) {
+
                 $("#imagePreview").attr("src", res.eventImage);
+
+                $("#ExistingImage").val(res.eventImage);
             }
 
             if (res.qrCodeImage) {
-                $("#qrPreview").attr("src", res.qrCodeImage).show();
+
+                $("#qrPreview")
+                    .attr("src", res.qrCodeImage)
+                    .show();
             }
         });
     }
-
     function saveEvent() {
 
         if (!$("#CategoryId").val()) {

@@ -572,6 +572,23 @@ CommunityPostModel model)
 
         }
 
+        public async Task<List<UserCommunityResponse>> GetUserCommunitiesAsync(Guid userId)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            DynamicParameters parameters = new DynamicParameters();
+
+            parameters.Add("@UserId", userId);
+
+            var result = await con.QueryAsync<UserCommunityResponse>(
+                "SP_GetUserCommunities",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
     }
 }
 

@@ -483,7 +483,7 @@ namespace CommUnityApp.Services
                     Events = events,
                     Auctions = auctions,
                     Communities = communities,
-                    Products = productList // ✅ FIXED
+                    Products = productList 
                 };
 
                 return Ok(new List<DashboardResponse> { response });
@@ -818,7 +818,31 @@ namespace CommUnityApp.Services
                 data = result
             });
         }
+        
+        [HttpGet("GetUserCommunities")]
+        public async Task<IActionResult> GetUserCommunities(Guid userId)
+        {
+            try
+            {
+                var result = await _communityRepository
+                    .GetUserCommunitiesAsync(userId);
 
+                return Ok(new
+                {
+                    Status = 1,
+                    Message = "Success",
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    Status = 0,
+                    Message = ex.Message
+                });
+            }
+        }
 
 
     }
