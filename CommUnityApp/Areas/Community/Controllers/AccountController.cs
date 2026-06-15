@@ -18,11 +18,8 @@ namespace CommUnityApp.Areas.Community.Controllers
         {
             return View();
         }
-
         [HttpPost]
-        public async Task<IActionResult> Login(
-     string userName,
-     string password)
+        public async Task<IActionResult> Login(string userName, string password)
         {
             var request = new CommunityLoginRequest
             {
@@ -30,40 +27,31 @@ namespace CommUnityApp.Areas.Community.Controllers
                 Password = password
             };
 
-            var response =
-                await _communityRepository.LoginAsync(request);
-
-
+            var response = await _communityRepository.LoginAsync(request);
 
             if (response != null && response.CommunityId > 0)
             {
-                HttpContext.Session.SetString(
-                    "CommunityId",
-                    response.CommunityId.ToString());
+                HttpContext.Session.SetString("CommunityId", response.CommunityId.ToString());
+                HttpContext.Session.SetString("CommunityName", response.CommunityName);
 
-                HttpContext.Session.SetString(
-                    "CommunityName",
-                    response.CommunityName);
+                var cookieOptions = new CookieOptions
+                {
+                    Expires = DateTime.Now.AddYears(1),
+                    HttpOnly = true,
+                    IsEssential = true,
+                    Secure = Request.IsHttps,
+                    SameSite = SameSiteMode.Lax
+                };
 
                 Response.Cookies.Append(
                     "CommunityId",
                     response.CommunityId.ToString(),
-                    new CookieOptions
-                    {
-                        Expires = DateTime.Now.AddYears(1),
-                        HttpOnly = true,
-                        IsEssential = true
-                    });
+                    cookieOptions);
 
                 Response.Cookies.Append(
                     "CommunityName",
                     response.CommunityName,
-                    new CookieOptions
-                    {
-                        Expires = DateTime.Now.AddYears(1),
-                        HttpOnly = true,
-                        IsEssential = true
-                    });
+                    cookieOptions);
 
                 return RedirectToAction(
                     "ViewEvents",
@@ -71,14 +59,11 @@ namespace CommUnityApp.Areas.Community.Controllers
                     new { area = "Community" });
             }
 
-
-
-            ViewBag.Error =
-                response?.ResultMessage ??
-                "Invalid username or password";
+            ViewBag.Error = response?.ResultMessage ?? "Invalid username or password";
 
             return View("CommunityLogin");
         }
+
         public IActionResult CommunityLogin()
         {
             return View();
@@ -87,7 +72,12 @@ namespace CommUnityApp.Areas.Community.Controllers
         [HttpPost]
         public async Task<IActionResult> CommunityLogin(string userName, string password)
         {
-            var request = new CommunityLoginRequest { UserName = userName, Password = password };
+            var request = new CommunityLoginRequest
+            {
+                UserName = userName,
+                Password = password
+            };
+
             var response = await _communityRepository.LoginAsync(request);
 
             if (response != null && response.CommunityId > 0)
@@ -95,10 +85,33 @@ namespace CommUnityApp.Areas.Community.Controllers
                 HttpContext.Session.SetString("CommunityId", response.CommunityId.ToString());
                 HttpContext.Session.SetString("CommunityName", response.CommunityName);
 
-                return RedirectToAction("AddEvent", "Home", new { area = "Community" });
+                var cookieOptions = new CookieOptions
+                {
+                    Expires = DateTime.Now.AddYears(1),
+                    HttpOnly = true,
+                    IsEssential = true,
+                    Secure = Request.IsHttps,
+                    SameSite = SameSiteMode.Lax
+                };
+
+                Response.Cookies.Append(
+                    "CommunityId",
+                    response.CommunityId.ToString(),
+                    cookieOptions);
+
+                Response.Cookies.Append(
+                    "CommunityName",
+                    response.CommunityName,
+                    cookieOptions);
+
+                return RedirectToAction(
+                    "AddEvent",
+                    "Home",
+                    new { area = "Community" });
             }
 
             ViewBag.Error = response?.ResultMessage ?? "Invalid username or password";
+
             return View();
         }
     }

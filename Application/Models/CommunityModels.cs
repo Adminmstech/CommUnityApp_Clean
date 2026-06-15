@@ -404,6 +404,21 @@ namespace CommUnityApp.ApplicationCore.Models
         public string Address { get; set; }
         public int CommunityCategoryId { get; set; }
     }
+    public class UpdateCharityItemModel
+    {
+        public long CharityItemId { get; set; }
 
+        public string CommunityId { get; set; }
+
+        public string ItemName { get; set; }
+
+        public string ItemCategory { get; set; }
+
+        public string Description { get; set; }
+
+        public int Quantity { get; set; }
+
+        public string ImagePath { get; set; }
+    }
 
 }
