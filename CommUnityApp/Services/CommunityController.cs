@@ -920,7 +920,7 @@ namespace CommUnityApp.Services
                     CharityItemId = model.CharityItemId,
                     ImagePath = imagePath
                 });
-            }
+            } 
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
