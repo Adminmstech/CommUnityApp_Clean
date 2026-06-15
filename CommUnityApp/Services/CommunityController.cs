@@ -844,6 +844,99 @@ namespace CommUnityApp.Services
             }
         }
 
+        [HttpPost]
+        [Route("UpdateCharityItem")]
+        public async Task<IActionResult> UpdateCharityItem([FromBody] UpdateCharityItemModel model)
+       
+        {
+            try
+            {
+                string imagePath = "";
+
+                var result =
+                    await _communityRepository
+                    .UpdateCharityItem(model);
+
+                if (result.Status != 1)
+                {
+                    return Ok(result);
+                }
+
+                if (!string.IsNullOrEmpty(model.ImagePath)
+                    && model.ImagePath.Contains("base64"))
+                {
+                    string folderPath =
+                        Path.Combine(
+                            Directory.GetCurrentDirectory(),
+                            "wwwroot",
+                            "uploads",
+                            "charity",
+                            model.CharityItemId.ToString());
+
+                    if (!Directory.Exists(folderPath))
+                    {
+                        Directory.CreateDirectory(folderPath);
+                    }
+
+                    string base64String = model.ImagePath;
+
+                    if (base64String.Contains(","))
+                    {
+                        base64String =
+                            base64String.Substring(
+                                base64String.IndexOf(",") + 1);
+                    }
+
+                    string fileName =
+                        Guid.NewGuid().ToString()
+                        + Path.GetExtension(model.ImagePath);
+
+                    string filePath =
+                        Path.Combine(folderPath, fileName);
+
+                    byte[] imageBytes =
+                        Convert.FromBase64String(base64String);
+
+                    System.IO.File.WriteAllBytes(
+                        filePath,
+                        imageBytes);
+
+                    imagePath =
+                        "/uploads/charity/"
+                        + model.CharityItemId
+                        + "/"
+                        + fileName;
+
+                    await _communityRepository
+                        .UpdateCharityItemImage(
+                            model.CharityItemId,
+                            imagePath);
+                }
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Charity item updated successfully",
+                    CharityItemId = model.CharityItemId,
+                    ImagePath = imagePath
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet]
+        [Route("GetCharityItemsByUserId")]
+       public async Task<IActionResult> GetCharityItemsByUserId(Guid userId)
+        {
+            var result =
+                await _communityRepository.GetCharityItemsByUserId(userId);
+
+            return Ok(result);
+        }
+
 
     }
 

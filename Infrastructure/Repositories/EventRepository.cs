@@ -505,14 +505,16 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
         public async Task<dynamic> PostEventToCommunityUsers(PostEventModel model)
         {
-            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            using (var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
             {
                 var result = await con.QueryFirstOrDefaultAsync<dynamic>(
                     "sp_PostEventToCommunityUsers",
                     new
                     {
                         EventId = model.EventId,
-                        CommunityId = model.CommunityId
+                        CommunityId = model.CommunityId,
+                        AudienceType = model.AudienceType
                     },
                     commandType: CommandType.StoredProcedure);
 
