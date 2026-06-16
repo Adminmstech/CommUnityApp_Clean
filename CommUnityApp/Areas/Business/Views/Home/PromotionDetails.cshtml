@@ -1,0 +1,172 @@
+﻿@{
+    ViewData["Title"] = "Promotion Details";
+    Layout = "_BusinessLayout";
+}
+
+<div class="container-fluid">
+
+    <div id="promotionDetails">
+
+        Loading...
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        const params =
+            new URLSearchParams(window.location.search);
+
+        const promotionId =
+            params.get("promotionId");
+
+        $(document).ready(function(){
+
+            loadDetails();
+
+        });
+
+        function loadDetails(){
+
+            $.ajax({
+
+                url:'/api/Product/Get_PromotionDetails?promotionId='
+                    + promotionId,
+
+                type:'GET',
+
+                success:function(data){
+
+                    renderDetails(data);
+                }
+            });
+        }
+
+        function renderDetails(item){
+
+            let html = `
+
+            <div class="card shadow">
+
+                <div class="card-header bg-primary text-white">
+
+                    <h3>${item.productName}</h3>
+
+                </div>
+
+                <div class="card-body">
+
+                    <div class="row">
+
+                        <div class="col-md-5">
+
+                            <img src="/${item.promotionImage}"
+                                 class="img-fluid rounded"/>
+
+                            <hr/>
+
+                            <img src="${item.qrCodeImage}"
+                                 class="img-fluid border"/>
+
+                        </div>
+
+                        <div class="col-md-7">
+
+                            <table class="table">
+
+                                <tr>
+                                    <th>Business</th>
+                                    <td>${item.businessName}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Promotion Type</th>
+                                    <td>${item.promotionType}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Promo Code</th>
+                                    <td>${item.promoCode}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Discount</th>
+                                    <td>${item.discountValue}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Cashback</th>
+                                    <td>${item.cashbackValue}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Min Purchase</th>
+                                    <td>${item.minimumPurchaseAmount}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Max Redemption</th>
+                                    <td>${item.maxRedemptionLimit}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Redeemed</th>
+                                    <td>${item.redeemedCount}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Buy/Get</th>
+                                    <td>${item.buyGetDetails}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Combo Offer</th>
+                                    <td>${item.comboOfferDetails}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Start Date</th>
+                                    <td>${item.startDate}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>End Date</th>
+                                    <td>${item.endDate}</td>
+                                </tr>
+
+                            </table>
+
+                            <button
+                                onclick="sharePromotion('${item.promotionUrl}')"
+                                class="btn btn-success">
+
+                                Share Promotion
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+            `;
+
+            $("#promotionDetails").html(html);
+        }
+
+        function sharePromotion(url){
+
+            window.open(
+                "https://wa.me/?text=" +
+                encodeURIComponent(url),
+                "_blank"
+            );
+        }
+
+    </script>
+
+}

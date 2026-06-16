@@ -260,6 +260,14 @@
                     <i class="fa-solid fa-sitemap"></i> Manage Organisations
                 </a>
 
+                <div class="nav-section-title">Organisation</div>
+                <a href="@Url.Action("AddCharityItem", "Admin", new { area = "Admin" })">
+                    <i class="fa-solid fa-hand-holding-heart"></i> Add Charity Item
+                </a>
+                <a href="@Url.Action("CharityItems", "Admin", new { area = "Admin" })">
+                    <i class="fa-solid fa-box-open"></i> Charity Items
+                </a>
+
                 <div class="nav-section-title">Users</div>
                 <a href="@Url.Action("Users", "Admin", new { area = "Admin" })">
                     <i class="fa-solid fa-users"></i> All Users

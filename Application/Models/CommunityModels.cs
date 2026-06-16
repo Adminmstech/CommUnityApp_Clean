@@ -421,4 +421,5 @@ namespace CommUnityApp.ApplicationCore.Models
         public string ImagePath { get; set; }
     }
 
+
 }

@@ -594,7 +594,7 @@ CommunityPostModel model)
         {
             using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
-                var result= await con.QueryFirstOrDefaultAsync<dynamic>(
+                var result = await con.QueryFirstOrDefaultAsync<dynamic>(
                     "SP_UpdateCharityItem",
                     new
                     {
@@ -612,50 +612,16 @@ CommunityPostModel model)
 
             }
         }
-            public async Task<dynamic> GetCharityItemById(long charityItemId)
-            {
-                using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-                {
-                    var result= await con.QueryFirstOrDefaultAsync<dynamic>(
-                        "SP_GetCharityItemById",
-                        new
-                        {
-                            CharityItemId = charityItemId
-                        },
-                        commandType: CommandType.StoredProcedure);
-                return result;                }
-            }
-        public async Task<dynamic> UpdateCharityItemImage(long charityItemId,string imagePath)
+
+        public Task<IEnumerable<dynamic>> GetCharityItemsByUserId(Guid userId)
         {
-            using (var con = new SqlConnection(
-                _configuration.GetConnectionString("DefaultConnection")))
-            {
-                return await con.ExecuteAsync(
-                    @"UPDATE CharityItems
-              SET ImagePath=@ImagePath
-              WHERE CharityItemId=@CharityItemId",
-                    new
-                    {
-                        CharityItemId = charityItemId,
-                        ImagePath = imagePath
-                    });
-            }
-        }
-        public async Task<IEnumerable<dynamic>> GetCharityItemsByUserId(Guid userId)
-        {
-            using (var con = new SqlConnection(
-                _configuration.GetConnectionString("DefaultConnection")))
-            {
-                return await con.QueryAsync<dynamic>(
-                    "SP_GetPostedCharityItemsByUserId",
-                    new
-                    {
-                        UserId = userId
-                    },
-                    commandType: CommandType.StoredProcedure);
-            }
+            throw new NotImplementedException();
         }
 
+        public Task<dynamic> UpdateCharityItemImage(long charityItemId, string imagePath)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

@@ -64,6 +64,15 @@ namespace CommUnityApp.Areas.Admin.Controllers
         {
             return View();
         }
+        public IActionResult CharityItems()
+        {
+            return View();
+        }
+
+        public IActionResult AddCharityItem()
+        {
+            return View();
+        }
 
     }
 }

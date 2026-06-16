@@ -177,7 +177,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             await connection.OpenAsync();
 
             var parameters = new DynamicParameters();
-
+            parameters.Add("@ServiceId", entity.ServiceId);
+            parameters.Add("@BusinessId", entity.BusinessId);
+            parameters.Add("@ServiceId", entity.ServiceId);
             parameters.Add("@BusinessId", entity.BusinessId);
             parameters.Add("@ServiceName", entity.ServiceName);
             parameters.Add("@Description", entity.Description);
@@ -185,6 +187,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             parameters.Add("@DurationMinutes", entity.DurationMinutes);
             parameters.Add("@IsBookingRequired", entity.IsBookingRequired);
             parameters.Add("@IsActive", entity.IsActive);
+            parameters.Add("@CategoryId", entity.CategoryId);
+            parameters.Add("@SubCategoryId", entity.SubCategoryId);
 
             var result = await connection.QueryAsync<BaseResponse>(
                 "Add_Service",
@@ -390,6 +394,27 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             var result = await connection.QueryAsync<ServiceListResponse>(
                 "Get_ServicesBySubCategory",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
+        }
+
+
+        public async Task<List<BusinessService>> GetServicesByBusinessId(int businessId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@BusinessId", businessId);
+
+            var result = await connection.QueryAsync<BusinessService>(
+                "Get_ServicesByBusinessId",
                 parameters,
                 commandType: CommandType.StoredProcedure
             );

@@ -51,6 +51,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<IEnumerable<dynamic>> GetCharityItemsByUserId(Guid userId);
         Task<dynamic> UpdateCharityItemImage(long charityItemId, string imagePath);
+        
     }
 
 }

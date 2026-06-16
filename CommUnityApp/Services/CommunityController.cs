@@ -844,7 +844,7 @@ namespace CommUnityApp.Services
         [HttpPost]
         [Route("UpdateCharityItem")]
         public async Task<IActionResult> UpdateCharityItem([FromBody] UpdateCharityItemModel model)
-       
+
         {
             try
             {
@@ -917,7 +917,7 @@ namespace CommUnityApp.Services
                     CharityItemId = model.CharityItemId,
                     ImagePath = imagePath
                 });
-            } 
+            }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
@@ -935,6 +935,24 @@ namespace CommUnityApp.Services
         }
 
 
+        [HttpGet("Get_AllCharityItems")]
+        public async Task<IActionResult> Get_AllCharityItems()
+        {
+            try
+            {
+                var result = await _unitOfWork.Community.GetAllCharityItems();
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
     }
 
 

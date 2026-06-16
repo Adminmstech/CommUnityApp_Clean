@@ -23,6 +23,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BaseResponse> AddBusinessCategory(BusinessCategory entity);
         Task<CategoryServicesWithImagesResponse> GetServicesByCategory(int categoryId);
         Task<List<ServiceListResponse>> GerserviceBySubcategory(int SubCategoryId);
+        Task<List<BusinessService>> GetServicesByBusinessId(int businessId);
 
 
     }

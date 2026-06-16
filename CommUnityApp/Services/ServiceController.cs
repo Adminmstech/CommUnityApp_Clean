@@ -579,5 +579,26 @@ namespace CommUnityApp.Services
                 });
             }
         }
+
+
+        [HttpGet("Get_ServicesByBusinessId")]
+        public async Task<IActionResult> GetServicesByBusinessId(int businessId)
+        {
+            try
+            {
+                var result = await _unitOfWork.Service
+                    .GetServicesByBusinessId(businessId);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
     }
 }
