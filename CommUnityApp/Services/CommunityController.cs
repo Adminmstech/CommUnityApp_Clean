@@ -825,7 +825,7 @@ namespace CommUnityApp.Services
             try
             {
                 var result = await _communityRepository
-                    .GetUserCommunitiesAsync(userId);
+                    .GetUserCommunitiesAsync(userId); 
 
                 return Ok(new
                 {
