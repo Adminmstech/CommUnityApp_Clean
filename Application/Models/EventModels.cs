@@ -300,7 +300,8 @@ namespace CommUnityApp.ApplicationCore.Models
     {
         public int EventId { get; set; }
 
-        public int CommunityId { get; set; }
+        public int? CommunityId { get; set; }
+        public string AudienceType { get; set; }
     }
 
     public class UserModel
