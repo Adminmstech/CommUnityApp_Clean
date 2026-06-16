@@ -831,7 +831,7 @@ namespace CommUnityApp.Services
                 { 
                     Status = 1,
                     Message = "Success",  
-                    Data = result
+                    Data = result 
                 });
             }
             catch (Exception ex)
