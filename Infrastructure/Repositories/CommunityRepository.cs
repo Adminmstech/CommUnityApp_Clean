@@ -589,6 +589,19 @@ CommunityPostModel model)
             return result.ToList();
         }
 
+        public async Task<List<CharityItemAdminModel>> GetAllCharityItemsAsync()
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<CharityItemAdminModel>(
+                "Get_AllCharityItems",
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
     }
 }
 

@@ -845,6 +845,25 @@ namespace CommUnityApp.Services
         }
 
 
+        [HttpGet("Get_AllCharityItems")]
+        public async Task<IActionResult> Get_AllCharityItems()
+        {
+            try
+            {
+                var result = await _unitOfWork.Community
+                    .GetAllCharityItemsAsync();
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
     }
 
 

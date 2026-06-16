@@ -46,6 +46,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<CommunityPostModel>> GetCommunityPostsByUser(Guid userId);
 
         Task<List<UserCommunityResponse>> GetUserCommunitiesAsync(Guid userId);
+        Task<List<CharityItemAdminModel>> GetAllCharityItemsAsync();
     }
 
 }

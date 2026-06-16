@@ -405,5 +405,37 @@ namespace CommUnityApp.ApplicationCore.Models
         public int CommunityCategoryId { get; set; }
     }
 
+    public class CharityItemAdminModel
+    {
+        public int CharityItemId { get; set; }
+
+        public int CommunityId { get; set; }
+
+        public string CommunityName { get; set; }
+
+        public string ItemName { get; set; }
+
+        public string Description { get; set; }
+
+        public int Quantity { get; set; }
+
+        public string ImagePath { get; set; }
+
+        public string Status { get; set; }
+
+        public DateTime? AssignedDate { get; set; }
+
+        public Guid? AssignedToUserId { get; set; }
+
+        public Guid? PostedByUserId { get; set; }
+
+        public string DeliveryStatus { get; set; }
+
+        public string ItemCategory { get; set; }
+
+        public string ItemCode { get; set; }
+
+        public DateTime CreatedDate { get; set; }
+    }
 
 }

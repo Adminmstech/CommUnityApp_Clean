@@ -1,0 +1,317 @@
+﻿@{
+    ViewData["Title"] = "Charity Items";
+    Layout = "AdminLayout";
+}
+
+<div class="container-fluid">
+
+    <div class="card shadow border-0">
+
+        <div class="card-header bg-primary text-white">
+
+            <h4 class="mb-0">
+                <i class="fa fa-heart me-2"></i>
+                Charity Items
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover align-middle">
+
+                    <thead class="table-dark">
+
+                        <tr>
+                            <th>#</th>
+                            <th>Image</th>
+                            <th>Community</th>
+                            <th>Item Name</th>
+                            <th>Category</th>
+                            <th>Quantity</th>
+                            <th>Status</th>
+                            <th>Delivery</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="charityTableBody">
+
+                        <tr>
+                            <td colspan="10" class="text-center">
+                                Loading...
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<!-- Details Modal -->
+
+<div class="modal fade"
+     id="detailsModal"
+     tabindex="-1">
+
+    <div class="modal-dialog modal-lg">
+
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+
+                <h5 class="modal-title">
+                    Charity Item Details
+                </h5>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <div id="detailsContainer">
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        let charityItems = [];
+
+        $(document).ready(function () {
+
+            loadCharityItems();
+
+        });
+
+        function loadCharityItems() {
+
+            $.ajax({
+
+                url: '/api/Community/Get_AllCharityItems',
+
+                type: 'GET',
+
+                success: function (response) {
+
+                    charityItems = response;
+
+                    bindTable(response);
+                },
+
+                error: function () {
+
+                    Swal.fire(
+                        'Error',
+                        'Failed to load charity items',
+                        'error'
+                    );
+                }
+            });
+        }
+
+        function bindTable(data) {
+
+            let html = '';
+
+            if (!data || data.length === 0) {
+
+                html = `
+                    <tr>
+                        <td colspan="10" class="text-center">
+                            No records found
+                        </td>
+                    </tr>
+                `;
+
+                $("#charityTableBody").html(html);
+                return;
+            }
+
+            data.forEach((item, index) => {
+
+                html += `
+                <tr>
+
+                    <td>${index + 1}</td>
+
+                    <td>
+
+                        <img src="${item.imagePath}"
+                             style="width:80px;height:80px;object-fit:cover"
+                             class="img-thumbnail"/>
+
+                    </td>
+
+                    <td>
+                        ${item.communityName}
+                    </td>
+
+                    <td>
+                        ${item.itemName}
+                    </td>
+
+                    <td>
+                        ${item.itemCategory}
+                    </td>
+
+                    <td>
+                        ${item.quantity}
+                    </td>
+
+                    <td>
+
+                        <span class="badge bg-warning">
+                            ${item.status}
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        ${item.deliveryStatus || '-'}
+
+                    </td>
+
+                    <td>
+
+                        ${formatDate(item.createdDate)}
+
+                    </td>
+
+                    <td>
+
+                        <button
+                            class="btn btn-primary btn-sm"
+                            onclick="showDetails(${item.charityItemId})">
+
+                            <i class="fa fa-eye"></i>
+
+                        </button>
+
+                    </td>
+
+                </tr>
+                `;
+            });
+
+            $("#charityTableBody").html(html);
+        }
+
+        function showDetails(id) {
+
+            const item = charityItems.find(
+                x => x.charityItemId === id
+            );
+
+            if (!item) return;
+
+            let html = `
+
+                <div class="row">
+
+                    <div class="col-md-4">
+
+                        <img src="${item.imagePath}"
+                             class="img-fluid rounded shadow"/>
+
+                    </div>
+
+                    <div class="col-md-8">
+
+                        <table class="table table-bordered">
+
+                            <tr>
+                                <th>Community</th>
+                                <td>${item.communityName}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Item Name</th>
+                                <td>${item.itemName}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Category</th>
+                                <td>${item.itemCategory}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Quantity</th>
+                                <td>${item.quantity}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Status</th>
+                                <td>${item.status}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Item Code</th>
+                                <td>${item.itemCode}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Created Date</th>
+                                <td>${formatDate(item.createdDate)}</td>
+                            </tr>
+
+                        </table>
+
+                    </div>
+
+                    <div class="col-md-12 mt-3">
+
+                        <h6>Description</h6>
+
+                        <p>
+                            ${item.description}
+                        </p>
+
+                    </div>
+
+                </div>
+            `;
+
+            $("#detailsContainer").html(html);
+
+            new bootstrap.Modal(
+                document.getElementById("detailsModal")
+            ).show();
+        }
+
+        function formatDate(date) {
+
+            if (!date)
+                return "-";
+
+            return new Date(date)
+                .toLocaleDateString();
+        }
+
+    </script>
+
+}
