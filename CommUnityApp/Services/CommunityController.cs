@@ -828,7 +828,7 @@ namespace CommUnityApp.Services
                     .GetUserCommunitiesAsync(userId); 
 
                 return Ok(new
-                {
+                { 
                     Status = 1,
                     Message = "Success",  
                     Data = result
