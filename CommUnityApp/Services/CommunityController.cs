@@ -418,7 +418,6 @@ namespace CommUnityApp.Services
         }
 
 
-        //For mobile app dashboard//
         [HttpGet("Get_DashboardData")]
         public async Task<IActionResult> GetDashboardData(Guid userId)
         {
@@ -430,10 +429,8 @@ namespace CommUnityApp.Services
                 var auctions = await _unitOfWork.Auction.GetTop5Auctions();
                 var communities = await _unitOfWork.Community.GetCommunities();
 
-                // ⭐ Rewards
                 var rewards = await _unitOfWork.Rewards.GetCoins(userId);
 
-                // ⭐ Products with Images
                 var products = await _unitOfWork.Product.GetAllProducts();
                 var productList = new List<ProductWithImagesModel>();
 
@@ -444,7 +441,7 @@ namespace CommUnityApp.Services
                     var productResponse = new ProductWithImagesModel
                     {
                         Product = product,
-                        Images = new List<ProductImageUpload>() // ✅ IMPORTANT (avoid null)
+                        Images = new List<ProductImageUpload>() 
                     };
 
                     if (images != null && images.Count > 0)

@@ -14,7 +14,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<dynamic> ConnectSupporter(ConnectSupporterModel model);
         Task<long> CreateRequest(CareRequestModel model);
         Task SendMessage(SendMessageModel model);
-        Task<IEnumerable<dynamic>> GetMessages(long chatThreadId);
+        Task<IEnumerable<dynamic>> GetMessages(long chatThreadId, Guid userId);
         Task RespondRequest(RespondRequestModel model);
         Task FinalizeSupporter(FinalizeSupporterModel model);
         Task<long> CreateRequestWithSupporters(CreateRequestWithSupportersModel model);

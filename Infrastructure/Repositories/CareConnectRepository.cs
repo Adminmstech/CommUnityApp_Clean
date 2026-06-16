@@ -90,13 +90,14 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public async Task<IEnumerable<dynamic>> GetMessages(long chatThreadId)
+        public async Task<IEnumerable<dynamic>> GetMessages(long chatThreadId,Guid userId)
         {
             using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
             return await con.QueryAsync(
                 "sp_GetChatMessages",
-                new { ChatThreadId = chatThreadId },
+                new { ChatThreadId = chatThreadId,
+                UserId=userId},
                 commandType: CommandType.StoredProcedure);
         }
 
