@@ -97,17 +97,49 @@
 <div class="card mt-3">
     <div class="card-body">
 
-        <h4>Post Event To Community Users</h4>
+        <h4>Post Event</h4>
 
-        <p>
-            Click below to send this event to all
-            users in your community.
-        </p>
+        <div class="mb-3">
+            <label class="form-label fw-bold">
+                Post To
+            </label>
+
+            <select id="AudienceType"
+                    class="form-control">
+
+                <option value="Community">
+                    Community Users
+                </option>
+
+                <option value="Public">
+                    Public (All Active Users)
+                </option>
+
+            </select>
+        </div>
+
+        <div class="alert alert-info">
+
+            <span id="postDescription">
+                This event will be posted to all users
+                belonging to your community.
+            </span>
+
+        </div>
 
         <button class="btn btn-primary"
                 onclick="postEvent()">
+
             Post Event
+
         </button>
+
+        <a href="/Community/Home/ViewEvents"
+           class="btn btn-secondary">
+
+            Cancel
+
+        </a>
 
     </div>
 </div>
@@ -116,14 +148,46 @@
 
 <script>
 
+    $(document).ready(function () {
+
+        $("#AudienceType").change(function () {
+
+            if ($(this).val() == "Public") {
+
+                $("#postDescription").text(
+                    "This event will be posted to ALL active users in the application."
+                );
+
+            }
+            else {
+
+                $("#postDescription").text(
+                    "This event will be posted only to users belonging to your community."
+                );
+
+            }
+
+        });
+
+    });
+
     function postEvent() {
+
+        if (!confirm("Are you sure you want to post this event?")) {
+            return;
+        }
 
         let payload = {
 
-            eventId: $("#EventId").val(),
+            eventId: parseInt($("#EventId").val()),
 
             communityId:
-                "@Context.Session.GetString("CommunityId")"
+                $("#AudienceType").val() === "Public"
+                    ? null
+                    : parseInt("@Context.Session.GetString("CommunityId")"),
+
+            audienceType:
+                $("#AudienceType").val()
         };
 
         $.ajax({
@@ -140,11 +204,16 @@
 
                 alert(res.resultMessage);
 
-                window.location.href =
-                    "/Community/Home/ViewEvents";
+                if (res.resultId == 1) {
+
+                    window.location.href =
+                        "/Community/Home/ViewEvents";
+                }
             },
 
             error: function (xhr) {
+
+                console.log(xhr);
 
                 alert(
                     xhr.responseText ||
@@ -153,5 +222,6 @@
             }
         });
     }
+    
 
 </script>

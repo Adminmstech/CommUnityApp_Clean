@@ -1,0 +1,327 @@
+﻿@{
+    ViewData["Title"] = "Add Charity Item";
+    Layout = "AdminLayout";
+}
+
+<div class="container-fluid">
+
+    <div class="card shadow border-0">
+
+        <div class="card-header bg-primary text-white">
+
+            <h4 class="mb-0">
+                <i class="fa fa-heart me-2"></i>
+                Add Charity Item
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label fw-bold">
+                        Community
+                    </label>
+
+                    <select id="CommunityId"
+                            class="form-select">
+
+                        <option value="">
+                            Loading Communities...
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label fw-bold">
+                        Item Category
+                    </label>
+
+                    <select id="ItemCategory"
+                            class="form-select">
+
+                        <option value="">
+                            Loading Categories...
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label fw-bold">
+                        Item Name
+                    </label>
+
+                    <input type="text"
+                           id="ItemName"
+                           class="form-control" />
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label fw-bold">
+                        Quantity
+                    </label>
+
+                    <input type="number"
+                           id="Quantity"
+                           min="1"
+                           class="form-control" />
+
+                </div>
+
+                <div class="col-md-12 mb-3">
+
+                    <label class="form-label fw-bold">
+                        Description
+                    </label>
+
+                    <textarea id="Description"
+                              rows="5"
+                              class="form-control"></textarea>
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label fw-bold">
+                        Item Image
+                    </label>
+
+                    <input type="file"
+                           id="ItemImage"
+                           accept="image/*"
+                           class="form-control" />
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <img id="ImagePreview"
+                         style="max-height:150px;display:none"
+                         class="img-thumbnail" />
+
+                </div>
+
+            </div>
+
+            <div class="text-end">
+
+                <button type="button"
+                        class="btn btn-success"
+                        onclick="saveCharityItem()">
+
+                    <i class="fa fa-save me-1"></i>
+                    Save Charity Item
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        let imageBase64 = "";
+        let fileName = "";
+
+        $(document).ready(function () {
+
+            loadCommunities();
+            loadItemCategories();
+
+        });
+
+        function loadCommunities() {
+
+            $.ajax({
+
+                url: "/api/Community/Get_AllCommunities",
+
+                type: "GET",
+
+                success: function (response) {
+
+                    $("#CommunityId").empty();
+
+                    $("#CommunityId").append(`
+                        <option value="">
+                            Select Community
+                        </option>
+                    `);
+
+                    response.forEach(function(item){
+
+                        $("#CommunityId").append(`
+                            <option value="${item.communityId}">
+                                ${item.communityName}
+                            </option>
+                        `);
+
+                    });
+                }
+            });
+        }
+
+        function loadItemCategories() {
+
+            $.ajax({
+
+                url: "/api/Community/GetItemCategories",
+
+                type: "GET",
+
+                success: function(response){
+
+                    $("#ItemCategory").empty();
+
+                    $("#ItemCategory").append(`
+                        <option value="">
+                            Select Category
+                        </option>
+                    `);
+
+                    response.forEach(function(item){
+
+                        $("#ItemCategory").append(`
+                            <option value="${item.itemCategory}">
+                                ${item.itemCategory}
+                            </option>
+                        `);
+
+                    });
+                }
+            });
+        }
+
+        $("#ItemImage").change(function(e){
+
+            const file = e.target.files[0];
+
+            if (!file)
+                return;
+
+            fileName = file.name;
+
+            const reader = new FileReader();
+
+            reader.onload = function(event){
+
+                imageBase64 = event.target.result;
+
+                $("#ImagePreview")
+                    .attr("src", imageBase64)
+                    .show();
+            };
+
+            reader.readAsDataURL(file);
+
+        });
+
+        function saveCharityItem(){
+
+            if ($("#CommunityId").val() === "") {
+
+                Swal.fire(
+                    "Validation",
+                    "Please select community",
+                    "warning"
+                );
+
+                return;
+            }
+
+            if ($("#ItemName").val() === "") {
+
+                Swal.fire(
+                    "Validation",
+                    "Please enter item name",
+                    "warning"
+                );
+
+                return;
+            }
+
+            const payload = {
+
+                communityId:
+                    parseInt($("#CommunityId").val()),
+
+                itemName:
+                    $("#ItemName").val(),
+
+                itemCategory:
+                    $("#ItemCategory").val(),
+
+                description:
+                    $("#Description").val(),
+
+                quantity:
+                    parseInt($("#Quantity").val()),
+
+                postedByUserId:
+                    "00000000-0000-0000-0000-000000000000",
+
+                fileName:
+                    fileName,
+
+                imagePath:
+                    imageBase64
+            };
+
+            $.ajax({
+
+                url: "/api/Community/AddCharityItem",
+
+                type: "POST",
+
+                contentType: "application/json",
+
+                data: JSON.stringify(payload),
+
+                success: function(response){
+
+                    Swal.fire({
+                        icon: "success",
+                        title: "Success",
+                        text: response.resultMessage || "Charity Item Added Successfully"
+                    }).then(() => {
+
+                        window.location.href =
+                            "/Admin/Admin/CharityItems";
+                    });
+
+                },
+
+                error: function(xhr){
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text:
+                            xhr.responseJSON?.resultMessage
+                            || "Failed to add charity item"
+                    });
+
+                }
+            });
+        }
+
+    </script>
+
+}

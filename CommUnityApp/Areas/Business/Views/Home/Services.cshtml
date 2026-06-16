@@ -1,0 +1,287 @@
+﻿@{
+    ViewData["Title"] = "My Services";
+    Layout = "_BusinessLayout";
+}
+
+<div class="container-fluid">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <h3>
+            <i class="fa fa-briefcase"></i>
+            My Services
+        </h3>
+
+        <a href="/Business/Home/AddService"
+           class="btn btn-primary">
+            <i class="fa fa-plus"></i>
+            Add Service
+        </a>
+
+    </div>
+
+    <input type="hidden"
+           id="BusinessId"
+           value="@ViewBag.BusinessId" />
+
+    <div class="card shadow">
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover align-middle">
+
+                    <thead class="table-dark">
+
+                        <tr>
+                            <th>Image</th>
+                            <th>Service Name</th>
+                            <th>Category</th>
+                            <th>Sub Category</th>
+                            <th>Price</th>
+                            <th>Duration</th>
+                            <th>Booking</th>
+                            <th>Status</th>
+                            <th>Rating</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="serviceTableBody">
+
+                        <tr>
+                            <td colspan="11" class="text-center">
+                                Loading Services...
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        $(document).ready(function(){
+
+            loadServices();
+
+        });
+
+        function loadServices(){
+
+            const businessId =
+                parseInt($("#BusinessId").val()) || 0;
+
+            if(businessId === 0){
+
+                $("#serviceTableBody").html(`
+                    <tr>
+                        <td colspan="11"
+                            class="text-danger text-center">
+
+                            Business Session Expired
+
+                        </td>
+                    </tr>
+                `);
+
+                return;
+            }
+
+            $.ajax({
+
+                url:
+                    "/api/Service/Get_ServicesByBusinessId?businessId="
+                    + businessId,
+
+                type:"GET",
+
+                success:function(response){
+
+                    bindServices(response);
+
+                },
+
+                error:function(){
+
+                    $("#serviceTableBody").html(`
+                        <tr>
+                            <td colspan="11"
+                                class="text-danger text-center">
+
+                                Failed To Load Services
+
+                            </td>
+                        </tr>
+                    `);
+
+                }
+
+            });
+
+        }
+
+        function bindServices(data){
+
+            let html = '';
+
+            if(!data || data.length === 0){
+
+                html = `
+                    <tr>
+                        <td colspan="11"
+                            class="text-center">
+
+                            No Services Found
+
+                        </td>
+                    </tr>
+                `;
+
+                $("#serviceTableBody").html(html);
+                return;
+            }
+
+            data.forEach(function(item){
+
+                html += `
+
+                <tr>
+
+                    <td>
+
+                        <img src="/${item.imageUrl || 'images/no-image.png'}"
+                             style="width:70px;height:70px;object-fit:cover"
+                             class="rounded border"/>
+
+                    </td>
+
+                    <td>
+                        ${item.serviceName || ''}
+                    </td>
+
+                    <td>
+                        ${item.categoryName || '-'}
+                    </td>
+
+                    <td>
+                        ${item.subCategoryName || '-'}
+                    </td>
+
+                    <td>
+                        ₹${item.price || 0}
+                    </td>
+
+                    <td>
+                        ${item.durationMinutes || 0} Min
+                    </td>
+
+                    <td>
+
+                        ${
+                            item.isBookingRequired
+                            ? '<span class="badge bg-success">Required</span>'
+                            : '<span class="badge bg-secondary">No</span>'
+                        }
+
+                    </td>
+
+                    <td>
+
+                        ${
+                            item.isActive
+                            ? '<span class="badge bg-success">Active</span>'
+                            : '<span class="badge bg-danger">Inactive</span>'
+                        }
+
+                    </td>
+
+                    <td>
+
+                        <span class="badge bg-warning text-dark">
+
+                            ${item.rating || 0}
+
+                        </span>
+
+                    </td>
+
+                    <td>
+
+                        ${formatDate(item.createdAt)}
+
+                    </td>
+
+                    <td>
+
+                        <button
+                            class="btn btn-sm btn-info"
+                            onclick="viewService(${item.serviceId})">
+
+                            <i class="fa fa-eye"></i>
+
+                        </button>
+
+                        <button
+                            class="btn btn-sm btn-primary"
+                            onclick="editService(${item.serviceId})">
+
+                            <i class="fa fa-edit"></i>
+
+                        </button>
+
+                    </td>
+
+                </tr>
+
+                `;
+
+            });
+
+            $("#serviceTableBody").html(html);
+
+        }
+
+        function formatDate(dateString){
+
+            if(!dateString)
+                return '-';
+
+            let d = new Date(dateString);
+
+            return d.toLocaleDateString();
+
+        }
+
+        function viewService(serviceId){
+
+            window.location.href =
+                "/Business/Home/ServiceDetails?serviceId="
+                + serviceId;
+
+        }
+
+        function editService(serviceId){
+
+            window.location.href =
+                "/Business/Home/AddService?serviceId="
+                + serviceId;
+
+        }
+
+    </script>
+
+}

@@ -1,196 +1,565 @@
-﻿@{
+﻿```cshtml
+@{
     ViewData["Title"] = "Add Service";
-    var businessId = Context.Session.GetString("BusinessId");
     Layout = "_BusinessLayout";
 }
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add Service</title>
+<div class="container-fluid">
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <input type="hidden"
+           id="BusinessId"
+           value="@ViewBag.BusinessId" />
 
-    <style>
-        body {
-            background: #EDF2FF;
-            font-family: "Segoe UI", sans-serif;
-        }
+    <input type="hidden"
+           id="ServiceId"
+           value="@ViewBag.ServiceId" />
 
-        .card {
-            border-radius: 12px;
-            background: #f4f7fe;
-        }
+    <div class="card shadow">
 
-        .card-header {
-            background: #212529;
-            color: #fff;
-            font-weight: 600;
-        }
+        <div class="card-header bg-primary text-white">
 
-        .form-label {
-            font-weight: 600;
-        }
-
-        .preview-img {
-            width: 90px;
-            height: 90px;
-            object-fit: cover;
-            border-radius: 8px;
-            margin: 5px;
-            border: 1px solid #ddd;
-        }
-
-        .btn-submit {
-            background: #f6af3e;
-            border: none;
-            padding: 12px;
-            font-weight: 600;
-        }
-    </style>
-</head>
-
-<body>
-
-    <div class="container mt-5">
-        <div class="card shadow">
-            <div class="card-header">
+            <h4 id="pageTitle">
                 Add Service
-            </div>
+            </h4>
 
-            <div class="card-body">
-
-                <div id="result"></div>
-
-                <form id="serviceForm">
-
-                    <!-- BusinessId from session -->
-                    <input type="hidden" id="businessId" value="@businessId" />
-
-                    <!-- Service Name -->
-                    <div class="mb-3">
-                        <label class="form-label">Service Name</label>
-                        <input type="text" id="serviceName" class="form-control" required>
-                    </div>
-
-                    <!-- Description -->
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <textarea id="description" class="form-control"></textarea>
-                    </div>
-
-                    <!-- Images -->
-                    <div class="mb-3">
-                        <label class="form-label">Upload Images</label>
-                        <input type="file" id="serviceImages" class="form-control" multiple accept="image/*">
-                        <div id="imagePreview" class="d-flex flex-wrap mt-2"></div>
-                    </div>
-
-                    <button type="submit" class="btn btn-submit w-100">
-                        Add Service
-                    </button>
-
-                </form>
-
-            </div>
         </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+
+                    <label>Category</label>
+
+                    <select id="CategoryId"
+                            class="form-select">
+
+                        <option value="">
+                            Select Category
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label>Sub Category</label>
+
+                    <select id="SubCategoryId"
+                            class="form-select">
+
+                        <option value="">
+                            Select Sub Category
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label>Service Name</label>
+
+                    <input type="text"
+                           id="ServiceName"
+                           class="form-control" />
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label>Price</label>
+
+                    <input type="number"
+                           id="Price"
+                           class="form-control" />
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label>Duration Minutes</label>
+
+                    <input type="number"
+                           id="DurationMinutes"
+                           class="form-control" />
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label>Booking Required</label>
+
+                    <select id="IsBookingRequired"
+                            class="form-select">
+
+                        <option value="true">
+                            Yes
+                        </option>
+
+                        <option value="false">
+                            No
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-12 mb-3">
+
+                    <label>Description</label>
+
+                    <textarea id="Description"
+                              rows="4"
+                              class="form-control"></textarea>
+
+                </div>
+
+                <div class="col-md-12 mb-3">
+
+                    <label>Service Images</label>
+
+                    <input type="file"
+                           id="ServiceImages"
+                           multiple
+                           accept="image/*"
+                           class="form-control" />
+
+                </div>
+
+                <div class="col-md-12">
+
+                    <div class="row"
+                         id="imagePreview"></div>
+
+                </div>
+
+            </div>
+
+            <hr />
+
+            <button type="button"
+                    class="btn btn-success"
+                    onclick="saveService()">
+
+                <i class="fa fa-save"></i>
+
+                <span id="btnText">
+                    Save Service
+                </span>
+
+            </button>
+
+            <a href="/Business/Home/Services"
+               class="btn btn-secondary">
+
+                Cancel
+
+            </a>
+
+        </div>
+
     </div>
 
-    <script>
+</div>
 
-        let imageList = [];
+<script>
 
-        /* Convert to Base64 */
-        function convertToBase64(file){
-            return new Promise((resolve,reject)=>{
-                const reader = new FileReader();
-                reader.onload = ()=> resolve(reader.result);
-                reader.onerror = err => reject(err);
-                reader.readAsDataURL(file);
-            });
-        }
+    let images = [];
+    let serviceId = 0;
 
-        /* Image Upload */
-        document.getElementById("serviceImages").addEventListener("change", async function(){
+    $(document).ready(function () {
 
-            imageList = [];
-            document.getElementById("imagePreview").innerHTML = "";
+        serviceId = parseInt($("#ServiceId").val()) || 0;
 
-            const files = this.files;
+        loadCategories();
 
-            for(let i=0;i<files.length;i++)
-            {
-                const base64 = await convertToBase64(files[i]);
+        $("#CategoryId").change(function () {
 
-                imageList.push({
-                    imageBase64: base64,
-                    isPrimary: (i === 0)
-                });
+            let categoryId = $(this).val();
 
-                const img = document.createElement("img");
-                img.src = base64;
-                img.className = "preview-img";
+            if (!categoryId) {
 
-                document.getElementById("imagePreview").appendChild(img);
-            }
+                $("#SubCategoryId").html(
+                    '<option value="">Select Sub Category</option>'
+                );
 
-        });
-
-        /* Submit */
-        document.getElementById("serviceForm").addEventListener("submit", function(e){
-
-            e.preventDefault();
-
-            const businessId = document.getElementById("businessId").value;
-
-            if(!businessId || businessId === "null"){
-                alert("Session expired. Please login again.");
                 return;
             }
 
-            const data = {
-                service: {
-                    businessId: parseInt(businessId),
-                    serviceName: document.getElementById("serviceName").value,
-                    description: document.getElementById("description").value
-                },
-                images: imageList
-            };
-
-            fetch("/api/Service/UploadService", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(data)
-            })
-            .then(res => res.json())
-            .then(result => {
-
-                if(result.success){
-                    document.getElementById("result").innerHTML =
-                        "<div class='alert alert-success'>Service added successfully</div>";
-
-                    document.getElementById("serviceForm").reset();
-                    document.getElementById("imagePreview").innerHTML = "";
-                    imageList = [];
-                }
-                else{
-                    document.getElementById("result").innerHTML =
-                        "<div class='alert alert-danger'>" + (result.message || "Failed to add service") + "</div>";
-                }
-
-            })
-            .catch(() => {
-                document.getElementById("result").innerHTML =
-                    "<div class='alert alert-danger'>Server error</div>";
-            });
+            loadSubCategories(categoryId);
 
         });
 
-    </script>
+    });
 
-</body>
-</html>
+    // ============================
+    // LOAD CATEGORIES
+    // ============================
+
+        function loadCategories(selectedCategoryId = null) {
+
+        return $.ajax({
+            url: "/api/Business/Get_BusinessCategory",
+            type: "GET"
+        }).done(function (response) {
+
+            let ddl = $("#CategoryId");
+
+            ddl.empty();
+
+            ddl.append(
+                '<option value="">Select Category</option>'
+            );
+
+            $.each(response, function (i, item) {
+
+                ddl.append(
+                    `<option value="${item.categoryId}">
+                        ${item.categoryName}
+                    </option>`
+                );
+
+            });
+
+            if (selectedCategoryId) {
+                ddl.val(selectedCategoryId);
+            }
+
+        });
+    }
+
+    function loadSubCategories(categoryId, selectedSubCategoryId = null) {
+
+        return $.ajax({
+            url:
+                "/api/Service/GetServicesByCategory?categoryId="
+                + categoryId,
+            type: "GET"
+        }).done(function (response) {
+
+            let data = response.data || response;
+
+            let ddl = $("#SubCategoryId");
+
+            ddl.empty();
+
+            ddl.append(
+                '<option value="">Select Sub Category</option>'
+            );
+
+            $.each(data, function (i, item) {
+
+                ddl.append(
+                    `<option value="${item.subCategoryId}">
+                        ${item.subCategoryName}
+                    </option>`
+                );
+
+            });
+
+            if (selectedSubCategoryId) {
+
+                ddl.val(selectedSubCategoryId);
+
+            }
+
+        });
+
+    }
+
+    // ============================
+    // LOAD SERVICE DETAILS
+    // ============================
+
+       function loadServiceDetails(serviceId) {
+
+        $.ajax({
+
+            url:
+                "/api/Service/service_details?serviceId="
+                + serviceId,
+
+            type: "GET",
+
+            success: function (response) {
+
+                let service =
+                    response?.data?.service;
+
+                if (!service)
+                    return;
+
+                $("#ServiceName")
+                    .val(service.serviceName);
+
+                $("#Description")
+                    .val(service.description);
+
+                $("#Price")
+                    .val(service.price);
+
+                $("#DurationMinutes")
+                    .val(service.durationMinutes);
+
+                $("#IsBookingRequired")
+                    .val(
+                        service.isBookingRequired
+                        ? "true"
+                        : "false"
+                    );
+
+                loadCategories(service.categoryId)
+                    .then(function () {
+
+                        return loadSubCategories(
+                            service.categoryId,
+                            service.subCategoryId
+                        );
+
+                    });
+
+                bindExistingImages(
+                    response.data.images || []
+                );
+
+            }
+
+        });
+
+    }
+
+    // ============================
+    // EXISTING IMAGES
+    // ============================
+
+    function bindExistingImages(imagesList) {
+
+        $("#imagePreview").html("");
+
+        $.each(imagesList, function (i, img) {
+
+            $("#imagePreview").append(`
+
+                <div class="col-md-2 mb-2">
+
+                    <img
+                        src="/${img.imageUrl}"
+                        class="img-thumbnail"
+                        style="
+                            width:100%;
+                            height:120px;
+                            object-fit:cover;" />
+
+                </div>
+
+            `);
+
+        });
+
+    }
+
+    // ============================
+    // IMAGE PREVIEW
+    // ============================
+
+    $("#ServiceImages").change(function (e) {
+
+        images = [];
+
+        $("#imagePreview").html("");
+
+        Array.from(e.target.files).forEach(
+            (file, index) => {
+
+                let reader =
+                    new FileReader();
+
+                reader.onload = function (evt) {
+
+                    images.push({
+
+                        imageBase64:
+                            evt.target.result,
+
+                        isPrimary:
+                            index === 0
+
+                    });
+
+                    $("#imagePreview").append(`
+
+                        <div class="col-md-2 mb-2">
+
+                            <img
+                                src="${evt.target.result}"
+                                class="img-thumbnail"
+                                style="
+                                    width:100%;
+                                    height:120px;
+                                    object-fit:cover;" />
+
+                        </div>
+
+                    `);
+
+                };
+
+                reader.readAsDataURL(file);
+
+            });
+
+    });
+
+        $(document).ready(function () {
+
+        let serviceId =
+            parseInt($("#ServiceId").val()) || 0;
+
+        if (serviceId > 0) {
+
+            $("#pageTitle").text("Edit Service");
+            $("#btnText").text("Update Service");
+
+            loadServiceDetails(serviceId);
+
+        } else {
+
+            loadCategories();
+
+        }
+
+    });
+
+    // ============================
+    // SAVE SERVICE
+    // ============================
+
+    function saveService() {
+
+        if ($("#CategoryId").val() === "") {
+
+            Swal.fire(
+                "Validation",
+                "Please Select Category",
+                "warning"
+            );
+
+            return;
+        }
+
+        if ($("#SubCategoryId").val() === "") {
+
+            Swal.fire(
+                "Validation",
+                "Please Select Sub Category",
+                "warning"
+            );
+
+            return;
+        }
+
+        if ($("#ServiceName").val() === "") {
+
+            Swal.fire(
+                "Validation",
+                "Please Enter Service Name",
+                "warning"
+            );
+
+            return;
+        }
+
+        let payload = {
+
+            service: {
+
+                serviceId:
+                    parseInt($("#ServiceId").val()) || 0,
+
+                businessId:
+                    parseInt($("#BusinessId").val()) || 0,
+
+                serviceName:
+                    $("#ServiceName").val(),
+
+                description:
+                    $("#Description").val(),
+
+                price:
+                    parseFloat($("#Price").val()) || 0,
+
+                durationMinutes:
+                    parseInt($("#DurationMinutes").val()) || 0,
+
+                isBookingRequired:
+                    $("#IsBookingRequired").val()
+                    === "true",
+
+                isActive: true,
+
+                categoryId:
+                    parseInt($("#CategoryId").val()) || 0,
+
+                subCategoryId:
+                    parseInt($("#SubCategoryId").val()) || 0
+
+            },
+
+            images: images
+
+        };
+
+        console.log(payload);
+
+        $.ajax({
+
+            url: "/api/Service/UploadService",
+
+            type: "POST",
+
+            contentType: "application/json",
+
+            data: JSON.stringify(payload),
+
+            success: function (response) {
+
+                Swal.fire({
+
+                    icon: "success",
+                    title: "Success",
+                    text:
+                        response.resultMessage ||
+                        "Service Saved Successfully"
+
+                }).then(function () {
+
+                    window.location.href =
+                        "/Business/Home/Services";
+
+                });
+
+            },
+
+            error: function (xhr) {
+
+                Swal.fire({
+
+                    icon: "error",
+                    title: "Error",
+                    text:
+                        xhr.responseJSON?.message ||
+                        xhr.responseText ||
+                        "Failed To Save Service"
+
+                });
+
+            }
+
+        });
+
+    }
+
+</script>

@@ -572,6 +572,56 @@ CommunityPostModel model)
 
         }
 
+        public async Task<List<UserCommunityResponse>> GetUserCommunitiesAsync(Guid userId)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            DynamicParameters parameters = new DynamicParameters();
+
+            parameters.Add("@UserId", userId);
+
+            var result = await con.QueryAsync<UserCommunityResponse>(
+                "SP_GetUserCommunities",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+
+        public async Task<dynamic> UpdateCharityItem(UpdateCharityItemModel model)
+        {
+            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                var result = await con.QueryFirstOrDefaultAsync<dynamic>(
+                    "SP_UpdateCharityItem",
+                    new
+                    {
+                        CharityItemId = model.CharityItemId,
+                        CommunityId = model.CommunityId,
+                        ItemName = model.ItemName,
+                        ItemCategory = model.ItemCategory,
+                        Description = model.Description,
+                        Quantity = model.Quantity,
+                        ImagePath = model.ImagePath
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+                return result;
+
+            }
+        }
+
+        public Task<IEnumerable<dynamic>> GetCharityItemsByUserId(Guid userId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<dynamic> UpdateCharityItemImage(long charityItemId, string imagePath)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

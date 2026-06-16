@@ -72,21 +72,48 @@ namespace CommUnityApp.ApplicationCore.Models
     public class ServiceDetails
     {
         public int ServiceId { get; set; }
-        public string ServiceName { get; set; }
-        public string Description { get; set; }
+
+        public string? ServiceName { get; set; }
+
+        public string? Description { get; set; }
+
+        public decimal? Price { get; set; }
+
+        public int? DurationMinutes { get; set; }
+
         public bool IsBookingRequired { get; set; }
 
-        public int BusinessId { get; set; }
-        public string BusinessName { get; set; }
-        public string Address { get; set; }
-        public string City { get; set; }
-        public string State { get; set; }
-        public string Logo { get; set; }
-        public decimal? Latitude { get; set; }
-        public decimal? Longitude { get; set; }
-        public string WebLink { get; set; }
+        public bool IsActive { get; set; }
 
-        public string CategoryName { get; set; }
+        public DateTime? CreatedAt { get; set; }
+
+        public decimal? Rating { get; set; }
+
+        public int? CategoryId { get; set; }
+
+        public string? CategoryName { get; set; }
+
+        public int? SubCategoryId { get; set; }
+
+        public string? SubCategoryName { get; set; }
+
+        public int BusinessId { get; set; }
+
+        public string? BusinessName { get; set; }
+
+        public string? Address { get; set; }
+
+        public string? City { get; set; }
+
+        public string? State { get; set; }
+
+        public string? Logo { get; set; }
+
+        public decimal? Latitude { get; set; }
+
+        public decimal? Longitude { get; set; }
+
+        public string? WebLink { get; set; }
     }
     public class RelatedService
     {
@@ -141,6 +168,7 @@ namespace CommUnityApp.ApplicationCore.Models
 
     public class AddServiceRequest
     {
+        public int? ServiceId { get; set; }
         public int? BusinessId { get; set; }
 
         public string? ServiceName { get; set; }
@@ -154,6 +182,10 @@ namespace CommUnityApp.ApplicationCore.Models
         public bool? IsBookingRequired { get; set; }
 
         public bool? IsActive { get; set; }
+
+        public int? CategoryId { get; set; }
+
+        public int? SubCategoryId { get; set; }
     }
 
     public class AddOrUpdateServiceImageRequest
@@ -264,4 +296,38 @@ namespace CommUnityApp.ApplicationCore.Models
         public List<ServiceWithImagesResponse> Services { get; set; } = new();
     }
 
+    public class BusinessService
+    {
+        public int ServiceId { get; set; }
+
+        public int BusinessId { get; set; }
+
+        public string? BusinessName { get; set; }
+
+        public string? ServiceName { get; set; }
+
+        public string? Description { get; set; }
+
+        public decimal? Price { get; set; }
+
+        public int? DurationMinutes { get; set; }
+
+        public bool IsBookingRequired { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public int? CategoryId { get; set; }
+
+        public string? CategoryName { get; set; }
+
+        public int? SubCategoryId { get; set; }
+
+        public string? SubCategoryName { get; set; }
+
+        public string? ImageUrl { get; set; }
+
+        public decimal? Rating { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+    }
 }

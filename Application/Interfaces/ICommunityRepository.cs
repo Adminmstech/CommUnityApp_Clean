@@ -44,6 +44,14 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<CommunityDto>> GetCommunitiesByCategoryAsync(int communityCategoryId);
         Task<BaseResponse> UpdateUserCommunityAsync(UpdateUserCommunityRequest entity);
         Task<List<CommunityPostModel>> GetCommunityPostsByUser(Guid userId);
+
+        Task<List<UserCommunityResponse>> GetUserCommunitiesAsync(Guid userId);
+
+        Task<dynamic> UpdateCharityItem(UpdateCharityItemModel model);
+
+        Task<IEnumerable<dynamic>> GetCharityItemsByUserId(Guid userId);
+        Task<dynamic> UpdateCharityItemImage(long charityItemId, string imagePath);
+        
     }
 
 }

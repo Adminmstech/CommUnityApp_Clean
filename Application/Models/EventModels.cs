@@ -24,7 +24,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public DateTime EndDate { get; set; }
 
         public int IsFundRaising { get; set; }
-        public IFormFile EventImage { get; set; }
+        public IFormFile? EventImage { get; set; }
     }
 
     public class BaseResponse
@@ -300,7 +300,8 @@ namespace CommUnityApp.ApplicationCore.Models
     {
         public int EventId { get; set; }
 
-        public int CommunityId { get; set; }
+        public int? CommunityId { get; set; }
+        public string AudienceType { get; set; }
     }
 
     public class UserModel
