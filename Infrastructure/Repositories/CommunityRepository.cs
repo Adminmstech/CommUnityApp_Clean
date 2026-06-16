@@ -162,24 +162,24 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             }
         }
 
-        public async Task UpdateCharityItemImage(int charityItemId, string imagePath)
-        {
-            using (var con =
-                new SqlConnection(
-                    _configuration.GetConnectionString(
-                        "DefaultConnection")))
-            {
-                await con.ExecuteAsync(
-                    "SP_UpdateCharityItemImage",
-                    new
-                    {
-                        CharityItemId = charityItemId,
-                        ImagePath = imagePath
-                    },
-                    commandType:
-                    CommandType.StoredProcedure);
-            }
-        }
+        //public async Task UpdateCharityItemImage(int charityItemId, string imagePath)
+        //{
+        //    using (var con =
+        //        new SqlConnection(
+        //            _configuration.GetConnectionString(
+        //                "DefaultConnection")))
+        //    {
+        //        await con.ExecuteAsync(
+        //            "SP_UpdateCharityItemImage",
+        //            new
+        //            {
+        //                CharityItemId = charityItemId,
+        //                ImagePath = imagePath
+        //            },
+        //            commandType:
+        //            CommandType.StoredProcedure);
+        //    }
+        //}
 
         public async Task<int> RequestCharityItem(RequestCharityItemModel model)
         {
