@@ -830,7 +830,7 @@ namespace CommUnityApp.Services
                 return Ok(new
                 {
                     Status = 1,
-                    Message = "Success",
+                    Message = "Success", 
                     Data = result
                 });
             }
