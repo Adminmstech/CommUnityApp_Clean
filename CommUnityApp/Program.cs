@@ -9,6 +9,9 @@ using Microsoft.OpenApi;
 using Stripe;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
+using Microsoft.AspNetCore.SignalR;
+using CommUnityApp.Hubs;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -103,6 +106,7 @@ builder.Services.AddTransient<IJobRepository, JobRepository>();
 builder.Services.AddTransient<IDapperWrapper, DapperWrapper>();
 builder.Services.AddTransient<ICampaignRepository, CampignRepository>();
 builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
+builder.Services.AddTransient<ISmartQuizRepository, SmartQuizRepository>();
 builder.Services.AddTransient<ISpinGameRepository>(provider =>
 {
     var configuration = provider.GetRequiredService<IConfiguration>();
@@ -167,6 +171,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.MapHub<AuctionHub>("/auctionHub");
 
 app.UseSession();
 
@@ -186,5 +191,6 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}"
 );
+app.MapHub<AuctionHub>("/auctionHub");
 
 app.Run();

@@ -973,5 +973,22 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     commandType: CommandType.StoredProcedure);
             }
         }
+
+        public async Task<List<UserPostedEventModel>> GetTopFivePostedEventsByUser(Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result =
+                await connection.QueryAsync<UserPostedEventModel>(
+                    "sp_GetTopFivePostedEventsByUser", 
+                    new
+                    {
+                        UserId = userId
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
     }
 }

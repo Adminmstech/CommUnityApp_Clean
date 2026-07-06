@@ -21,12 +21,26 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         {
             _configuration = configuration;
         }
-        public async Task<IEnumerable<dynamic>> GetServices()
+        public async Task<IEnumerable<CareConnectServiceModel>> GetServices()
         {
-            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            return await con.QueryAsync(
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = (await con.QueryAsync<CareConnectServiceModel>(
                 "sp_GetCareConnectServices",
-                commandType: CommandType.StoredProcedure);
+                commandType: CommandType.StoredProcedure))
+                .ToList();
+
+            foreach (var item in result)
+            {
+                if (!string.IsNullOrWhiteSpace(item.ServiceImage))
+                {
+item.ServiceImagePath =
+    $"{_configuration["ImageBaseUrl"]}/Uploads/CareConnectServices/{item.ServiceId}/{item.ServiceImage}";
+                }
+            }
+
+            return result;
         }
         public async Task<long> CreateRequest(CareRequestModel model)
         {

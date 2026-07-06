@@ -53,5 +53,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<EventDropdownModel>> GetEventsDropdown();
         Task<List<EventTicketTypeListModel>> GetEventTicketTypes();
         Task<dynamic> DeleteEventTicketType(int ticketTypeId);
+
+        Task<List<UserPostedEventModel>> GetTopFivePostedEventsByUser(Guid userId);
+
     }
 }

@@ -2,11 +2,14 @@
 using CommUnityApp.ApplicationCore.Models;
 using CommUnityApp.Domain.Entities;
 using Dapper;
+using Microsoft.AspNet.SignalR;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 namespace CommUnityApp.InfrastructureLayer.Repositories
@@ -14,10 +17,12 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
     public class AuctionRepository:IAuctionRepository
     {
         private readonly IConfiguration _configuration;
+        private readonly IHubContext _hubContext;
 
-        public AuctionRepository(IConfiguration configuration)
+        public AuctionRepository(IConfiguration configuration, IHubContext hubContext)
         {
             _configuration = configuration;
+            _hubContext = hubContext;
         }
 
         public Task<int> AddAsync(Auction entity)
@@ -250,9 +255,15 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure
             );
 
+            if (result != null && result.ResultId == 1)
+            {
+                await _hubContext.Clients
+                    .Group($"Auction_{request.AuctionId}")
+                    .SendAsync("ReceiveBidUpdate", request.AuctionId);
+            }
+
             return result;
         }
-
 
         public async Task<BaseResponse> SaveBidRegistration(BidRegistration entity)
         {
@@ -316,6 +327,59 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             );
 
             return result;
+        }
+
+        public async Task DeleteAuctionImages(int auctionId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            await connection.ExecuteAsync(
+                @"DELETE FROM AuctionItemImages
+          WHERE AuctionId=@AuctionId",
+                new { AuctionId = auctionId });
+        }
+        public async Task<List<AuctionItemImage>> GetAuctionImagesByAuctionId(int auctionId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await connection.QueryAsync<AuctionItemImage>(
+                @"SELECT *
+          FROM AuctionItemImages
+          WHERE AuctionId=@AuctionId",
+                new { AuctionId = auctionId });
+
+            return result.ToList();
+        }
+
+        public async Task<BaseResponse> DeleteAuction(int auctionId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await connection.QueryFirstOrDefaultAsync<BaseResponse>(
+                "sp_DeleteAuction",
+                new
+                {
+                    AuctionId = auctionId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result;
+        }
+
+        public async Task<List<AuctionListModel>> GetLiveAuctions()
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<AuctionListModel>("Get_LiveAuctions", commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
         }
     }
 }

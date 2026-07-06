@@ -20,5 +20,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         IGameResultsRepository GameResults { get; }
         ICareConnectRepository CareConnect { get; }
         IJobRepository Job { get; }
+        ISmartQuizRepository SmartQuiz { get; }
     }
 }

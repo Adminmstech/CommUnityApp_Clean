@@ -6,6 +6,7 @@ using Microsoft.Data.SqlClient;
 using Org.BouncyCastle.Bcpg;
 using QRCoder;
 using Dapper;
+using NuGet.Protocol.Core.Types;
 
 namespace CommUnityApp.Services
 {
@@ -393,12 +394,166 @@ namespace CommUnityApp.Services
         }
 
 
+        /* [HttpPost("UploadPromotion")]
+         public async Task<IActionResult> UploadPromotion(
+     [FromBody] PromotionWithImageModel request)
+         {
+             if (request == null || request.Promotion == null)
+                 return BadRequest("Invalid promotion data");
+
+             try
+             {
+                 string promotionImagePath = null;
+                 string qrImagePath = null;
+
+                 // =========================
+                 // SAVE PROMOTION IMAGE
+                 // =========================
+
+                 if (!string.IsNullOrWhiteSpace(request.PromotionImageBase64))
+                 {
+                     string promotionFolder = Path.Combine(
+                         Directory.GetCurrentDirectory(),
+                         "wwwroot",
+                         "Uploads",
+                         "Promotions"
+                     );
+
+                     if (!Directory.Exists(promotionFolder))
+                         Directory.CreateDirectory(promotionFolder);
+
+                     string base64Data = request.PromotionImageBase64;
+
+                     if (base64Data.Contains(","))
+                         base64Data = base64Data.Split(',')[1];
+
+                     byte[] imageBytes = Convert.FromBase64String(base64Data);
+
+                     string fileName = Guid.NewGuid() + ".jpg";
+
+                     string filePath = Path.Combine(promotionFolder, fileName);
+
+                     await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+
+                     promotionImagePath = $"Uploads/Promotions/{fileName}";
+                 }
+
+                 request.Promotion.PromotionImage = promotionImagePath;
+
+                 // =========================
+                 // SAVE PROMOTION
+                 // =========================
+
+                 var promotionResult = await _unitOfWork.Product
+                     .AddUpdatePromotion(request.Promotion);
+
+                 if (promotionResult == null || promotionResult.PromotionId <= 0)
+                 {
+                     return BadRequest(new
+                     {
+                         success = false,
+                         message = "Failed to create promotion"
+                     });
+                 }
+
+                 // =========================
+                 // GENERATE QR CODE
+                 // =========================
+
+                 if (!string.IsNullOrWhiteSpace(promotionResult.PromotionUrl))
+                 {
+                     string qrFolder = Path.Combine(
+                         Directory.GetCurrentDirectory(),
+                         "wwwroot",
+                         "Uploads",
+                         "PromotionQR"
+                     );
+
+                     if (!Directory.Exists(qrFolder))
+                         Directory.CreateDirectory(qrFolder);
+
+                     using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
+                     {
+                         QRCodeData qrCodeData = qrGenerator.CreateQrCode(
+                             promotionResult.PromotionUrl,
+                             QRCodeGenerator.ECCLevel.Q
+                         );
+
+                         PngByteQRCode qrCode = new PngByteQRCode(qrCodeData);
+
+                         byte[] qrCodeBytes = qrCode.GetGraphic(20);
+
+                         string qrFileName = Guid.NewGuid() + ".png";
+
+                         string qrFilePath = Path.Combine(qrFolder, qrFileName);
+
+                         await System.IO.File.WriteAllBytesAsync(
+                             qrFilePath,
+                             qrCodeBytes
+                         );
+
+                         qrImagePath = $"Uploads/PromotionQR/{qrFileName}";
+                     }
+
+                     // =========================
+                     // UPDATE QR IMAGE PATH
+                     // =========================
+
+                     string fullQrUrl =
+                         $"{Request.Scheme}://{Request.Host}/Uploads/PromotionQR/{Path.GetFileName(qrImagePath)}";
+
+                     using var connection = new SqlConnection(
+                         _configuration.GetConnectionString("DefaultConnection")
+                     );
+
+                     await connection.OpenAsync();
+
+                     await connection.ExecuteAsync(
+                         @"UPDATE ProductPromotions
+                         SET QRCodeImage = @QRCodeImage
+                         WHERE PromotionId = @PromotionId",
+                         new
+                         {
+                             QRCodeImage = fullQrUrl,
+                             PromotionId = promotionResult.PromotionId
+                         }
+                     );
+
+                     qrImagePath = fullQrUrl;
+                 }
+
+                 return Ok(new
+                 {
+                     success = true,
+                     promotionId = promotionResult.PromotionId,
+                     promotionUrl = promotionResult.PromotionUrl,
+                     qrCodeImage = qrImagePath,
+                     message = "Promotion created successfully with QR Code"
+                 });
+             }
+             catch (Exception ex)
+             {
+                 return StatusCode(500, new
+                 {
+                     success = false,
+                     message = ex.Message
+                 });
+             }
+         }*/
+
+
         [HttpPost("UploadPromotion")]
         public async Task<IActionResult> UploadPromotion(
     [FromBody] PromotionWithImageModel request)
         {
             if (request == null || request.Promotion == null)
-                return BadRequest("Invalid promotion data");
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Invalid promotion data"
+                });
+            }
 
             try
             {
@@ -428,38 +583,53 @@ namespace CommUnityApp.Services
 
                     byte[] imageBytes = Convert.FromBase64String(base64Data);
 
-                    string fileName = Guid.NewGuid() + ".jpg";
+                    string fileName = $"{Guid.NewGuid()}.jpg";
 
-                    string filePath = Path.Combine(promotionFolder, fileName);
+                    string filePath = Path.Combine(
+                        promotionFolder,
+                        fileName
+                    );
 
-                    await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+                    await System.IO.File.WriteAllBytesAsync(
+                        filePath,
+                        imageBytes
+                    );
 
                     promotionImagePath = $"Uploads/Promotions/{fileName}";
                 }
 
-                request.Promotion.PromotionImage = promotionImagePath;
+                // Preserve old image during update
+                if (!string.IsNullOrEmpty(promotionImagePath))
+                {
+                    request.Promotion.PromotionImage = promotionImagePath;
+                }
 
                 // =========================
                 // SAVE PROMOTION
                 // =========================
 
-                var promotionResult = await _unitOfWork.Product
-                    .AddUpdatePromotion(request.Promotion);
+                var promotionResult =
+                    await _unitOfWork.Product.AddUpdatePromotion(
+                        request.Promotion
+                    );
 
-                if (promotionResult == null || promotionResult.PromotionId <= 0)
+                if (promotionResult == null ||
+                    promotionResult.PromotionId <= 0)
                 {
                     return BadRequest(new
                     {
                         success = false,
-                        message = "Failed to create promotion"
+                        message = "Failed to save promotion"
                     });
                 }
 
                 // =========================
-                // GENERATE QR CODE
+                // GENERATE QR CODE (NEW ONLY)
                 // =========================
 
-                if (!string.IsNullOrWhiteSpace(promotionResult.PromotionUrl))
+                if (request.Promotion.PromotionId == 0 &&
+                    !string.IsNullOrWhiteSpace(
+                        promotionResult.PromotionUrl))
                 {
                     string qrFolder = Path.Combine(
                         Directory.GetCurrentDirectory(),
@@ -471,54 +641,53 @@ namespace CommUnityApp.Services
                     if (!Directory.Exists(qrFolder))
                         Directory.CreateDirectory(qrFolder);
 
-                    using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
+                    using (QRCodeGenerator qrGenerator =
+                           new QRCodeGenerator())
                     {
-                        QRCodeData qrCodeData = qrGenerator.CreateQrCode(
-                            promotionResult.PromotionUrl,
-                            QRCodeGenerator.ECCLevel.Q
-                        );
+                        QRCodeData qrCodeData =
+                            qrGenerator.CreateQrCode(
+                                promotionResult.PromotionUrl,
+                                QRCodeGenerator.ECCLevel.Q
+                            );
 
-                        PngByteQRCode qrCode = new PngByteQRCode(qrCodeData);
+                        PngByteQRCode qrCode =
+                            new PngByteQRCode(qrCodeData);
 
-                        byte[] qrCodeBytes = qrCode.GetGraphic(20);
+                        byte[] qrBytes =
+                            qrCode.GetGraphic(20);
 
-                        string qrFileName = Guid.NewGuid() + ".png";
+                        string qrFileName =
+                            $"{Guid.NewGuid()}.png";
 
-                        string qrFilePath = Path.Combine(qrFolder, qrFileName);
+                        string qrFilePath =
+                            Path.Combine(
+                                qrFolder,
+                                qrFileName
+                            );
 
                         await System.IO.File.WriteAllBytesAsync(
                             qrFilePath,
-                            qrCodeBytes
+                            qrBytes
                         );
 
-                        qrImagePath = $"Uploads/PromotionQR/{qrFileName}";
+                        qrImagePath =
+                            $"{Request.Scheme}://{Request.Host}/Uploads/PromotionQR/{qrFileName}";
+
+                        using var connection = new SqlConnection(
+                            _configuration.GetConnectionString(
+                                "DefaultConnection"));
+
+                        await connection.ExecuteAsync(
+                            @"UPDATE ProductPromotions
+                      SET QRCodeImage = @QRCodeImage
+                      WHERE PromotionId = @PromotionId",
+                            new
+                            {
+                                QRCodeImage = qrImagePath,
+                                PromotionId =
+                                    promotionResult.PromotionId
+                            });
                     }
-
-                    // =========================
-                    // UPDATE QR IMAGE PATH
-                    // =========================
-
-                    string fullQrUrl =
-                        $"{Request.Scheme}://{Request.Host}/Uploads/PromotionQR/{Path.GetFileName(qrImagePath)}";
-
-                    using var connection = new SqlConnection(
-                        _configuration.GetConnectionString("DefaultConnection")
-                    );
-
-                    await connection.OpenAsync();
-
-                    await connection.ExecuteAsync(
-                        @"UPDATE ProductPromotions
-                        SET QRCodeImage = @QRCodeImage
-                        WHERE PromotionId = @PromotionId",
-                        new
-                        {
-                            QRCodeImage = fullQrUrl,
-                            PromotionId = promotionResult.PromotionId
-                        }
-                    );
-
-                    qrImagePath = fullQrUrl;
                 }
 
                 return Ok(new
@@ -527,7 +696,9 @@ namespace CommUnityApp.Services
                     promotionId = promotionResult.PromotionId,
                     promotionUrl = promotionResult.PromotionUrl,
                     qrCodeImage = qrImagePath,
-                    message = "Promotion created successfully with QR Code"
+                    message = request.Promotion.PromotionId == 0
+                        ? "Promotion created successfully"
+                        : "Promotion updated successfully"
                 });
             }
             catch (Exception ex)
@@ -617,6 +788,208 @@ namespace CommUnityApp.Services
                     ResultMessage = ex.Message
                 });
             }
+        }
+
+        [HttpGet("GetPromotionsList")]
+        public async Task<IActionResult> GetPromotions(int businessId)
+        {
+            var data = await _unitOfWork.Product.GetPromotions(businessId);
+
+            return Ok(data);
+        }
+
+        [HttpPost("GetPromotionRedemptionSummary")]
+        public async Task<IActionResult>GetPromotionRedemptionSummary([FromBody] PromotionRedemptionRequest request)
+        {
+            var data = await _unitOfWork.Product
+                .GetPromotionRedemptionSummary(
+                    request.PromotionId,
+                    request.UserId);
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
+        }
+
+        [HttpPost("RedeemPromotion")]
+        public async Task<IActionResult> RedeemPromotion([FromBody] PromotionRedemptionRequest request)
+        {
+            try
+            {
+                var result = await _unitOfWork.Product
+                    .RedeemPromotion(
+                        request.PromotionId,
+                        request.UserId);
+
+                if (result == null || result.RedemptionId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Failed to redeem promotion",
+                        Status = false
+                    });
+                }
+
+                string qrImageUrl = "";
+
+
+                string qrFolder = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot",
+                    "Uploads",
+                    "PromotionRedemptions");
+
+                if (!Directory.Exists(qrFolder))
+                    Directory.CreateDirectory(qrFolder);
+
+                using (QRCodeGenerator qrGenerator =
+                    new QRCodeGenerator())
+                {
+                    var qrPayload = new
+                    {
+                        RedemptionId = result.RedemptionId,
+                        RedemptionCode = result.RedemptionCode
+                    };
+
+                    string qrContent =
+                        System.Text.Json.JsonSerializer
+                        .Serialize(qrPayload);
+
+                    QRCodeData qrCodeData =
+                        qrGenerator.CreateQrCode(
+                            qrContent,
+                            QRCodeGenerator.ECCLevel.Q);
+
+                    PngByteQRCode qrCode =
+                        new PngByteQRCode(qrCodeData);
+
+                    byte[] qrBytes =
+                        qrCode.GetGraphic(20);
+
+                    string fileName =
+                        Guid.NewGuid() + ".png";
+
+                    string filePath =
+                        Path.Combine(qrFolder, fileName);
+
+                    await System.IO.File.WriteAllBytesAsync(
+                        filePath,
+                        qrBytes);
+
+                    qrImageUrl =
+                        $"{Request.Scheme}://{Request.Host}/Uploads/PromotionRedemptions/{fileName}";
+                }
+
+              
+
+                using (var connection = new SqlConnection(
+                    _configuration.GetConnectionString("DefaultConnection")))
+                {
+                    await connection.OpenAsync();
+
+                    await connection.ExecuteAsync(
+                        @"UPDATE PromotionRedemptions
+                  SET QRCodeImage = @QRCodeImage
+                  WHERE RedemptionId = @RedemptionId",
+                        new
+                        {
+                            QRCodeImage = qrImageUrl,
+                            RedemptionId = result.RedemptionId
+                        });
+                }
+
+                result.QRCodeImage = qrImageUrl;
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Promotion Redeemed Successfully",
+                    Status = true,
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+        [HttpGet("GetMyPromotionRedemptions")]
+        public async Task<IActionResult>GetMyPromotionRedemptions(Guid userId)
+        {
+            var data = await _unitOfWork.Product
+                .GetMyPromotionRedemptions(
+                    userId);
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
+        }
+
+
+        [HttpPost("VerifyPromotionRedemption")]
+        public async Task<IActionResult>VerifyPromotionRedemption([FromBody] VerifyPromotionRequest request)
+        {
+            var data = await _unitOfWork.Product
+                .VerifyPromotionRedemption(
+                    request.RedemptionCode);
+
+            return Ok(new
+            {
+                ResultId = data.Status,
+                ResultMessage = data.Message,
+                Status = data.Status == 1,
+                Data = data
+            });
+        }
+        [HttpGet("GetTopFiveProductPromotions")]
+        public async Task<IActionResult> GetTopFiveProductPromotions()
+        {
+            var data = await _unitOfWork.Product.GetTopFiveProductPromotions();
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
+        }
+
+        [HttpDelete("DeletePromotion")]
+        public async Task<IActionResult> DeletePromotion(int promotionId)
+        {
+            var result =
+                await _unitOfWork.Product.DeletePromotion(promotionId);
+
+            return Ok(result);
+        }
+
+        [HttpGet("GetPromotionById")]
+        public async Task<IActionResult> GetPromotionById(int promotionId)
+        {
+            var data =
+                await _unitOfWork.Product.GetPromotionById(promotionId);
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Data = data
+            });
         }
     }
 }
