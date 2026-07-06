@@ -18,7 +18,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<(int CharityItemId, string ItemCode)> AddCharityItem(AddCharityItemModel model, string imagePath);
         Task UpdateCharityItemImage(int charityItemId, string imagePath);
-        Task<int> RequestCharityItem(RequestCharityItemModel model);
+        Task<RequestCharityItemResponseModel> RequestCharityItem(RequestCharityItemModel model);
 
         Task<List<RequestedUserModel>> GetRequestedUsersByItemId(int charityItemId);
 
@@ -51,7 +51,10 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<IEnumerable<dynamic>> GetCharityItemsByUserId(Guid userId);
         Task<dynamic> UpdateCharityItemImage(long charityItemId, string imagePath);
-        
+
+        Task<List<CommunityPostModel>> GetTopFiveCommunityPostsByUser(Guid userId);
+
+
     }
 
 }

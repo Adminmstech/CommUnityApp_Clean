@@ -162,10 +162,11 @@ namespace CommUnityApp.ApplicationCore.Models
         public decimal? Latitude { get; set; }
         public decimal? Longitude { get; set; }
     }
-    
+
     public class FavBusineess
-    { public Guid? UserId { get; set; }
-      public int? BusinessId { get; set; }
+    {
+        public Guid? UserId { get; set; }
+        public int? BusinessId { get; set; }
     }
 
     public class UserFavoriteBusiness
@@ -247,7 +248,25 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public DateTime? StartDate { get; set; }
 
-        public DateTime? Enddate { get; set; }
+        public string StartDateString
+        {
+            get
+            {
+                return StartDate.HasValue
+                    ? StartDate.Value.ToString("dd MMM yyyy HH:mm")
+                    : "";
+            }
+        }
+        public DateTime? EndDate { get; set; }
+        public string EndDateString
+        {
+            get
+            {
+                return EndDate.HasValue
+                    ? EndDate.Value.ToString("dd MMM yyyy HH:mm")
+                    : "";
+            }
+        }
 
         public bool IsActive { get; set; }
 
@@ -260,43 +279,89 @@ namespace CommUnityApp.ApplicationCore.Models
         public string? PromotionStatus { get; set; }
     }
 
+    //public class ProductPromotionModel
+    //{
+    //    public int PromotionId { get; set; }
+
+    //    public int ProductId { get; set; }
+
+    //    public int BusinessId { get; set; }
+
+    //    public string PromotionType { get; set; }
+
+    //    public string OtherPromotionText { get; set; }
+
+    //    public string PromoCode { get; set; }
+
+    //    public decimal? DiscountValue { get; set; }
+
+    //    public decimal? CashbackValue { get; set; }
+
+    //    public decimal? MinimumPurchaseAmount { get; set; }
+
+    //    public int? MaxRedemptionLimit { get; set; }
+
+    //    public string BuyGetDetails { get; set; }
+
+    //    public string ComboOfferDetails { get; set; }
+
+    //    public bool IsLimitedDeal { get; set; }
+
+    //    public string PromotionImage { get; set; }
+
+    //    public DateTime? StartDate { get; set; }
+
+    //    public DateTime? EndDate { get; set; }
+
+    //    public bool IsActive { get; set; }
+    //}
     public class ProductPromotionModel
     {
         public int PromotionId { get; set; }
 
-        public int ProductId { get; set; }
-
         public int BusinessId { get; set; }
 
-        public string PromotionType { get; set; }
+        public string FeaturedProducts { get; set; }
 
-        public string OtherPromotionText { get; set; }
+        public string PromotionTitle { get; set; }
 
-        public string PromoCode { get; set; }
+        public string OfferHeadline { get; set; }
 
-        public decimal? DiscountValue { get; set; }
+        public decimal PromotionalPrice { get; set; }
+        public decimal ActualPrice { get; set; }
 
-        public decimal? CashbackValue { get; set; }
+        public int MaxCoinsRedemptionPercentage { get; set; }
 
-        public decimal? MinimumPurchaseAmount { get; set; }
+        public int IndoCoinsEarned { get; set; }
 
-        public int? MaxRedemptionLimit { get; set; }
-
-        public string BuyGetDetails { get; set; }
-
-        public string ComboOfferDetails { get; set; }
-
-        public bool IsLimitedDeal { get; set; }
+        public int FriendRewardCoins { get; set; }
 
         public string PromotionImage { get; set; }
 
         public DateTime? StartDate { get; set; }
 
+        public string StartDateString
+        {
+            get
+            {
+                return StartDate.HasValue
+                    ? StartDate.Value.ToString("dd MMM yyyy HH:mm")
+                    : "";
+            }
+        }
         public DateTime? EndDate { get; set; }
+        public string EndDateString
+        {
+            get
+            {
+                return EndDate.HasValue
+                    ? EndDate.Value.ToString("dd MMM yyyy HH:mm")
+                    : "";
+            }
+        }
 
         public bool IsActive { get; set; }
     }
-
     public class PromotionResult
     {
         public int Status { get; set; }
@@ -317,35 +382,73 @@ namespace CommUnityApp.ApplicationCore.Models
         public string PromotionImageBase64 { get; set; }
     }
 
+    //public class PromotionListModel
+    //{
+    //    public int PromotionId { get; set; }
+
+    //    public int ProductId { get; set; }
+
+    //    public string ProductName { get; set; }
+
+    //    public string ProductDescription { get; set; }
+
+    //    public string PromotionType { get; set; }
+
+    //    public string PromoCode { get; set; }
+
+    //    public decimal DiscountValue { get; set; }
+
+    //    public decimal CashbackValue { get; set; }
+
+    //    public decimal MinimumPurchaseAmount { get; set; }
+
+    //    public int MaxRedemptionLimit { get; set; }
+
+    //    public int RedeemedCount { get; set; }
+
+    //    public string BuyGetDetails { get; set; }
+
+    //    public string ComboOfferDetails { get; set; }
+
+    //    public bool IsLimitedDeal { get; set; }
+
+    //    public string PromotionImage { get; set; }
+
+    //    public string QRCodeImage { get; set; }
+
+    //    public string PromotionUrl { get; set; }
+
+    //    public string PromotionToken { get; set; }
+
+    //    public DateTime StartDate { get; set; }
+
+    //    public DateTime EndDate { get; set; }
+
+    //    public bool IsActive { get; set; }
+
+    //    public DateTime CreatedAt { get; set; }
+    //}
+
     public class PromotionListModel
     {
         public int PromotionId { get; set; }
 
-        public int ProductId { get; set; }
+        public int BusinessId { get; set; }
 
-        public string ProductName { get; set; }
+        public string FeaturedProducts { get; set; }
 
-        public string ProductDescription { get; set; }
+        public string PromotionTitle { get; set; }
 
-        public string PromotionType { get; set; }
+        public string OfferHeadline { get; set; }
 
-        public string PromoCode { get; set; }
+        public decimal PromotionalPrice { get; set; }
+        public decimal ActualPrice { get; set; }
 
-        public decimal DiscountValue { get; set; }
+        public int MaxCoinsRedemptionPercentage { get; set; }
 
-        public decimal CashbackValue { get; set; }
+        public int IndoCoinsEarned { get; set; }
 
-        public decimal MinimumPurchaseAmount { get; set; }
-
-        public int MaxRedemptionLimit { get; set; }
-
-        public int RedeemedCount { get; set; }
-
-        public string BuyGetDetails { get; set; }
-
-        public string ComboOfferDetails { get; set; }
-
-        public bool IsLimitedDeal { get; set; }
+        public int FriendRewardCoins { get; set; }
 
         public string PromotionImage { get; set; }
 
@@ -355,29 +458,38 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string PromotionToken { get; set; }
 
-        public DateTime StartDate { get; set; }
+        public DateTime? StartDate { get; set; }
 
-        public DateTime EndDate { get; set; }
+        public string StartDateString
+        {
+            get
+            {
+                return StartDate.HasValue
+                    ? StartDate.Value.ToString("dd MMM yyyy HH:mm")
+                    : "";
+            }
+        }
+        public DateTime? EndDate { get; set; }
+        public string EndDateString
+        {
+            get
+            {
+                return EndDate.HasValue
+                    ? EndDate.Value.ToString("dd MMM yyyy HH:mm")
+                    : "";
+            }
+        }
 
         public bool IsActive { get; set; }
 
         public DateTime CreatedAt { get; set; }
     }
+
     public class PromotionDetailsModel
     {
         public int PromotionId { get; set; }
 
-        public int ProductId { get; set; }
-
         public int BusinessId { get; set; }
-
-        public string ProductName { get; set; }
-
-        public string ProductDescription { get; set; }
-
-        public decimal Price { get; set; }
-
-        public decimal DiscountPrice { get; set; }
 
         public string BusinessName { get; set; }
 
@@ -385,27 +497,21 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string Phone { get; set; }
 
-        public string PromotionType { get; set; }
+        public string FeaturedProducts { get; set; }
 
-        public string OtherPromotionText { get; set; }
+        public string PromotionTitle { get; set; }
 
-        public string PromoCode { get; set; }
+        public string OfferHeadline { get; set; }
 
-        public decimal DiscountValue { get; set; }
+        public decimal PromotionalPrice { get; set; }
+        public decimal ActualPrice { get; set; }
 
-        public decimal CashbackValue { get; set; }
 
-        public decimal MinimumPurchaseAmount { get; set; }
+        public int MaxCoinsRedemptionPercentage { get; set; }
 
-        public int MaxRedemptionLimit { get; set; }
+        public int IndoCoinsEarned { get; set; }
 
-        public int RedeemedCount { get; set; }
-
-        public string BuyGetDetails { get; set; }
-
-        public string ComboOfferDetails { get; set; }
-
-        public bool IsLimitedDeal { get; set; }
+        public int FriendRewardCoins { get; set; }
 
         public string PromotionImage { get; set; }
 
@@ -415,13 +521,33 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string PromotionToken { get; set; }
 
-        public DateTime StartDate { get; set; }
+        public DateTime? StartDate { get; set; }
 
-        public DateTime EndDate { get; set; }
+        public string StartDateString
+        {
+            get
+            {
+                return StartDate.HasValue
+                    ? StartDate.Value.ToString("dd MMM yyyy HH:mm")
+                    : "";
+            }
+        }
+        public DateTime? EndDate { get; set; }
+        public string EndDateString
+        {
+            get
+            {
+                return EndDate.HasValue
+                    ? EndDate.Value.ToString("dd MMM yyyy HH:mm")
+                    : "";
+            }
+        }
 
         public bool IsActive { get; set; }
 
         public DateTime CreatedAt { get; set; }
+
+        public DateTime? UpdatedAt { get; set; }
     }
 
     public class PromotionScanModel
@@ -451,4 +577,186 @@ namespace CommUnityApp.ApplicationCore.Models
         public PromotionDetailsModel Data { get; set; }
     }
 
+
+    public class BusinessPromotionModel
+    {
+        public int PromotionId { get; set; }
+
+        public int BusinessId { get; set; }
+
+        public string FeaturedProducts { get; set; }
+
+        public string PromotionTitle { get; set; }
+
+        public string OfferHeadline { get; set; }
+
+        public decimal PromotionalPrice { get; set; }
+        public decimal ActualPrice { get; set; }
+
+        public int MaxCoinsRedemptionPercentage { get; set; }
+
+        public int IndoCoinsEarned { get; set; }
+
+        public int FriendRewardCoins { get; set; }
+
+        public string PromotionImage { get; set; }
+
+        public string QRCodeImage { get; set; }
+
+        public string PromotionUrl { get; set; }
+
+        public string PromotionToken { get; set; }
+
+        public DateTime? StartDate { get; set; }
+
+        public string StartDateString
+        {
+            get
+            {
+                return StartDate.HasValue
+                    ? StartDate.Value.ToString("dd MMM yyyy HH:mm")
+                    : "";
+            }
+        }
+        public DateTime? EndDate { get; set; }
+        public string EndDateString
+        {
+            get
+            {
+                return EndDate.HasValue
+                    ? EndDate.Value.ToString("dd MMM yyyy HH:mm")
+                    : "";
+            }
+        }
+        public bool IsActive { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class PromotionRedemptionRequest
+    {
+        public long PromotionId { get; set; }
+
+        public Guid UserId { get; set; }
+    }
+
+    public class PromotionRedemptionSummary
+    {
+        public decimal OriginalPrice { get; set; }
+
+        public int CoinsUsed { get; set; }
+
+        public decimal CoinDiscount { get; set; }
+
+        public decimal FinalPrice { get; set; }
+    }
+
+
+    public class PromotionRedemptionResult
+    {
+        public long RedemptionId { get; set; }
+
+        public string RedemptionCode { get; set; }
+
+        public string QRCodeImage { get; set; }
+    }
+
+    public class PromotionRedemptionModel
+    {
+        public long RedemptionId { get; set; }
+
+        public string RedemptionCode { get; set; }
+
+        public decimal FinalPrice { get; set; }
+
+        public int CoinsUsed { get; set; }
+
+        public decimal CoinDiscount { get; set; }
+
+        public string RedemptionStatus { get; set; }
+
+        public string PromotionTitle { get; set; }
+
+        public string OfferHeadline { get; set; }
+
+        public string PromotionImage { get; set; }
+
+        public string QRCodeImage { get; set; }
+    }
+
+    public class VerifyPromotionRequest
+    {
+        public string RedemptionCode { get; set; }
+    }
+
+    public class VerifyPromotionResponse
+    {
+        public int Status { get; set; }
+
+        public string Message { get; set; }
+    }
+
+    public class TopProductPromotionEntity
+    {
+        public long PromotionId { get; set; }
+
+        public long? ProductId { get; set; }
+
+        public long BusinessId { get; set; }
+
+        public string BusinessName { get; set; }
+
+        public string BusinessLogo { get; set; }
+
+        public string FeaturedProducts { get; set; }
+
+        public string PromotionTitle { get; set; }
+
+        public string OfferHeadline { get; set; }
+
+        public decimal PromotionalPrice { get; set; }
+        public decimal ActualPrice { get; set; }
+
+        public int MaxCoinsRedemptionPercentage { get; set; }
+
+        public int IndoCoinsEarned { get; set; }
+
+        public int FriendRewardCoins { get; set; }
+
+        public string PromotionImage { get; set; }
+
+        public string QRCodeImage { get; set; }
+
+        public string PromotionUrl { get; set; }
+
+        public Guid? PromotionToken { get; set; }
+
+        public DateTime? StartDate { get; set; }
+
+        public string StartDateString
+        {
+            get
+            {
+                return StartDate.HasValue
+                    ? StartDate.Value.ToString("dd MMM yyyy HH:mm")
+                    : "";
+            }
+        }
+        public DateTime? EndDate { get; set; }
+        public string EndDateString
+        {
+            get
+            {
+                return EndDate.HasValue
+                    ? EndDate.Value.ToString("dd MMM yyyy HH:mm")
+                    : "";
+            }
+        }
+
+        public bool IsLimitedDeal { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+    }
 }

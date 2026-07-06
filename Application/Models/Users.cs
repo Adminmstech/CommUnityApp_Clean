@@ -66,7 +66,7 @@
         public int? AgeGroupId { get; set; }
         public int? Gender { get; set; }
 
-
+        public int? IsSupporter { get; set; }
         public string AgeRange { get; set; }
 
         public bool IsActive { get; set; } = true;
@@ -106,6 +106,8 @@
         public string Role { get; set; }   // Example: "2,3"
 
         public int IsActive { get; set; }
+        public int? IsSupporter { get; set; }
+
 
         public DateTime CreatedAt { get; set; }
     }

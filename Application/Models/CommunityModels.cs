@@ -87,16 +87,30 @@ namespace CommUnityApp.ApplicationCore.Models
 
         }
 
-        public class DashboardData
-        {
-            public Rewards Rewards { get; set; }
-            public List<TopEventDto>? Events { get; set; }
-            public List<AuctionListModel>? Auctions { get; set; }
-            public List<Community>? Communities { get; set; }
-            public List<ProductWithImagesModel> Products { get; set; }
-        }
+        //public class DashboardData
+        //{
+        //    public Rewards Rewards { get; set; }
+        //    public List<TopEventDto>? Events { get; set; }
+        //    public List<AuctionListModel>? Auctions { get; set; }
+        //    public List<Community>? Communities { get; set; }
+        //    public List<ProductWithImagesModel> Products { get; set; }
+        //}
     }
-    public class UpdateStatusRequest
+    public class DashboardData
+    {
+            public Rewards? Rewards { get; set; }
+            public List<AuctionListModel> Auctions { get; set; }
+
+            public List<UserPostedEventModel> PostedEvents { get; set; }
+
+            public List<CommunityPostModel> CommunityPosts { get; set; }
+
+            public List<PostResponse> MessageBoardPosts { get; set; }
+
+            public List<TopProductPromotionEntity> TopProductPromotions { get; set; }
+            public List<BusinessPostEntity> BusinessPosts { get; set; }
+    }
+        public class UpdateStatusRequest
     {
         public int CharityItemId { get; set; }
         public Guid UserId { get; set; }
@@ -419,6 +433,17 @@ namespace CommUnityApp.ApplicationCore.Models
         public int Quantity { get; set; }
 
         public string ImagePath { get; set; }
+    }
+
+    public class RequestCharityItemResponseModel
+    {
+        public int ResultId { get; set; }
+
+        public string ResultMessage { get; set; }
+
+        public int Status { get; set; }
+
+        public int? RequestId { get; set; }
     }
 
 

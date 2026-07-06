@@ -26,6 +26,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<IEnumerable<dynamic>> GetComments(int postId);
         Task<BaseResponse> DeleteComment(int commentId);
         Task<BaseResponse> DeletePost(int postId);
-
+        Task<List<PostResponse>> GetTopFiveMessageBoardPosts();
     }
 }

@@ -128,9 +128,9 @@ namespace CommUnityApp.Services
 
 
         [HttpGet("Get_Businesses")]
-        public async Task<IActionResult> GetBusinesses()
+        public async Task<IActionResult> GetBusinesses(Guid userId)
         {
-            var data = await _unitOfWork.Business.GetAllBusinesses();
+            var data = await _unitOfWork.Business.GetAllBusinesses(userId);
             return Ok(data);
         }
 
@@ -154,6 +154,81 @@ namespace CommUnityApp.Services
         {
             var data = await _unitOfWork.Business.GetBusinesscategory();
             return Ok(data);
+        }
+        [HttpPost("AddRemoveFavouriteBusiness")]
+        public async Task<IActionResult>AddRemoveFavouriteBusiness([FromBody] FavouriteBusinessRequest request)
+        {
+            var result = await _unitOfWork.Business.AddRemoveFavouriteBusiness(
+                    request.BusinessId,
+                    request.UserId);
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = result.ResultMessage,
+                Status = true,
+                Data = result
+            });
+        }
+
+        [HttpGet("GetFavouriteBusinesses")]
+        public async Task<IActionResult> GetFavouriteBusinesses( Guid userId)
+        {
+            var data = await _unitOfWork.Business
+                .GetFavouriteBusinesses(userId);
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
+        }
+
+        [HttpGet("GetTopFiveBusinessPosts")]
+        public async Task<IActionResult> GetTopFiveBusinessPosts()
+        {
+            var data =
+                await _unitOfWork.Business.GetTopFiveBusinessPosts();
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
+        }
+
+        [HttpGet("GetBusinessPostDetails")]
+        public async Task<IActionResult> GetBusinessPostDetails(long postId)
+        {
+            var data =
+                await _unitOfWork.Business.GetBusinessPostDetails(postId);
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
+        }
+
+        [HttpGet("GetAllBusinessPosts")]
+        public async Task<IActionResult> GetAllBusinessPosts(long businessId)
+        {
+            var data =
+                await _unitOfWork.Business.GetAllBusinessPosts(businessId);
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
         }
     }
 

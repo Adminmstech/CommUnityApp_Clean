@@ -6,6 +6,7 @@ using Dapper;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.Data.SqlClient;
 using System.Data;
 using System.IO;
@@ -324,19 +325,27 @@ namespace CommUnityApp.Services
             try
             {
                 if (model.RequestedQuantity <= 0)
-                    return BadRequest("Invalid quantity");
-
-                var requestId = await _communityRepository.RequestCharityItem(model);
-
-                return Ok(new
                 {
-                    message = "Request submitted successfully",
-                    requestId = requestId
-                });
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Invalid quantity.",
+                        Status = 0
+                    });
+                }
+
+                var result = await _communityRepository.RequestCharityItem(model);
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = 0
+                });
             }
         }
 
@@ -416,87 +425,104 @@ namespace CommUnityApp.Services
             var data = await _unitOfWork.Community.GetCommunities();
             return Ok(data);
         }
-
-
-        //For mobile app dashboard//
         [HttpGet("Get_DashboardData")]
         public async Task<IActionResult> GetDashboardData(Guid userId)
         {
-            var response = new DashboardResponse();
-
             try
             {
-                var events = await _unitOfWork.Events.GetTop5Events();
-                var auctions = await _unitOfWork.Auction.GetTop5Auctions();
-                var communities = await _unitOfWork.Community.GetCommunities();
+                var auctionsTask =
+                    _unitOfWork.Auction.GetTop5Auctions();
 
-                // ⭐ Rewards
-                var rewards = await _unitOfWork.Rewards.GetCoins(userId);
+                var rewardsTask =
+                    _unitOfWork.Rewards.GetCoins(userId);
 
-                // ⭐ Products with Images
-                var products = await _unitOfWork.Product.GetAllProducts();
-                var productList = new List<ProductWithImagesModel>();
+                var postedEventsTask =
+                    _unitOfWork.Events.GetTopFivePostedEventsByUser(userId);
 
-                foreach (var product in products)
+                var communityPostsTask =
+                    _unitOfWork.Community.GetTopFiveCommunityPostsByUser(userId);
+
+                var messageBoardTask =
+                    _unitOfWork.Notification.GetTopFiveMessageBoardPosts();
+
+                var promotionsTask =
+                    _unitOfWork.Product.GetTopFiveProductPromotions();
+
+                var businessPostsTask =
+                    _unitOfWork.Business.GetTopFiveBusinessPosts();
+
+                await Task.WhenAll(
+                    auctionsTask,
+                    rewardsTask,
+                    postedEventsTask,
+                    communityPostsTask,
+                    messageBoardTask,
+                    promotionsTask,
+                    businessPostsTask);
+
+                var auctions = await auctionsTask;
+
+                var rewards = await rewardsTask;
+
+                var postedEvents = await postedEventsTask;
+
+                var communityPosts = await communityPostsTask;
+
+                var messageBoardPosts = await messageBoardTask;
+
+                var promotions = await promotionsTask;
+
+                var businessPosts = await businessPostsTask;
+
+                if (auctions != null && auctions.Any())
                 {
-                    var images = await _unitOfWork.Product.GetProductImageById(product.ProductId);
-
-                    var productResponse = new ProductWithImagesModel
-                    {
-                        Product = product,
-                        Images = new List<ProductImageUpload>() // ✅ IMPORTANT (avoid null)
-                    };
-
-                    if (images != null && images.Count > 0)
-                    {
-                        foreach (var image in images)
-                        {
-                            productResponse.Images.Add(new ProductImageUpload
-                            {
-                                ProductImageId = image.ProductImageId,
-                                ProductId = image.ProductId,
-                                ImagePath = image.ImagePath,
-                                IsPrimary = image.IsPrimary
-                            });
-                        }
-                    }
-
-                    productList.Add(productResponse);
-                }
-
-                // ⭐ Auction Images
-                var auctionIds = auctions.Select(a => a.AuctionId).ToList();
-                var auctionImages = await _unitOfWork.Auction.GetAuctionImagesByIds(auctionIds);
-
-                foreach (var auction in auctions)
-                {
-                    auction.AuctionImages = auctionImages
-                        .Where(img => img.AuctionId == auction.AuctionId)
+                    var auctionIds = auctions
+                        .Select(x => x.AuctionId)
                         .ToList();
+
+                    var auctionImages =
+                        await _unitOfWork.Auction
+                        .GetAuctionImagesByIds(auctionIds);
+
+                    foreach (var auction in auctions)
+                    {
+                        auction.AuctionImages = auctionImages
+                            .Where(x => x.AuctionId == auction.AuctionId)
+                            .ToList();
+                    }
                 }
 
-                response.ResultId = 1;
-                response.ResultMessage = "Success";
-                response.Data = new DashboardData
+                return Ok(new DashboardResponse
                 {
-                    Rewards = rewards,
-                    Events = events,
-                    Auctions = auctions,
-                    Communities = communities,
-                    Products = productList 
-                };
+                    ResultId = 1,
+                    ResultMessage = "Success",
+                    Data = new DashboardData
+                    {
+                        Rewards = rewards,
 
-                return Ok(new List<DashboardResponse> { response });
+                        Auctions = auctions ?? new List<AuctionListModel>(),
+
+                        PostedEvents = postedEvents ?? new List<UserPostedEventModel>(),
+
+                        CommunityPosts = communityPosts ?? new List<CommunityPostModel>(),
+
+                        MessageBoardPosts = messageBoardPosts ?? new List<PostResponse>(),
+
+                        TopProductPromotions = promotions ?? new List<TopProductPromotionEntity>(),
+
+                        BusinessPosts = businessPosts ?? new List<BusinessPostEntity>()
+                    }
+                });
             }
             catch (Exception ex)
             {
-                response.ResultId = 0;
-                response.ResultMessage = ex.Message;
-
-                return Ok(new List<DashboardResponse> { response });
+                return Ok(new DashboardResponse
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message
+                });
             }
         }
-
         [HttpGet]
         [Route("GetItemCategories")]
         public async Task<IActionResult> GetItemCategories()
@@ -955,6 +981,37 @@ namespace CommUnityApp.Services
                     ResultMessage = ex.Message
                 });
             }
+        }
+
+        [HttpGet("GetTopFivePostedEventsByUser")]
+        public async Task<IActionResult> GetPostedEventsByUser(Guid userId)
+        {
+            var data = await _unitOfWork.Events
+                .GetPostedEventsByUser(userId);
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
+        }
+
+       
+        [HttpGet("GetTopFiveCommunityPostsByUser")]
+        public async Task<IActionResult> GetTopFiveCommunityPostsByUser(Guid userId)
+        {
+            var data = await _unitOfWork.Community
+                .GetTopFiveCommunityPostsByUser(userId);
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
         }
     }
 

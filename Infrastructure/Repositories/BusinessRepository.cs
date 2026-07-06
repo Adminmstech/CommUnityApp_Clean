@@ -95,7 +95,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             );
         }
 
-        public async Task<List<BusinessDetailsDto>> GetAllBusinesses()
+        public async Task<List<BusinessDetailsDto>> GetAllBusinesses(Guid userId)
         {
             using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection")
@@ -103,7 +103,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             await connection.OpenAsync();
 
-            var result = await connection.QueryAsync<BusinessDetailsDto>("Get_AllBusinesses", commandType: CommandType.StoredProcedure);
+            var result = await connection.QueryAsync<BusinessDetailsDto>("Get_AllBusinesses", new
+            {
+                UserId = userId
+            }, commandType: CommandType.StoredProcedure);
 
             return result.ToList();
         }
@@ -159,6 +162,91 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             await connection.OpenAsync();
 
             var result = await connection.QueryAsync<Category>("Get_BusinessCategories", commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+        public async Task<BaseResponse>AddRemoveFavouriteBusiness(long businessId, Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            return await connection.QueryFirstOrDefaultAsync<
+                BaseResponse>(
+                "SP_AddRemoveFavouriteBusiness",
+                new
+                {
+                    BusinessId = businessId,
+                    UserId = userId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<List<FavouriteBusinessModel>>GetFavouriteBusinesses(Guid userId)
+        {
+            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            var result =
+                (await connection.QueryAsync<FavouriteBusinessModel>(
+                    "SP_GetFavouriteBusinesses",
+                    new { UserId = userId },
+                    commandType: CommandType.StoredProcedure))
+                .ToList();
+
+            string baseUrl = _configuration["BaseUrl"];
+
+            foreach (var item in result)
+            {
+                if (!string.IsNullOrWhiteSpace(item.Logo))
+                {
+                    item.Logo =
+                        $"{baseUrl}/{item.Logo.TrimStart('/')}";
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<List<BusinessPostEntity>> GetTopFiveBusinessPosts()
+        {
+            using var connection =
+                new SqlConnection(
+                    _configuration.GetConnectionString("DefaultConnection"));
+
+            var result =
+                await connection.QueryAsync<BusinessPostEntity>(
+                    "sp_GetTopFiveBusinessPosts",
+                    commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+        public async Task<BusinessPostDetailsEntity> GetBusinessPostDetails(long postId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            return await connection.QueryFirstOrDefaultAsync<BusinessPostDetailsEntity>(
+                "sp_GetBusinessPostDetails",
+                new
+                {
+                    PostId = postId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<List<BusinessPostListEntity>> GetAllBusinessPosts(long businessId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await connection.QueryAsync<BusinessPostListEntity>(
+                "sp_GetAllBusinessPosts",
+                new
+                {
+                    BusinessId = businessId
+                },
+                commandType: CommandType.StoredProcedure);
 
             return result.ToList();
         }

@@ -114,7 +114,20 @@ namespace CommUnityApp.ApplicationCore.Models
      public string Address { get; set; }
      public string Status { get; set; }
      public DateTime CreatedDate { get; set; }
- }   
+ }
+
+    public class CareConnectServiceModel
+    {
+        public int ServiceId { get; set; }
+
+        public string ServiceName { get; set; }
+
+        public string ServiceImage { get; set; }
+
+        public string ServiceImagePath { get; set; }
+
+        public bool IsActive { get; set; }
+    }
 }
 
 

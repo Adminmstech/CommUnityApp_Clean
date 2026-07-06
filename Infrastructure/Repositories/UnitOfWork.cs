@@ -24,7 +24,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         public IGameResultsRepository GameResults { get; }
         public ICareConnectRepository CareConnect { get; }
         public IJobRepository Job { get; }
-       
+        public ISmartQuizRepository SmartQuiz { get; }
+
+
 
         public UnitOfWork(
             ICommunityRepository community,
@@ -44,7 +46,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             IGameResultsRepository gameResults,
             ICareConnectRepository careConnect,
             IQuizGameRepository quizGames,
-            IJobRepository job)
+            IJobRepository job,
+            ISmartQuizRepository smartQuiz)
         {
             Community = community;
             Events = events;
@@ -64,6 +67,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             GameResults = gameResults;
             CareConnect = careConnect;
             Job = job;
+            SmartQuiz = smartQuiz;
         }
     }
 }
