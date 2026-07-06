@@ -152,7 +152,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                         {
                             questionParams = new
                             {
-                                question.QuestionId,
+                                question.QuestionId, 
                                 question.QuizId,
                                 question.QuestionText,
                                 question.QuestionImage,
