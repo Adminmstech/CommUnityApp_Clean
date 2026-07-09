@@ -13,7 +13,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<AuctionListModel>> GetAuctions();
         Task<List<AuctionItemImage>> GetAuctionImages(int auctionId);
         Task<List<GetAuctionImagedModel>> GetAuctionImagesByIds(List<int> auctionIds);
-        Task<List<AuctionListModel>> GetAuctionAuctionId(int auctionId);
+        Task<List<AuctionListModel>> GetAuctionAuctionId(int auctionId, Guid? userId = null);
         Task<List<AuctionListModel>> GetAuctionByItemTypeId(int ItemTypeId);
         Task<List<AuctionListModel>> GetTop5Auctions();
         Task<PlaceBidResponse> PlaceBid(PlaceBidRequest request);

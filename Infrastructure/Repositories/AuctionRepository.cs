@@ -203,7 +203,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result.ToList();
         }
-        public async Task<List<AuctionListModel>> GetAuctionAuctionId(int auctionId)
+        public async Task<List<AuctionListModel>> GetAuctionAuctionId(int auctionId, Guid? userId = null)
         {
             using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection")

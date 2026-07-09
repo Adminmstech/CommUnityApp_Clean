@@ -10,7 +10,6 @@ using Stripe;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.SignalR;
-using CommUnityApp.Hubs;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -75,6 +74,7 @@ builder.Services.AddSession(options =>
 });
 
 // SignalR
+
 builder.Services.AddSignalR();
 
 var syncfusionLicenseKey = builder.Configuration["Syncfusion:LicenseKey"];
@@ -178,10 +178,11 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
 
 app.MapControllers();
 
+
+app.MapHub<AuctionHub>("/auctionHub");
 app.MapControllerRoute(
     name: "area_default",
     pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}"

@@ -17,8 +17,16 @@
 
         <div class="card-body">
 
-            <div class="mb-4">
-                <input type="text" id="searchBox" class="form-control" placeholder="Search businesses..." />
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <input type="text" id="searchBox" class="form-control" placeholder="Search businesses..." />
+                </div>
+
+                <div class="col-md-3">
+                    <select id="categoryFilter" class="form-select">
+                        <option value="">All Categories</option>
+                    </select>
+                </div>
             </div>
 
             <div class="table-responsive">
@@ -58,19 +66,15 @@
         let allBusinesses = [];
 
         $(document).ready(function () {
+
             loadBusinesses();
 
             $("#searchBox").on("keyup", function () {
-                const search = $(this).val().toLowerCase();
+                applyFilters();
+            });
 
-                const filtered = allBusinesses.filter(x =>
-                    x.businessName?.toLowerCase().includes(search) ||
-                    x.ownerName?.toLowerCase().includes(search) ||
-                    x.businessEmail?.toLowerCase().includes(search) ||
-                    x.phone?.toLowerCase().includes(search)
-                );
-
-                renderBusinesses(filtered);
+            $("#categoryFilter").on("change", function () {
+                applyFilters();
             });
         });
 
@@ -81,6 +85,9 @@
 
                 success: function (response) {
                     allBusinesses = response;
+
+                    populateCategories(response);
+
                     renderBusinesses(response);
                 },
 
@@ -92,6 +99,49 @@
                     });
                 }
             });
+        }
+
+        function populateCategories(data) {
+
+            const categoryDropdown = $("#categoryFilter");
+
+            const categories = [...new Set(
+                data
+                    .map(x => x.categoryName)
+                    .filter(x => x)
+            )];
+
+            categoryDropdown.empty();
+            categoryDropdown.append(`<option value="">All Categories</option>`);
+
+            categories.sort().forEach(category => {
+                categoryDropdown.append(
+                    `<option value="${category}">${category}</option>`
+                );
+            });
+        }
+
+        function applyFilters() {
+
+            const search = $("#searchBox").val().toLowerCase();
+            const selectedCategory = $("#categoryFilter").val();
+
+            const filtered = allBusinesses.filter(x => {
+
+                const matchesSearch =
+                    x.businessName?.toLowerCase().includes(search) ||
+                    x.ownerName?.toLowerCase().includes(search) ||
+                    x.businessEmail?.toLowerCase().includes(search) ||
+                    x.phone?.toLowerCase().includes(search);
+
+                const matchesCategory =
+                    !selectedCategory ||
+                    x.categoryName === selectedCategory;
+
+                return matchesSearch && matchesCategory;
+            });
+
+            renderBusinesses(filtered);
         }
 
         function renderBusinesses(data) {
@@ -134,16 +184,16 @@
                             <small>${item.businessNumber ?? ''}</small>
                         </td>
 
-                        <td>${item.categoryName}</td>
+                        <td>${item.categoryName ?? ''}</td>
 
-                        <td>${item.ownerName}</td>
+                        <td>${item.ownerName ?? ''}</td>
 
-                        <td>${item.businessEmail}</td>
+                        <td>${item.businessEmail ?? ''}</td>
 
-                        <td>${item.phone}</td>
+                        <td>${item.phone ?? ''}</td>
 
                         <td>
-                            ${item.city}, ${item.state}
+                            ${item.city ?? ''}, ${item.state ?? ''}
                         </td>
 
                         <td>${activeBadge}</td>
