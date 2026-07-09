@@ -1,5 +1,6 @@
 ﻿using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
+using CommUnityApp.InfrastructureLayer.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -464,6 +465,20 @@ namespace CommUnityApp.Services
                     ResultMessage = ex.Message
                 });
             }
+        }
+
+        [HttpGet("GetUserWalletTransactions")]
+        public async Task<IActionResult> GetUserWalletTransactions(Guid userId)
+        {
+            var data = await _unitOfWork.User.GetUserWalletTransactions(userId);
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
         }
 
     }

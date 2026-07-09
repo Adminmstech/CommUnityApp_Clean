@@ -24,5 +24,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<SmartQuizResultModel>> GetSmartQuizResultsByUserId( Guid userId);
 
         Task<SmartQuizResultModel> InsertSmartQuizCustomerAllAnswers(SubmitSmartQuizRequest request);
+
+        Task AddSmartQuizRewardCoinsAsync(Guid userId, int coins, int quizId);
     }
 }

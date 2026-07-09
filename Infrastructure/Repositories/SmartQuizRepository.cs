@@ -274,6 +274,24 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         }
 
 
+        public async Task AddSmartQuizRewardCoinsAsync(Guid userId, int coins, int quizId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            await connection.OpenAsync();
+
+            await connection.ExecuteAsync(
+                "SP_AddSmartQuizRewardCoins",
+                new
+                {
+                    UserId = userId,
+                    Coins = coins,
+                    QuizId = quizId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
     }
 
 

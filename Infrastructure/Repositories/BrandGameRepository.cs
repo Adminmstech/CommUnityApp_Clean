@@ -159,14 +159,14 @@ WHERE BrandGameID = @GameId;";
             return result ?? new PrizeConsumeResult { IsConsumed = false };
         }
 
-        public async Task<BaseResponse> TrackGameplayAsync(int gameId, long memberId, string prizeType, bool isWinner, int? attemptNumber)
+        public async Task<BaseResponse> TrackGameplayAsync(int gameId, Guid userId, string prizeType, bool isWinner, int? attemptNumber)
         {
             const string sql = @"
 
 INSERT INTO [dbo].[BrandGamePlayHistory]
 (
     [BrandGameID],
-    [MemberId],
+    [UserId],
     [AttemptNumber],
     [PrizeType],
     [IsWinner]
@@ -174,7 +174,7 @@ INSERT INTO [dbo].[BrandGamePlayHistory]
 VALUES
 (
     @GameId,
-    @MemberId,
+    @UserId,
     @AttemptNumber,
     @PrizeType,
     @IsWinner
@@ -184,7 +184,7 @@ VALUES
             var affected = await con.ExecuteAsync(sql, new
             {
                 GameId = gameId,
-                MemberId = memberId,
+                UserId = userId,
                 AttemptNumber = attemptNumber,
                 PrizeType = prizeType,
                 IsWinner = isWinner
@@ -210,5 +210,24 @@ VALUES
                 ResultMessage = result > 0 ? "Brand game deleted successfully." : "Brand game not found."
             };
         }
+
+        public async Task AddRewardCoinsAsync(Guid userId, int coins, int gameId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            await connection.OpenAsync();
+
+            await connection.ExecuteAsync(
+                "SP_AddBrandGameRewardCoins",
+                new
+                {
+                    UserId = userId,
+                    Coins = coins,
+                    GameId = gameId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
     }
 }
