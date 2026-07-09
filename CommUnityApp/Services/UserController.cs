@@ -263,7 +263,8 @@ namespace CommUnityApp.Services
                         result.UserId,
                         result.FullName,
                         result.Email,
-                        result.Role
+                        result.Role,
+                        result.IsSupporter
                     }
                 });
             }

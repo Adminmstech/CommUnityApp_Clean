@@ -77,7 +77,7 @@ namespace CommUnityApp.Services
         //    return Ok(data);
         //}
 
-        [HttpPost("UploadAuction")]
+        [HttpPost("UploadAndUpdateAuction")]
         public async Task<IActionResult> Add_Auction_With_Images([FromBody] AuctionWithImagesRequest request)
         {
             if (request == null || request.Auction == null)
@@ -88,32 +88,69 @@ namespace CommUnityApp.Services
 
             try
             {
-                // 1️⃣ Save Auction
+                bool isUpdate = request.Auction.AuctionId > 0;
+
+                // Save Auction (Insert/Update)
                 var auctionResult = await _unitOfWork.Auction.SaveAuction(request.Auction);
 
                 if (auctionResult == null || auctionResult.ResultId <= 0)
-                    return BadRequest("Failed to create auction");
+                    return BadRequest(isUpdate
+                        ? "Failed to update auction"
+                        : "Failed to create auction");
 
-                int newAuctionId = auctionResult.ResultId;
+                int auctionId = isUpdate
+                    ? request.Auction.AuctionId
+                    : auctionResult.ResultId;
 
-                // 2️⃣ Save Images
+                // Process images only if images are supplied
                 if (request.Images != null && request.Images.Any())
                 {
+                    // Allow only one primary image
+                    if (request.Images.Count(x => x.IsPrimary) > 1)
+                        return BadRequest("Only one primary image is allowed.");
+
                     string folderPath = Path.Combine(
                         Directory.GetCurrentDirectory(),
                         "wwwroot",
                         "Uploads",
-                        "auctions"
-                    );
+                        "auctions");
 
                     if (!Directory.Exists(folderPath))
                         Directory.CreateDirectory(folderPath);
 
-                    // ✅ Ensure only one primary image
-                    bool primaryExists = request.Images.Count(i => i.IsPrimary) > 1;
-                    if (primaryExists)
-                        return BadRequest("Only one primary image allowed");
+                    // Update: Remove old images from database
+                    if (isUpdate)
+                    {
+                        var oldImages = await _unitOfWork.Auction
+                            .GetAuctionImagesByAuctionId(auctionId);
 
+                        if (oldImages != null)
+                        {
+                            foreach (var oldImage in oldImages)
+                            {
+                                try
+                                {
+                                    string physicalPath = Path.Combine(
+                                        Directory.GetCurrentDirectory(),
+                                        "wwwroot",
+                                        oldImage.ImageUrl.Replace("/", "\\"));
+
+                                    if (System.IO.File.Exists(physicalPath))
+                                    {
+                                        System.IO.File.Delete(physicalPath);
+                                    }
+                                }
+                                catch
+                                {
+                                    // Ignore file delete errors
+                                }
+                            }
+                        }
+
+                        await _unitOfWork.Auction.DeleteAuctionImages(auctionId);
+                    }
+
+                    // Save new images
                     foreach (var img in request.Images)
                     {
                         if (string.IsNullOrWhiteSpace(img.ImageBase64))
@@ -121,34 +158,36 @@ namespace CommUnityApp.Services
 
                         try
                         {
-                            string base64Data = img.ImageBase64;
+                            string base64 = img.ImageBase64;
 
-                            if (base64Data.Contains(","))
-                                base64Data = base64Data.Split(',')[1];
+                            if (base64.Contains(","))
+                                base64 = base64.Split(',')[1];
 
-                            byte[] imageBytes = Convert.FromBase64String(base64Data);
+                            byte[] bytes = Convert.FromBase64String(base64);
 
                             string fileName = Guid.NewGuid() + ".jpg";
+
                             string filePath = Path.Combine(folderPath, fileName);
 
-                            await System.IO.File.WriteAllBytesAsync(filePath, imageBytes);
+                            await System.IO.File.WriteAllBytesAsync(filePath, bytes);
 
                             string relativePath = $"Uploads/auctions/{fileName}";
 
                             var auctionImage = new AuctionItemImage
                             {
-                                AuctionId = newAuctionId,
+                                AuctionId = auctionId,
                                 ImageUrl = relativePath,
                                 ImageName = fileName,
                                 IsPrimary = img.IsPrimary,
                                 CreatedDate = DateTime.UtcNow
                             };
 
-                            await _unitOfWork.Auction.SaveAuctionItemImage(auctionImage);
+                            await _unitOfWork.Auction
+                                .SaveAuctionItemImage(auctionImage);
                         }
                         catch
                         {
-                            // Skip invalid image but don't fail whole auction
+                            // Skip invalid image
                             continue;
                         }
                     }
@@ -157,8 +196,10 @@ namespace CommUnityApp.Services
                 return Ok(new
                 {
                     success = true,
-                    auctionId = newAuctionId,
-                    message = "Auction created successfully with images"
+                    auctionId = auctionId,
+                    message = isUpdate
+                        ? "Auction updated successfully."
+                        : "Auction created successfully."
                 });
             }
             catch (Exception ex)
@@ -605,6 +646,71 @@ namespace CommUnityApp.Services
                     ResultMessage = ex.Message
                 });
             }
+        }
+
+        [HttpDelete("DeleteAuction")]
+        public async Task<IActionResult> DeleteAuction(int auctionId)
+        {
+            try
+            {
+                var result = await _unitOfWork.Auction.DeleteAuction(auctionId);
+
+                return Ok(new
+                {
+                    ResultId = result.ResultId,
+                    ResultMessage = result.ResultMessage,
+                    Status = result.ResultId > 0
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+
+        [HttpGet("Get_LiveAuctions")]
+        public async Task<IActionResult> GetLiveAuctions()
+        {
+            var auctions = await _unitOfWork.Auction.GetLiveAuctions();
+
+            var combinedAuctions = new List<AuctionWithImagesModel>();
+
+            foreach (var auction in auctions)
+            {
+                var images = await _unitOfWork.Auction.GetAuctionImages(auction.AuctionId);
+
+                var auctionResponse = new AuctionWithImagesModel
+                {
+                    AuctionId = auction.AuctionId,
+                    BusinessId = auction.BusinessId,
+                    UserId = auction.UserId,
+                    User = auction.User,
+                    ItemTypeId = auction.ItemTypeId,
+                    ItemTitle = auction.ItemTitle,
+                    ItemDescription = auction.ItemDescription,
+                    ItemCondition = auction.ItemCondition,
+                    PriceIncrement = auction.PriceIncrement,
+                    ReservePrice = auction.ReservePrice,
+                    MinDeposite = auction.MinDeposite,
+                    StartTime = auction.StartTime,
+                    EndTime = auction.EndTime,
+                    ItemLocation = auction.ItemLocation,
+                    DeleveryMethodId = auction.DeleveryMethodId,
+                    AuctionStatus = auction.AuctionStatus,
+                    CreatedBy = auction.CreatedBy,
+                    CreatedAt = auction.CreatedAt,
+                    Images = images
+                };
+
+                combinedAuctions.Add(auctionResponse);
+            }
+
+            return Ok(combinedAuctions);
         }
     }
 }

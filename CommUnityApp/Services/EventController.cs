@@ -712,6 +712,21 @@ namespace CommUnityApp.Services
 
             return Ok(result);
         }
+
+        [HttpGet("GetTopFivePostedEventsByUser")]
+        public async Task<IActionResult> GetTopFivePostedEventsByUser(Guid userId)
+        {
+            var data = await _unitOfWork.Events
+                .GetTopFivePostedEventsByUser(userId);
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
+        }
     }
     }
 

@@ -8,9 +8,15 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BusinessLoginResponse> LoginAsync(BusinessLoginRequest request);
         Task<BaseResponse> RegisterAsync(AddUpdateBusinessRequest request);
         Task<BusinessAddResponse> AddBusinessAsync(AddBusinessRequest request);
-        Task<List<BusinessDetailsDto>> GetAllBusinesses();
+        Task<List<BusinessDetailsDto>> GetAllBusinesses(Guid userId);
         Task<BusinessDetailsDto> GetBusinessDetails(int BusinessId);
         Task<List<CustomerModel>> GetBusinessCustomers(int BusinessId);
         Task<List<Category>> GetBusinesscategory();
+        Task<BaseResponse> AddRemoveFavouriteBusiness(long businessId, Guid userId);
+        Task<List<FavouriteBusinessModel>>GetFavouriteBusinesses(Guid userId);
+        Task<List<BusinessPostEntity>> GetTopFiveBusinessPosts();
+        Task<BusinessPostDetailsEntity> GetBusinessPostDetails(long postId);
+
+        Task<List<BusinessPostListEntity>> GetAllBusinessPosts(long businessId);
     }
 }

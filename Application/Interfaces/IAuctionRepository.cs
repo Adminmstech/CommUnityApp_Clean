@@ -21,6 +21,12 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BaseResponse> SaveBidRegistration(BidRegistration entity);
         Task<List<AdminLiveAuctionDto>> GetAdminLiveAuctionsAsync();
         Task<AuctionWinnerSellerDetailsResponse> GetAuctionWinnerSellerDetailsAsync( Guid userId);
+        Task<List<AuctionItemImage>> GetAuctionImagesByAuctionId(int auctionId);
 
+        Task DeleteAuctionImages(int auctionId);
+
+        Task<BaseResponse> DeleteAuction(int auctionId);
+
+        Task<List<AuctionListModel>> GetLiveAuctions();
     }
 }

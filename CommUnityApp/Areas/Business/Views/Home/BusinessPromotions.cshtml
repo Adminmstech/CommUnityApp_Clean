@@ -32,14 +32,16 @@
 
                         <tr>
                             <th>#</th>
-                            <th>Product</th>
-                            <th>Promotion Type</th>
-                            <th>Promo Code</th>
-                            <th>Discount</th>
-                            <th>Redeemed</th>
+                            <th>Promotion Image</th>
+                            <th>Promotion Title</th>
+                            <th>Featured Products</th>
+                            <th>Offer Headline</th>
+                            <th>Price</th>
+                            <th>Coins Earned</th>
+                            <th>Friend Reward</th>
                             <th>Start Date</th>
                             <th>End Date</th>
-                            <th>QR Code</th>
+                            <th style="min-width:120px;">QR Code</th>
                             <th>Status</th>
                             <th width="220">Actions</th>
                         </tr>
@@ -146,11 +148,11 @@
             if (!data || data.length === 0) {
 
                 html = `
-                    <tr>
-                        <td colspan="11" class="text-center">
-                            No promotions found.
-                        </td>
-                    </tr>
+                <tr>
+                    <td colspan="13" class="text-center">
+                        No promotions found.
+                    </td>
+                </tr>
                 `;
 
                 $("#promotionTableBody").html(html);
@@ -159,32 +161,47 @@
 
             data.forEach(function (item, index) {
 
+                const promotionImage =
+                    item.promotionImage
+                        ? '/' + item.promotionImage
+                        : '/images/no-image.png';
+
                 html += `
 
                 <tr>
 
                     <td>${index + 1}</td>
 
-                    <td>
-                        <strong>${item.productName}</strong>
+                    <td class="text-center">
+
+                        <img src="${promotionImage}"
+                             class="img-thumbnail"
+                             style="width:70px;height:70px;object-fit:cover;" />
+
                     </td>
 
                     <td>
-                        <span class="badge bg-primary">
-                            ${item.promotionType}
-                        </span>
+                        <strong>${item.promotionTitle || '-'}</strong>
                     </td>
 
                     <td>
-                        ${item.promoCode || '-'}
+                        ${item.featuredProducts || '-'}
                     </td>
 
                     <td>
-                        ${item.discountValue || 0}
+                        ${item.offerHeadline || '-'}
                     </td>
 
                     <td>
-                        ${item.redeemedCount}
+                        $${item.promotionalPrice || 0}
+                    </td>
+
+                    <td>
+                        ${item.indoCoinsEarned || 0}
+                    </td>
+
+                    <td>
+                        ${item.friendRewardCoins || 0}
                     </td>
 
                     <td>
@@ -197,18 +214,28 @@
 
                     <td class="text-center">
 
-                        <img src="${item.qrCodeImage}"
-                             class="img-thumbnail"
-                             style="width:80px;height:80px;cursor:pointer"
-                             onclick="showQR('${item.qrCodeImage}')"/>
+                        ${item.qrCodeImage
+                        ? `
+                                   <img src="${item.qrCodeImage}"
+             class="img-thumbnail"
+             style="
+                width:100px;
+                height:100px;
+                object-fit:contain;
+                cursor:pointer;
+                background:#fff;
+                padding:5px;"
+             onclick="showQR('${item.qrCodeImage}')" />
+                            `
+                        : '-'}
 
                     </td>
 
                     <td>
 
                         ${item.isActive
-                            ? '<span class="badge bg-success">Active</span>'
-                            : '<span class="badge bg-danger">Inactive</span>'}
+                        ? '<span class="badge bg-success">Active</span>'
+                        : '<span class="badge bg-danger">Inactive</span>'}
 
                     </td>
 
@@ -227,14 +254,29 @@
 
                             <i class="fa fa-share-alt"></i>
                         </button>
+                                       <button
+                               class="btn btn-warning btn-sm"
+                                  onclick="editPromotion(${item.promotionId}, ${item.businessId})">
 
-                        <a href="${item.qrCodeImage}"
-                           download
-                           class="btn btn-info btn-sm">
+                             <i class="fa fa-edit"></i>
+                          </button>
+                        <button
+                            class="btn btn-danger btn-sm"
+                            onclick="deletePromotion(${item.promotionId})">
 
-                            <i class="fa fa-download"></i>
+                            <i class="fa fa-trash"></i>
+                         </button>
+                       @* ${item.qrCodeImage
+                        ? `
+                            <a href="${item.qrCodeImage}"
+                               download
+                               class="btn btn-info btn-sm">
 
-                        </a>
+                                <i class="fa fa-download"></i>
+
+                            </a>
+                            `
+                        : ''}*@
 
                     </td>
 
@@ -278,6 +320,71 @@
 
             return new Date(dateString)
                 .toLocaleDateString();
+        }
+
+        function deletePromotion(id) {
+
+            Swal.fire({
+
+                title: "Delete Promotion?",
+
+                text: "This promotion will be deleted permanently.",
+
+                icon: "warning",
+
+                showCancelButton: true,
+
+                confirmButtonColor: "#d33",
+
+                confirmButtonText: "Delete"
+
+            }).then((result) => {
+
+                if (!result.isConfirmed)
+                    return;
+
+                $.ajax({
+
+                    url: "/api/Product/DeletePromotion?promotionId=" + id,
+
+                    type: "DELETE",
+
+                    success: function (res) {
+
+                        Swal.fire(
+                            "Deleted",
+                            res.resultMessage,
+                            "success"
+                        ).then(() => {
+
+                            location.reload();
+
+                        });
+
+                    },
+
+                    error: function () {
+
+                        Swal.fire(
+                            "Error",
+                            "Unable to delete promotion.",
+                            "error");
+
+                    }
+
+                });
+
+            });
+
+        }
+
+        function editPromotion(promotionId, businessId) {
+
+            window.location.href =
+                "/Business/Home/AddPromotion?businessId=" +
+                businessId +
+                "&promotionId=" +
+                promotionId;
         }
 
     </script>

@@ -2,202 +2,448 @@
     ViewData["Title"] = "Add Promotion";
     Layout = "_BusinessLayout";
 }
+<style>
 
-<div class="container-fluid">
 
-    <div class="card shadow border-0 rounded-4">
+.offer-card{
+    position:relative;
+    overflow:hidden;
 
-        <div class="card-header bg-primary text-white">
-            <h4 class="mb-0">
-                <i class="fa fa-tags me-2"></i>
-                Add Promotion
-            </h4>
-        </div>
+    border-radius:28px;
 
-        <div class="card-body">
+    background:linear-gradient(
+        135deg,
+        #6a11cb 0%,
+        #8e2de2 45%,
+        #ff4fd8 100%
+    );
 
-            <div class="row">
+    box-shadow:
+        0 15px 40px rgba(106,17,203,.35);
 
-                <!-- Product -->
+    color:#fff;
 
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Product</label>
+    max-width:500px;
+    margin:auto;
+}
 
-                    <select id="productId" class="form-select">
-                        <option value="">Select Product</option>
-                    </select>
-                </div>
+/* Decorative circles */
 
-                <!-- Promotion Type -->
+.offer-card::before{
+    content:'';
+    position:absolute;
 
-                <div class="col-md-6 mb-3">
-                    <label class="form-label">Promotion Type</label>
+    width:250px;
+    height:250px;
 
-                    <select id="promotionType" class="form-select">
-                        <option value="Discount">Discount</option>
-                        <option value="Cashback">Cashback</option>
-                        <option value="BuyOneGetOne">Buy One Get One</option>
-                        <option value="ComboOffer">Combo Offer</option>
-                        <option value="PromoCode">Promo Code</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
+    border-radius:50%;
 
-                <!-- Product Details -->
+    background:rgba(255,255,255,.08);
 
-                <div class="col-md-6 mb-3">
-                    <label>Product Price</label>
-                    <input type="text"
-                           id="productPrice"
-                           class="form-control"
-                           readonly />
-                </div>
+    top:-120px;
+    right:-100px;
+}
 
-                <div class="col-md-6 mb-3">
-                    <label>Current Discount Price</label>
-                    <input type="text"
-                           id="discountPrice"
-                           class="form-control"
-                           readonly />
-                </div>
+.offer-card::after{
+    content:'';
+    position:absolute;
 
-                <!-- Other Promotion -->
+    width:180px;
+    height:180px;
 
-                <div class="col-md-12 mb-3">
-                    <label>Other Promotion Text</label>
+    border-radius:50%;
 
-                    <textarea id="otherPromotionText"
-                              rows="3"
-                              class="form-control"></textarea>
-                </div>
+    background:rgba(255,255,255,.06);
 
-                <!-- Promo -->
+    bottom:-80px;
+    left:-80px;
+}
 
-                <div class="col-md-4 mb-3">
-                    <label>Promo Code</label>
 
-                    <input type="text"
-                           id="promoCode"
-                           class="form-control" />
-                </div>
+.offer-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
 
-                <div class="col-md-4 mb-3">
-                    <label>Discount Value</label>
+    padding:18px 22px;
 
-                    <input type="number"
-                           id="discountValue"
-                           class="form-control" />
-                </div>
+    position:relative;
+    z-index:2;
+}
 
-                <div class="col-md-4 mb-3">
-                    <label>Cashback Value</label>
+.offer-badge{
+    background:#fff;
 
-                    <input type="number"
-                           id="cashbackValue"
-                           class="form-control" />
-                </div>
+    color:#6a11cb;
 
-                <!-- Amounts -->
+    padding:7px 14px;
 
-                <div class="col-md-6 mb-3">
-                    <label>Minimum Purchase Amount</label>
+    border-radius:30px;
 
-                    <input type="number"
-                           id="minimumPurchaseAmount"
-                           class="form-control" />
-                </div>
+    font-size:12px;
+    font-weight:700;
 
-                <div class="col-md-6 mb-3">
-                    <label>Max Redemption Limit</label>
+    text-transform:uppercase;
+}
 
-                    <input type="number"
-                           id="maxRedemptionLimit"
-                           class="form-control" />
-                </div>
+.saved-badge{
+    color:#fff;
 
-                <!-- Buy Get -->
+    font-weight:600;
 
-                <div class="col-md-6 mb-3">
-                    <label>Buy/Get Details</label>
+    font-size:13px;
 
-                    <textarea id="buyGetDetails"
-                              rows="3"
-                              class="form-control"></textarea>
-                </div>
+    background:rgba(255,255,255,.18);
 
-                <div class="col-md-6 mb-3">
-                    <label>Combo Offer Details</label>
+    padding:6px 12px;
 
-                    <textarea id="comboOfferDetails"
-                              rows="3"
-                              class="form-control"></textarea>
-                </div>
+    border-radius:30px;
 
-                <!-- Dates -->
+    backdrop-filter:blur(10px);
+}
 
-                <div class="col-md-6 mb-3">
-                    <label>Start Date</label>
+    .offer-validity {
+        margin-top: 15px;
+        padding: 10px 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px solid #e9ecef;
+        font-size: 14px;
+        color: #555;
+        line-height: 1.8;
+    }
 
-                    <input type="datetime-local"
-                           id="startDate"
-                           class="form-control" />
-                </div>
+        .offer-validity strong {
+            color: #222;
+        }
 
-                <div class="col-md-6 mb-3">
-                    <label>End Date</label>
+    .actual-price {
+        display: block;
+        text-decoration: line-through;
+        color: #bdbdbd;
+        font-size: 22px;
+        font-weight: 700;
+    }
 
-                    <input type="datetime-local"
-                           id="endDate"
-                           class="form-control" />
-                </div>
 
-                <!-- Switches -->
+    .offer-price-value {
+        display: block;
+        color: #ff1744;
+        font-size: 28px;
+        font-weight: 800;
+    }
 
-                <div class="col-md-6 mb-3">
-                    <label>Limited Deal</label>
+.offer-body{
+    display:flex;
 
-                    <select id="isLimitedDeal"
-                            class="form-select">
-                        <option value="true">Yes</option>
-                        <option value="false">No</option>
-                    </select>
-                </div>
+    gap:18px;
 
-                <div class="col-md-6 mb-3">
-                    <label>Status</label>
+    padding:0 22px 20px 22px;
 
-                    <select id="isActive"
-                            class="form-select">
-                        <option value="true">Active</option>
-                        <option value="false">Inactive</option>
-                    </select>
-                </div>
+    position:relative;
+    z-index:2;
+}
 
-                <!-- Image -->
+.offer-image img{
+    width:120px;
+    height:120px;
 
-                <div class="col-md-12 mb-3">
-                    <label>Promotion Image</label>
+    object-fit:cover;
 
-                    <input type="file"
-                           id="promotionImage"
-                           accept="image/*"
-                           class="form-control" />
-                </div>
+    border-radius:18px;
 
-                <div class="col-md-12 mb-3">
-                    <img id="previewImage"
-                         style="max-height:250px;display:none"
-                         class="img-thumbnail" />
-                </div>
+    border:3px solid rgba(255,255,255,.25);
 
-                <!-- Save -->
+    background:#fff;
 
-                <div class="col-md-12">
-                    <button class="btn btn-success"
-                            onclick="savePromotion()">
-                        <i class="fa fa-save me-2"></i>
-                        Save Promotion
-                    </button>
+    box-shadow:
+        0 8px 20px rgba(0,0,0,.18);
+}
+
+.offer-content{
+    flex:1;
+}
+
+
+
+.offer-content h4{
+    color:#fff;
+
+    font-size:22px;
+
+    font-weight:700;
+
+    margin-bottom:6px;
+
+    line-height:1.3;
+}
+
+
+.offer-headline{
+    color:#ffe082;
+
+    font-size:17px;
+
+    font-weight:700;
+
+    margin-bottom:10px;
+}
+
+
+
+.offer-product{
+    color:rgba(255,255,255,.9);
+
+    font-size:14px;
+
+    margin-bottom:12px;
+
+    line-height:1.4;
+}
+
+
+.offer-price{
+    font-size:30px;
+
+    font-weight:800;
+
+    color:#fff;
+
+    margin-bottom:12px;
+}
+
+
+
+.offer-benefits{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+
+    margin-top:10px;
+}
+
+.offer-benefits span{
+    background:rgba(255,255,255,.15);
+
+    backdrop-filter:blur(10px);
+
+    border-radius:20px;
+
+    padding:6px 12px;
+
+    font-size:12px;
+
+    color:#fff;
+
+    font-weight:600;
+}
+
+
+.offer-footer{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+
+    padding:18px;
+
+    background:rgba(255,255,255,.08);
+
+    backdrop-filter:blur(10px);
+
+    position:relative;
+    z-index:2;
+}
+
+
+.offer-footer .btn{
+    border-radius:25px;
+
+    padding:8px 18px;
+
+    font-weight:600;
+
+    border:none;
+}
+
+.offer-footer .btn-primary{
+    background:#fff;
+    color:#6a11cb;
+}
+
+.offer-footer .btn-success{
+    background:#22c55e;
+}
+
+.offer-footer .btn-secondary{
+    background:rgba(255,255,255,.2);
+    color:#fff;
+}
+
+
+
+.success-banner{
+    margin:15px 22px;
+
+    background:rgba(255,255,255,.18);
+
+    backdrop-filter:blur(12px);
+
+    color:#fff;
+
+    padding:10px 15px;
+
+    border-radius:14px;
+
+    text-align:center;
+
+    font-weight:600;
+
+    position:relative;
+    z-index:2;
+}
+
+    .price-title {
+        margin-top: 5px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #f5f5f5;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+
+        .price-title.promotion {
+            color: #ffe082;
+        }
+
+.modal-dialog{
+    max-width:540px;
+}
+
+.modal-content{
+    background:transparent;
+    border:none;
+}
+</style>
+
+<div class="row">
+
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Featured Product(s) / Service(s)</label>
+        <input type="text"
+               id="featuredProducts"
+               class="form-control"
+               placeholder="Enter Product/s or Service/s">
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Promotion Title</label>
+        <input type="text"
+               id="promotionTitle"
+               class="form-control"
+               placeholder="Enter promotion title">
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Offer Headline</label>
+        <input type="text"
+               id="offerHeadline"
+               class="form-control"
+               placeholder="e.g. Save AUD 50 Today">
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Promotional Price</label>
+        <input type="number"
+               id="promotionalPrice"
+               class="form-control"
+               step="0.01">
+    </div>
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Actual Price</label>
+        <input type="number"
+               id="actualPrice"
+               class="form-control"
+               step="0.01">
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Max Coins Redemption (%)</label>
+        <input type="number"
+               id="maxCoinsRedemptionPercentage"
+               class="form-control">
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label class="form-label">IndoCoins Earned</label>
+        <input type="number"
+               id="indoCoinsEarned"
+               class="form-control">
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Friend Reward (Coins)</label>
+        <input type="number"
+               id="friendRewardCoins"
+               class="form-control">
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Start Date</label>
+        <input type="datetime-local"
+               id="startDate"
+               class="form-control">
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label class="form-label">End Date</label>
+        <input type="datetime-local"
+               id="endDate"
+               class="form-control">
+    </div>
+
+    <div class="col-md-6 mb-3">
+        <label class="form-label">Status</label>
+        <select id="isActive"
+                class="form-select">
+            <option value="true">Active</option>
+            <option value="false">Inactive</option>
+        </select>
+    </div>
+
+    <div class="col-md-12 mb-3">
+        <label class="form-label">Promotion Image</label>
+        <input type="file"
+               id="promotionImage"
+               accept="image/*"
+               class="form-control">
+    </div>
+
+    <div class="col-md-12 mb-3">
+        <img id="previewImage"
+             class="img-thumbnail"
+             style="max-height:250px;display:none;">
+    </div>
+
+    <div class="col-md-12">
+        <button class="btn btn-success"
+                onclick="savePromotion()">
+            <i class="fa fa-save me-2"></i>
+            Save Promotion
+        </button>
+    </div>
+
+</div>
+
+<div class="modal fade"
+     id="promotionCardModal"
+     tabindex="-1">
+
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content border-0">
+
+            <div class="modal-body p-0">
+
+                <div id="promotionCardContainer">
                 </div>
 
             </div>
@@ -207,41 +453,25 @@
     </div>
 
 </div>
-
 @section Scripts {
 
     <script>
 
         const currentBusinessId = @ViewBag.BusinessId;
+        const promotionId =
+            new URLSearchParams(window.location.search)
+                .get("promotionId");
 
         let selectedImageBase64 = "";
-        let productsCache = [];
 
         $(document).ready(function () {
-
-            console.log("BusinessId:", currentBusinessId);
-
-            loadProducts(currentBusinessId);
-
-            $("#productId").change(function () {
-
-                const productId = $(this).val();
-
-                const selectedProduct = productsCache.find(
-                    x => x.product.productId == productId
-                );
-
-                if (!selectedProduct) return;
-
-                $("#productPrice").val(selectedProduct.product.price);
-                $("#discountPrice").val(selectedProduct.product.discountPrice);
-            });
 
             $("#promotionImage").change(function () {
 
                 const file = this.files[0];
 
-                if (!file) return;
+                if (!file)
+                    return;
 
                 const reader = new FileReader();
 
@@ -252,56 +482,107 @@
                     $("#previewImage")
                         .attr("src", e.target.result)
                         .show();
+
                 };
 
                 reader.readAsDataURL(file);
+
             });
+
+            if (promotionId) {
+
+                loadPromotion();
+
+            }
 
         });
 
-        function loadProducts(businessId) {
 
-            $.ajax({
-                url: '/api/Product/Get_ProductByBusinessId?BusinessId=' + businessId,
-                type: 'GET',
+        function loadPromotion() {
 
-                success: function (response) {
+    $.get(
+        "/api/Product/GetPromotionById?promotionId=" + promotionId,
 
-                    productsCache = response;
+        function (res) {
 
-                    $("#productId").empty();
+            let p = res.data;
 
-                    $("#productId").append(`
-                        <option value="">Select Product</option>
-                    `);
+            $("#featuredProducts").val(p.featuredProducts);
 
-                    response.forEach(function (item) {
+            $("#promotionTitle").val(p.promotionTitle);
 
-                        if (!item.product) return;
+            $("#offerHeadline").val(p.offerHeadline);
 
-                        $("#productId").append(`
-                            <option value="${item.product.productId}">
-                                ${item.product.productName}
-                            </option>
-                        `);
-                    });
-                },
+            $("#promotionalPrice").val(p.promotionalPrice);
 
-                error: function () {
+            $("#actualPrice").val(p.actualPrice);
 
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Failed to load products'
-                    });
-                }
-            });
-        }
+            $("#maxCoinsRedemptionPercentage")
+                .val(p.maxCoinsRedemptionPercentage);
+
+            $("#indoCoinsEarned")
+                .val(p.indoCoinsEarned);
+
+            $("#friendRewardCoins")
+                .val(p.friendRewardCoins);
+
+            $("#startDate")
+                .val(p.startDate.substring(0,16));
+
+            $("#endDate")
+                .val(p.endDate.substring(0,16));
+
+            $("#isActive")
+                .val(p.isActive.toString());
+
+            if (p.promotionImage) {
+
+                $("#previewImage")
+                    .attr("src","/"+p.promotionImage)
+                    .show();
+
+            }
+
+        });
+
+}
+
 
         function savePromotion() {
 
-            if (!$("#productId").val()) {
-                Swal.fire("Please select a product");
+            if ($("#featuredProducts").val().trim() === "") {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Validation',
+                    text: 'Please enter Featured Product(s) / Service(s)'
+                });
+                return;
+            }
+
+            if ($("#promotionTitle").val().trim() === "") {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Validation',
+                    text: 'Please enter Promotion Title'
+                });
+                return;
+            }
+
+            if ($("#offerHeadline").val().trim() === "") {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Validation',
+                    text: 'Please enter Offer Headline'
+                });
+                return;
+            }
+
+            if ($("#promotionalPrice").val() === "") {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Validation',
+                    text: 'Please enter Promotional Price'
+                });
                 return;
             }
 
@@ -309,44 +590,37 @@
 
                 promotion: {
 
-                    promotionId: 0,
-
-                    productId: parseInt($("#productId").val()),
-
+                    promotionId:
+                        promotionId
+                            ? parseInt(promotionId)
+                            : 0,
                     businessId: parseInt(currentBusinessId),
 
-                    promotionType: $("#promotionType").val(),
+                    featuredProducts: $("#featuredProducts").val(),
 
-                    otherPromotionText: $("#otherPromotionText").val(),
+                    promotionTitle: $("#promotionTitle").val(),
 
-                    promoCode: $("#promoCode").val(),
+                    offerHeadline: $("#offerHeadline").val(),
 
-                    discountValue: parseFloat($("#discountValue").val() || 0),
+                    promotionalPrice:
+                        parseFloat($("#promotionalPrice").val() || 0),
+                    actualPrice:
+                        parseFloat($("#actualPrice").val() || 0),
 
-                    cashbackValue: parseFloat($("#cashbackValue").val() || 0),
+                    maxCoinsRedemptionPercentage:
+                        parseInt($("#maxCoinsRedemptionPercentage").val() || 0),
 
-                    minimumPurchaseAmount:
-                        parseFloat($("#minimumPurchaseAmount").val() || 0),
+                    indoCoinsEarned:
+                        parseInt($("#indoCoinsEarned").val() || 0),
 
-                    maxRedemptionLimit:
-                        parseInt($("#maxRedemptionLimit").val() || 0),
-
-                    buyGetDetails:
-                        $("#buyGetDetails").val(),
-
-                    comboOfferDetails:
-                        $("#comboOfferDetails").val(),
-
-                    isLimitedDeal:
-                        $("#isLimitedDeal").val() === "true",
+                    friendRewardCoins:
+                        parseInt($("#friendRewardCoins").val() || 0),
 
                     promotionImage: "",
 
-                    startDate:
-                        $("#startDate").val(),
+                    startDate: $("#startDate").val(),
 
-                    endDate:
-                        $("#endDate").val(),
+                    endDate: $("#endDate").val(),
 
                     isActive:
                         $("#isActive").val() === "true"
@@ -356,7 +630,7 @@
                     selectedImageBase64 || ""
             };
 
-            console.log(payload);
+            console.log("Payload:", payload);
 
             $.ajax({
 
@@ -368,31 +642,232 @@
 
                 data: JSON.stringify(payload),
 
+                // success: function (response) {
+
+                //     Swal.fire({
+                //         icon: 'success',
+                //         title: 'Success',
+                //         text: response.message || 'Promotion saved successfully'
+                //     }).then(() => {
+
+                //         location.reload();
+                //     });
+                // },
                 success: function (response) {
 
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Success',
-                        text: 'Promotion added successfully'
-                    }).then(() => {
+                    if (promotionId) {
 
-                        location.reload();
-                    });
+                        Swal.fire({
+
+                            icon: "success",
+
+                            title: "Updated",
+
+                            text: "Promotion updated successfully."
+
+                        }).then(() => {
+
+                            window.location.href =
+                                "/Business/Home/BusinessPromotions?businessId=" +
+                                currentBusinessId;
+
+                        });
+
+                    }
+                    else {
+
+                        showPromotionCard(
+                            response,
+                            payload.promotion
+                        );
+
+                    }
                 },
 
                 error: function (xhr) {
 
-                    console.log(xhr.responseText);
+                    console.log(xhr);
+
+                    let errorMessage = 'Something went wrong';
+
+                    try {
+
+                        const response =
+                            JSON.parse(xhr.responseText);
+
+                        errorMessage =
+                            response.message || errorMessage;
+
+                    } catch {
+
+                        errorMessage =
+                            xhr.responseText || errorMessage;
+                    }
 
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
-                        text: xhr.responseText
+                        text: errorMessage
                     });
                 }
             });
         }
 
+        function showPromotionCard(response, promotion) {
+
+            const imageUrl =
+                selectedImageBase64 ||
+                'https://via.placeholder.com/800x450';
+
+            const html = `
+
+
+                <div class="offer-card">
+
+                    <div class="offer-header">
+
+                        <span class="offer-badge">
+                            🔥 LIMITED OFFER
+                        </span>
+
+                        <span class="saved-badge">
+                            Promotion Saved
+                        </span>
+
+                    </div>
+                <div class="offer-body">
+
+                    <div class="offer-image">
+                        <img src="${selectedImageBase64}" />
+                    </div>
+
+                    <div class="offer-content">
+
+                        <h4>
+                            ${promotion.promotionTitle}
+                        </h4>
+
+                        <p class="offer-headline">
+                            ${promotion.offerHeadline}
+                        </p>
+
+                        <div class="offer-product">
+                            ${promotion.featuredProducts}
+                        </div>
+
+                                     <div class="offer-price">
+
+                    <div class="price-box">
+
+                        <div class="actual-price">
+                            AUD ${promotion.actualPrice}
+                        </div>
+
+                        <div class="price-title">
+                            Actual Price
+                        </div>
+
+                    </div>
+
+                    <div class="price-box">
+
+                        <div class="offer-price-value">
+                            AUD ${promotion.promotionalPrice}
+                        </div>
+
+                        <div class="price-title promotion">
+                            Offer Price
+                        </div>
+
+                    </div>
+
+                </div>
+
+                        <div class="offer-validity">
+
+                            <div>
+                                📅 <strong>Starts:</strong>
+                                ${promotion.startDate}
+                            </div>
+
+                            <div>
+                                ⏰ <strong>Ends:</strong>
+                                ${promotion.endDate}
+                            </div>
+
+                        </div>
+
+                        <div class="offer-benefits">
+
+                            <span>
+                                🎁 ${promotion.indoCoinsEarned} Coins Earn
+                            </span>
+
+                            <span>
+                                💰 ${promotion.maxCoinsRedemptionPercentage}% Redeem
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+                    <div class="offer-footer">
+
+                        <button class="btn btn-primary btn-sm"
+                                onclick="window.open('${response.promotionUrl}','_blank')">
+
+                            View
+
+                        </button>
+
+                        <button class="btn btn-success btn-sm"
+                                onclick="sharePromotion('${response.promotionUrl}')">
+
+                            Share
+
+                        </button>
+
+                        <button class="btn btn-secondary btn-sm"
+                                data-bs-dismiss="modal">
+
+                            Close
+
+                        </button>
+
+                    </div>
+
+                </div>
+                `;
+
+
+          
+
+            $("#promotionCardContainer").html(html);
+            redirectToPromotionList = true;
+
+            const modal = new bootstrap.Modal(
+                document.getElementById("promotionCardModal")
+            );
+
+            modal.show();
+        }
+
+
+        let redirectToPromotionList = false;
+
+        const promotionModal = document.getElementById("promotionCardModal");
+
+        promotionModal.addEventListener("hidden.bs.modal", function () {
+
+            if (redirectToPromotionList) {
+
+                window.location.href =
+                    "/Business/Home/BusinessPromotions?businessId=" + currentBusinessId;
+            }
+
+        });
     </script>
 
 }

@@ -181,23 +181,23 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             }
         }
 
-        public async Task<int> RequestCharityItem(RequestCharityItemModel model)
+        public async Task<RequestCharityItemResponseModel> RequestCharityItem(RequestCharityItemModel model)
         {
-            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-            {
-                var id = await con.ExecuteScalarAsync<int>(
-                    "sp_RequestCharityItem",
-                    new
-                    {
-                        model.CharityItemId,
-                        model.RequestedByUserId,
-                        model.RequestedQuantity,
-                        model.Description
-                    },
-                    commandType: CommandType.StoredProcedure);
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
 
-                return id;
-            }
+            var result = await con.QueryFirstOrDefaultAsync<RequestCharityItemResponseModel>(
+                "sp_RequestCharityItem",
+                new
+                {
+                    model.CharityItemId,
+                    model.RequestedByUserId,
+                    model.RequestedQuantity,
+                    model.Description
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result;
         }
 
         public async Task<List<RequestedUserModel>> GetRequestedUsersByItemId(int charityItemId)
@@ -621,6 +621,25 @@ CommunityPostModel model)
         public Task<dynamic> UpdateCharityItemImage(long charityItemId, string imagePath)
         {
             throw new NotImplementedException();
+        }
+
+       
+
+        public async Task<List<CommunityPostModel>> GetTopFiveCommunityPostsByUser(Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result =
+                await connection.QueryAsync<CommunityPostModel>(
+                    "sp_GetTopFiveCommunityPostsByUser",
+                    new
+                    {
+                        UserId = userId
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
         }
     }
 }

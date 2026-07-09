@@ -28,6 +28,22 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<PromotionListModel>> GetBusinessPromotionsAsync(int businessId);
         Task<PromotionDetailsModel> GetPromotionDetailsAsync(int promotionId);
         Task<PromotionDetailsModel> GetPromotionByTokenAsync(Guid promotionToken, Guid? userId);
+
+        Task<List<BusinessPromotionModel>> GetPromotions(int businessId);
+
+        Task<PromotionRedemptionSummary> GetPromotionRedemptionSummary(long promotionId,Guid userId);
+
+        Task<PromotionRedemptionResult> RedeemPromotion( long promotionId,Guid userId);
+
+        Task<List<PromotionRedemptionModel>> GetMyPromotionRedemptions(Guid userId);
+
+        Task<VerifyPromotionResponse> VerifyPromotionRedemption(string redemptionCode);
+
+        Task<List<TopProductPromotionEntity>> GetTopFiveProductPromotions();
+
+        Task<BaseResponse> DeletePromotion(int promotionId);
+
+        Task<ProductPromotionModel> GetPromotionById(int promotionId);
     }
 }
 

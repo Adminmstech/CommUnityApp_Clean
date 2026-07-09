@@ -45,15 +45,17 @@
             });
         }
 
-        function renderDetails(item){
+        function renderDetails(item) {
 
             let html = `
 
-            <div class="card shadow">
+            <div class="card shadow border-0">
 
                 <div class="card-header bg-primary text-white">
 
-                    <h3>${item.productName}</h3>
+                    <h3 class="mb-0">
+                        ${item.promotionTitle}
+                    </h3>
 
                 </div>
 
@@ -61,90 +63,124 @@
 
                     <div class="row">
 
-                        <div class="col-md-5">
+                        <div class="col-md-4 text-center">
 
                             <img src="/${item.promotionImage}"
-                                 class="img-fluid rounded"/>
+                                 class="img-fluid rounded shadow-sm mb-3"
+                                 style="max-height:300px;" />
 
-                            <hr/>
+                            <div class="border rounded p-3 bg-light">
 
-                            <img src="${item.qrCodeImage}"
-                                 class="img-fluid border"/>
+                                <h6 class="mb-2">Promotion QR Code</h6>
+
+                                <img src="${item.qrCodeImage}"
+                                     class="img-fluid"
+                                     style="max-width:220px;" />
+                            </div>
 
                         </div>
 
-                        <div class="col-md-7">
+                        <div class="col-md-8">
 
-                            <table class="table">
+                            <table class="table table-bordered">
 
                                 <tr>
-                                    <th>Business</th>
-                                    <td>${item.businessName}</td>
+                                    <th width="35%">Business</th>
+                                    <td>${item.businessName || '-'}</td>
                                 </tr>
 
                                 <tr>
-                                    <th>Promotion Type</th>
-                                    <td>${item.promotionType}</td>
+                                    <th>Featured Products / Services</th>
+                                    <td>${item.featuredProducts || '-'}</td>
                                 </tr>
 
                                 <tr>
-                                    <th>Promo Code</th>
-                                    <td>${item.promoCode}</td>
+                                    <th>Offer Headline</th>
+                                    <td>${item.offerHeadline || '-'}</td>
                                 </tr>
 
                                 <tr>
-                                    <th>Discount</th>
-                                    <td>${item.discountValue}</td>
+                                    <th>Promotional Price</th>
+                                    <td>$${item.promotionalPrice || 0}</td>
                                 </tr>
 
                                 <tr>
-                                    <th>Cashback</th>
-                                    <td>${item.cashbackValue}</td>
+                                    <th>Max Coins Redemption</th>
+                                    <td>${item.maxCoinsRedemptionPercentage || 0}%</td>
                                 </tr>
 
                                 <tr>
-                                    <th>Min Purchase</th>
-                                    <td>${item.minimumPurchaseAmount}</td>
+                                    <th>IndoCoins Earned</th>
+                                    <td>${item.indoCoinsEarned || 0}</td>
                                 </tr>
 
                                 <tr>
-                                    <th>Max Redemption</th>
-                                    <td>${item.maxRedemptionLimit}</td>
+                                    <th>Friend Reward Coins</th>
+                                    <td>${item.friendRewardCoins || 0}</td>
                                 </tr>
 
                                 <tr>
-                                    <th>Redeemed</th>
-                                    <td>${item.redeemedCount}</td>
-                                </tr>
-
-                                <tr>
-                                    <th>Buy/Get</th>
-                                    <td>${item.buyGetDetails}</td>
-                                </tr>
-
-                                <tr>
-                                    <th>Combo Offer</th>
-                                    <td>${item.comboOfferDetails}</td>
+                                    <th>Promotion URL</th>
+                                    <td>
+                                        <a href="${item.promotionUrl}"
+                                           target="_blank">
+                                            Open Promotion
+                                        </a>
+                                    </td>
                                 </tr>
 
                                 <tr>
                                     <th>Start Date</th>
-                                    <td>${item.startDate}</td>
+                                    <td>${formatDate(item.startDate)}</td>
                                 </tr>
 
                                 <tr>
                                     <th>End Date</th>
-                                    <td>${item.endDate}</td>
+                                    <td>${formatDate(item.endDate)}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Status</th>
+                                    <td>
+                                        ${item.isActive
+                    ? '<span class="badge bg-success">Active</span>'
+                    : '<span class="badge bg-danger">Inactive</span>'}
+                                    </td>
+                                </tr>
+
+                                <tr>
+                                    <th>Business Address</th>
+                                    <td>${item.address || '-'}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Phone</th>
+                                    <td>${item.phone || '-'}</td>
                                 </tr>
 
                             </table>
 
-                            <button
-                                onclick="sharePromotion('${item.promotionUrl}')"
-                                class="btn btn-success">
+                            <div class="mt-3">
 
-                                Share Promotion
-                            </button>
+                                <button
+                                    onclick="sharePromotion('${item.promotionUrl}')"
+                                    class="btn btn-success">
+
+                                    <i class="fa fa-share-alt me-2"></i>
+                                    Share Promotion
+
+                                </button>
+
+                                @*<a href="${item.qrCodeImage}"
+                                   download
+                                   class="btn btn-info">
+
+                                    <i class="fa fa-download me-2"></i>
+                                    Download QR
+
+                                </a>*@
+
+                            </div>
 
                         </div>
 
@@ -166,7 +202,14 @@
                 "_blank"
             );
         }
+        function formatDate(dateString) {
 
+            if (!dateString)
+                return "-";
+
+            return new Date(dateString)
+                .toLocaleString();
+        }
     </script>
 
 }

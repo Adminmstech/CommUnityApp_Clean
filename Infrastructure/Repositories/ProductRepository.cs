@@ -316,59 +316,87 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         }
 
 
+        /* public async Task<PromotionResult> AddUpdatePromotion(ProductPromotionModel entity)
+         {
+             using var connection = new SqlConnection(
+                 _configuration.GetConnectionString("DefaultConnection")
+             );
+
+             await connection.OpenAsync();
+
+             var parameters = new DynamicParameters();
+
+             parameters.Add("@PromotionId", entity.PromotionId);
+
+             parameters.Add("@ProductId", entity.ProductId);
+
+             parameters.Add("@BusinessId", entity.BusinessId);
+
+             parameters.Add("@PromotionType", entity.PromotionType);
+
+             parameters.Add("@OtherPromotionText", entity.OtherPromotionText);
+
+             parameters.Add("@PromoCode", entity.PromoCode);
+
+             parameters.Add("@DiscountValue", entity.DiscountValue);
+
+             parameters.Add("@CashbackValue", entity.CashbackValue);
+
+             parameters.Add("@MinimumPurchaseAmount", entity.MinimumPurchaseAmount);
+
+             parameters.Add("@MaxRedemptionLimit", entity.MaxRedemptionLimit);
+
+             parameters.Add("@BuyGetDetails", entity.BuyGetDetails);
+
+             parameters.Add("@ComboOfferDetails", entity.ComboOfferDetails);
+
+             parameters.Add("@IsLimitedDeal", entity.IsLimitedDeal);
+
+             parameters.Add("@PromotionImage", entity.PromotionImage);
+
+             parameters.Add("@StartDate", entity.StartDate);
+
+             parameters.Add("@EndDate", entity.EndDate);
+
+             parameters.Add("@IsActive", entity.IsActive);
+
+             var result = await connection.QueryAsync<PromotionResult>(
+                 "InsertUpdate_ProductPromotion",
+                 parameters,
+                 commandType: CommandType.StoredProcedure
+             );
+
+             return result.FirstOrDefault();
+         }*/
+
         public async Task<PromotionResult> AddUpdatePromotion(ProductPromotionModel entity)
         {
             using var connection = new SqlConnection(
-                _configuration.GetConnectionString("DefaultConnection")
-            );
-
-            await connection.OpenAsync();
+                _configuration.GetConnectionString("DefaultConnection"));
 
             var parameters = new DynamicParameters();
 
             parameters.Add("@PromotionId", entity.PromotionId);
-
-            parameters.Add("@ProductId", entity.ProductId);
-
             parameters.Add("@BusinessId", entity.BusinessId);
+            parameters.Add("@FeaturedProducts", entity.FeaturedProducts);
+            parameters.Add("@PromotionTitle", entity.PromotionTitle);
+            parameters.Add("@OfferHeadline", entity.OfferHeadline);
+            parameters.Add("@PromotionalPrice", entity.PromotionalPrice);
+            parameters.Add("@ActualPrice", entity.ActualPrice);
 
-            parameters.Add("@PromotionType", entity.PromotionType);
-
-            parameters.Add("@OtherPromotionText", entity.OtherPromotionText);
-
-            parameters.Add("@PromoCode", entity.PromoCode);
-
-            parameters.Add("@DiscountValue", entity.DiscountValue);
-
-            parameters.Add("@CashbackValue", entity.CashbackValue);
-
-            parameters.Add("@MinimumPurchaseAmount", entity.MinimumPurchaseAmount);
-
-            parameters.Add("@MaxRedemptionLimit", entity.MaxRedemptionLimit);
-
-            parameters.Add("@BuyGetDetails", entity.BuyGetDetails);
-
-            parameters.Add("@ComboOfferDetails", entity.ComboOfferDetails);
-
-            parameters.Add("@IsLimitedDeal", entity.IsLimitedDeal);
-
+            parameters.Add("@MaxCoinsRedemptionPercentage", entity.MaxCoinsRedemptionPercentage);
+            parameters.Add("@IndoCoinsEarned", entity.IndoCoinsEarned);
+            parameters.Add("@FriendRewardCoins", entity.FriendRewardCoins);
             parameters.Add("@PromotionImage", entity.PromotionImage);
-
             parameters.Add("@StartDate", entity.StartDate);
-
             parameters.Add("@EndDate", entity.EndDate);
-
             parameters.Add("@IsActive", entity.IsActive);
 
-            var result = await connection.QueryAsync<PromotionResult>(
+            return await connection.QueryFirstOrDefaultAsync<PromotionResult>(
                 "InsertUpdate_ProductPromotion",
                 parameters,
-                commandType: CommandType.StoredProcedure
-            );
-
-            return result.FirstOrDefault();
+                commandType: CommandType.StoredProcedure);
         }
-
 
         public async Task<List<PromotionListModel>> GetBusinessPromotionsAsync(int businessId)
         {
@@ -415,6 +443,143 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return await connection.QueryFirstOrDefaultAsync<PromotionDetailsModel>(
                 "Get_PromotionByToken",
                 parameters,
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<List<BusinessPromotionModel>> GetPromotions(int businessId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = (await connection.QueryAsync<BusinessPromotionModel>(
+                "Get_UserPromotions",
+                new
+                {
+                    BusinessId = businessId
+                },
+                commandType: CommandType.StoredProcedure)).ToList();
+
+            foreach (var item in result)
+            {
+                if (!string.IsNullOrEmpty(item.QRCodeImage) &&
+                    !item.QRCodeImage.StartsWith("http"))
+                {
+                    item.QRCodeImage =
+                        $"{_configuration["BaseUrl"]}/{item.QRCodeImage.TrimStart('/')}";
+                }
+
+                if (!string.IsNullOrEmpty(item.PromotionImage) &&
+                    !item.PromotionImage.StartsWith("http"))
+                {
+                    item.PromotionImage =
+                        $"{_configuration["BaseUrl"]}/{item.PromotionImage.TrimStart('/')}";
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<PromotionRedemptionSummary>GetPromotionRedemptionSummary(long promotionId,Guid userId)
+        {
+            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            return await connection.QueryFirstOrDefaultAsync<
+                PromotionRedemptionSummary>(
+                "SP_GetPromotionRedemptionSummary",
+                new
+                {
+                    PromotionId = promotionId,
+                    UserId = userId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<PromotionRedemptionResult>RedeemPromotion(long promotionId,Guid userId)
+        {
+            using var connection = new SqlConnection( _configuration.GetConnectionString("DefaultConnection"));
+
+            var result =
+                await connection.QueryFirstOrDefaultAsync<
+                    PromotionRedemptionResult>(
+                "SP_RedeemPromotion",
+                new
+                {
+                    PromotionId = promotionId,
+                    UserId = userId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result;
+        }
+
+        public async Task<List<PromotionRedemptionModel>>GetMyPromotionRedemptions(Guid userId)
+        {
+            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            var result =
+                await connection.QueryAsync<
+                    PromotionRedemptionModel>(
+                "SP_GetMyPromotionRedemptions",
+                new
+                {
+                    UserId = userId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+        public async Task<VerifyPromotionResponse>VerifyPromotionRedemption(string redemptionCode)
+        {
+            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            return await connection.QueryFirstOrDefaultAsync<
+                VerifyPromotionResponse>(
+                "SP_VerifyPromotionRedemption",
+                new
+                {
+                    RedemptionCode = redemptionCode
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<List<TopProductPromotionEntity>> GetTopFiveProductPromotions()
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await connection.QueryAsync<TopProductPromotionEntity>(
+                "sp_GetTopFiveProductPromotions",
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+        public async Task<BaseResponse> DeletePromotion(int promotionId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            return await connection.QueryFirstOrDefaultAsync<BaseResponse>(
+                "sp_DeletePromotion",
+                new
+                {
+                    PromotionId = promotionId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<ProductPromotionModel> GetPromotionById(int promotionId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            return await connection.QueryFirstOrDefaultAsync<ProductPromotionModel>(
+                "sp_GetPromotionById",
+                new
+                {
+                    PromotionId = promotionId
+                },
                 commandType: CommandType.StoredProcedure);
         }
     }

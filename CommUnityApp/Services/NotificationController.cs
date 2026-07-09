@@ -1,5 +1,6 @@
 ﻿using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
+using CommUnityApp.InfrastructureLayer.Repositories;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CommUnityApp.Services
@@ -228,6 +229,20 @@ namespace CommUnityApp.Services
             var post = data.FirstOrDefault(x => x.PostId == postId);
 
             return Ok(post);
+        }
+
+        [HttpGet("GetTopFiveMessageBoardPosts")]
+        public async Task<IActionResult> GetTopFiveMessageBoardPosts()
+        {
+            var data = await _notificationRepository.GetTopFiveMessageBoardPosts();
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
         }
     }
 }

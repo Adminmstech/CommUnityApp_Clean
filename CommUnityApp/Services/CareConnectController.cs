@@ -106,9 +106,20 @@ namespace CommUnityApp.Services
         }
 
         [HttpGet("GetCareConnectChatMessages")]
-        public async Task<IActionResult> GetMessages(long chatThreadId)
+        public async Task<IActionResult> GetCareConnectChatMessages(long chatThreadId, Guid userId)
         {
-            var data = await _careConnectRepository.GetMessages(chatThreadId);
+            if (chatThreadId <= 0)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = "Invalid Chat Thread Id",
+                    Status = false
+                });
+            }
+
+            var data = await _careConnectRepository
+                .GetMessages(chatThreadId, userId);
 
             return Ok(new
             {
