@@ -18,7 +18,7 @@
                     <input type="text"
                            id="searchBox"
                            class="form-control"
-                           placeholder="Search by item, business, user..." />
+                           placeholder="Search by item, user..." />
                 </div>
 
                 <div class="col-md-3">
@@ -36,7 +36,6 @@
                     <thead class="table-dark">
                         <tr>
                             <th>Item</th>
-                            <th>Business</th>
                             <th>User</th>
                             <th>Condition</th>
                             <th>Reserve Price</th>
@@ -45,6 +44,7 @@
                             <th>End Time</th>
                             <th>Location</th>
                             <th>Status</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
 
@@ -62,38 +62,74 @@
     </div>
 </div>
 
+<!-- Details Modal -->
+<div class="modal fade" id="auctionDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+        <div class="modal-content">
+
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">
+                    <i class="fa fa-gavel me-2"></i>
+                    Auction Details
+                </h5>
+
+                <button type="button"
+                        class="btn-close btn-close-white"
+                        data-bs-dismiss="modal">
+                </button>
+            </div>
+
+            <div class="modal-body" id="auctionDetailsBody">
+                Loading...
+            </div>
+
+        </div>
+    </div>
+</div>
+
 @section Scripts {
+
     <script>
+
         let allAuctions = [];
 
         $(document).ready(function () {
+
             loadAuctions();
 
             $("#searchBox").on("keyup", filterAuctions);
             $("#statusFilter").on("change", filterAuctions);
+
         });
 
         function loadAuctions() {
+
             $.ajax({
                 url: "/api/Auction/Get_AdminLiveAuctions",
                 type: "GET",
 
                 success: function (response) {
+
                     allAuctions = response;
                     renderAuctions(response);
+
                 },
 
                 error: function () {
+
                     Swal.fire({
                         icon: "error",
                         title: "Error",
                         text: "Failed to load auctions."
                     });
+
                 }
             });
+
         }
 
         function filterAuctions() {
+
             const search = $("#searchBox").val().toLowerCase();
             const status = $("#statusFilter").val();
 
@@ -101,23 +137,26 @@
 
                 const matchesSearch =
                     (item.itemTitle || '').toLowerCase().includes(search) ||
-                    (item.businessName || '').toLowerCase().includes(search) ||
                     (item.userName || '').toLowerCase().includes(search);
 
                 const matchesStatus =
                     !status || item.auctionDisplayStatus === status;
 
                 return matchesSearch && matchesStatus;
+
             });
 
             renderAuctions(filtered);
+
         }
 
         function renderAuctions(auctions) {
+
             const tbody = $("#auctionTableBody");
             tbody.empty();
 
             if (!auctions || auctions.length === 0) {
+
                 tbody.html(`
                     <tr>
                         <td colspan="10" class="text-center py-4">
@@ -125,6 +164,7 @@
                         </td>
                     </tr>
                 `);
+
                 return;
             }
 
@@ -144,22 +184,18 @@
 
                 tbody.append(`
                     <tr>
+
                         <td>
                             <strong>${item.itemTitle || ''}</strong>
-                            <div class="text-muted small">
-                                ${item.itemDescription || ''}
-                            </div>
                         </td>
-
-                        <td>${item.businessName || 'Admin Auction'}</td>
 
                         <td>${item.userName || ''}</td>
 
                         <td>${item.itemCondition || '-'}</td>
 
-                        <td>$${item.reservePrice || 0}</td>
+                        <td>₹${item.reservePrice || 0}</td>
 
-                        <td>$${item.minDeposite || 0}</td>
+                        <td>₹${item.minDeposite || 0}</td>
 
                         <td>${formatDateTime(item.startTime)}</td>
 
@@ -168,16 +204,176 @@
                         <td>${item.itemLocation || '-'}</td>
 
                         <td>${statusBadge}</td>
+
+                        <td>
+                            <button class="btn btn-primary btn-sm"
+                                    onclick="viewDetails(${item.auctionId})">
+                                <i class="fa fa-eye"></i> Details
+                            </button>
+                        </td>
+
                     </tr>
                 `);
+
             });
+
+        }
+
+        function viewDetails(auctionId) {
+
+            $("#auctionDetailsBody").html(`
+                <div class="text-center p-5">
+                    <div class="spinner-border text-primary"></div>
+                </div>
+            `);
+
+            new bootstrap.Modal(document.getElementById("auctionDetailsModal")).show();
+
+            $.ajax({
+
+                url: `/api/Auction/Get_AuctionByAuctionId?AuctionId=${auctionId}`,
+                type: "GET",
+
+                success: function (response) {
+
+                    if (!response || response.length === 0) {
+
+                        $("#auctionDetailsBody").html(`
+                            <div class="alert alert-warning">
+                                Auction details not found.
+                            </div>
+                        `);
+
+                        return;
+                    }
+
+                    const auction = response[0];
+
+                    let imageHtml = '';
+
+                    if (auction.images && auction.images.length > 0) {
+
+                        auction.images.forEach(img => {
+
+                            imageHtml += `
+                                <div class="col-md-4 mb-3">
+                                    <img src="/${img.imageUrl}"
+                                         class="img-fluid rounded border shadow-sm"
+                                         style="height:220px;width:100%;object-fit:cover;" />
+                                </div>
+                            `;
+                        });
+                    }
+                    else {
+
+                        imageHtml = `
+                            <div class="col-12">
+                                <img src="/images/no-image.png"
+                                     class="img-fluid rounded border" />
+                            </div>
+                        `;
+                    }
+
+                    $("#auctionDetailsBody").html(`
+
+                        <div class="row mb-4">
+                            ${imageHtml}
+                        </div>
+
+                        <div class="table-responsive">
+
+                            <table class="table table-bordered">
+
+                                <tr>
+                                    <th width="220">Item Title</th>
+                                    <td>${auction.itemTitle || ''}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Description</th>
+                                    <td>${auction.itemDescription || ''}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>User</th>
+                                    <td>${auction.user || ''}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Condition</th>
+                                    <td>${auction.itemCondition || ''}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Reserve Price</th>
+                                    <td>₹${auction.reservePrice || 0}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Price Increment</th>
+                                    <td>₹${auction.priceIncrement || 0}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Minimum Deposit</th>
+                                    <td>₹${auction.minDeposite || 0}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Location</th>
+                                    <td>${auction.itemLocation || ''}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Start Time</th>
+                                    <td>${formatDateTime(auction.startTime)}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>End Time</th>
+                                    <td>${formatDateTime(auction.endTime)}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Created By</th>
+                                    <td>${auction.createdBy || ''}</td>
+                                </tr>
+
+                                <tr>
+                                    <th>Created Date</th>
+                                    <td>${formatDateTime(auction.createdAt)}</td>
+                                </tr>
+
+                            </table>
+
+                        </div>
+                    `);
+
+                },
+
+                error: function () {
+
+                    $("#auctionDetailsBody").html(`
+                        <div class="alert alert-danger">
+                            Failed to load auction details.
+                        </div>
+                    `);
+
+                }
+
+            });
+
         }
 
         function formatDateTime(dateString) {
-            if (!dateString) return '-';
 
-            const d = new Date(dateString);
-            return d.toLocaleString();
+            if (!dateString)
+                return "-";
+
+            return new Date(dateString).toLocaleString();
+
         }
+
     </script>
+
 }
