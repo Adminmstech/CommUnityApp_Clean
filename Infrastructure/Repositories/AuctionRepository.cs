@@ -17,12 +17,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
     public class AuctionRepository:IAuctionRepository
     {
         private readonly IConfiguration _configuration;
-        private readonly IHubContext _hubContext;
 
-        public AuctionRepository(IConfiguration configuration, IHubContext hubContext)
+        public AuctionRepository(IConfiguration configuration)
         {
             _configuration = configuration;
-            _hubContext = hubContext;
         }
 
         public Task<int> AddAsync(Auction entity)
@@ -255,12 +253,12 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure
             );
 
-            if (result != null && result.ResultId == 1)
-            {
-                await _hubContext.Clients
-                    .Group($"Auction_{request.AuctionId}")
-                    .SendAsync("ReceiveBidUpdate", request.AuctionId);
-            }
+            //if (result != null && result.ResultId == 1)
+            //{
+            //    await _hubContext.Clients
+            //        .Group($"Auction_{request.AuctionId}")
+            //        .SendAsync("ReceiveBidUpdate", request.AuctionId);
+            //}
 
             return result;
         }

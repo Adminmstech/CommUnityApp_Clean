@@ -11,6 +11,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public string? GameImage { get; set; }
         public int ConfigId { get; set; }
         public bool IsActive { get; set; }
+
+        public int RewardCoins { get; set; }
         // Add other props as needed
     }
 
@@ -63,8 +65,9 @@ namespace CommUnityApp.ApplicationCore.Models
         public int ResultId { get; set; }
         public string ResultMessage { get; set; } = string.Empty;
         public SpinSectionRequest? SelectedSection { get; set; }
-    }
 
+        public int CoinsEarned { get; set; }
+    }
     public class GameSpinResultDto
     {
         public int SpinId { get; set; }

@@ -16,11 +16,14 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
     {
         private readonly Func<IDbConnection> _connectionFactory;
         private readonly IDapperWrapper _dapper; // New dependency
+        private readonly IConfiguration _configuration;
 
-        public SpinGameRepository(Func<IDbConnection> connectionFactory, IDapperWrapper dapper) // Modified constructor
+
+        public SpinGameRepository(Func<IDbConnection> connectionFactory, IDapperWrapper dapper, IConfiguration configuration) // Modified constructor
         {
             _connectionFactory = connectionFactory;
             _dapper = dapper; // Initialize new dependency
+            _configuration = configuration;
         }
 
         private IDbConnection Connection => _connectionFactory();
@@ -414,7 +417,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 {
                     ResultId = 1,
                     ResultMessage = "Spin played successfully.",
-                    SelectedSection = selectedSection
+                    SelectedSection = selectedSection,
+                    CoinsEarned = game.RewardCoins
                 };
             }
             catch (Exception ex)
@@ -457,6 +461,25 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return await _dapper.QueryAsync<GameSpinResultDto>(con, queryBuilder.ToString(), new { GameId = gameId, UserId = userId });
         }
+        public async Task AddSpinGameRewardCoinsAsync(Guid userId, int coins, int gameId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            await connection.OpenAsync();
+
+            await connection.ExecuteAsync(
+                "SP_AddSpinGameRewardCoins",
+                new
+                {
+                    UserId = userId,
+                    Coins = coins,
+                    GameId = gameId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
+      
     }
 }
 

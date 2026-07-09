@@ -21,5 +21,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         ICareConnectRepository CareConnect { get; }
         IJobRepository Job { get; }
         ISmartQuizRepository SmartQuiz { get; }
+        ITextQuizRepository TextQuiz { get; }
     }
 }

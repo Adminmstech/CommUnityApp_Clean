@@ -64,7 +64,7 @@ namespace CommUnityApp.ApplicationCore.Models
     public class PlayGameRequest
     {
         public int GameId { get; set; }
-        public long MemberId { get; set; }
+        public Guid UserId { get; set; }
         public int? AttemptNumber { get; set; }
     }
     public class AddUpdateBrandGameRequest
