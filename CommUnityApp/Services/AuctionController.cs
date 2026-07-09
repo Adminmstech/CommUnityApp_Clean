@@ -15,7 +15,6 @@ namespace CommUnityApp.Services
         private readonly ILogger<AuctionController> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
-
         private readonly IHubContext<AuctionHub> _hubContext;
 
         public AuctionController(ILogger<AuctionController> logger, IUnitOfWork unitOfWork, IConfiguration config, IHubContext<AuctionHub> hubContext)
@@ -205,6 +204,7 @@ namespace CommUnityApp.Services
                     DeleveryMethodId = auction.DeleveryMethodId,
                     AuctionStatus = auction.AuctionStatus,
                     CreatedBy = auction.CreatedBy,
+                    RegistrationRequired=auction.RegistrationRequired,
                     CreatedAt = auction.CreatedAt,
 
                     // ✅ FIXED HERE
@@ -265,10 +265,10 @@ namespace CommUnityApp.Services
 
 
         [HttpGet("Get_AuctionByAuctionId")]
-        public async Task<IActionResult> AuctionByIdWithImages_Edit(int AuctionId)
+        public async Task<IActionResult> AuctionByIdWithImages_Edit(int AuctionId, Guid? userId = null)
         {
             // Step 1: Get auction(s)
-            var auctions = await _unitOfWork.Auction.GetAuctionAuctionId(AuctionId);
+            var auctions = await _unitOfWork.Auction.GetAuctionAuctionId(AuctionId, userId = null);
 
             var combinedAuctions = new List<AuctionWithImagesModel>();
 
@@ -297,6 +297,7 @@ namespace CommUnityApp.Services
                     DeleveryMethodId = auction.DeleveryMethodId,
                     AuctionStatus = auction.AuctionStatus,
                     CreatedBy = auction.CreatedBy,
+                    IsRegistered = auction.IsRegistered,
                     CreatedAt = auction.CreatedAt,
 
                     // ✅ FIXED HERE
@@ -364,19 +365,29 @@ namespace CommUnityApp.Services
 
             if (result.ResultId == 1)
             {
-                // Broadcast to users watching this auction
+                // Send latest bid info
                 await _hubContext.Clients
-     .Group(entity.AuctionId.ToString())
-     .SendAsync("ReceiveBid", new
-     {
-         userName = result.UserName,   // 🔥 add this
-         bidAmount = entity.BidAmount
-     });
+                    .Group(entity.AuctionId.ToString())
+                    .SendAsync("ReceiveBid", new
+                    {
+                        userName = result.UserName,
+                        bidAmount = entity.BidAmount
+                    });
 
+                // Send updated recent bids list
+                var recentBids = await _unitOfWork.Auction
+                    .GetRecentBids(entity.AuctionId);
+
+                await _hubContext.Clients
+                    .Group(entity.AuctionId.ToString())
+                    .SendAsync(
+                        "RecentBidsUpdated",
+                        recentBids);
             }
 
             return Ok(result);
         }
+
         [HttpGet("GetRecentBids")]
         public async Task<IActionResult> GetRecentBids(int auctionId)
         {
