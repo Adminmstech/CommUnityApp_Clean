@@ -294,5 +294,23 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result.ToList();
         }
+
+        public async Task<List<WalletTransactionModel>> GetUserWalletTransactions(Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<WalletTransactionModel>(
+                "SP_GetUserWalletTransactions",
+                new
+                {
+                    UserId = userId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
     }
 }

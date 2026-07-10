@@ -49,7 +49,7 @@ namespace CommUnityApp.Services
                 return BadRequest(new { resultId = 0, resultMessage = "Valid gameId is required." });
             }
 
-            if (request.MemberId <= 0)
+            if (request.UserId == Guid.Empty)
             {
                 return BadRequest(new { resultId = 0, resultMessage = "Valid memberId is required." });
             }
@@ -120,7 +120,7 @@ namespace CommUnityApp.Services
             {
                 await _brandGameRepository.TrackGameplayAsync(
                     game.BrandGameID,
-                    request.MemberId,
+                    request.UserId,
                     "NoPrize",
                     false,
                     attemptNumber > 0 ? attemptNumber : null
@@ -131,7 +131,7 @@ namespace CommUnityApp.Services
                     resultId = 0,
                     resultMessage = "No prize balance available.",
                     gameId = game.BrandGameID,
-                    memberId = request.MemberId,
+                    memberId = request.UserId,
                     onceIn,
                     attemptNumber = attemptNumber > 0 ? (int?)attemptNumber : null,
                     isReleased,
@@ -152,18 +152,21 @@ namespace CommUnityApp.Services
             var isWinner = finalPrizeType != "ConsolationPrize";
             await _brandGameRepository.TrackGameplayAsync(
                 game.BrandGameID,
-                request.MemberId,
+                request.UserId,
                 finalPrizeType,
                 isWinner,
                 attemptNumber > 0 ? attemptNumber : null
             );
-
+            await _brandGameRepository.AddRewardCoinsAsync(
+            request.UserId,
+            game.PointsAwarded.GetValueOrDefault(),
+            game.BrandGameID);
             return Ok(new
             {
                 resultId = 1,
                 resultMessage = "Game played successfully.",
                 gameId = game.BrandGameID,
-                memberId = request.MemberId,
+                memberId = request.UserId,
                 onceIn,
                 attemptNumber = attemptNumber > 0 ? (int?)attemptNumber : null,
                 isReleased,
@@ -172,6 +175,8 @@ namespace CommUnityApp.Services
                 prizeLabel,
                 prizeMessage,
                 prizeImage = BuildFullImageUrl(baseUrl, prizeImagePath),
+                coinsEarned = game.PointsAwarded.GetValueOrDefault(),
+
                 prizeBalances = new
                 {
                     primary = consumeResult.PrimaryPrizeBalCount,
@@ -299,31 +304,50 @@ namespace CommUnityApp.Services
 
             if (request == null || request.GameId <= 0)
             {
-                return BadRequest(new { resultId = 0, resultMessage = "Valid gameId is required." });
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = "Valid gameId is required."
+                });
             }
 
             if (request.UserId == Guid.Empty)
             {
-                return BadRequest(new { resultId = 0, resultMessage = "Valid userId is required." });
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = "Valid userId is required."
+                });
             }
 
             if (request.SectionId <= 0)
             {
-                return BadRequest(new { resultId = 0, resultMessage = "Valid sectionId is required." });
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = "Valid sectionId is required."
+                });
             }
 
             var result = await _spinGameRepository.PlaySpinGameAsync(request);
 
             if (result.ResultId > 0)
             {
+                var game = await _spinGameRepository.GetSpinGameByIdAsync(request.GameId);
+
+                if (game != null && game.RewardCoins > 0) 
+                {
+                    await _spinGameRepository.AddSpinGameRewardCoinsAsync(
+                        request.UserId,
+                        game.RewardCoins,
+                        request.GameId);
+                }
+
                 return Ok(result);
             }
-            else
-            {
-                return BadRequest(result);
-            }
-        }
 
+            return BadRequest(result);
+        }
         [HttpGet("GetGameSpinResults")]
         public async Task<IActionResult> GetGameSpinResults(int? gameId = null, Guid? userId = null)
         {

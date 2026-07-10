@@ -18,6 +18,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BaseResponse> DeleteSectionAsync(int sectionId);
         Task<PlaySpinResponse> PlaySpinGameAsync(PlaySpinRequest request);
         Task<IEnumerable<GameSpinResultDto>> GetGameSpinResultsAsync(int? gameId, Guid? userId);
+        Task AddSpinGameRewardCoinsAsync(Guid userId, int coins, int gameId);
     }
 }
 

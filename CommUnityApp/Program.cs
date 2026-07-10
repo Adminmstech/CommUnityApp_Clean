@@ -12,6 +12,7 @@ using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.SignalR;
 
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Resolve firebase credential path: config -> env var -> content root
@@ -74,7 +75,6 @@ builder.Services.AddSession(options =>
 });
 
 // SignalR
-
 builder.Services.AddSignalR();
 
 var syncfusionLicenseKey = builder.Configuration["Syncfusion:LicenseKey"];
@@ -107,6 +107,7 @@ builder.Services.AddTransient<IDapperWrapper, DapperWrapper>();
 builder.Services.AddTransient<ICampaignRepository, CampignRepository>();
 builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
 builder.Services.AddTransient<ISmartQuizRepository, SmartQuizRepository>();
+builder.Services.AddTransient<ITextQuizRepository,TextQuizRepository>();
 builder.Services.AddTransient<ISpinGameRepository>(provider =>
 {
     var configuration = provider.GetRequiredService<IConfiguration>();
@@ -116,7 +117,7 @@ builder.Services.AddTransient<ISpinGameRepository>(provider =>
             configuration.GetConnectionString("DefaultConnection")
         );
 
-    return new SpinGameRepository(connectionFactory, dapper);
+    return new SpinGameRepository(connectionFactory, dapper,configuration);
 });
 
 builder.Services.AddSession();
@@ -178,11 +179,10 @@ app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapControllers();
 
 app.MapControllers();
 
-
-app.MapHub<AuctionHub>("/auctionHub");
 app.MapControllerRoute(
     name: "area_default",
     pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}"

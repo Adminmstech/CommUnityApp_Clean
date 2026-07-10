@@ -251,4 +251,23 @@
 
         public bool SendNotification { get; set; }
     }
+
+    public class WalletTransactionModel
+    {
+        public long WalletTxnId { get; set; }
+        public long WalletId { get; set; }
+        public string TransactionType { get; set; } = string.Empty;
+        public decimal Amount { get; set; }
+        public int Coins { get; set; }
+        public string? ReferenceType { get; set; }
+        public long? ReferenceId { get; set; }
+        public DateTime CreatedAt { get; set; }
+
+        public string CreatedDateString =>
+          CreatedAt.ToString("yyyy-MM-dd HH:mm:ss");
+        public string? Notes { get; set; }
+
+        public decimal Balance { get; set; }
+        public int RewardCoins { get; set; }
+    }
 }

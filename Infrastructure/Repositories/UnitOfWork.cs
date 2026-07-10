@@ -25,6 +25,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         public ICareConnectRepository CareConnect { get; }
         public IJobRepository Job { get; }
         public ISmartQuizRepository SmartQuiz { get; }
+        public ITextQuizRepository TextQuiz { get; }
 
 
 
@@ -47,7 +48,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             ICareConnectRepository careConnect,
             IQuizGameRepository quizGames,
             IJobRepository job,
-            ISmartQuizRepository smartQuiz)
+            ISmartQuizRepository smartQuiz,
+            ITextQuizRepository textQuiz)
         {
             Community = community;
             Events = events;
@@ -68,6 +70,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             CareConnect = careConnect;
             Job = job;
             SmartQuiz = smartQuiz;
+            TextQuiz = textQuiz;
         }
     }
 }
