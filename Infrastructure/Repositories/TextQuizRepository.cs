@@ -42,7 +42,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure);
 
             var quizzes = result.ToList();
-
+             
             foreach (var item in quizzes)
             { 
                 item.QuizImagePath = string.IsNullOrEmpty(item.QuizImage)
