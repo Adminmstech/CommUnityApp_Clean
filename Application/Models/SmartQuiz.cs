@@ -68,6 +68,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public string StartDateString { get; set; }
 
         public string EndDateString { get; set; }
+
+        public int RewardCoins { get; set; }
     }
     public class SmartQuizListModel
     {
@@ -163,6 +165,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public long Rank { get; set; }
 
         public bool IsSelf { get; set; }
+
     }
 
     public class SubmitSmartQuizRequest

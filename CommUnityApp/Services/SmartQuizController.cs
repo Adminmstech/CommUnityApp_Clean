@@ -18,9 +18,6 @@ namespace CommUnityApp.Services
             _smartQuizRepository = smartQuizRepository;
         }
 
-
-
-
         [HttpGet("GetSmartQuizList")]
         public async Task<IActionResult> GetSmartQuizList()
         {
@@ -48,9 +45,7 @@ namespace CommUnityApp.Services
         }
 
         [HttpGet("GetSmartQuizById")]
-        public async Task<IActionResult> GetSmartQuizById(
-    int quizId,
-    Guid userId)
+        public async Task<IActionResult> GetSmartQuizById( int quizId, Guid userId)
         {
             try
             {
@@ -149,9 +144,7 @@ namespace CommUnityApp.Services
         }
 
         [HttpGet("GetSmartQuizStatusByCustomer")]
-        public async Task<IActionResult> GetSmartQuizStatusByCustomer(
-    int quizId,
-    Guid userId)
+        public async Task<IActionResult> GetSmartQuizStatusByCustomer(int quizId,Guid userId)
         {
             try
             {
@@ -238,8 +231,7 @@ namespace CommUnityApp.Services
         }
 
         [HttpPost("InsertCustomerSmartQuizAnswer")]
-        public async Task<IActionResult> InsertCustomerSmartQuizAnswer(
-    [FromBody] SubmitSmartQuizAnswerRequest request)
+        public async Task<IActionResult> InsertCustomerSmartQuizAnswer([FromBody] SubmitSmartQuizAnswerRequest request)
         {
             try
             {
@@ -346,15 +338,28 @@ namespace CommUnityApp.Services
         }
 
         [HttpPost("InsertSmartQuizCustomerAllAnswers")]
-        public async Task<IActionResult> InsertSmartQuizCustomerAllAnswers(
-    [FromBody] SubmitSmartQuizRequest request)
+        public async Task<IActionResult> InsertSmartQuizCustomerAllAnswers([FromBody] SubmitSmartQuizRequest request)
         {
             try
             {
                 var submitResult =
                     await _smartQuizRepository
                         .InsertSmartQuizCustomerAllAnswers(request);
+                // Get quiz details
+                var smartQuiz =
+                    await _smartQuizRepository.GetSmartQuizById(
+                        request.QuizId,
+                        request.UserId);
 
+                // Add reward coins
+                if (smartQuiz != null &&
+                    smartQuiz.SmartQuizDetails.RewardCoins > 0)
+                {
+                    await _smartQuizRepository.AddSmartQuizRewardCoinsAsync(
+                        request.UserId,
+                        smartQuiz.SmartQuizDetails.RewardCoins,
+                        request.QuizId);
+                }
                 var quiz =
                     await _smartQuizRepository
                         .GetSmartQuizStatusByCustomer(
@@ -397,6 +402,7 @@ namespace CommUnityApp.Services
                     Data = new
                     {
                         StatusMessage = statusMessage,
+                        CoinsEarned = smartQuiz?.SmartQuizDetails?.RewardCoins ?? 0,
                         QuizResult = submitResult,
                         Results = results
                     }
@@ -414,8 +420,7 @@ namespace CommUnityApp.Services
         }
 
         [HttpGet("GetSmartQuizResultsByUserId")]
-        public async Task<IActionResult> GetSmartQuizResultsByUserId(
-    Guid userId)
+        public async Task<IActionResult> GetSmartQuizResultsByUserId(Guid userId)
         {
             try
             {

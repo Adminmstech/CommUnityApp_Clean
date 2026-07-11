@@ -340,7 +340,20 @@
         /* Image Upload */
 
         document.getElementById("productImages").addEventListener("change", async function(){
+            function formatDateTimeLocal(value) {
 
+                if (!value)
+                    return null;
+
+                const dt = new Date(value);
+
+                return dt.getFullYear() + "-" +
+                    String(dt.getMonth() + 1).padStart(2, "0") + "-" +
+                    String(dt.getDate()).padStart(2, "0") + " " +
+                    String(dt.getHours()).padStart(2, "0") + ":" +
+                    String(dt.getMinutes()).padStart(2, "0") + ":" +
+                    String(dt.getSeconds()).padStart(2, "0");
+            }
         imageList=[];
         document.getElementById("imagePreview").innerHTML="";
 
@@ -412,8 +425,8 @@
 
         referAFriend: document.getElementById("referAFriend").value === "true",
 
-        startDate:document.getElementById("startDate").value||null,
-        endDate:document.getElementById("endDate").value||null,
+                    startDate: formatDateTimeLocal(document.getElementById("startDate").value),
+                    endDate: formatDateTimeLocal(document.getElementById("endDate").value),
 
         isActive:parseInt(document.getElementById("isActive").value),
 
