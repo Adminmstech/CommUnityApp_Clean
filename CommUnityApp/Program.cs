@@ -171,7 +171,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-app.MapHub<AuctionHub>("/auctionHub");
+
 
 app.UseSession();
 
@@ -182,7 +182,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 
-app.MapHub<AuctionHub>("/auctionHub");
+
 app.MapControllerRoute(
     name: "area_default",
     pattern: "{area:exists}/{controller=Admin}/{action=Index}/{id?}"

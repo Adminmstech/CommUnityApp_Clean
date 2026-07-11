@@ -27,6 +27,9 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<BaseResponse> DeleteAuction(int auctionId);
 
-        Task<List<AuctionListModel>> GetLiveAuctions();
+        Task<List<AuctionListModel>> GetLiveAuctions(Guid? UserId = null);
+
+       
+        Task<List<BidRegistrationUserModel>>GetAuctionRegisteredUsers(int auctionId);
     }
 }
