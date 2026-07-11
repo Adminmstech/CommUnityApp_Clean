@@ -23,5 +23,9 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<TextQuizQuestion>> GetTextQuizQuestionsByGameId(int quizId);
 
         Task<List<TextQuizAnswer>> GetTextQuizQuestionAnswersByGameId( int questionNumber, int quizId);
+
+        Task<List<GameSponsor>> GetGameSponsors(int gameTypeId,int gameId);
+
+        Task<GameSponsorDetails?> GetGameSponsorDetailsById(int sponsorId);
     }
 }

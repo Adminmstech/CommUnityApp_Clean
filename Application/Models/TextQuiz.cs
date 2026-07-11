@@ -201,4 +201,58 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string StatusMessage { get; set; } = string.Empty;
     }
+
+    public class GameSponsor
+    {
+        public int SponsorId { get; set; }
+
+        public int GameTypeId { get; set; }
+
+        public int GameId { get; set; }
+
+        public string SponsorName { get; set; }
+
+        public string SponsorDescription { get; set; }
+
+        public string SponsorImage { get; set; }
+
+        public string SponsorImagePath { get; set; } = string.Empty;
+
+
+        public string SponsorWebsite { get; set; }
+        public string VideoUrl { get; set; }
+
+        public int DisplayOrder { get; set; }
+    }
+
+    public class GameSponsorDetails
+    {
+        public int SponsorId { get; set; }
+
+        public int GameTypeId { get; set; }
+
+        public int GameId { get; set; }
+
+        public string SponsorName { get; set; } = string.Empty;
+
+        public string SponsorDescription { get; set; } = string.Empty;
+
+        public string SponsorImage { get; set; } = string.Empty;
+
+        public string SponsorImagePath { get; set; } = string.Empty;
+
+        public string VideoLink { get; set; } = string.Empty;
+
+        public string SponsorWebsite { get; set; } = string.Empty;
+
+        public int DisplayOrder { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public Guid? CreatedBy { get; set; }
+
+        public DateTime CreatedDate { get; set; }
+
+        public DateTime? ModifiedDate { get; set; }
+    }
 }

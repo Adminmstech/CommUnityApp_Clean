@@ -167,5 +167,45 @@ namespace CommUnityApp.Services
                 Data = data
             });
         }
+
+        [HttpGet("GetGameSponsors")]
+        public async Task<IActionResult> GetGameSponsors( int gameTypeId, int gameId)
+        {
+            var data = await _textQuizRepository.GetGameSponsors(
+                gameTypeId,
+                gameId);
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
+        }
+
+        [HttpGet("GetGameSponsorDetailsById")]
+        public async Task<IActionResult> GetGameSponsorDetailsById(int sponsorId)
+        {
+            var data = await _textQuizRepository.GetGameSponsorDetailsById(sponsorId);
+
+            if (data == null)
+            {
+                return Ok(new
+                {
+                    ResultId = 0,
+                    ResultMessage = "Sponsor not found.",
+                    Status = false
+                });
+            }
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
+        }
     }
 }

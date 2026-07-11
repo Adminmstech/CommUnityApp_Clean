@@ -42,9 +42,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure);
 
             var quizzes = result.ToList();
-
+             
             foreach (var item in quizzes)
-            {
+            { 
                 item.QuizImagePath = string.IsNullOrEmpty(item.QuizImage)
                     ? string.Empty
                     : $"{_configuration["ImageBaseUrl"]}/TextQuiz/{item.QuizId}/{item.QuizImage}";
@@ -327,6 +327,52 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure);
 
             return result.ToList();
+        }
+
+        public async Task<List<GameSponsor>> GetGameSponsors(int gameTypeId,int gameId)
+        {
+            using var connection = Connection;
+
+            var data = await connection.QueryAsync<GameSponsor>(
+                "GetGameSponsors",
+                new
+                {
+                    GameTypeId = gameTypeId,
+                    GameId = gameId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            var sponsors = data.ToList();
+
+            foreach (var item in sponsors)
+            {
+                item.SponsorImagePath = string.IsNullOrEmpty(item.SponsorImage)
+                    ? string.Empty
+                    : $"{_configuration["ImageBaseUrl"]}/Uploads/GameSponsors/{item.SponsorId}/{item.SponsorImage}";
+            }
+
+            return sponsors;
+        }
+        public async Task<GameSponsorDetails?> GetGameSponsorDetailsById(int sponsorId)
+        {
+            using var connection = Connection;
+
+            var sponsor = await connection.QueryFirstOrDefaultAsync<GameSponsorDetails>(
+                "GetGameSponsorDetailsById",
+                new
+                {
+                    SponsorId = sponsorId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            if (sponsor != null)
+            {
+                sponsor.SponsorImagePath = string.IsNullOrEmpty(sponsor.SponsorImage)
+                    ? string.Empty
+                    : $"{_configuration["ImageBaseUrl"]}/Uploads/GameSponsors/{sponsor.SponsorId}/{sponsor.SponsorImage}";
+            }
+
+            return sponsor;
         }
     }
 
