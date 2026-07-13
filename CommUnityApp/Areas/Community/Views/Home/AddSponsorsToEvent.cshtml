@@ -98,24 +98,54 @@
 
     function attachSponsor() {
 
+        var eventId = $("#EventId").val();
+        var sponsorId = $("#SponsorId").val();
+        var amount = $("#Amount").val();
+        var sponsorType = $("#SponsorType").val();
+        var communityId = $("#CommunityId").val();
+
+        if (!eventId) {
+            alert("Please select an event.");
+            return;
+        }
+
+        if (!sponsorId) {
+            alert("Please select a sponsor.");
+            return;
+        }
+
+        if (!amount || parseFloat(amount) <= 0) {
+            alert("Please enter a valid amount.");
+            return;
+        }
+
         var data = {
-            EventId: $("#EventId").val(),
-            SponsorId: $("#SponsorId").val(),
-            Amount: $("#Amount").val(),
-            SponsorType: $("#SponsorType").val()
+            EventId: parseInt(eventId),
+            SponsorId: parseInt(sponsorId),
+            CommunityId: parseInt(communityId),
+            Amount: parseFloat(amount),
+            SponsorType: sponsorType
         };
+
+        console.log("Sending data:", data);
 
         $.ajax({
             url: '/api/Event/AttachSponsorToEvent',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
-            success: function () {
+
+            success: function (response) {
                 alert("Sponsor linked to event successfully");
+
+                $("#SponsorId").val("");
+                $("#Amount").val("");
+                $("#SponsorType").val("Gold");
             },
+
             error: function (err) {
-                alert("Error saving");
-                console.log(err);
+                alert("Error saving sponsor");
+                console.log(err.responseText);
             }
         });
     }
