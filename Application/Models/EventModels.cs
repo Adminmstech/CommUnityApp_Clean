@@ -260,8 +260,11 @@ namespace CommUnityApp.ApplicationCore.Models
     public class EventSponsorMappingModel
     {
         public int EventId { get; set; }
+
         public int SponsorId { get; set; }
+
         public decimal Amount { get; set; }
+
         public string SponsorType { get; set; }
     }
 
@@ -277,6 +280,9 @@ namespace CommUnityApp.ApplicationCore.Models
         public string EventName { get; set; }
         public string EventImage { get; set; }
         public string Description { get; set; }
+        public string ContactName { get; set; }
+        public string ContactEmail { get; set; }
+        public string ContactPhone { get; set; }
         public string Location { get; set; }
         public DateTime StartDate { get; set; }
         public int TotalTickets { get; set; }
@@ -296,7 +302,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string LogoPath { get; set; }
     }
 
-    public class PostEventModel
+    public class PostEventModel 
     {
         public int EventId { get; set; }
 

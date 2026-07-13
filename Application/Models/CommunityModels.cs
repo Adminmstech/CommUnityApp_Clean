@@ -174,6 +174,13 @@ namespace CommUnityApp.ApplicationCore.Models
         public string Description { get; set; }
         public int Quantity { get; set; }
         public Guid PostedByUserId { get; set; }
+
+        public List<string> ImagePaths { get; set; } = new List<string>();
+    }
+
+    public class CharityItemImageModel
+    {
+        public int CharityItemId { get; set; }
         public string FileName { get; set; }
         public string ImagePath { get; set; }
     }
@@ -215,7 +222,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string ItemCategory { get; set; }
         public string Description { get; set; }
         public int Quantity { get; set; }
-        public string ImagePath { get; set; }
+        public List<string> ImagePaths { get; set; } = new List<string>();
         public string Status { get; set; }
         public DateTime? CreatedDate { get; set; }
         public string CreatedDateString
@@ -263,7 +270,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string VolunteerName { get; set; }
         public string VolunteerMobile { get; set; }
     }
-
+   
     public class ItemCategoryModel
     {
         public int CategoryId { get; set; }
