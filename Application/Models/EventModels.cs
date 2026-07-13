@@ -298,7 +298,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public int SponsorId { get; set; }
         public string SponsorName { get; set; }
         public decimal Amount { get; set; }
-        public string SponsorType { get; set; }
+        public string SponsorType { get; set; } 
         public string LogoPath { get; set; }
     }
 
