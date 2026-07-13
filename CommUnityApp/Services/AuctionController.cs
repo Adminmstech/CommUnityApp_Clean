@@ -408,7 +408,7 @@ namespace CommUnityApp.Services
             {
                 // Send latest bid info
                 await _hubContext.Clients
-                    .Group(entity.AuctionId.ToString())
+                    .Group($"Auction_{entity.AuctionId}")
                     .SendAsync("ReceiveBid", new
                     {
                         userName = result.UserName,
@@ -420,10 +420,13 @@ namespace CommUnityApp.Services
                     .GetRecentBids(entity.AuctionId);
 
                 await _hubContext.Clients
-                    .Group(entity.AuctionId.ToString())
+                    .Group($"Auction_{entity.AuctionId}")
                     .SendAsync(
                         "RecentBidsUpdated",
                         recentBids);
+
+                Console.WriteLine(
+                    $"SignalR broadcast sent to Auction_{entity.AuctionId}");
             }
 
             return Ok(result);

@@ -262,8 +262,9 @@
             });
 
         }
-
         function viewDetails(auctionId) {
+
+            joinAuctionGroup(auctionId);
 
             $("#auctionDetailsBody").html(`
                 <div class="text-center p-5">
@@ -475,7 +476,9 @@
             });
 
         }
-                const connection = new signalR.HubConnectionBuilder()
+                     let currentAuctionId = 0;
+
+        const connection = new signalR.HubConnectionBuilder()
             .withUrl("/auctionHub")
             .withAutomaticReconnect()
             .build();
@@ -498,9 +501,35 @@
 
         connection.onreconnected(function () {
             console.log("SignalR Reconnected");
+
+            if (currentAuctionId > 0) {
+               connection.invoke("JoinAuction", currentAuctionId);
+            }
         });
 
-                connection.on("RecentBidsUpdated", function (bids) {
+                function joinAuctionGroup(auctionId) {
+
+            currentAuctionId = auctionId;
+
+            connection.invoke("JoinAuction", auctionId)
+                .then(function () {
+                    console.log("Joined Auction Group:", auctionId);
+                })
+                .catch(function (err) {
+                    console.error("JoinAuction Error:", err);
+                });
+        }
+
+                connection.on("ReceiveBid", function (bid) {
+            console.log("ReceiveBid", bid);
+        });
+
+               connection.on("RecentBidsUpdated", function (bids) {
+
+            console.log("RecentBidsUpdated", bids);
+
+            if (!bids || bids.length === 0)
+                return;
 
             let html = "";
 
@@ -519,22 +548,31 @@
 
             $("#totalBids").text(bids.length);
 
-            const highestBid =
-                bids.sort((a, b) => b.bidAmount - a.bidAmount)[0];
+            // Find highest bid
+            let highestBidAmount = 0;
+            let highestBidder = "";
 
-            $("#highestBid")
-                .text(`₹${highestBid.bidAmount}`);
+            bids.forEach(function (bid) {
 
-            $("#highestBidder")
-                .text(highestBid.userName);
+                const amount = parseFloat(bid.bidAmount) || 0;
+
+                if (amount > highestBidAmount) {
+
+                    highestBidAmount = amount;
+                    highestBidder = bid.userName;
+                }
+            });
+
+            $("#highestBid").text(`₹${highestBidAmount}`);
+            $("#highestBidder").text(highestBidder);
         });
+
         function formatDateTime(dateString) {
 
             if (!dateString)
                 return "-";
 
             return new Date(dateString).toLocaleString();
-
         }
 
     </script>

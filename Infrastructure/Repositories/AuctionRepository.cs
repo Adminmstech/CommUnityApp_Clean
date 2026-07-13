@@ -70,6 +70,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             parameters.Add("@RegistrationEndDate", entity.RegistrationEndDate);
             parameters.Add("@AuctionStatus", entity.AuctionStatus);
             parameters.Add("@CreatedBy", entity.CreatedBy);
+            parameters.Add("@RegistrationRequired", entity.RegistrationRequired);
             var result = await connection.QueryAsync<BaseResponse>( "Add_Auction", parameters, commandType: CommandType.StoredProcedure);
 
             return result.FirstOrDefault();
