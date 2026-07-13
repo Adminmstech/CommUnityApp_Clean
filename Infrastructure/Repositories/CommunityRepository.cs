@@ -139,27 +139,29 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return result.ToList();
             }
         }
-        public async Task<(int CharityItemId, string ItemCode)> AddCharityItem(AddCharityItemModel model, string imagePath)
+        public async Task<(int CharityItemId, string ItemCode)> AddCharityItem(
+     AddCharityItemModel model)
         {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
 
-            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-            {
-                var result = await con.QueryFirstAsync(
-                    "SP_AddCharityItem",
-                    new
-                    {
-                        model.CommunityId,
-                        model.PostedByUserId,
-                        model.ItemName,
-                        model.ItemCategory,
-                        model.Description,
-                        model.Quantity,
-                        ImagePath = imagePath
-                    },
-                    commandType: CommandType.StoredProcedure);
+            var result = await con.QueryFirstAsync(
+                "SP_AddCharityItem",
+                new
+                {
+                    model.CommunityId,
+                    model.PostedByUserId,
+                    model.ItemName,
+                    model.ItemCategory,
+                    model.Description,
+                    model.Quantity
+                },
+                commandType: CommandType.StoredProcedure);
 
-                return ((int)result.CharityItemId, (string)result.ItemCode);
-            }
+            return (
+                (int)result.CharityItemId,
+                (string)result.ItemCode
+            );
         }
 
         public async Task UpdateCharityItemImage(int charityItemId, string imagePath)
@@ -180,7 +182,39 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     CommandType.StoredProcedure);
             }
         }
+        public async Task<int> AddCharityItemImage(
+    int charityItemId,
+    string imagePath)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
 
+            await con.OpenAsync();
+
+            var result = await con.QueryFirstAsync(
+                "dbo.SP_AddCharityItemImage",
+                new
+                {
+                    CharityItemId = charityItemId,
+                    ImagePath = imagePath
+                },
+                commandType: CommandType.StoredProcedure
+            );
+
+            int status = Convert.ToInt32(result.Status);
+
+            if (status != 1)
+            {
+                throw new Exception(
+                    $"SP_AddCharityItemImage failed for CharityItemId {charityItemId}."
+                );
+            }
+
+            return Convert.ToInt32(
+                result.CharityItemImageId
+            );
+        }
         public async Task<RequestCharityItemResponseModel> RequestCharityItem(RequestCharityItemModel model)
         {
             using var con = new SqlConnection(
@@ -232,13 +266,29 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
         public async Task<List<CharityItemListModel>> GetAllCharityItems()
         {
-            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            using (var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
             {
-                var result = await con.QueryAsync<CharityItemListModel>(
-                    "sp_GetAllCharityItems",
+                using var multi = await con.QueryMultipleAsync(
+                    "Get_AllCharityItems",
                     commandType: CommandType.StoredProcedure);
 
-                return result.ToList();
+                var items = (await multi.ReadAsync<CharityItemListModel>())
+                    .ToList();
+
+                var images = (await multi.ReadAsync<CharityItemImageModel>())
+                    .ToList();
+
+                foreach (var item in items)
+                {
+                    item.ImagePaths = images
+                        .Where(x => x.CharityItemId == item.CharityItemId)
+                        .Select(x => x.ImagePath)
+                        .Where(x => !string.IsNullOrEmpty(x))
+                        .ToList();
+                }
+
+                return items;
             }
         }
         public async Task<List<MyRequestedItemsModel>> GetMyRequestedItems(Guid userId)

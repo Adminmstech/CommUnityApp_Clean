@@ -235,90 +235,215 @@ namespace CommUnityApp.Services
             return Ok(data);
         }
         [HttpPost("AddCharityItem")]
-        public async Task<IActionResult> AddCharityItem([FromBody] AddCharityItemModel model)
+        public async Task<IActionResult> AddCharityItem(
+     [FromBody] AddCharityItemModel model)
         {
             try
             {
-                string imagePath = "";
-
-             
-                var result =
-                    await _communityRepository
-                    .AddCharityItem(model, "");
-
-                int charityItemId =
-                    result.CharityItemId;        
-
-                if (!string.IsNullOrEmpty(model.ImagePath))
+                if (model == null)
                 {
-                    string folderPath =
-                        Path.Combine(
-                            Directory.GetCurrentDirectory(),
-                            "wwwroot",
-                            "uploads",
-                            "charity",
-                            charityItemId.ToString());
-
-
-                    if (!Directory.Exists(folderPath))
+                    return BadRequest(new
                     {
-                        Directory.CreateDirectory(folderPath);
-                    }
-                  
-                    string base64String =
-                        model.ImagePath;
+                        ResultId = 0,
+                        ResultMessage = "Request body is null."
+                    });
+                }
 
-                    if (base64String.Contains(","))
+                int receivedImageCount = model.ImagePaths?.Count ?? 0;
+
+                // TEMPORARY DEBUG CHECK:
+                // Do not allow success if API received no images.
+                if (receivedImageCount == 0)
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage =
+                            "No images received in ImagePaths. Check your request JSON.",
+                        ReceivedImageCount = 0
+                    });
+                }
+
+                if (receivedImageCount > 5)
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage =
+                            "Maximum 5 images are allowed."
+                    });
+                }
+
+                var result =
+                    await _communityRepository.AddCharityItem(model);
+
+                int charityItemId = result.CharityItemId;
+
+                if (charityItemId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage =
+                            "Failed to create charity item."
+                    });
+                }
+
+                var insertedImages = new List<object>();
+
+                string folderPath = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot",
+                    "uploads",
+                    "charity",
+                    charityItemId.ToString()
+                );
+
+                Directory.CreateDirectory(folderPath);
+
+                foreach (string imageBase64 in model.ImagePaths)
+                {
+                    if (string.IsNullOrWhiteSpace(imageBase64))
+                    {
+                        continue;
+                    }
+
+                    string base64String = imageBase64.Trim();
+
+                    string extension = ".jpg";
+
+                    if (base64String.StartsWith(
+                        "data:image/png",
+                        StringComparison.OrdinalIgnoreCase))
+                    {
+                        extension = ".png";
+                    }
+                    else if (base64String.StartsWith(
+                        "data:image/webp",
+                        StringComparison.OrdinalIgnoreCase))
+                    {
+                        extension = ".webp";
+                    }
+                    else if (base64String.StartsWith(
+                        "data:image/gif",
+                        StringComparison.OrdinalIgnoreCase))
+                    {
+                        extension = ".gif";
+                    }
+                    else if (
+                        base64String.StartsWith(
+                            "data:image/jpeg",
+                            StringComparison.OrdinalIgnoreCase)
+                        ||
+                        base64String.StartsWith(
+                            "data:image/jpg",
+                            StringComparison.OrdinalIgnoreCase))
+                    {
+                        extension = ".jpg";
+                    }
+
+                    int commaIndex = base64String.IndexOf(',');
+
+                    if (commaIndex >= 0)
                     {
                         base64String =
-                            base64String.Substring(
-                                base64String.IndexOf(",") + 1);
-                    }                
+                            base64String.Substring(commaIndex + 1);
+                    }
+
+                    byte[] imageBytes;
+
+                    try
+                    {
+                        imageBytes =
+                            Convert.FromBase64String(base64String);
+                    }
+                    catch (FormatException)
+                    {
+                        return BadRequest(new
+                        {
+                            ResultId = 0,
+                            ResultMessage =
+                                "Invalid Base64 image data."
+                        });
+                    }
+
                     string fileName =
-                        Guid.NewGuid().ToString()
-                        + Path.GetExtension(model.FileName);
+                        $"{Guid.NewGuid()}{extension}";
 
-                    string filePath =
-                        Path.Combine(folderPath, fileName);
+                    string physicalFilePath = Path.Combine(
+                        folderPath,
+                        fileName
+                    );
 
+                    await System.IO.File.WriteAllBytesAsync(
+                        physicalFilePath,
+                        imageBytes
+                    );
 
-                    byte[] imageBytes =
-                        Convert.FromBase64String(base64String);
+                    string savedImagePath =
+                        $"/uploads/charity/{charityItemId}/{fileName}";
 
-                    System.IO.File.WriteAllBytes(
-                        filePath,
-                        imageBytes);
-
-
-                    imagePath =
-                        "/uploads/charity/"
-                        + charityItemId
-                        + "/"
-                        + fileName;
-
-                    await _communityRepository
-                        .UpdateCharityItemImage(
+                    // INSERT IMAGE AND GET INSERTED ID
+                    int charityItemImageId =
+                        await _communityRepository.AddCharityItemImage(
                             charityItemId,
-                            imagePath);
+                            savedImagePath
+                        );
+
+                    // If SP did not return a valid inserted ID, throw error
+                    if (charityItemImageId <= 0)
+                    {
+                        throw new Exception(
+                            $"Image insert failed. CharityItemId: {charityItemId}, Path: {savedImagePath}"
+                        );
+                    }
+
+                    insertedImages.Add(new
+                    {
+                        CharityItemImageId = charityItemImageId,
+                        ImagePath = savedImagePath
+                    });
+                }
+
+                // If we received images but none were inserted,
+                // DO NOT return 200 OK.
+                if (insertedImages.Count == 0)
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage =
+                            "Images were received but no images were inserted.",
+                        ReceivedImageCount = receivedImageCount,
+                        InsertedImageCount = 0
+                    });
                 }
 
                 return Ok(new
                 {
                     ResultId = 1,
                     ResultMessage =
-                        "Item added successfully",
+                        "Item and images added successfully.",
 
                     CharityItemId = charityItemId,
 
-                    ImagePath = imagePath
+                    ReceivedImageCount = receivedImageCount,
+
+                    InsertedImageCount = insertedImages.Count,
+
+                    Images = insertedImages
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    InnerException = ex.InnerException?.Message
+                });
             }
         }
-
         [HttpPost("RequestCharityItem")]
         public async Task<IActionResult> RequestCharityItem([FromBody] RequestCharityItemModel model)
         {
@@ -381,10 +506,21 @@ namespace CommUnityApp.Services
 
                 foreach (var item in data)
                 {
-                    if (!string.IsNullOrEmpty(item.ImagePath))
-                        item.ImagePath = baseUrl + item.ImagePath;
-                    else
-                        item.ImagePath = baseUrl + "/images/noimage.png";
+                    if (item.ImagePaths != null && item.ImagePaths.Any())
+                    {
+                        item.ImagePaths = item.ImagePaths
+                            .Where(path => !string.IsNullOrWhiteSpace(path))
+                            .Select(path => baseUrl + path)
+                            .ToList();
+                    }
+
+                    if (item.ImagePaths == null || !item.ImagePaths.Any())
+                    {
+                        item.ImagePaths = new List<string>
+                {
+                    baseUrl + "/images/noimage.png"
+                };
+                    }
                 }
 
                 return Ok(data);
