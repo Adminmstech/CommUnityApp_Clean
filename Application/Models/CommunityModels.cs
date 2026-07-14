@@ -257,7 +257,7 @@ namespace CommUnityApp.ApplicationCore.Models
     }
     public class MyRequestedItemsModel
     {
-        public int RequestId { get; set; } 
+        public int RequestId { get; set; }  
         public int CharityItemId { get; set; }
         public string ItemName { get; set; }
         public string ItemCategory { get; set; }
