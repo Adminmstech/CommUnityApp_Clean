@@ -135,14 +135,14 @@ item.ServiceImagePath =
                 model,
                 commandType: CommandType.StoredProcedure);
         }
-
+         
         public async Task<long> CreateRequestWithSupporters(CreateRequestWithSupportersModel model)
         {
             using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
             var supporterIdsCsv = string.Join(",", model.SupporterIds);
 
-            return await con.ExecuteScalarAsync<long>(
+            return await con.ExecuteScalarAsync<long>( 
                 "sp_CreateCareConnectServiceRequest",
                 new
                 {
@@ -261,8 +261,7 @@ item.ServiceImagePath =
             };
         }
 
-        public async Task<CompleteCareConnectRequestResult>
-     CompleteCareConnectRequest(long requestId)
+        public async Task<CompleteCareConnectRequestResult> CompleteCareConnectRequest(long requestId)
         {
             using var con = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection"));
