@@ -174,7 +174,7 @@ item.ServiceImagePath =
             using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
             return await con.QueryAsync(
-                "sp_GetCareConnectSupporterRequestList",
+                "sp_GetCareConnectSupporterRequestList", 
                 new { SupporterId = supporterId },
                 commandType: CommandType.StoredProcedure
             );
