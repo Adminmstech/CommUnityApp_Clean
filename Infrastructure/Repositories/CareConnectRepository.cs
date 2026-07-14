@@ -165,7 +165,7 @@ item.ServiceImagePath =
             return await con.QueryAsync(
                 "sp_GetUserCareConnectMessages",
                 new { UserId = userId },
-                commandType: CommandType.StoredProcedure
+                commandType: CommandType.StoredProcedure 
             );
         }
 
@@ -174,7 +174,7 @@ item.ServiceImagePath =
             using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
             return await con.QueryAsync(
-                "sp_GetCareConnectSupporterRequestList",
+                "sp_GetCareConnectSupporterRequestList", 
                 new { SupporterId = supporterId },
                 commandType: CommandType.StoredProcedure
             );
@@ -258,6 +258,30 @@ item.ServiceImagePath =
                 TotalRequests = counts.TotalRequests,
                 TotalUsers = counts.TotalUsers,
                 Requests = requests
+            };
+        }
+
+        public async Task<CompleteCareConnectRequestResult>
+     CompleteCareConnectRequest(long requestId)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await con
+                .QueryFirstOrDefaultAsync<CompleteCareConnectRequestResult>(
+                    "sp_CompleteCareConnectRequest",
+                    new
+                    {
+                        RequestId = requestId
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+            return result ?? new CompleteCareConnectRequestResult
+            {
+                ResultId = 0,
+                ResultMessage = "Unable to complete Care Connect request.",
+                Status = false,
+                RequestId = requestId
             };
         }
     }
