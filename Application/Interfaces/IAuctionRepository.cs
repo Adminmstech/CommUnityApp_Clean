@@ -31,5 +31,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
        
         Task<List<BidRegistrationUserModel>>GetAuctionRegisteredUsers(int auctionId);
+        Task<BaseResponse> UpdateRegistrationRequired(int auctionId, int registrationRequired);
     }
 }

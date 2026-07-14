@@ -339,6 +339,7 @@ namespace CommUnityApp.Services
                     AuctionStatus = auction.AuctionStatus,
                     CreatedBy = auction.CreatedBy,
                     IsRegistered = auction.IsRegistered,
+                    RegistrationRequired=auction.RegistrationRequired,
                     CreatedAt = auction.CreatedAt,
 
                     // ✅ FIXED HERE
@@ -776,6 +777,7 @@ namespace CommUnityApp.Services
                         auction.AuctionStatus,
                         auction.CreatedBy,
                         auction.IsRegistered,
+                        auction.RegistrationRequired,
                         auction.CreatedAt,
                         Images = images
                     },
@@ -798,6 +800,16 @@ namespace CommUnityApp.Services
                     ResultMessage = ex.Message
                 });
             }
+        }
+
+        [HttpPost("UpdateRegistrationRequired")]
+        public async Task<IActionResult> UpdateRegistrationRequired(int auctionId,int registrationRequired)
+        {
+            var result = await _unitOfWork.Auction.UpdateRegistrationRequired(
+                    auctionId,
+                    registrationRequired);
+
+            return Ok(result);
         }
     }
 }

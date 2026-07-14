@@ -397,5 +397,23 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result.ToList();
         }
 
+
+        public async Task<BaseResponse> UpdateRegistrationRequired( int auctionId, int registrationRequired)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@AuctionId", auctionId);
+            parameters.Add("@RegistrationRequired", registrationRequired);
+
+            var result = await connection.QueryAsync<BaseResponse>(
+                "Update_AuctionRegistrationRequired",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return result.FirstOrDefault();
+        }
     }
 }
