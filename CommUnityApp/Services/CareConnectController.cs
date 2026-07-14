@@ -257,6 +257,38 @@ namespace CommUnityApp.Services
                 Data = result
             });
         }
+
+        [HttpPost]
+        [Route("CompleteCareConnectRequest")]
+        public async Task<IActionResult> CompleteCareConnectRequest(long requestId)
+        {
+            try
+            {
+                if (requestId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Invalid RequestId.",
+                        Status = false
+                    });
+                }
+
+                var result = await _careConnectRepository
+                    .CompleteCareConnectRequest(requestId);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
     }
 }
     
