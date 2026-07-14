@@ -258,15 +258,14 @@ namespace CommUnityApp.Services
             });
         }
 
-        [HttpPost]
-        [Route("CompleteCareConnectRequest")]
-        public async Task<IActionResult> CompleteCareConnectRequest(long requestId)
+        [HttpPost("CompleteCareConnectRequest")]
+        public async Task<IActionResult> CompleteCareConnectRequest([FromBody] CompleteCareConnectRequestModel model)
         {
             try
             {
-                if (requestId <= 0)
+                if (model == null || model.RequestId <= 0)
                 {
-                    return BadRequest(new
+                    return Ok(new
                     {
                         ResultId = 0,
                         ResultMessage = "Invalid RequestId.",
@@ -275,13 +274,13 @@ namespace CommUnityApp.Services
                 }
 
                 var result = await _careConnectRepository
-                    .CompleteCareConnectRequest(requestId);
+                    .CompleteCareConnectRequest(model.RequestId);
 
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(new
+                return Ok(new
                 {
                     ResultId = 0,
                     ResultMessage = ex.Message,
