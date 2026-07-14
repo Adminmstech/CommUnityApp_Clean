@@ -39,7 +39,7 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string? CreatedBy { get; set; }
         public int RegistrationRequired { get; set; }
-        
+
     }
 
     public class AuctionItemImage
@@ -98,7 +98,7 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public Guid UserId { get; set; }
 
-        public string? User { get; set; }   
+        public string? User { get; set; }
 
         public int? ItemTypeId { get; set; }
 
@@ -123,10 +123,10 @@ namespace CommUnityApp.ApplicationCore.Models
         public int? DeleveryMethodId { get; set; }
 
         public int? AuctionStatus { get; set; }
-        public bool IsRegistered { get; set; }
+
         public string? CreatedBy { get; set; }
         public int RegistrationRequired { get; set; }
-
+        public bool IsRegistered { get; set; }
         public List<GetAuctionImagedModel> AuctionImages { get; set; }
         public DateTime? CreatedAt { get; set; }
     }
@@ -180,11 +180,11 @@ namespace CommUnityApp.ApplicationCore.Models
         public string BidTimeFormatted =>
             BidTime.ToString("HH:mm:ss");
     }
-    public class  PlaceBidResponse
+    public class PlaceBidResponse
     {
         public int ResultId { get; set; }
         public string ResultMessage { get; set; } = string.Empty;
-        public string UserName { get; set; }= string.Empty;
+        public string UserName { get; set; } = string.Empty;
 
     }
 
@@ -265,7 +265,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string? AuctionDisplayStatus { get; set; }
     }
 
-    public class AuctionWinnerSellerDetailsResponse 
+    public class AuctionWinnerSellerDetailsResponse
     {
         public int AuctionId { get; set; }
 
@@ -299,5 +299,26 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string? BusinessAddress { get; set; }
     }
+    public class BidRegistrationUserModel
+    {
+        public Guid UserId { get; set; }
 
+        public string UserName { get; set; }
+
+        public string Email { get; set; }
+
+        public string PhoneNumber { get; set; }
+
+        public int PaymentStatusId { get; set; }
+
+        public string PaymentStatus
+        {
+            get
+            {
+                return PaymentStatusId == 1
+                    ? "Paid"
+                    : "Pending";
+            }
+        }
+    }
 }

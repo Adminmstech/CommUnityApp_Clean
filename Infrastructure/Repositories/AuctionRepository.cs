@@ -2,8 +2,6 @@
 using CommUnityApp.ApplicationCore.Models;
 using CommUnityApp.Domain.Entities;
 using Dapper;
-using Microsoft.AspNet.SignalR;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
@@ -17,10 +15,11 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
     public class AuctionRepository:IAuctionRepository
     {
         private readonly IConfiguration _configuration;
-
+        
         public AuctionRepository(IConfiguration configuration)
         {
             _configuration = configuration;
+            
         }
 
         public Task<int> AddAsync(Auction entity)
@@ -71,6 +70,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             parameters.Add("@RegistrationEndDate", entity.RegistrationEndDate);
             parameters.Add("@AuctionStatus", entity.AuctionStatus);
             parameters.Add("@CreatedBy", entity.CreatedBy);
+            parameters.Add("@RegistrationRequired", entity.RegistrationRequired);
             var result = await connection.QueryAsync<BaseResponse>( "Add_Auction", parameters, commandType: CommandType.StoredProcedure);
 
             return result.FirstOrDefault();
@@ -253,13 +253,6 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure
             );
 
-            //if (result != null && result.ResultId == 1)
-            //{
-            //    await _hubContext.Clients
-            //        .Group($"Auction_{request.AuctionId}")
-            //        .SendAsync("ReceiveBidUpdate", request.AuctionId);
-            //}
-
             return result;
         }
 
@@ -367,17 +360,60 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result;
         }
 
-        public async Task<List<AuctionListModel>> GetLiveAuctions()
+        public async Task<List<AuctionListModel>> GetLiveAuctions(Guid? UserId = null)
         {
             using var connection = new SqlConnection(
-                _configuration.GetConnectionString("DefaultConnection")
-            );
+                _configuration.GetConnectionString("DefaultConnection"));
 
             await connection.OpenAsync();
 
-            var result = await connection.QueryAsync<AuctionListModel>("Get_LiveAuctions", commandType: CommandType.StoredProcedure);
+            var parameters = new DynamicParameters();
+            parameters.Add("@UserId", UserId);
+
+            var result = await connection.QueryAsync<AuctionListModel>(
+                "Get_LiveAuctions",
+                parameters,   
+                commandType: CommandType.StoredProcedure);
 
             return result.ToList();
+        }
+
+
+        public async Task<List<BidRegistrationUserModel>> GetAuctionRegisteredUsers(int auctionId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@AuctionId", auctionId);
+
+            var result = await connection.QueryAsync<BidRegistrationUserModel>(
+                "Get_AuctionRegisteredUsers",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+
+        public async Task<BaseResponse> UpdateRegistrationRequired( int auctionId, int registrationRequired)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@AuctionId", auctionId);
+            parameters.Add("@RegistrationRequired", registrationRequired);
+
+            var result = await connection.QueryAsync<BaseResponse>(
+                "Update_AuctionRegistrationRequired",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return result.FirstOrDefault();
         }
     }
 }

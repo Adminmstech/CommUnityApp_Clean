@@ -61,6 +61,49 @@
         </div>
     </div>
 </div>
+<div class="row mb-4">
+
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body text-center">
+                <h3>${response.totalRegisteredUsers}</h3>
+                <small>Participants</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body text-center">
+                <h3 id="totalBids">${response.totalBids}</h3>
+                <small>Total Bids</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-warning">
+            <div class="card-body text-center">
+                <h3 id="highestBid">
+                    ₹${response.highestBid}
+                </h3>
+                <small>Highest Bid</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center">
+                <h6 id="highestBidder">
+                    ${response.highestBidder}
+                </h6>
+                <small>Highest Bidder</small>
+            </div>
+        </div>
+    </div>
+
+</div>
 
 <!-- Details Modal -->
 <div class="modal fade" id="auctionDetailsModal" tabindex="-1">
@@ -85,8 +128,10 @@
 
         </div>
     </div>
-</div>
 
+  
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
 @section Scripts {
 
     <script>
@@ -218,8 +263,9 @@
             });
 
         }
-
         function viewDetails(auctionId) {
+
+            joinAuctionGroup(auctionId);
 
             $("#auctionDetailsBody").html(`
                 <div class="text-center p-5">
@@ -231,125 +277,213 @@
 
             $.ajax({
 
-                url: `/api/Auction/Get_AuctionByAuctionId?AuctionId=${auctionId}`,
+                url: `/api/Auction/Get_AdminAuctionDetails?auctionId=${auctionId}`,
                 type: "GET",
 
-                success: function (response) {
+                        success: function (response) {
 
-                    if (!response || response.length === 0) {
+            if (!response || response.resultId !== 1) {
 
-                        $("#auctionDetailsBody").html(`
-                            <div class="alert alert-warning">
-                                Auction details not found.
-                            </div>
-                        `);
+                $("#auctionDetailsBody").html(`
+                    <div class="alert alert-warning">
+                        Auction details not found.
+                    </div>
+                `);
 
-                        return;
-                    }
+                return;
+            }
 
-                    const auction = response[0];
+            const auction = response.auction;
+            const registeredUsers = response.registeredUsers || [];
+            const bidHistory = response.bidHistory || [];
 
-                    let imageHtml = '';
+            let imageHtml = "";
 
-                    if (auction.images && auction.images.length > 0) {
+            if (auction.images && auction.images.length > 0) {
 
-                        auction.images.forEach(img => {
+                auction.images.forEach(img => {
 
-                            imageHtml += `
-                                <div class="col-md-4 mb-3">
-                                    <img src="/${img.imageUrl}"
-                                         class="img-fluid rounded border shadow-sm"
-                                         style="height:220px;width:100%;object-fit:cover;" />
-                                </div>
-                            `;
-                        });
-                    }
-                    else {
-
-                        imageHtml = `
-                            <div class="col-12">
-                                <img src="/images/no-image.png"
-                                     class="img-fluid rounded border" />
-                            </div>
-                        `;
-                    }
-
-                    $("#auctionDetailsBody").html(`
-
-                        <div class="row mb-4">
-                            ${imageHtml}
+                    imageHtml += `
+                        <div class="col-md-4 mb-3">
+                            <img src="/${img.imageUrl}"
+                                 class="img-fluid rounded border shadow-sm"
+                                 style="height:220px;width:100%;object-fit:cover;">
                         </div>
+                    `;
+                });
+            }
 
-                        <div class="table-responsive">
+            let participantsHtml = "";
 
-                            <table class="table table-bordered">
+            if (registeredUsers.length > 0) {
 
-                                <tr>
-                                    <th width="220">Item Title</th>
-                                    <td>${auction.itemTitle || ''}</td>
-                                </tr>
+                registeredUsers.forEach(user => {
 
-                                <tr>
-                                    <th>Description</th>
-                                    <td>${auction.itemDescription || ''}</td>
-                                </tr>
+                    participantsHtml += `
+                        <tr>
+                            <td>${user.userName}</td>
+                            <td>${user.email || ''}</td>
+                            <td>
+                                <span class="badge bg-success">
+                                    ${user.paymentStatus}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
 
-                                <tr>
-                                    <th>User</th>
-                                    <td>${auction.user || ''}</td>
-                                </tr>
+            let bidHistoryHtml = "";
 
-                                <tr>
-                                    <th>Condition</th>
-                                    <td>${auction.itemCondition || ''}</td>
-                                </tr>
+            if (bidHistory.length > 0) {
 
-                                <tr>
-                                    <th>Reserve Price</th>
-                                    <td>₹${auction.reservePrice || 0}</td>
-                                </tr>
+                bidHistory.forEach(bid => {
 
-                                <tr>
-                                    <th>Price Increment</th>
-                                    <td>₹${auction.priceIncrement || 0}</td>
-                                </tr>
+                    bidHistoryHtml += `
+                        <tr>
+                            <td>${bid.userName}</td>
+                            <td>₹${bid.bidAmount}</td>
+                            <td>${formatDateTime(bid.bidTime)}</td>
+                        </tr>
+                    `;
+                });
+            }
 
-                                <tr>
-                                    <th>Minimum Deposit</th>
-                                    <td>₹${auction.minDeposite || 0}</td>
-                                </tr>
+            $("#auctionDetailsBody").html(`
 
-                                <tr>
-                                    <th>Location</th>
-                                    <td>${auction.itemLocation || ''}</td>
-                                </tr>
+                <div class="row mb-4">
+                    ${imageHtml}
+                </div>
 
-                                <tr>
-                                    <th>Start Time</th>
-                                    <td>${formatDateTime(auction.startTime)}</td>
-                                </tr>
+                <div class="row mb-4">
 
-                                <tr>
-                                    <th>End Time</th>
-                                    <td>${formatDateTime(auction.endTime)}</td>
-                                </tr>
-
-                                <tr>
-                                    <th>Created By</th>
-                                    <td>${auction.createdBy || ''}</td>
-                                </tr>
-
-                                <tr>
-                                    <th>Created Date</th>
-                                    <td>${formatDateTime(auction.createdAt)}</td>
-                                </tr>
-
-                            </table>
-
+                    <div class="col-md-3">
+                        <div class="card bg-info text-white">
+                            <div class="card-body text-center">
+                                <h3>${response.totalRegisteredUsers}</h3>
+                                <small>Participants</small>
+                            </div>
                         </div>
-                    `);
+                    </div>
 
-                },
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body text-center">
+                                <h3 id="totalBids">
+                                    ${response.totalBids}
+                                </h3>
+                                <small>Total Bids</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="card bg-warning">
+                            <div class="card-body text-center">
+                                <h3 id="highestBid">
+                                    ₹${response.highestBid}
+                                </h3>
+                                <small>Highest Bid</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body text-center">
+                                <h6 id="highestBidder">
+                                    ${response.highestBidder}
+                                </h6>
+                                <small>Highest Bidder</small>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                        <div class="card border-primary mb-3">
+            <div class="card-body d-flex justify-content-between align-items-center">
+
+                <div>
+                    <h6 class="mb-1">Registration Required</h6>
+                    <small class="text-muted">
+                        Enable or disable bidder registration for this auction.
+                    </small>
+                </div>
+
+                <div class="form-check form-switch">
+                    <input class="form-check-input"
+                           type="checkbox"
+                           role="switch"
+                           id="registrationRequiredToggle"
+                           ${auction.registrationRequired == 1 ? "checked" : ""}
+                           onchange="updateRegistrationRequired(${auction.auctionId}, this)">
+                </div>
+
+            </div>
+        </div>
+                <table class="table table-bordered">
+
+                    <tr>
+                        <th>Item Title</th>
+                        <td>${auction.itemTitle || ''}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Description</th>
+                        <td>${auction.itemDescription || ''}</td>
+                    </tr>
+
+                    <tr>
+                        <th>User</th>
+                        <td>${auction.user || ''}</td>
+                    </tr>
+
+                    <tr>
+                        <th>Reserve Price</th>
+                        <td>₹${auction.reservePrice || 0}</td>
+                    </tr>
+
+                </table>
+
+                <h5 class="mt-4">Bid Participants</h5>
+
+                <table class="table table-bordered">
+
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        ${participantsHtml}
+                    </tbody>
+
+                </table>
+
+                <h5 class="mt-4">Latest Bids</h5>
+
+                <table class="table table-bordered">
+
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Bidder</th>
+                            <th>Bid Amount</th>
+                            <th>Bid Time</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="bidHistoryBody">
+                        ${bidHistoryHtml}
+                    </tbody>
+
+                </table>
+
+            `);
+        },
 
                 error: function () {
 
@@ -365,13 +499,138 @@
 
         }
 
+                function updateRegistrationRequired(auctionId, toggle) {
+
+            const registrationRequired = toggle.checked ? 1 : 0;
+
+            $.ajax({
+                url: `/api/Auction/UpdateRegistrationRequired?auctionId=${auctionId}&registrationRequired=${registrationRequired}`,
+                type: "POST",
+
+                success: function (response) {
+
+                    Swal.fire({
+                        icon: "success",
+                        title: "Updated",
+                        text: registrationRequired == 1
+                            ? "Registration is now required."
+                            : "Registration requirement removed.",
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+
+                },
+
+                error: function () {
+
+                    toggle.checked = !toggle.checked;
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: "Failed to update registration setting."
+                    });
+
+                }
+            });
+        }
+                     let currentAuctionId = 0;
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/auctionHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.start()
+            .then(function () {
+                console.log("Connected to SignalR");
+            })
+            .catch(function (err) {
+                console.error("SignalR Connection Error:", err);
+            });
+
+        connection.onclose(function (err) {
+            console.log("SignalR Disconnected", err);
+        });
+
+        connection.onreconnecting(function () {
+            console.log("SignalR Reconnecting...");
+        });
+
+        connection.onreconnected(function () {
+            console.log("SignalR Reconnected");
+
+            if (currentAuctionId > 0) {
+               connection.invoke("JoinAuction", currentAuctionId);
+            }
+        });
+
+                function joinAuctionGroup(auctionId) {
+
+            currentAuctionId = auctionId;
+
+            connection.invoke("JoinAuction", auctionId)
+                .then(function () {
+                    console.log("Joined Auction Group:", auctionId);
+                })
+                .catch(function (err) {
+                    console.error("JoinAuction Error:", err);
+                });
+        }
+
+                connection.on("ReceiveBid", function (bid) {
+            console.log("ReceiveBid", bid);
+        });
+
+               connection.on("RecentBidsUpdated", function (bids) {
+
+            console.log("RecentBidsUpdated", bids);
+
+            if (!bids || bids.length === 0)
+                return;
+
+            let html = "";
+
+            bids.forEach(function (bid) {
+
+                html += `
+                    <tr>
+                        <td>${bid.userName}</td>
+                        <td>₹${bid.bidAmount}</td>
+                        <td>${formatDateTime(bid.bidTime)}</td>
+                    </tr>
+                `;
+            });
+
+            $("#bidHistoryBody").html(html);
+
+            $("#totalBids").text(bids.length);
+
+            // Find highest bid
+            let highestBidAmount = 0;
+            let highestBidder = "";
+
+            bids.forEach(function (bid) {
+
+                const amount = parseFloat(bid.bidAmount) || 0;
+
+                if (amount > highestBidAmount) {
+
+                    highestBidAmount = amount;
+                    highestBidder = bid.userName;
+                }
+            });
+
+            $("#highestBid").text(`₹${highestBidAmount}`);
+            $("#highestBidder").text(highestBidder);
+        });
+
         function formatDateTime(dateString) {
 
             if (!dateString)
                 return "-";
 
             return new Date(dateString).toLocaleString();
-
         }
 
     </script>

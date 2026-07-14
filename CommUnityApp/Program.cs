@@ -172,7 +172,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-app.MapHub<AuctionHub>("/auctionHub");
+
 
 app.UseSession();
 
@@ -182,6 +182,7 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.MapControllers();
+
 
 app.MapControllerRoute(
     name: "area_default",

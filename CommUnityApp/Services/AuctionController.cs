@@ -339,6 +339,7 @@ namespace CommUnityApp.Services
                     AuctionStatus = auction.AuctionStatus,
                     CreatedBy = auction.CreatedBy,
                     IsRegistered = auction.IsRegistered,
+                    RegistrationRequired=auction.RegistrationRequired,
                     CreatedAt = auction.CreatedAt,
 
                     // ✅ FIXED HERE
@@ -408,7 +409,7 @@ namespace CommUnityApp.Services
             {
                 // Send latest bid info
                 await _hubContext.Clients
-                    .Group(entity.AuctionId.ToString())
+                    .Group($"Auction_{entity.AuctionId}")
                     .SendAsync("ReceiveBid", new
                     {
                         userName = result.UserName,
@@ -420,10 +421,13 @@ namespace CommUnityApp.Services
                     .GetRecentBids(entity.AuctionId);
 
                 await _hubContext.Clients
-                    .Group(entity.AuctionId.ToString())
+                    .Group($"Auction_{entity.AuctionId}")
                     .SendAsync(
                         "RecentBidsUpdated",
                         recentBids);
+
+                Console.WriteLine(
+                    $"SignalR broadcast sent to Auction_{entity.AuctionId}");
             }
 
             return Ok(result);
@@ -674,9 +678,10 @@ namespace CommUnityApp.Services
         }
 
         [HttpGet("Get_LiveAuctions")]
-        public async Task<IActionResult> GetLiveAuctions()
+        public async Task<IActionResult> GetLiveAuctions(Guid? UserId=null)
         {
-            var auctions = await _unitOfWork.Auction.GetLiveAuctions();
+            _logger.LogInformation($"UserId Received: {UserId}");
+            var auctions = await _unitOfWork.Auction.GetLiveAuctions(UserId);
 
             var combinedAuctions = new List<AuctionWithImagesModel>();
 
@@ -703,6 +708,7 @@ namespace CommUnityApp.Services
                     DeleveryMethodId = auction.DeleveryMethodId,
                     AuctionStatus = auction.AuctionStatus,
                     CreatedBy = auction.CreatedBy,
+                    IsRegistered = auction.IsRegistered,
                     CreatedAt = auction.CreatedAt,
                     Images = images
                 };
@@ -711,6 +717,99 @@ namespace CommUnityApp.Services
             }
 
             return Ok(combinedAuctions);
+        }
+
+        [HttpGet("Get_AdminAuctionDetails")]
+        public async Task<IActionResult> Get_AdminAuctionDetails(int auctionId)
+        {
+            try
+            {
+                // Existing API logic
+                var auctions = await _unitOfWork.Auction
+                    .GetAuctionAuctionId(auctionId);
+
+                if (auctions == null || !auctions.Any())
+                {
+                    return Ok(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Auction not found"
+                    });
+                }
+
+                var auction = auctions.FirstOrDefault();
+
+                var images = await _unitOfWork.Auction
+                    .GetAuctionImages(auctionId);
+
+                var registeredUsers = await _unitOfWork.Auction
+                    .GetAuctionRegisteredUsers(auctionId);
+
+                var bids = await _unitOfWork.Auction
+                    .GetRecentBids(auctionId);
+
+                var highestBid = bids
+                    .OrderByDescending(x => x.BidAmount)
+                    .FirstOrDefault();
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Success",
+
+                    Auction = new
+                    {
+                        auction.AuctionId,
+                        auction.BusinessId,
+                        auction.UserId,
+                        auction.User,
+                        auction.ItemTypeId,
+                        auction.ItemTitle,
+                        auction.ItemDescription,
+                        auction.ItemCondition,
+                        auction.PriceIncrement,
+                        auction.ReservePrice,
+                        auction.MinDeposite,
+                        auction.StartTime,
+                        auction.EndTime,
+                        auction.ItemLocation,
+                        auction.DeleveryMethodId,
+                        auction.AuctionStatus,
+                        auction.CreatedBy,
+                        auction.IsRegistered,
+                        auction.RegistrationRequired,
+                        auction.CreatedAt,
+                        Images = images
+                    },
+
+                    TotalRegisteredUsers = registeredUsers.Count,
+                    RegisteredUsers = registeredUsers,
+
+                    TotalBids = bids.Count,
+                    HighestBid = highestBid?.BidAmount ?? 0,
+                    HighestBidder = highestBid?.UserName ?? "",
+
+                    BidHistory = bids
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("UpdateRegistrationRequired")]
+        public async Task<IActionResult> UpdateRegistrationRequired(int auctionId,int registrationRequired)
+        {
+            var result = await _unitOfWork.Auction.UpdateRegistrationRequired(
+                    auctionId,
+                    registrationRequired);
+
+            return Ok(result);
         }
     }
 }
