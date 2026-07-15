@@ -18,5 +18,12 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BusinessPostDetailsEntity> GetBusinessPostDetails(long postId);
 
         Task<List<BusinessPostListEntity>> GetAllBusinessPosts(long businessId);
+
+        Task<AppBusinessLoginResponse> BusinessLogin(AppBusinessLoginRequest request);
+        Task<List<BusinessPromotionRedemptionModel>> GetBusinessPromotionRedemptions(long businessId);
+        Task<List<BusinessPromotionModel>> GetBusinessPromotions(long businessId);
+        Task<ValidatePromotionRedemptionResult> ValidatePromotionRedemptionCode(long businessId,string redemptionCode); 
+        Task<ConfirmPromotionRedemptionResult>ConfirmPromotionRedemption( ConfirmPromotionRedemptionRequest request);
     }
+
 }

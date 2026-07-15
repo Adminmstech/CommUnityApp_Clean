@@ -1,5 +1,6 @@
 ﻿using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
+using CommUnityApp.InfrastructureLayer.Repositories;
 using CommUnityApp.InfrastructureLayer.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -229,6 +230,266 @@ namespace CommUnityApp.Services
                 Status = true,
                 Data = data
             });
+        }
+
+        [HttpPost("BusinessLogin")]
+        public async Task<IActionResult> BusinessLogin([FromBody] AppBusinessLoginRequest request)
+        {
+            try
+            {
+                if (request == null ||
+                    string.IsNullOrWhiteSpace(request.Email) ||
+                    string.IsNullOrWhiteSpace(request.Password))
+                {
+                    return Ok(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Email and password are required.",
+                        Status = false
+                    });
+                }
+
+                var result = await _unitOfWork.Business.BusinessLogin(request);
+
+                if (result == null)
+                {
+                    return Ok(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Invalid email or password.",
+                        Status = false
+                    });
+                }
+
+                if (result.Status && !string.IsNullOrWhiteSpace(result.Logo))
+                {
+                    string baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+                    result.Logo = result.Logo.StartsWith("/")
+                        ? baseUrl + result.Logo
+                        : baseUrl + "/" + result.Logo;
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+
+        [HttpGet("GetBusinessPromotionRedemptions")]
+        public async Task<IActionResult> GetBusinessPromotionRedemptions(long businessId)
+        {
+            try
+            {
+                if (businessId <= 0)
+                {
+                    return Ok(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Invalid BusinessId.",
+                        Status = false,
+                        Data = new List<BusinessPromotionRedemptionModel>()
+                    });
+                }
+
+                var data = await _unitOfWork.Business
+                    .GetBusinessPromotionRedemptions(businessId);
+
+                string baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+                foreach (var item in data)
+                {
+                    if (!string.IsNullOrWhiteSpace(item.QRCodeImage))
+                    {
+                        item.QRCodeImage = item.QRCodeImage.StartsWith("/")
+                            ? baseUrl + item.QRCodeImage
+                            : baseUrl + "/" + item.QRCodeImage;
+                    }
+                }
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = data.Any()
+                        ? "Redemption history retrieved successfully."
+                        : "No redemptions found.",
+                    Status = true,
+                    Data = data
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false,
+                    Data = new List<BusinessPromotionRedemptionModel>()
+                });
+            }
+        }
+
+        [HttpGet("GetBusinessPromotions")]
+        public async Task<IActionResult> GetBusinessPromotions(long businessId)
+        {
+            try
+            {
+                if (businessId <= 0)
+                {
+                    return Ok(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Invalid BusinessId.",
+                        Status = false,
+                        Data = new List<BusinessPromotionModel>()
+                    });
+                }
+
+                var data = await _unitOfWork.Business
+                    .GetBusinessPromotions(businessId);
+
+                string baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+                foreach (var item in data)
+                {
+                    if (!string.IsNullOrWhiteSpace(item.PromotionImage))
+                    {
+                        item.PromotionImage = item.PromotionImage.StartsWith("/")
+                            ? baseUrl + item.PromotionImage
+                            : baseUrl + "/" + item.PromotionImage;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(item.QRCodeImage))
+                    {
+                        item.QRCodeImage = item.QRCodeImage.StartsWith("/")
+                            ? baseUrl + item.QRCodeImage
+                            : baseUrl + "/" + item.QRCodeImage;
+                    }
+                }
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = data.Any()
+                        ? "Business promotions retrieved successfully."
+                        : "No promotions found for this business.",
+                    Status = true,
+                    Data = data
+                });
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false,
+                    Data = new List<BusinessPromotionModel>()
+                });
+            }
+        }
+
+        [HttpPost("ConfirmPromotionRedemption")]
+        public async Task<IActionResult> ConfirmPromotionRedemption( [FromBody] ConfirmPromotionRedemptionRequest request)
+        {
+            try
+            {
+                if (request == null ||
+                    request.BusinessId <= 0 ||
+                    request.RedemptionId <= 0)
+                {
+                    return Ok(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Invalid BusinessId or RedemptionId.",
+                        Status = false
+                    });
+                }
+
+                var result = await _unitOfWork.Business
+                    .ConfirmPromotionRedemption(request);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return Ok(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+
+        [HttpPost("ValidatePromotionRedemptionCode")]
+        public async Task<IActionResult> ValidatePromotionRedemptionCode([FromBody] ValidatePromotionRedemptionRequest model)
+        {
+            try
+            {
+                if (model == null)
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Invalid request.",
+                        Status = false
+                    });
+                }
+
+                if (model.BusinessId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Invalid BusinessId.",
+                        Status = false
+                    });
+                }
+
+                if (string.IsNullOrWhiteSpace(model.RedemptionCode))
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Redemption code is required.",
+                        Status = false
+                    });
+                }
+
+                var result = await _unitOfWork.Business
+                    .ValidatePromotionRedemptionCode(
+                        model.BusinessId,
+                        model.RedemptionCode);
+
+                if (result == null)
+                {
+                    return Ok(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Invalid redemption code.",
+                        Status = false
+                    });
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
         }
     }
 
