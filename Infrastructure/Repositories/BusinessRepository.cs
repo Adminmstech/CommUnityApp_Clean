@@ -275,7 +275,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 _configuration.GetConnectionString("DefaultConnection"));
 
             var result = await con.QueryAsync<BusinessPromotionRedemptionModel>(
-                "sp_GetBusinessPromotionRedemptions",
+                "sp_GetBusinessPromotionRedemptions", 
                 new
                 {
                     BusinessId = businessId
