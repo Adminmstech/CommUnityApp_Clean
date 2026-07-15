@@ -230,6 +230,176 @@ namespace CommUnityApp.Services
                 Data = data
             });
         }
+
+
+
+        #region Business Wallet
+
+        [HttpPost("AllocateBusinessCoins")]
+        public async Task<IActionResult> AllocateBusinessCoins(
+            [FromBody] AllocateBusinessCoinsRequest request)
+        {
+            try
+            {
+                var result =
+                    await _unitOfWork.Business.AllocateBusinessCoins(request);
+
+                return Ok(new
+                {
+                    ResultId = result.ResultId,
+                    ResultMessage = result.ResultMessage,
+                    Status = result.ResultId > 0
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+
+        [HttpPost("RewardMemberFromBusiness")]
+        public async Task<IActionResult> RewardMemberFromBusiness(
+            [FromBody] RewardMemberRequest request)
+        {
+            try
+            {
+                var result =
+                    await _unitOfWork.Business.RewardMemberFromBusiness(request);
+
+                return Ok(new
+                {
+                    ResultId = result.ResultId,
+                    ResultMessage = result.ResultMessage,
+                    Status = result.ResultId > 0
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+
+        [HttpPost("AdjustBusinessWallet")]
+        public async Task<IActionResult> AdjustBusinessWallet(
+            [FromBody] AdjustBusinessWalletRequest request)
+        {
+            try
+            {
+                var result =
+                    await _unitOfWork.Business.AdjustBusinessWallet(request);
+
+                return Ok(new
+                {
+                    ResultId = result.ResultId,
+                    ResultMessage = result.ResultMessage,
+                    Status = result.ResultId > 0
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+
+        [HttpGet("GetBusinessWallet")]
+        public async Task<IActionResult> GetBusinessWallet(int businessId)
+        {
+            try
+            {
+                var data =
+                    await _unitOfWork.Business.GetBusinessWallet(businessId);
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Success",
+                    Status = true,
+                    Data = data
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+
+        [HttpGet("GetBusinessWalletTransactions")]
+        public async Task<IActionResult> GetBusinessWalletTransactions(
+            int businessId)
+        {
+            try
+            {
+                var data =
+                    await _unitOfWork.Business
+                        .GetBusinessWalletTransactions(businessId);
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Success",
+                    Status = true,
+                    Data = data
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+
+        [HttpGet("GetTransactionTypes")]
+        public async Task<IActionResult> GetTransactionTypes()
+        {
+            try
+            {
+                var data =
+                    await _unitOfWork.Business.GetTransactionTypes();
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Success",
+                    Status = true,
+                    Data = data
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+
+        #endregion
     }
 
 

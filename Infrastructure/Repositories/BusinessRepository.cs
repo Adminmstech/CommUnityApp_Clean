@@ -250,5 +250,102 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result.ToList();
         }
+
+
+        // Wallet related methods
+
+        public async Task<BaseResponse> AllocateBusinessCoins(AllocateBusinessCoinsRequest request)
+        {
+            using var connection = Connection;
+
+            return await connection.QueryFirstOrDefaultAsync<BaseResponse>(
+                "Allocate_BusinessCoins",
+                new
+                {
+                    request.BusinessId,
+                    request.Coins,
+                    request.Notes
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
+
+        public async Task<BaseResponse> RewardMemberFromBusiness( RewardMemberRequest request)
+        {
+            using var connection = Connection;
+
+            return await connection.QueryFirstOrDefaultAsync<BaseResponse>(
+                "Reward_MemberFromBusiness",
+                new
+                {
+                    request.BusinessId,
+                    request.UserId,
+                    request.Coins,
+                    request.ReferenceType,
+                    request.ReferenceId,
+                    request.Notes
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
+
+        public async Task<BaseResponse> AdjustBusinessWallet( AdjustBusinessWalletRequest request)
+        {
+            using var connection = Connection;
+
+            return await connection.QueryFirstOrDefaultAsync<BaseResponse>(
+                "Adjust_BusinessWallet",
+                new
+                {
+                    request.BusinessId,
+                    request.Coins,
+                    request.TransactionType,
+                    request.Notes
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
+
+        public async Task<BusinessWalletModel> GetBusinessWallet(int businessId)
+        {
+            using var connection = Connection;
+
+            return await connection.QueryFirstOrDefaultAsync<BusinessWalletModel>(
+                "Get_BusinessWallet",
+                new
+                {
+                    BusinessId = businessId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<List<BusinessWalletTransactionModel>> GetBusinessWalletTransactions(int businessId)
+        {
+            using var connection = Connection;
+
+            var result =
+                await connection.QueryAsync<BusinessWalletTransactionModel>(
+                    "Get_BusinessWalletTransactions",
+                    new
+                    {
+                        BusinessId = businessId
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+
+        public async Task<List<TransactionTypeModel>> GetTransactionTypes()
+        {
+            using var connection = Connection;
+
+            var result =
+                await connection.QueryAsync<TransactionTypeModel>(
+                    "Get_TransactionTypes",
+                    commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
     }
 }

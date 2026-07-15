@@ -16,7 +16,15 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<FavouriteBusinessModel>>GetFavouriteBusinesses(Guid userId);
         Task<List<BusinessPostEntity>> GetTopFiveBusinessPosts();
         Task<BusinessPostDetailsEntity> GetBusinessPostDetails(long postId);
-
         Task<List<BusinessPostListEntity>> GetAllBusinessPosts(long businessId);
+
+        //Wallet 
+        Task<BaseResponse> AllocateBusinessCoins(AllocateBusinessCoinsRequest request);
+        Task<BaseResponse> RewardMemberFromBusiness(RewardMemberRequest request);
+        Task<BaseResponse> AdjustBusinessWallet(AdjustBusinessWalletRequest request);
+        Task<BusinessWalletModel> GetBusinessWallet(int businessId);
+        Task<List<BusinessWalletTransactionModel>> GetBusinessWalletTransactions(int businessId);
+        Task<List<TransactionTypeModel>> GetTransactionTypes();
+
     }
 }
