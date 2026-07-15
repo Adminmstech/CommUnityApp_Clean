@@ -74,5 +74,10 @@ namespace CommUnityApp.Areas.Admin.Controllers
             return View();
         }
 
+        public IActionResult AllocateCoins()
+        {
+            return View();
+        }
+
     }
 }

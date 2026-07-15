@@ -1,0 +1,394 @@
+﻿
+@{
+    ViewData["Title"] = "Business Wallet";
+    Layout = "AdminLayout";
+}
+
+<div class="container-fluid">
+
+    <div class="card shadow border-0">
+
+        <div class="card-header bg-primary text-white">
+
+            <h4 class="mb-0">
+                <i class="fa fa-coins me-2"></i>
+                Business Wallet Management
+            </h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label fw-bold">
+                        Business
+                    </label>
+
+                    <select id="BusinessId"
+                            class="form-select">
+
+                        <option value="">
+                            Loading Businesses...
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label fw-bold">
+                        Current Coin Balance
+                    </label>
+
+                    <input type="text"
+                           id="AvailableCoins"
+                           class="form-control"
+                           readonly />
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label fw-bold">
+                        Coins To Allocate
+                    </label>
+
+                    <input type="number"
+                           id="Coins"
+                           min="1"
+                           class="form-control" />
+
+                </div>
+
+                <div class="col-md-6 mb-3">
+
+                    <label class="form-label fw-bold">
+                        Notes
+                    </label>
+
+                    <input type="text"
+                           id="Notes"
+                           class="form-control" />
+
+                </div>
+
+            </div>
+
+            <div class="text-end">
+
+                <button type="button"
+                        class="btn btn-success"
+                        onclick="allocateCoins()">
+
+                    <i class="fa fa-plus-circle me-1"></i>
+                    Allocate Coins
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="card shadow border-0 mt-4">
+
+        <div class="card-header bg-dark text-white">
+
+            <h5 class="mb-0">
+                Transaction History
+            </h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <div class="table-responsive">
+
+                <table class="table table-bordered table-hover">
+
+                    <thead class="table-light">
+
+                        <tr>
+                            <th>Date</th>
+                            <th>Transaction Type</th>
+                            <th>Coins</th>
+                            <th>Reference Type</th>
+                            <th>Reference Id</th>
+                            <th>Notes</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="tblTransactions">
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+@section Scripts {
+
+    <script>
+
+        $(document).ready(function () {
+
+            loadBusinesses();
+
+            $("#BusinessId").change(function () {
+
+                let businessId = $(this).val();
+
+                if (businessId) {
+
+                    loadWallet(businessId);
+                    loadTransactions(businessId);
+
+                }
+                else {
+
+                    $("#AvailableCoins").val("");
+                    $("#tblTransactions").html("");
+
+                }
+
+            });
+
+        });
+
+        function loadBusinesses() {
+
+            $.ajax({
+
+                url: "/api/Business/Get_Businesses",
+
+                type: "GET",
+
+                data: {
+                    userId: "00000000-0000-0000-0000-000000000000"
+                },
+
+                success: function (response) {
+
+                    $("#BusinessId").empty();
+
+                    $("#BusinessId").append(`
+                        <option value="">
+                            Select Business
+                        </option>
+                    `);
+
+                    response.forEach(function (item) {
+
+                        $("#BusinessId").append(`
+                            <option value="${item.businessId}">
+                                ${item.businessName}
+                            </option>
+                        `);
+
+                    });
+
+                }
+
+            });
+
+        }
+
+        function loadWallet(businessId) {
+
+            $.ajax({
+
+                url: "/api/Business/GetBusinessWallet",
+
+                type: "GET",
+
+                data: {
+                    businessId: businessId
+                },
+
+                success: function (response) {
+
+                    if (response.data != null) {
+
+                        $("#AvailableCoins")
+                            .val(response.data.availableCoins);
+
+                    }
+                    else {
+
+                        $("#AvailableCoins")
+                            .val("0");
+
+                    }
+
+                }
+
+            });
+
+        }
+
+        function allocateCoins() {
+
+            if ($("#BusinessId").val() == "") {
+
+                Swal.fire(
+                    "Validation",
+                    "Please select business",
+                    "warning"
+                );
+
+                return;
+            }
+
+            if ($("#Coins").val() == "") {
+
+                Swal.fire(
+                    "Validation",
+                    "Please enter coins",
+                    "warning"
+                );
+
+                return;
+            }
+
+            const payload = {
+
+                businessId:
+                    parseInt($("#BusinessId").val()),
+
+                coins:
+                    parseInt($("#Coins").val()),
+
+                notes:
+                    $("#Notes").val()
+
+            };
+
+            $.ajax({
+
+                url: "/api/Business/AllocateBusinessCoins",
+
+                type: "POST",
+
+                contentType: "application/json",
+
+                data: JSON.stringify(payload),
+
+                success: function (response) {
+
+                    Swal.fire({
+                        icon: "success",
+                        title: "Success",
+                        text: response.resultMessage
+                    });
+
+                    $("#Coins").val("");
+                    $("#Notes").val("");
+
+                    loadWallet($("#BusinessId").val());
+                    loadTransactions($("#BusinessId").val());
+
+                },
+
+                error: function (xhr) {
+
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text:
+                            xhr.responseJSON?.resultMessage
+                            || "Failed to allocate coins"
+                    });
+
+                }
+
+            });
+
+        }
+
+        function loadTransactions(businessId) {
+
+            $.ajax({
+
+                url: "/api/Business/GetBusinessWalletTransactions",
+
+                type: "GET",
+
+                data: {
+                    businessId: businessId
+                },
+
+                success: function (response) {
+
+                    let html = "";
+
+                    if (response.data.length === 0) {
+
+                        html = `
+                            <tr>
+                                <td colspan="6"
+                                    class="text-center">
+                                    No Transactions Found
+                                </td>
+                            </tr>
+                        `;
+                    }
+                    else {
+
+                        response.data.forEach(function (item) {
+
+                            html += `
+                                <tr>
+                                    <td>
+                                        ${formatDate(item.createdAt)}
+                                    </td>
+                                    <td>
+                                        ${item.transactionType}
+                                    </td>
+                                    <td>
+                                        ${item.coins}
+                                    </td>
+                                    <td>
+                                        ${item.referenceType}
+                                    </td>
+                                    <td>
+                                        ${item.referenceId}
+                                    </td>
+                                    <td>
+                                        ${item.notes ?? ""}
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    }
+
+                    $("#tblTransactions").html(html);
+
+                }
+
+            });
+
+        }
+
+        function formatDate(dateString) {
+
+            let date = new Date(dateString);
+
+            return date.toLocaleString();
+
+        }
+
+    </script>
+
+}
+```

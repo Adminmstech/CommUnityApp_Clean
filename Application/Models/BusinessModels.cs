@@ -479,4 +479,106 @@ namespace CommUnityApp.ApplicationCore.Models
     }
 
     
+
+
+    /// Wallet
+
+    public class BusinessWalletModel
+    {
+        public int BusinessWalletId { get; set; }
+
+        public int BusinessId { get; set; }
+
+        public long AvailableCoins { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public DateTime UpdatedAt { get; set; }
+    }
+
+    public class BusinessWalletTransactionModel
+    {
+        public long Id { get; set; }
+
+        public int BusinessWalletId { get; set; }
+
+        public string TransactionType { get; set; }
+
+        public int Coins { get; set; }
+
+        public string ReferenceType { get; set; }
+
+        public int ReferenceId { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public string Notes { get; set; }
+    }
+
+    public class TransactionTypeModel
+    {
+        public int TransactionTypeId { get; set; }
+
+        public string TypeCode { get; set; }
+
+        public string TypeName { get; set; }
+
+        public string Description { get; set; }
+
+        public bool IsCredit { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class AllocateBusinessCoinsRequest
+    {
+        public int BusinessId { get; set; }
+
+        public long Coins { get; set; }
+
+        public string Notes { get; set; }
+    }
+
+    public class RewardMemberRequest
+    {
+        public int BusinessId { get; set; }
+
+        public Guid UserId { get; set; }
+
+        public int Coins { get; set; }
+
+        public string ReferenceType { get; set; }
+
+        public int ReferenceId { get; set; }
+
+        public string Notes { get; set; }
+    }
+
+    public class AdjustBusinessWalletRequest
+    {
+        public int BusinessId { get; set; }
+
+        public long Coins { get; set; }
+
+        public string TransactionType { get; set; }
+
+        public string Notes { get; set; }
+    }
+
+    public class BusinessWalletDashboardModel
+    {
+        public int BusinessId { get; set; }
+
+        public string BusinessName { get; set; }
+
+        public long AvailableCoins { get; set; }
+
+        public long TotalAllocatedCoins { get; set; }
+
+        public long TotalRewardedCoins { get; set; }
+
+        public int TotalTransactions { get; set; }
+    }
 }

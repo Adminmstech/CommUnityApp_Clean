@@ -232,49 +232,29 @@ namespace CommUnityApp.Services
             });
         }
 
-        [HttpPost("BusinessLogin")]
-        public async Task<IActionResult> BusinessLogin([FromBody] AppBusinessLoginRequest request)
+
+
+        #region Business Wallet
+
+        [HttpPost("AllocateBusinessCoins")]
+        public async Task<IActionResult> AllocateBusinessCoins(
+            [FromBody] AllocateBusinessCoinsRequest request)
         {
             try
             {
-                if (request == null ||
-                    string.IsNullOrWhiteSpace(request.Email) ||
-                    string.IsNullOrWhiteSpace(request.Password))
+                var result =
+                    await _unitOfWork.Business.AllocateBusinessCoins(request);
+
+                return Ok(new
                 {
-                    return Ok(new
-                    {
-                        ResultId = 0,
-                        ResultMessage = "Email and password are required.",
-                        Status = false
-                    });
-                }
-
-                var result = await _unitOfWork.Business.BusinessLogin(request);
-
-                if (result == null)
-                {
-                    return Ok(new
-                    {
-                        ResultId = 0,
-                        ResultMessage = "Invalid email or password.",
-                        Status = false
-                    });
-                }
-
-                if (result.Status && !string.IsNullOrWhiteSpace(result.Logo))
-                {
-                    string baseUrl = $"{Request.Scheme}://{Request.Host}";
-
-                    result.Logo = result.Logo.StartsWith("/")
-                        ? baseUrl + result.Logo
-                        : baseUrl + "/" + result.Logo;
-                }
-
-                return Ok(result);
+                    ResultId = result.ResultId,
+                    ResultMessage = result.ResultMessage,
+                    Status = result.ResultId > 0
+                });
             }
             catch (Exception ex)
             {
-                return Ok(new
+                return StatusCode(500, new
                 {
                     ResultId = 0,
                     ResultMessage = ex.Message,
@@ -283,144 +263,108 @@ namespace CommUnityApp.Services
             }
         }
 
-        [HttpGet("GetBusinessPromotionRedemptions")]
-        public async Task<IActionResult> GetBusinessPromotionRedemptions(long businessId)
+        [HttpPost("RewardMemberFromBusiness")]
+        public async Task<IActionResult> RewardMemberFromBusiness(
+            [FromBody] RewardMemberRequest request)
         {
             try
             {
-                if (businessId <= 0)
+                var result =
+                    await _unitOfWork.Business.RewardMemberFromBusiness(request);
+
+                return Ok(new
                 {
-                    return Ok(new
-                    {
-                        ResultId = 0,
-                        ResultMessage = "Invalid BusinessId.",
-                        Status = false,
-                        Data = new List<BusinessPromotionRedemptionModel>()
-                    });
-                }
-
-                var data = await _unitOfWork.Business
-                    .GetBusinessPromotionRedemptions(businessId);
-
-                string baseUrl = $"{Request.Scheme}://{Request.Host}";
-
-                foreach (var item in data)
+                    ResultId = result.ResultId,
+                    ResultMessage = result.ResultMessage,
+                    Status = result.ResultId > 0
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
                 {
-                    if (!string.IsNullOrWhiteSpace(item.QRCodeImage))
-                    {
-                        item.QRCodeImage = item.QRCodeImage.StartsWith("/")
-                            ? baseUrl + item.QRCodeImage
-                            : baseUrl + "/" + item.QRCodeImage;
-                    }
-                }
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+
+        [HttpPost("AdjustBusinessWallet")]
+        public async Task<IActionResult> AdjustBusinessWallet(
+            [FromBody] AdjustBusinessWalletRequest request)
+        {
+            try
+            {
+                var result =
+                    await _unitOfWork.Business.AdjustBusinessWallet(request);
+
+                return Ok(new
+                {
+                    ResultId = result.ResultId,
+                    ResultMessage = result.ResultMessage,
+                    Status = result.ResultId > 0
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+
+        [HttpGet("GetBusinessWallet")]
+        public async Task<IActionResult> GetBusinessWallet(int businessId)
+        {
+            try
+            {
+                var data =
+                    await _unitOfWork.Business.GetBusinessWallet(businessId);
 
                 return Ok(new
                 {
                     ResultId = 1,
-                    ResultMessage = data.Any()
-                        ? "Redemption history retrieved successfully."
-                        : "No redemptions found.",
+                    ResultMessage = "Success",
                     Status = true,
                     Data = data
                 });
             }
             catch (Exception ex)
             {
-                return Ok(new
+                return StatusCode(500, new
                 {
                     ResultId = 0,
                     ResultMessage = ex.Message,
-                    Status = false,
-                    Data = new List<BusinessPromotionRedemptionModel>()
+                    Status = false
                 });
             }
         }
 
-        [HttpGet("GetBusinessPromotions")]
-        public async Task<IActionResult> GetBusinessPromotions(long businessId)
+        [HttpGet("GetBusinessWalletTransactions")]
+        public async Task<IActionResult> GetBusinessWalletTransactions(
+            int businessId)
         {
             try
             {
-                if (businessId <= 0)
-                {
-                    return Ok(new
-                    {
-                        ResultId = 0,
-                        ResultMessage = "Invalid BusinessId.",
-                        Status = false,
-                        Data = new List<BusinessPromotionModel>()
-                    });
-                }
-
-                var data = await _unitOfWork.Business
-                    .GetBusinessPromotions(businessId);
-
-                string baseUrl = $"{Request.Scheme}://{Request.Host}";
-
-                foreach (var item in data)
-                {
-                    if (!string.IsNullOrWhiteSpace(item.PromotionImage))
-                    {
-                        item.PromotionImage = item.PromotionImage.StartsWith("/")
-                            ? baseUrl + item.PromotionImage
-                            : baseUrl + "/" + item.PromotionImage;
-                    }
-
-                    if (!string.IsNullOrWhiteSpace(item.QRCodeImage))
-                    {
-                        item.QRCodeImage = item.QRCodeImage.StartsWith("/")
-                            ? baseUrl + item.QRCodeImage
-                            : baseUrl + "/" + item.QRCodeImage;
-                    }
-                }
+                var data =
+                    await _unitOfWork.Business
+                        .GetBusinessWalletTransactions(businessId);
 
                 return Ok(new
                 {
                     ResultId = 1,
-                    ResultMessage = data.Any()
-                        ? "Business promotions retrieved successfully."
-                        : "No promotions found for this business.",
+                    ResultMessage = "Success",
                     Status = true,
                     Data = data
                 });
             }
             catch (Exception ex)
             {
-                return Ok(new
-                {
-                    ResultId = 0,
-                    ResultMessage = ex.Message,
-                    Status = false,
-                    Data = new List<BusinessPromotionModel>()
-                });
-            }
-        }
-
-        [HttpPost("ConfirmPromotionRedemption")]
-        public async Task<IActionResult> ConfirmPromotionRedemption( [FromBody] ConfirmPromotionRedemptionRequest request)
-        {
-            try
-            {
-                if (request == null ||
-                    request.BusinessId <= 0 ||
-                    request.RedemptionId <= 0)
-                {
-                    return Ok(new
-                    {
-                        ResultId = 0,
-                        ResultMessage = "Invalid BusinessId or RedemptionId.",
-                        Status = false
-                    });
-                }
-
-                var result = await _unitOfWork.Business
-                    .ConfirmPromotionRedemption(request);
-
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                return Ok(new
+                return StatusCode(500, new
                 {
                     ResultId = 0,
                     ResultMessage = ex.Message,
@@ -429,61 +373,25 @@ namespace CommUnityApp.Services
             }
         }
 
-        [HttpPost("ValidatePromotionRedemptionCode")]
-        public async Task<IActionResult> ValidatePromotionRedemptionCode([FromBody] ValidatePromotionRedemptionRequest model)
+        [HttpGet("GetTransactionTypes")]
+        public async Task<IActionResult> GetTransactionTypes()
         {
             try
             {
-                if (model == null)
+                var data =
+                    await _unitOfWork.Business.GetTransactionTypes();
+
+                return Ok(new
                 {
-                    return BadRequest(new
-                    {
-                        ResultId = 0,
-                        ResultMessage = "Invalid request.",
-                        Status = false
-                    });
-                }
-
-                if (model.BusinessId <= 0)
-                {
-                    return BadRequest(new
-                    {
-                        ResultId = 0,
-                        ResultMessage = "Invalid BusinessId.",
-                        Status = false
-                    });
-                }
-
-                if (string.IsNullOrWhiteSpace(model.RedemptionCode))
-                {
-                    return BadRequest(new
-                    {
-                        ResultId = 0,
-                        ResultMessage = "Redemption code is required.",
-                        Status = false
-                    });
-                }
-
-                var result = await _unitOfWork.Business
-                    .ValidatePromotionRedemptionCode(
-                        model.BusinessId,
-                        model.RedemptionCode);
-
-                if (result == null)
-                {
-                    return Ok(new
-                    {
-                        ResultId = 0,
-                        ResultMessage = "Invalid redemption code.",
-                        Status = false
-                    });
-                }
-
-                return Ok(result);
+                    ResultId = 1,
+                    ResultMessage = "Success",
+                    Status = true,
+                    Data = data
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(new
+                return StatusCode(500, new
                 {
                     ResultId = 0,
                     ResultMessage = ex.Message,
@@ -491,6 +399,8 @@ namespace CommUnityApp.Services
                 });
             }
         }
+
+        #endregion
     }
 
 

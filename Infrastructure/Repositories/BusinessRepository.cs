@@ -251,96 +251,101 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result.ToList();
         }
 
-        public async Task<AppBusinessLoginResponse> BusinessLogin( AppBusinessLoginRequest request)
-        {
-            using var con = new SqlConnection(
-                _configuration.GetConnectionString("DefaultConnection"));
 
-            var result = await con.QueryFirstOrDefaultAsync<AppBusinessLoginResponse>(
-                "sp_BusinessLogin",
+        // Wallet related methods
+
+        public async Task<BaseResponse> AllocateBusinessCoins(AllocateBusinessCoinsRequest request)
+        {
+            using var connection = Connection;
+
+            return await connection.QueryFirstOrDefaultAsync<BaseResponse>(
+                "Allocate_BusinessCoins",
                 new
                 {
-                    request.Email,
-                    request.Password
+                    request.BusinessId,
+                    request.Coins,
+                    request.Notes
                 },
                 commandType: CommandType.StoredProcedure);
-
-            return result;
         }
 
 
-        public async Task<List<BusinessPromotionRedemptionModel>>GetBusinessPromotionRedemptions(long businessId)
+        public async Task<BaseResponse> RewardMemberFromBusiness( RewardMemberRequest request)
         {
-            using var con = new SqlConnection(
-                _configuration.GetConnectionString("DefaultConnection"));
+            using var connection = Connection;
 
-            var result = await con.QueryAsync<BusinessPromotionRedemptionModel>(
-                "sp_GetBusinessPromotionRedemptions", 
+            return await connection.QueryFirstOrDefaultAsync<BaseResponse>(
+                "Reward_MemberFromBusiness",
+                new
+                {
+                    request.BusinessId,
+                    request.UserId,
+                    request.Coins,
+                    request.ReferenceType,
+                    request.ReferenceId,
+                    request.Notes
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
+
+        public async Task<BaseResponse> AdjustBusinessWallet( AdjustBusinessWalletRequest request)
+        {
+            using var connection = Connection;
+
+            return await connection.QueryFirstOrDefaultAsync<BaseResponse>(
+                "Adjust_BusinessWallet",
+                new
+                {
+                    request.BusinessId,
+                    request.Coins,
+                    request.TransactionType,
+                    request.Notes
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
+
+        public async Task<BusinessWalletModel> GetBusinessWallet(int businessId)
+        {
+            using var connection = Connection;
+
+            return await connection.QueryFirstOrDefaultAsync<BusinessWalletModel>(
+                "Get_BusinessWallet",
                 new
                 {
                     BusinessId = businessId
                 },
-                commandType: CommandType.StoredProcedure); 
-
-            return result.ToList(); 
+                commandType: CommandType.StoredProcedure);
         }
 
-        public async Task<List<BusinessPromotionModel>>GetBusinessPromotions(long businessId)
+        public async Task<List<BusinessWalletTransactionModel>> GetBusinessWalletTransactions(int businessId)
         {
-            using var con = new SqlConnection(
-                _configuration.GetConnectionString("DefaultConnection"));
+            using var connection = Connection;
 
-            var result = await con.QueryAsync<BusinessPromotionModel>(
-                "sp_GetBusinessPromotions",
-                new
-                {
-                    BusinessId = businessId
-                },
-                commandType: CommandType.StoredProcedure);
+            var result =
+                await connection.QueryAsync<BusinessWalletTransactionModel>(
+                    "Get_BusinessWalletTransactions",
+                    new
+                    {
+                        BusinessId = businessId
+                    },
+                    commandType: CommandType.StoredProcedure);
 
             return result.ToList();
         }
 
-        public async Task<ValidatePromotionRedemptionResult>
-     ValidatePromotionRedemptionCode(
-         long businessId,
-         string redemptionCode)
-        {
-            using var con = new SqlConnection(
-                _configuration.GetConnectionString("DefaultConnection"));
 
-            var result = await con.QueryFirstOrDefaultAsync<
-                ValidatePromotionRedemptionResult>(
-                    "sp_ValidatePromotionRedemptionCode",
-                    new
-                    {
-                        BusinessId = businessId,
-                        RedemptionCode = redemptionCode
-                    },
+        public async Task<List<TransactionTypeModel>> GetTransactionTypes()
+        {
+            using var connection = Connection;
+
+            var result =
+                await connection.QueryAsync<TransactionTypeModel>(
+                    "Get_TransactionTypes",
                     commandType: CommandType.StoredProcedure);
 
-            return result;
+            return result.ToList();
         }
-
-        public async Task<ConfirmPromotionRedemptionResult>ConfirmPromotionRedemption(ConfirmPromotionRedemptionRequest request)
-        {
-            using var con = new SqlConnection(
-                _configuration.GetConnectionString("DefaultConnection"));
-
-            var result = await con
-                .QueryFirstOrDefaultAsync<ConfirmPromotionRedemptionResult>(
-                    "sp_ConfirmPromotionRedemption",
-                    new
-                    {
-                        BusinessId = request.BusinessId,
-                        RedemptionId = request.RedemptionId
-                    },
-                    commandType: CommandType.StoredProcedure);
-
-            return result;
-        }
-
-
-
     }
 }
