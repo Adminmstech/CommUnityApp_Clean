@@ -539,4 +539,33 @@ public class BookTicketItem
 
         public int Quantity { get; set; }
     }
+
+    public class EventTicketBookingModel
+    {
+        public long BookingId { get; set; }
+
+        public Guid UserId { get; set; }
+
+        public string MemberName { get; set; }
+
+        public string Email { get; set; }
+
+        public string Mobile { get; set; }
+
+        public int NoOfTickets { get; set; }
+
+        public decimal TotalAmount { get; set; }
+
+        public decimal WalletUsed { get; set; }
+
+        public decimal PayableAmount { get; set; }
+
+        public string PaymentMethod { get; set; }
+
+        public string PaymentStatus { get; set; }
+
+        public DateTime BookingDate { get; set; }
+
+        public string TransactionId { get; set; }
+    }
 }

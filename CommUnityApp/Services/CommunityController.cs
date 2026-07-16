@@ -919,7 +919,7 @@ namespace CommUnityApp.Services
         [HttpPost("AddCommunityPost")]
         public async Task<IActionResult> AddCommunityPost(
     [FromForm] CommunityPostModel model)
-        {
+        { 
             try
             {
                 string imagePath = "";

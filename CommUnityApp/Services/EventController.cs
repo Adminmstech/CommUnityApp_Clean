@@ -727,6 +727,21 @@ namespace CommUnityApp.Services
                 Data = data
             });
         }
+
+
+        [HttpGet("GetEventTicketBookings")]
+        public async Task<IActionResult> GetEventTicketBookings(int eventId)
+        {
+            var data = await _unitOfWork.Events.GetEventTicketBookings(eventId);
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
+        }
     }
     }
 

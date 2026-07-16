@@ -990,5 +990,21 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result.ToList();
         }
+
+        public async Task<List<EventTicketBookingModel>> GetEventTicketBookings(int eventId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await connection.QueryAsync<EventTicketBookingModel>(
+                "sp_GetEventTicketBookings",
+                new
+                {
+                    EventId = eventId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
     }
 }
