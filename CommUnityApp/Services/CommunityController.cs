@@ -909,7 +909,7 @@ namespace CommUnityApp.Services
             var data = await _unitOfWork.Community.GetCommunitiesByCategoryAsync(communityCategoryId);
             return Ok(data);
         }
-
+         
         [HttpPost("Update_UserCommunity")]
         public async Task<IActionResult> UpdateUserCommunityAsync(UpdateUserCommunityRequest request)
         {
@@ -917,7 +917,7 @@ namespace CommUnityApp.Services
             return Ok(data);
         }
         [HttpPost("AddCommunityPost")]
-        public async Task<IActionResult> AddCommunityPost(
+        public async Task<IActionResult> AddCommunityPost( 
     [FromForm] CommunityPostModel model)
         { 
             try
