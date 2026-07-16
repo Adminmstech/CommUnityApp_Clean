@@ -581,4 +581,35 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public int TotalTransactions { get; set; }
     }
+
+    public class RewardsDashboardModel
+    {
+        public long AvailableCoins { get; set; }
+        public long TotalAllocatedCoins { get; set; }
+        public long TotalRewardCoinsSpent { get; set; }
+        public int TotalPromotionShares { get; set; }
+        public int TotalProductShares { get; set; }
+        public int TotalUsersRewarded { get; set; }
+    }
+
+    public class ShareRewardHistoryModel
+    {
+        public string UserName { get; set; }
+
+        public Guid UserId { get; set; }
+
+        public int? PromotionId { get; set; }
+
+        public string PromotionName { get; set; }
+
+        public int? ProductId { get; set; }
+
+        public string ProductName { get; set; }
+
+        public string SharePlatform { get; set; }
+
+        public int RewardCoins { get; set; }
+
+        public DateTime SharedAt { get; set; }
+    }
 }

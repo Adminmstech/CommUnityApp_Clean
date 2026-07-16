@@ -1,0 +1,396 @@
+﻿@{
+    ViewData["Title"] = "Coin Management";
+    Layout = "_BusinessLayout";
+}
+
+<div class="container-fluid">
+
+    
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="fw-bold">Coin Management</h2>
+        </div>
+    </div>
+
+    <!-- Dashboard Cards -->
+
+    <div class="row g-3">
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Available Coins</h6>
+                    <h2 id="availableCoins" class="text-success">0</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Allocated Coins</h6>
+                    <h2 id="allocatedCoins" class="text-primary">0</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Coins Spent</h6>
+                    <h2 id="spentCoins" class="text-danger">0</h2>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center">
+                    <h6 class="text-muted">Users Rewarded</h6>
+                    <h2 id="usersRewarded" class="text-warning">0</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Reward Configuration -->
+
+    <div class="card shadow-sm border-0 mt-4">
+
+        <div class="card-header bg-dark text-white">
+            Reward Configuration
+        </div>
+
+        <div class="card-body">
+
+            <div class="row">
+
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">
+                        Promotion Share Coins
+                    </label>
+
+                    <input type="number"
+                           id="promotionCoins"
+                           class="form-control"
+                           min="0" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">
+                        Product Share Coins
+                    </label>
+
+                    <input type="number"
+                           id="productCoins"
+                           class="form-control"
+                           min="0" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">
+                        Referral Coins
+                    </label>
+
+                    <input type="number"
+                           id="referralCoins"
+                           class="form-control"
+                           min="0" />
+                </div>
+
+            </div>
+
+            <button id="btnSaveConfig"
+                    class="btn btn-success">
+                Save Configuration
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- Wallet Transactions -->
+
+    <div class="card shadow-sm border-0 mt-4">
+
+        <div class="card-header bg-primary text-white">
+            Wallet Transactions
+        </div>
+
+        <div class="card-body table-responsive">
+
+            <table class="table table-bordered table-hover">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Coins</th>
+                        <th>Reference Type</th>
+                        <th>Reference Id</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+
+                <tbody id="walletTransactionsBody">
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            Loading...
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+
+    <!-- Share Reward History -->
+
+    <div class="card shadow-sm border-0 mt-4 mb-5">
+
+        <div class="card-header bg-success text-white">
+            Share Reward History
+        </div>
+
+        <div class="card-body table-responsive">
+
+            <table class="table table-bordered table-hover">
+
+                <thead class="table-dark">
+                    <tr>
+                        <th>User</th>
+                        <th>Promotion</th>
+                        <th>Product</th>
+                        <th>Platform</th>
+                        <th>Reward Coins</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+
+                <tbody id="rewardHistoryBody">
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            Loading...
+                        </td>
+                    </tr>
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </div>
+    
+
+</div>
+
+@section Scripts
+{
+
+    <script>
+
+        const businessId = '@ViewBag.BusinessId';
+
+               $(document).ready(function () {
+
+            loadWallet();
+            loadDashboard();
+            loadRewardConfig();
+            loadTransactions();
+            loadRewardHistory();
+
+        });
+
+        function loadWallet() {
+
+            $.get('/api/Business/GetBusinessWallet?businessId=' + businessId,
+
+                function (response) {
+
+                    if (response.status) {
+
+                        $('#availableCoins')
+                            .text(response.data.availableCoins.toLocaleString());
+
+                    }
+
+                });
+
+        }
+
+        function loadDashboard() {
+
+            $.get('/api/Business/GetRewardsDashboard?businessId=' + businessId,
+
+                function (response) {
+
+                    $('#allocatedCoins')
+                        .text((response.totalAllocatedCoins || 0).toLocaleString());
+
+                    $('#spentCoins')
+                        .text((response.totalRewardCoinsSpent || 0).toLocaleString());
+
+                    $('#usersRewarded')
+                        .text(response.totalUsersRewarded || 0);
+
+                });
+
+        }
+
+        function loadRewardConfig() {
+
+            $.get('/api/Rewards/GetShareRewardConfig?businessId=' + businessId,
+
+                function (response) {
+
+                    $('#promotionCoins')
+                        .val(response.promotionShareCoins || 0);
+
+                    $('#productCoins')
+                        .val(response.productShareCoins || 0);
+
+                    $('#referralCoins')
+                        .val(response.referralCoins || 0);
+
+                });
+
+        }
+
+        $('#btnSaveConfig').click(function () {
+
+            let model = {
+
+                businessId: parseInt(businessId),
+
+                promotionShareCoins:
+                    parseInt($('#promotionCoins').val()) || 0,
+
+                productShareCoins:
+                    parseInt($('#productCoins').val()) || 0,
+
+                referralCoins:
+                    parseInt($('#referralCoins').val()) || 0
+            };
+
+            $.ajax({
+
+                url: '/api/Rewards/SaveShareRewardConfig',
+
+                type: 'POST',
+
+                contentType: 'application/json',
+
+                data: JSON.stringify(model),
+
+                success: function (response) {
+
+                    alert(response.resultMessage || 'Configuration Saved');
+
+                },
+
+                error: function () {
+
+                    alert('Failed to save configuration.');
+
+                }
+
+            });
+
+        });
+
+        function loadTransactions() {
+
+            $.get('/api/Business/GetBusinessWalletTransactions?businessId=' + businessId,
+
+                function (response) {
+
+                    let html = '';
+
+                    if (!response.data || response.data.length === 0) {
+
+                        html = `
+                        <tr>
+                            <td colspan="6" class="text-center">
+                                No transactions found
+                            </td>
+                        </tr>`;
+
+                        $('#walletTransactionsBody').html(html);
+                        return;
+                    }
+
+                    $.each(response.data, function (index, item) {
+
+                        html += `
+                        <tr>
+                            <td>${new Date(item.createdAt).toLocaleString()}</td>
+                            <td>${item.transactionType}</td>
+                            <td>${item.coins}</td>
+                            <td>${item.referenceType}</td>
+                            <td>${item.referenceId}</td>
+                            <td>${item.notes ?? ''}</td>
+                        </tr>`;
+                    });
+
+                    $('#walletTransactionsBody').html(html);
+
+                });
+
+        }
+
+               function loadRewardHistory() {
+
+            $.get('/api/Business/GetShareRewardHistory?businessId=' + businessId,
+
+                function (response) {
+
+                    let html = '';
+
+                    if (!response || response.length === 0) {
+
+                        html = `
+                        <tr>
+                            <td colspan="6" class="text-center">
+                                No Reward History Found
+                            </td>
+                        </tr>`;
+
+                        $('#rewardHistoryBody').html(html);
+                        return;
+                    }
+
+                    $.each(response, function (index, item) {
+
+                        html += `
+                        <tr>
+                            <td>${item.userName || ''}</td>
+                            <td>${item.promotionName || '-'}</td>
+                            <td>${item.productName || '-'}</td>
+                            <td>${item.sharePlatform || ''}</td>
+                            <td>${item.rewardCoins || 0}</td>
+                            <td>${new Date(item.sharedAt).toLocaleString()}</td>
+                        </tr>`;
+                    });
+
+                    $('#rewardHistoryBody').html(html);
+
+                })
+                .fail(function () {
+
+                    $('#rewardHistoryBody').html(`
+                        <tr>
+                            <td colspan="6" class="text-danger text-center">
+                                Failed to load reward history
+                            </td>
+                        </tr>
+                    `);
+
+                });
+        }
+
+    </script>
+
+}

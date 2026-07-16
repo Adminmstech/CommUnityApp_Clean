@@ -30,6 +30,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BusinessWalletModel> GetBusinessWallet(int businessId);
         Task<List<BusinessWalletTransactionModel>> GetBusinessWalletTransactions(int businessId);
         Task<List<TransactionTypeModel>> GetTransactionTypes();
+        Task<RewardsDashboardModel> GetRewardsDashboard(int businessId);
+        Task<List<ShareRewardHistoryModel>> GetShareRewardHistory( int businessId);
 
     }
 
