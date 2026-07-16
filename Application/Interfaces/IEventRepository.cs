@@ -55,6 +55,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<dynamic> DeleteEventTicketType(int ticketTypeId);
 
         Task<List<UserPostedEventModel>> GetTopFivePostedEventsByUser(Guid userId);
+        Task<List<EventTicketBookingModel>> GetEventTicketBookings(int eventId);
 
     }
 }

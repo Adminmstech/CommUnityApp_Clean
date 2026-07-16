@@ -37,7 +37,11 @@ namespace CommUnityApp.Areas.Community.Controllers
         {
             return View();
         }
-
+        public IActionResult EventTicketBookings(int eventId)
+        {
+            ViewBag.EventId = eventId;
+            return View();
+        }
         public IActionResult ViewEventTicketType()
         {
             return View();
@@ -154,5 +158,7 @@ namespace CommUnityApp.Areas.Community.Controllers
 
             return Json(json);
         }
+
+
     }
 }
