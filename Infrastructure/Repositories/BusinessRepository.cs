@@ -347,5 +347,39 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result.ToList();
         }
+
+        public async Task<RewardsDashboardModel>GetRewardsDashboard(int businessId)
+        {
+            using var connection =
+                new SqlConnection(
+                    _configuration.GetConnectionString("DefaultConnection"));
+
+            return await connection.QueryFirstOrDefaultAsync
+                <RewardsDashboardModel>("Get_Business_RewardsDashboard",
+                    new
+                    {
+                        BusinessId = businessId
+                    },
+                    commandType: CommandType.StoredProcedure);
+        }
+
+
+        public async Task<List<ShareRewardHistoryModel>>GetShareRewardHistory(int businessId)
+        {
+            using var connection =
+                new SqlConnection(
+                    _configuration.GetConnectionString("DefaultConnection"));
+
+            var result =
+                await connection.QueryAsync<ShareRewardHistoryModel>(
+                    "Get_ShareRewardHistory",
+                    new
+                    {
+                        BusinessId = businessId
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
     }
 }

@@ -399,7 +399,50 @@ namespace CommUnityApp.Services
             }
         }
 
+
+
+        [HttpGet("GetRewardsDashboard")]
+        public async Task<IActionResult>GetRewardsDashboard(int businessId)
+        {
+            try
+            {
+                var data =
+                    await _unitOfWork.Business.GetRewardsDashboard(businessId);
+
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500,
+                    new BaseResponse
+                    {
+                        ResultId = 0,
+                        ResultMessage = ex.Message
+                    });
+            }
+        }
         #endregion
+
+        [HttpGet("GetShareRewardHistory")]
+        public async Task<IActionResult> GetShareRewardHistory(int businessId)
+        {
+            try
+            {
+                var data =
+                    await _unitOfWork.Business.GetShareRewardHistory(businessId);
+
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500,
+                    new BaseResponse
+                    {
+                        ResultId = 0,
+                        ResultMessage = ex.Message
+                    });
+            }
+        }
     }
 
 
