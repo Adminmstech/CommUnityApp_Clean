@@ -991,6 +991,34 @@ namespace CommUnityApp.Services
                 Data = data
             });
         }
+
+
+        [HttpPost("GeneratePromotionShareLink")]
+        public async Task<IActionResult> GeneratePromotionShareLink(int PromotionId, Guid UserId)
+        {
+            var result =
+                await _unitOfWork.Product.GeneratePromotionShareLink(PromotionId,UserId);
+
+            return Ok(result);
+        }
+
+        [HttpGet("GetPromotionByShareToken")]
+        public async Task<IActionResult> GetPromotionByShareToken(Guid shareToken)
+        {
+            var result = await _unitOfWork.Product
+                .GetPromotionByShareToken(shareToken);
+
+            if (result == null)
+            {
+                return NotFound(new
+                {
+                    Success = false,
+                    Message = "Invalid share link."
+                });
+            }
+
+            return Ok(result);
+        }
     }
 }
 

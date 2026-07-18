@@ -44,6 +44,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BaseResponse> DeletePromotion(int promotionId);
 
         Task<ProductPromotionModel> GetPromotionById(int promotionId);
+        Task<PromotionShareLinkModel> GeneratePromotionShareLink(int promotionId,Guid userId);
+        Task<PromotionDetailsModel> GetPromotionByShareToken(Guid shareToken);
     }
 }
 

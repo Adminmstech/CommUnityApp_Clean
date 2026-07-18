@@ -1,672 +1,1698 @@
 ﻿@using System.Security.Claims
+
 @{
-    ViewData["Title"] = "Bid Item Enrolment";
-    Layout = null;
+    ViewData["Title"] = "Add / Edit Auction";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 
-    // 🔹 Get UserId from Cookie Claim
     var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>@ViewData["Title"]</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    var auctionId = Context.Request.Query["AuctionId"].ToString();
+}
+
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1" />
+
+    <title>@ViewData["Title"]</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet">
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+          rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css"
+          rel="stylesheet">
 
     <style>
-       
-
-        @@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-       
-        :root {
-            --background: #0f0f0f;
-            --foreground: #e4e4e7;
-            --card: #1a1a1a;
-            --section: #222222;
-            --accent: #f6af3e;
-            --muted: #27272a;
-            --muted-foreground: #a1a1aa;
-            --border: #2e2e2e;
-            --danger: #ef4444;
-            --radius-lg: 14px;
-            --radius-md: 10px;
-            --shadow: 0 25px 60px rgba(0,0,0,0.65);
-        }
-
-
-       
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
 
         body {
-            font-family: 'Inter',sans-serif;
-            background: linear-gradient( 180deg, #0c0c0c 0%, #121212 100% );
-            color: var(--foreground);
-            padding: 60px 20px;
+            background: #f5f6fa;
         }
 
-
-   
-
-        h1, h2, h3, h4, h5, h6 {
-            font-family: 'Plus Jakarta Sans',sans-serif;
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,.08);
         }
 
-        h1 {
-            font-size: 38px;
-            font-weight: 800;
-            color: var(--accent);
+        .card-header {
+            background: #fff;
+            font-weight: 700;
+            font-size: 18px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #444;
+        }
+
+        .required {
+            color: red;
+        }
+
+        .image-preview {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            margin-right: 10px;
             margin-bottom: 10px;
         }
 
-        .subtitle {
-            color: var(--muted-foreground);
-            margin-bottom: 40px;
+        .old-image {
+            position: relative;
+            display: inline-block;
         }
 
-        label {
-            color: #d4d4d8;
-            font-size: 14px;
-        }
-
-
-
-        .form-wrapper {
-            max-width: 1000px;
-            margin: auto;
-            background: var(--card);
-            border-radius: var(--radius-lg);
-            padding: 50px;
-            border: 1px solid var(--border);
-            box-shadow: var(--shadow);
-        }
-
-
-        
-
-        section {
-            background: var(--section);
-            border-radius: var(--radius-md);
-            padding: 30px;
-            margin-bottom: 30px;
-            border: 1px solid var(--border);
-        }
-
-            section h2 {
-                color: var(--accent);
-                font-size: 18px;
-                margin-bottom: 20px;
-            }
-
-
-
-        .grid-2 {
-            display: grid;
-            grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
-            gap: 20px;
-        }
-
-        .field {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            margin-bottom: 18px;
-        }
-
-
-     
-
-        input,
-        select,
-        textarea {
-            padding: 14px 16px;
-            border-radius: 10px;
-            border: 1px solid #2f2f2f;
-            background: #151515;
-            color: #ffffff;
-            font-size: 14px;
-            transition: all .2s ease;
-        }
-
-            input::placeholder,
-            textarea::placeholder {
-                color: #777;
-            }
-
-            input:focus,
-            select:focus,
-            textarea:focus {
-                outline: none;
-                border-color: var(--accent);
-                box-shadow: 0 0 0 2px rgba(245,158,11,.25);
-                background: #181818;
-            }
-
-        .radio-group {
-            display: flex;
-            gap: 14px;
-        }
-
-        .primary {
-            padding: 14px 34px;
-            border-radius: 999px;
-            font-weight: 700;
+        .remove-old {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: red;
+            color: white;
             border: none;
-            cursor: pointer;
-            background: linear-gradient( 135deg, #f59e0b, #fbbf24 );
-            color: #111;
-            transition: .25s;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
         }
 
-            .primary:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 10px 25px rgba(0,0,0,.45);
-            }
+        .form-control,
+        .form-select {
+            height: 48px;
+        }
 
+        textarea.form-control {
+            height: auto;
+        }
 
-
-        .actions {
-            display: flex;
-            justify-content: center;
+        .switch {
             margin-top: 40px;
         }
 
-
-
-        .duration-display {
-            color: #22c55e;
-            font-weight: 600;
-            margin-top: 8px;
-        }
-
-        span {
-            color: var(--danger);
-            font-weight: 600;
-            margin-left: 4px;
-        }
-
-
-        @@keyframes fade-up {
-
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .fade-up {
-            animation: fade-up .8s ease-out;
-        }
-
-
-        @@keyframes coin-spin {
-
-            from {
-                transform: rotateY(0deg);
-            }
-
-            to {
-                transform: rotateY(360deg);
-            }
-        }
-
-        .coin-spin {
-            animation: coin-spin 3s linear infinite;
-        }
-
-
-        @@keyframes float-particle {
-
-            0% {
-                transform: translateY(0px);
-                opacity: .8;
-            }
-
-            50% {
-                transform: translateY(-20px);
-                opacity: 1;
-            }
-
-            100% {
-                transform: translateY(0px);
-                opacity: .8;
-            }
-        }
-
-        .float-particle {
-            animation: float-particle 6s infinite ease-in-out;
-        }
-        .section-header {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            margin-bottom: 20px;
-        }
-
-        .section-icon {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 12px;
-            background: rgba(246,175,62,0.15);
-            color: #ffffff;
+        .btn-save {
+            width: 180px;
+            height: 50px;
             font-size: 18px;
-            border: 1px solid rgba(246,175,62,0.25);
-        }
-
-        .section-label {
-            font-size: 11px;
-            letter-spacing: 2px;
-            color: var(--muted-foreground);
-            display: block;
-            margin-bottom: 2px;
-        }
-
-        .section-header h2 {
-            font-size: 18px;
-            font-weight: 800;
-            color: #f6af3e;
-            margin: 0;
         }
     </style>
+
 </head>
 
 <body>
-    @* <header class="main-header">
 
-        <div class="header-left">
-            <h3 class="logo">Auction Panel</h3>
-        </div>
+    <div class="container py-4">
 
-        <div class="header-right">
-            <button class="theme-btn" onclick="toggleTheme()">
-                <i id="themeIcon" class="fa-solid fa-moon"></i>
-            </button>
-        </div>
+        <div class="card">
 
-    </header> *@
-    <div class="form-wrapper">
+            <div class="card-header d-flex justify-content-between align-items-center">
 
-        <h1>Bid Item Enrolment Form</h1>
-        <p class="subtitle">Seller Side – Submit item for auction review</p>
+                <div>
 
-        <form id="auctionForm">
+                    <i class="fa-solid fa-gavel"></i>
 
-            <input type="hidden" id="BusinessId" value="1">
+                    <span id="pageTitle">
 
-            <!-- ✅ UserId comes from Cookie -->
-            <input type="hidden" id="UserId" value="@userId">
+                        Add Auction
 
-            <input type="hidden" id="AuctionStatus" value="1">
-            <input type="hidden" id="CreatedBy" value="admin">
+                    </span>
 
-            <!-- ✅ REST OF YOUR UI EXACTLY SAME -->
-
-            <section>
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fa-regular fa-file-lines"></i>
-                    </div>
-
-                    <div>
-                      
-                        <h2>1.Item Basic Details</h2>
-                    </div>
                 </div>
-                <div class="grid-2">
-                    <div class="field">
-                        <label>Item Title<span>*</span></label>
-                        <input type="text" id="ItemTitle" required>
-                    </div>
-                    <div class="field">
-                        <label>Item Categories<span>*</span></label>
-                        <select id="ItemTypeId" required>
-                            <option value="">Loading categories...</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="field">
-                    <label>Item Description<span>*</span></label>
-                    <textarea id="ItemDescription" rows="5" required></textarea>
-                </div>
-            </section>
 
-            <section>
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fa-solid fa-tag"></i>
-                    </div>
+                <a href="/Business/Home/Auctions"
+                   class="btn btn-secondary">
 
-                    <div>
-                       
-                        <h2>2.Item Condition<span>*</span></h2>
-                    </div>
-                </div>
-              
-                <div class="field">
-                    <textarea id="ItemCondition" rows="5" required></textarea>
-                </div>
-            </section>
+                    Back
 
-            <section>
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fa-regular fa-image"></i>
-                    </div>
+                </a>
 
-                    <div>
-                       
-                        <h2>3. Item Images<span>*</span></h2>
-                    </div>
-                </div>
-                
-                <div class="field">
-                    <input type="file" id="Images" multiple required>
-                </div>
-            </section>
-
-            <section>
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fa-solid fa-dollar-sign"></i>
-                    </div>
-
-                    <div>
-                      
-                        <h2>4.Pricing</h2>
-                    </div>
-                </div>
-              
-                <div class="grid-2">
-                    <div class="field">
-                        <label>Price Increment<span>*</span></label>
-                        <input type="number" id="PriceIncrement" required>
-                    </div>
-                    <div class="field">
-                        <label>Reserve Price<span>*</span></label>
-                        <input type="number" id="ReservePrice" required>
-                    </div>
-                </div>
-                <div class="field">
-                    <label>Minimum Deposit<span>*</span></label>
-                    <input type="number" id="MinDeposite" required>
-                </div>
-            </section>
-
-            <section>
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fa-regular fa-clock"></i>
-                    </div>
-
-                    <div>
-                      
-                        <h2> 5.Auction Schedule</h2>
-                    </div>
-                </div>
-                
-                <div class="grid-2">
-                    <div class="field">
-                        <label>Start Time<span>*</span></label>
-                        <input type="datetime-local" id="StartDate" required>
-                    </div>
-                    <div class="field">
-                        <label>End Time<span>*</span></label>
-                        <input type="datetime-local" id="EndDate" required>
-                    </div>
-                </div>
-                <div class="duration-display" id="DurationDisplay"></div>
-            </section>
-
-            <section>
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fa-regular fa-calendar-check"></i>
-                    </div>
-
-                    <div>
-                      
-                        <h2>6. Registration Schedule</h2>
-                    </div>
-                </div>
-                
-                <div class="grid-2">
-                    <div class="field">
-                        <label>Start Date<span>*</span></label>
-                        <input type="datetime-local" id="RegistrationstartDate" required>
-                    </div>
-                    <div class="field">
-                        <label>End Date<span>*</span></label>
-                        <input type="datetime-local" id="RegistrationEndDate" required>
-                    </div>
-                </div>
-                <div class="duration-display" id="RegistrationDurationDisplay"></div>
-
-            </section>
-
-            <section>
-                <div class="section-header">
-                    <div class="section-icon">
-                        <i class="fa-solid fa-location-dot"></i>
-                    </div>
-
-                    <div>
-                      
-                        <h2>7.Delivery & Location</h2>
-                    </div>
-                </div>
-                
-                <div class="field">
-                    <label>Item Location<span>*</span></label>
-                    <input type="text" id="ItemLocation" required>
-                </div>
-                <div class="radio-group">
-                    <label><input type="checkbox" class="delivery" value="1"> Pickup Only</label>
-                    <label><input type="checkbox" class="delivery" value="2"> Local Delivery</label>
-                </div>
-            </section>
-
-            <div class="actions">
-                <button type="submit" class="primary">Submit for Auction</button>
             </div>
 
-        </form>
+            <div class="card-body">
+
+                <form id="auctionForm">
+
+                    <input type="hidden"
+                           id="AuctionId"
+                           value="@auctionId" />
+
+                    <input type="hidden"
+                           id="BusinessId"
+                           value="1" />
+
+                    <input type="hidden"
+                           id="UserId"
+                           value="@userId" />
+
+                    <input type="hidden"
+                           id="AuctionStatus"
+                           value="1" />
+
+                    <input type="hidden"
+                           id="CreatedBy"
+                           value="@userId" />
+
+                    
+                    <!-- ============================= -->
+                    <!-- Item Basic Details -->
+                    <!-- ============================= -->
+
+                    <div class="card mb-4">
+
+                        <div class="card-header bg-primary text-white">
+                            <i class="fa-solid fa-box"></i>
+                            Item Details
+                        </div>
+
+                        <div class="card-body">
+
+                            <div class="row">
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label class="form-label">
+                                        Item Title
+                                        <span class="required">*</span>
+                                    </label>
+
+                                    <input type="text"
+                                           class="form-control"
+                                           id="ItemTitle"
+                                           maxlength="200"
+                                           placeholder="Enter Item Title">
+
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label class="form-label">
+                                        Item Category
+                                        <span class="required">*</span>
+                                    </label>
+
+                                    <select id="ItemTypeId"
+                                            class="form-select">
+
+                                        <option value="">Loading...</option>
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+                            <div class="row">
+
+                                <div class="col-md-12 mb-3">
+
+                                    <label class="form-label">
+                                        Item Description
+                                        <span class="required">*</span>
+                                    </label>
+
+                                    <textarea id="ItemDescription"
+                                              class="form-control"
+                                              rows="5"
+                                              maxlength="2000"
+                                              placeholder="Enter Item Description"></textarea>
+
+                                </div>
+
+                            </div>
+
+                            <div class="row">
+
+                                <div class="col-md-12 mb-3">
+
+                                    <label class="form-label">
+                                        Item Condition
+                                        <span class="required">*</span>
+                                    </label>
+
+                                    <textarea id="ItemCondition"
+                                              class="form-control"
+                                              rows="4"
+                                              maxlength="1000"
+                                              placeholder="Example: Excellent Condition"></textarea>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ============================= -->
+                    <!-- Pricing -->
+                    <!-- ============================= -->
+
+                    <div class="card mb-4">
+
+                        <div class="card-header bg-success text-white">
+
+                            <i class="fa-solid fa-indian-rupee-sign"></i>
+
+                            Pricing Details
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <div class="row">
+
+                                <div class="col-md-4 mb-3">
+
+                                    <label class="form-label">
+
+                                        Reserve Price
+
+                                        <span class="required">*</span>
+
+                                    </label>
+
+                                    <input type="number"
+                                           id="ReservePrice"
+                                           class="form-control"
+                                           min="1">
+
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+
+                                    <label class="form-label">
+
+                                        Bid Increment
+
+                                        <span class="required">*</span>
+
+                                    </label>
+
+                                    <input type="number"
+                                           id="PriceIncrement"
+                                           class="form-control"
+                                           min="1">
+
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+
+                                    <label class="form-label">
+
+                                        Minimum Deposit
+
+                                        <span class="required">*</span>
+
+                                    </label>
+
+                                    <input type="number"
+                                           id="MinDeposite"
+                                           class="form-control"
+                                           min="0">
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ============================= -->
+                    <!-- Registration Settings -->
+                    <!-- ============================= -->
+
+                    <div class="card mb-4">
+
+                        <div class="card-header bg-warning">
+
+                            <i class="fa-solid fa-user-check"></i>
+
+                            Registration Settings
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <div class="row">
+
+                                <div class="col-md-4">
+
+                                    <label class="form-label">
+
+                                        Registration Required
+
+                                    </label>
+
+                                    <div class="form-check form-switch mt-2">
+
+                                        <input class="form-check-input"
+                                               type="checkbox"
+                                               id="RegistrationRequired">
+
+                                        <label class="form-check-label"
+                                               for="RegistrationRequired">
+
+                                            Enable Registration
+
+                                        </label>
+
+                                    </div>
+
+                                </div>
+
+                                <div class="col-md-4">
+
+                                    <label class="form-label">
+
+                                        Registration Start
+
+                                    </label>
+
+                                    <input type="datetime-local"
+                                           id="RegistrationStartDate"
+                                           class="form-control">
+
+                                </div>
+
+                                <div class="col-md-4">
+
+                                    <label class="form-label">
+
+                                        Registration End
+
+                                    </label>
+
+                                    <input type="datetime-local"
+                                           id="RegistrationEndDate"
+                                           class="form-control">
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                    <!-- ============================= -->
+                    <!-- Images -->
+                    <!-- ============================= -->
+
+                    <div class="card mb-4">
+
+                        <div class="card-header bg-info text-white">
+
+                            <i class="fa-solid fa-images"></i>
+
+                            Auction Images
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <div class="mb-3">
+
+                                <label class="form-label">
+
+                                    Upload Images
+
+                                    <span class="required">*</span>
+
+                                </label>
+
+                                <input type="file"
+                                       id="Images"
+                                       class="form-control"
+                                       accept="image/*"
+                                       multiple>
+
+                                <small class="text-muted">
+
+                                    First selected image will be Primary Image.
+
+                                </small>
+
+                            </div>
+
+                            <hr />
+
+                            <h6>Existing Images</h6>
+
+                            <div id="oldImagesContainer"
+                                 class="d-flex flex-wrap">
+                            </div>
+
+                            <hr />
+
+                            <h6>New Image Preview</h6>
+
+                            <div id="previewContainer"
+                                 class="d-flex flex-wrap">
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ============================= -->
+                    <!-- Delivery & Location -->
+                    <!-- ============================= -->
+
+                    <div class="card mb-4">
+
+                        <div class="card-header bg-secondary text-white">
+
+                            <i class="fa-solid fa-location-dot"></i>
+
+                            Delivery & Location
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <div class="row">
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label class="form-label">
+
+                                        Item Location
+
+                                        <span class="required">*</span>
+
+                                    </label>
+
+                                    <input type="text"
+                                           id="ItemLocation"
+                                           class="form-control"
+                                           placeholder="Enter Item Location">
+
+                                </div>
+
+                                <div class="col-md-6 mb-3">
+
+                                    <label class="form-label">
+
+                                        Delivery Method
+
+                                        <span class="required">*</span>
+
+                                    </label>
+
+                                    <select id="DeleveryMethodId"
+                                            class="form-select">
+
+                                        <option value="">Select Delivery</option>
+
+                                        <option value="1">
+                                            Pickup Only
+                                        </option>
+
+                                        <option value="2">
+                                            Local Delivery
+                                        </option>
+
+                                        <option value="3">
+                                            Pickup + Delivery
+                                        </option>
+
+                                    </select>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                    <!-- ============================= -->
+                    <!-- Existing Image Template -->
+                    <!-- ============================= -->
+
+                    <template id="oldImageTemplate">
+
+                        <div class="old-image me-3 mb-3">
+
+                            <img class="image-preview old-preview" />
+
+                            <button type="button"
+                                    class="remove-old">
+
+                                <i class="fa fa-times"></i>
+
+                            </button>
+
+                        </div>
+
+                    </template>
+
+                    <!-- ============================= -->
+                    <!-- New Image Template -->
+                    <!-- ============================= -->
+
+                    <template id="newImageTemplate">
+
+                        <div class="me-3 mb-3 text-center">
+
+                            <img class="image-preview new-preview" />
+
+                            <div class="form-check mt-2">
+
+                                <input class="form-check-input primary-image"
+                                       type="radio"
+                                       name="PrimaryImage">
+
+                                <label class="form-check-label">
+
+                                    Primary
+
+                                </label>
+
+                            </div>
+
+                        </div>
+
+                    </template>
+                    <!-- ========================================== -->
+                    <!-- Auction Schedule -->
+                    <!-- ========================================== -->
+
+                    <div class="card mb-4">
+
+                        <div class="card-header bg-dark text-white">
+
+                            <i class="fa-solid fa-clock"></i>
+
+                            Auction Schedule
+
+                        </div>
+
+                        <div class="card-body">
+
+                            <div class="row">
+
+                                <div class="col-md-4 mb-3">
+
+                                    <label class="form-label">
+
+                                        Start Time
+
+                                        <span class="required">*</span>
+
+                                    </label>
+
+                                    <input type="datetime-local"
+                                           id="StartTime"
+                                           class="form-control">
+
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+
+                                    <label class="form-label">
+
+                                        End Time
+
+                                        <span class="required">*</span>
+
+                                    </label>
+
+                                    <input type="datetime-local"
+                                           id="EndTime"
+                                           class="form-control">
+
+                                </div>
+
+                                <div class="col-md-4 mb-3">
+
+                                    <label class="form-label">
+
+                                        Auction Duration
+
+                                    </label>
+
+                                    <input type="text"
+                                           id="Duration"
+                                           class="form-control"
+                                           readonly>
+
+                                </div>
+
+                            </div>
+
+                            @* <div class="row mt-2">
+
+                                <div class="col-md-6">
+
+                                    <select id="TimeZoneId" class="form-select">
+                                        <option value="India Standard Time">India Standard Time (UTC+05:30)</option>
+                                        <option value="AUS Eastern Standard Time">Australia Eastern (UTC+10:00)</option>
+                                        <option value="GMT Standard Time">London (UTC+00:00)</option>
+                                        <option value="Eastern Standard Time">US Eastern (UTC-05:00)</option>
+                                        <option value="Central Standard Time">US Central (UTC-06:00)</option>
+                                        <option value="Mountain Standard Time">US Mountain (UTC-07:00)</option>
+                                        <option value="Pacific Standard Time">US Pacific (UTC-08:00)</option>
+                                    </select>
+
+                                </div>
+
+                            </div> *@
+
+                        </div>
+
+                    </div>
+
+                    <!-- ========================================== -->
+                    <!-- Submit -->
+                    <!-- ========================================== -->
+
+                    <div class="card">
+
+                        <div class="card-body text-center">
+
+                            <button type="button"
+                                    id="btnSave"
+                                    class="btn btn-success btn-lg px-5">
+
+                                <i class="fa-solid fa-floppy-disk"></i>
+
+                                Save Auction
+
+                            </button>
+
+                            <button type="button"
+                                    id="btnUpdate"
+                                    class="btn btn-warning btn-lg px-5 d-none">
+
+                                <i class="fa-solid fa-pen"></i>
+
+                                Update Auction
+
+                            </button>
+
+                            <button type="reset"
+                                    class="btn btn-secondary btn-lg px-5">
+
+                                <i class="fa-solid fa-rotate-left"></i>
+
+                                Reset
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </form>
+
+            </div>
+
+        </div>
+
     </div>
 
+    <!-- ========================================== -->
+    <!-- Loading Modal -->
+    <!-- ========================================== -->
 
+    <div class="modal fade"
+         id="loadingModal"
+         data-bs-backdrop="static"
+         data-bs-keyboard="false"
+         tabindex="-1">
+
+        <div class="modal-dialog modal-dialog-centered">
+
+            <div class="modal-content">
+
+                <div class="modal-body text-center p-5">
+
+                    <div class="spinner-border text-primary mb-3"
+                         style="width:4rem;height:4rem;">
+                    </div>
+
+                    <h5>
+
+                        Please wait...
+
+                    </h5>
+
+                    <p>
+
+                        Saving Auction
+
+                    </p>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script>
 
-                // 🔹 Load Categories from API
+        //=========================================================
+        // Global Variables
+        //=========================================================
+
+        const API_BASE = "/api/Auction";
+
+        let auctionId = 0;
+
+        let existingImages = [];
+
+        let removedImages = [];
+
+        let selectedFiles = [];
+
+        let loadingModal = null;
+
+        //=========================================================
+        // Document Ready
+        //=========================================================
+
+        $(document).ready(async function () {
+
+            auctionId = $("#AuctionId").val() || 0;
+
+                  
+
+            registerEvents();
+
+            await loadCategories();
+
+            if (parseInt(auctionId) > 0) {
+
+                $("#pageTitle").text("Edit Auction");
+
+                $("#btnSave").addClass("d-none");
+
+                $("#btnUpdate").removeClass("d-none");
+
+                await loadAuction();
+
+            }
+            else {
+
+                $("#pageTitle").text("Add Auction");
+
+            }
+
+        });
+
+        //=========================================================
+        // Register Events
+        //=========================================================
+
+        function registerEvents() {
+
+            $("#StartTime").on("change", calculateDuration);
+
+            $("#EndTime").on("change", calculateDuration);
+
+            $("#Images").on("change", previewImages);
+
+            $("#RegistrationRequired").on("change", function () {
+
+                toggleRegistrationFields();
+
+            });
+
+            $("#btnSave").on("click", function () {
+
+                saveAuction(false);
+
+            });
+
+            $("#btnUpdate").on("click", function () {
+
+                saveAuction(true);
+
+            });
+
+        }
+
+        //=========================================================
+        // Enable / Disable Registration Dates
+        //=========================================================
+
+        function toggleRegistrationFields() {
+
+            let enabled = $("#RegistrationRequired").is(":checked");
+
+            $("#RegistrationStartDate").prop("disabled", !enabled);
+
+            $("#RegistrationEndDate").prop("disabled", !enabled);
+
+            if (!enabled) {
+
+                $("#RegistrationStartDate").val("");
+
+                $("#RegistrationEndDate").val("");
+
+            }
+
+        }
+
+       
+
+        //=========================================================
+        // Load Categories
+        //=========================================================
+
         async function loadCategories() {
 
             try {
-                const response = await fetch("/api/Auction/Get_ItemType");
-                const categories = await response.json();
 
-                const dropdown = document.getElementById("ItemTypeId");
-                dropdown.innerHTML = '<option value="">Select Category</option>';
+                const response = await fetch(API_BASE + "/Get_ItemType");
 
-                categories
-                    .filter(cat => cat.isActive === true)
-                    .forEach(cat => {
+                if (!response.ok)
+                    throw new Error();
 
-                        const option = document.createElement("option");
-                        option.value = cat.itemTypeId;
-                        option.textContent = cat.itemTypeName;
+                const data = await response.json();
 
-                        dropdown.appendChild(option);
-                    });
+                $("#ItemTypeId").empty();
 
-            } catch (error) {
-                console.error("Failed to load categories", error);
+                $("#ItemTypeId").append(
+                    `<option value="">Select Category</option>`
+                );
+
+                data.forEach(function (item) {
+
+                    if (item.isActive) {
+
+                        $("#ItemTypeId").append(
+
+                            `<option value="${item.itemTypeId}">
+                                ${item.itemTypeName}
+                            </option>`
+
+                        );
+
+                    }
+
+                });
+
             }
+            catch {
+
+                Swal.fire(
+                    "Error",
+                    "Unable to load categories.",
+                    "error"
+                );
+
+            }
+
         }
 
-        // 🔹 Duration Calculation (Supports minutes like 1.5 hrs properly)
+        //=========================================================
+        // Calculate Auction Duration
+        //=========================================================
+
         function calculateDuration() {
 
-            const startVal = document.getElementById("StartDate").value;
-            const endVal = document.getElementById("EndDate").value;
+            let start = $("#StartTime").val();
 
-            if (!startVal || !endVal) return;
+            let end = $("#EndTime").val();
 
-            const start = new Date(startVal);
-            const end = new Date(endVal);
+            if (start === "" || end === "") {
 
-            if (end <= start) {
-                document.getElementById("DurationDisplay").innerText =
-                    "End time must be greater than Start time";
+                $("#Duration").val("");
+
                 return;
+
             }
 
-            const diffMs = end - start;
-            const diffMinutes = diffMs / (1000 * 60);
-            const hours = Math.floor(diffMinutes / 60);
-            const minutes = diffMinutes % 60;
+            let s = new Date(start);
 
-            document.getElementById("DurationDisplay").innerText =
-                `Auction Duration: ${hours} hour(s) ${minutes} minute(s)`;
+            let e = new Date(end);
+
+            if (e <= s) {
+
+                $("#Duration").val("");
+
+                Swal.fire(
+                    "Warning",
+                    "End Time must be greater than Start Time",
+                    "warning"
+                );
+
+                return;
+
+            }
+
+            let diff = e - s;
+
+            let totalMinutes = Math.floor(diff / 60000);
+
+            let days = Math.floor(totalMinutes / 1440);
+
+            totalMinutes %= 1440;
+
+            let hours = Math.floor(totalMinutes / 60);
+
+            let minutes = totalMinutes % 60;
+
+            let text = "";
+
+            if (days > 0)
+                text += days + " Day ";
+
+            if (hours > 0)
+                text += hours + " Hour ";
+
+            if (minutes > 0)
+                text += minutes + " Minute";
+
+            $("#Duration").val(text);
+
         }
-                document.addEventListener("DOMContentLoaded", function () {
-            loadCategories();
-        });
-        document.getElementById("StartDate").addEventListener("change", calculateDuration);
-        document.getElementById("EndDate").addEventListener("change", calculateDuration);
 
-        // 🔹 Submit
-        document.getElementById("auctionForm").addEventListener("submit", async function (e) {
+        //=========================================================
+        // Loading Popup
+        //=========================================================
 
-            e.preventDefault();
+        function showLoading() {
+
+            loadingModal = new bootstrap.Modal(
+                document.getElementById("loadingModal")
+            );
+
+            loadingModal.show();
+
+        }
+
+        function hideLoading() {
+
+            if (loadingModal != null)
+                loadingModal.hide();
+
+        }
+        //=========================================================
+        // Load Auction Details
+        //=========================================================
+
+        async function loadAuction() {
 
             try {
 
-                const start = document.getElementById("StartDate").value;
-                const end = document.getElementById("EndDate").value;
+                showLoading();
 
-                const checked = document.querySelectorAll(".delivery:checked");
-                let deliveryId = 0;
-                if (checked.length === 1) deliveryId = parseInt(checked[0].value);
-                if (checked.length === 2) deliveryId = 3;
+                const response = await fetch(
 
-                const files = document.getElementById("Images").files;
-                let images = [];
+                    API_BASE +
+                    "/Get_AuctionByAuctionId?AuctionId=" +
+                    auctionId
 
-                for (let file of files) {
-                    const base64 = await toBase64(file);
-                    images.push({
-                        imageBase64: base64.split(',')[1],
-                        isPrimary: images.length === 0
-                    });
-                }
+                );
 
-                const requestData = {
-                    auction: {
-                        auctionId: 0,
-                        businessId: parseInt(document.getElementById("BusinessId").value),
-                        userId: document.getElementById("UserId").value,
-                        itemTypeId: parseInt(document.getElementById("ItemTypeId").value),
-                        itemTitle: document.getElementById("ItemTitle").value,
-                        itemDescription: document.getElementById("ItemDescription").value,
-                        itemCondition: document.getElementById("ItemCondition").value,
-                        priceIncrement: parseFloat(document.getElementById("PriceIncrement").value),
-                        reservePrice: parseFloat(document.getElementById("ReservePrice").value),
-                        minDeposite: parseFloat(document.getElementById("MinDeposite").value),
-                        startTime: start,
-                        endTime: end,
-                         registrationStartDate: document.getElementById("RegistrationstartDate").value,
-                         registrationEndDate: document.getElementById("RegistrationEndDate").value,
+                if (!response.ok) {
 
-                        itemLocation: document.getElementById("ItemLocation").value,
-                        deleveryMethodId: deliveryId,
-                        auctionStatus: parseInt(document.getElementById("AuctionStatus").value),
-                        createdBy: document.getElementById("CreatedBy").value
-                    },
-                    images: images
-                };
+                    hideLoading();
 
-                const response = await fetch("/api/Auction/UploadAuction", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(requestData)
-                });
+                    Swal.fire(
+                        "Error",
+                        "Unable to load auction.",
+                        "error"
+                    );
 
-                const result = await response.json();
-
-                if (!response.ok || result.resultId <= 0) {
-                    alert("Failed to submit auction: " + (result.resultMessage || "Unknown error"));
                     return;
                 }
 
-                alert("Auction Submitted Successfully");
-                location.reload();
+                const result = await response.json();
 
-            } catch (error) {
-                console.error(error);
-                alert("Something went wrong. Check console.");
+                if (!result || result.length == 0) {
+
+                    hideLoading();
+
+                    Swal.fire(
+                        "Error",
+                        "Auction not found.",
+                        "error"
+                    );
+
+                    return;
+                }
+
+                let a = result[0];
+
+                //--------------------------------------------------
+                // Hidden Fields
+                //--------------------------------------------------
+
+                $("#AuctionId").val(a.auctionId);
+
+                $("#BusinessId").val(a.businessId);
+
+                $("#UserId").val(a.userId);
+
+                $("#AuctionStatus").val(a.auctionStatus);
+
+                $("#CreatedBy").val(a.createdBy);
+
+                //--------------------------------------------------
+                // Item Details
+                //--------------------------------------------------
+
+                $("#ItemTitle").val(a.itemTitle);
+
+                $("#ItemTypeId").val(a.itemTypeId);
+
+                $("#ItemDescription").val(a.itemDescription);
+
+                $("#ItemCondition").val(a.itemCondition);
+
+                //--------------------------------------------------
+                // Pricing
+                //--------------------------------------------------
+
+                $("#ReservePrice").val(a.reservePrice);
+
+                $("#PriceIncrement").val(a.priceIncrement);
+
+                $("#MinDeposite").val(a.minDeposite);
+
+                //--------------------------------------------------
+                // Schedule
+                //--------------------------------------------------
+
+                $("#StartTime").val(formatDate(a.startTime));
+
+                $("#EndTime").val(formatDate(a.endTime));
+
+                calculateDuration();
+
+                //--------------------------------------------------
+                // Registration
+                //--------------------------------------------------
+
+                $("#RegistrationRequired")
+                    .prop("checked", a.registrationRequired);
+
+                toggleRegistrationFields();
+
+                if (a.registrationStartDate != null) {
+
+                    $("#RegistrationStartDate")
+                        .val(formatDate(a.registrationStartDate));
+
+                }
+
+                if (a.registrationEndDate != null) {
+
+                    $("#RegistrationEndDate")
+                        .val(formatDate(a.registrationEndDate));
+
+                }
+
+                //--------------------------------------------------
+                // Delivery
+                //--------------------------------------------------
+
+                $("#ItemLocation").val(a.itemLocation);
+
+                $("#DeleveryMethodId").val(a.deleveryMethodId);
+
+                // //--------------------------------------------------
+                // // TimeZone
+                // //--------------------------------------------------
+
+                // if (a.timeZoneId != null &&
+                //     a.timeZoneId != "") {
+
+                //     $("#TimeZoneId").val(a.timeZoneId);
+
+                //     $("#TimeZoneDisplay").val(a.timeZoneId);
+
+                // }
+
+                //--------------------------------------------------
+                // Existing Images
+                //--------------------------------------------------
+
+                existingImages = [];
+
+                removedImages = [];
+
+                $("#oldImagesContainer").empty();
+
+                if (a.images != null &&
+                    a.images.length > 0) {
+
+                    a.images.forEach(function (img) {
+
+                        existingImages.push(img);
+
+                        appendOldImage(img);
+
+                    });
+
+                }
+
+                hideLoading();
+
             }
-        });
 
+            catch (ex) {
 
-        function toBase64(file) {
-            return new Promise((resolve,reject)=>{
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = error => reject(error);
-            });
+                hideLoading();
+
+                console.log(ex);
+
+                Swal.fire(
+                    "Error",
+                    "Unexpected error occurred.",
+                    "error"
+                );
+
+            }
+
         }
 
+        //=========================================================
+        // Existing Image Card
+        //=========================================================
+
+        function appendOldImage(img) {
+
+            let imageUrl = "/" + img.imageUrl;
+
+            let html = `
+
+            <div class="old-image me-3 mb-3"
+
+                 data-id="${img.auctionItemImageId}">
+
+                <img
+
+                    src="${imageUrl}"
+
+                    class="image-preview">
+
+                <button
+
+                    type="button"
+
+                    class="btn btn-danger btn-sm remove-old">
+
+                    <i class="fa fa-trash"></i>
+
+                </button>
+
+            </div>`;
+
+            $("#oldImagesContainer").append(html);
+
+        }
+
+        //=========================================================
+        // Remove Existing Image
+        //=========================================================
+
+        $(document).on("click",
+            ".remove-old",
+            function () {
+
+                let card = $(this).closest(".old-image");
+
+                let id = card.data("id");
+
+                removedImages.push(id);
+
+                card.remove();
+
+            });
+
+        //=========================================================
+        // Format DateTime
+        //=========================================================
+
+        function formatDate(date) {
+
+            if (!date)
+                return "";
+
+            let d = new Date(date);
+
+            let yyyy = d.getFullYear();
+
+            let MM = String(
+                d.getMonth() + 1
+            ).padStart(2, '0');
+
+            let dd = String(
+                d.getDate()
+            ).padStart(2, '0');
+
+            let hh = String(
+                d.getHours()
+            ).padStart(2, '0');
+
+            let mm = String(
+                d.getMinutes()
+            ).padStart(2, '0');
+
+            return `${yyyy}-${MM}-${dd}T${hh}:${mm}`;
+
+        }
+        //=========================================================
+        // Preview Selected Images
+        //=========================================================
+
+        function previewImages() {
+
+            $("#previewContainer").empty();
+
+            selectedFiles = [];
+
+            const files = document.getElementById("Images").files;
+
+            if (!files || files.length === 0)
+                return;
+
+            Array.from(files).forEach(function (file, index) {
+
+                selectedFiles.push(file);
+
+                const reader = new FileReader();
+
+                reader.onload = function (e) {
+
+                    let html = `
+
+                    <div class="me-3 mb-3 text-center">
+
+                        <img src="${e.target.result}"
+                             class="image-preview"/>
+
+                        <div class="form-check mt-2">
+
+                            <input class="form-check-input primary-image"
+                                   type="radio"
+                                   name="PrimaryImage"
+                                   value="${index}"
+                                   ${index == 0 ? "checked" : ""}>
+
+                            <label class="form-check-label">
+
+                                Primary
+
+                            </label>
+
+                        </div>
+
+                    </div>`;
+
+                    $("#previewContainer").append(html);
+
+                };
+
+                reader.readAsDataURL(file);
+
+            });
+
+        }
+
+        //=========================================================
+        // Convert File To Base64
+        //=========================================================
+
+        function fileToBase64(file) {
+
+            return new Promise((resolve, reject) => {
+
+                const reader = new FileReader();
+
+                reader.readAsDataURL(file);
+
+                reader.onload = () => resolve(reader.result);
+
+                reader.onerror = error => reject(error);
+
+            });
+
+        }
+
+        //=========================================================
+        // Validate Auction
+        //=========================================================
+
+        function validateAuction() {
+
+            if ($("#ItemTitle").val().trim() === "") {
+
+                Swal.fire("Validation", "Enter Item Title", "warning");
+
+                return false;
+
+            }
+
+            if ($("#ItemTypeId").val() === "") {
+
+                Swal.fire("Validation", "Select Category", "warning");
+
+                return false;
+
+            }
+
+            if ($("#ReservePrice").val() === "") {
+
+                Swal.fire("Validation", "Enter Reserve Price", "warning");
+
+                return false;
+
+            }
+
+            if ($("#PriceIncrement").val() === "") {
+
+                Swal.fire("Validation", "Enter Price Increment", "warning");
+
+                return false;
+
+            }
+
+            if ($("#MinDeposite").val() === "") {
+
+                Swal.fire("Validation", "Enter Minimum Deposit", "warning");
+
+                return false;
+
+            }
+
+            if ($("#StartTime").val() === "") {
+
+                Swal.fire("Validation", "Select Start Time", "warning");
+
+                return false;
+
+            }
+
+            if ($("#EndTime").val() === "") {
+
+                Swal.fire("Validation", "Select End Time", "warning");
+
+                return false;
+
+            }
+
+            if ($("#ItemLocation").val().trim() === "") {
+
+                Swal.fire("Validation", "Enter Item Location", "warning");
+
+                return false;
+
+            }
+
+            if ($("#DeleveryMethodId").val() === "") {
+
+                Swal.fire("Validation", "Select Delivery Method", "warning");
+
+                return false;
+
+            }
+
+            if ($("#RegistrationRequired").is(":checked")) {
+
+                if ($("#RegistrationStartDate").val() === "") {
+
+                    Swal.fire("Validation",
+                        "Select Registration Start Date",
+                        "warning");
+
+                    return false;
+
+                }
+
+                if ($("#RegistrationEndDate").val() === "") {
+
+                    Swal.fire("Validation",
+                        "Select Registration End Date",
+                        "warning");
+
+                    return false;
+
+                }
+
+            }
+
+            return true;
+
+        }
+
+        //=========================================================
+        // Build Images Collection
+        //=========================================================
+
+        async function buildImages() {
+
+            let images = [];
+
+            // User didn't choose new images
+            // Existing images remain unchanged
+            if (selectedFiles.length === 0)
+                return images;
+
+            let primaryIndex = parseInt(
+
+                $(".primary-image:checked").val() ?? 0
+
+            );
+
+            for (let i = 0; i < selectedFiles.length; i++) {
+
+                let base64 = await fileToBase64(selectedFiles[i]);
+
+                images.push({
+
+                    imageBase64: base64,
+
+                    isPrimary: i === primaryIndex
+
+                });
+
+            }
+
+            return images;
+
+        }
+        //=========================================================
+        // Save / Update Auction
+        //=========================================================
+
+        async function saveAuction(isUpdate) {
+
+            if (!validateAuction())
+                return;
+
+            try {
+
+                showLoading();
+
+                let images = await buildImages();
+
+                const request = {
+
+                    auction: {
+
+                        auctionId: parseInt($("#AuctionId").val() || 0),
+
+                        businessId: $("#BusinessId").val()? parseInt($("#BusinessId").val()): null,
+
+                        userId: $("#UserId").val() ? $("#UserId").val(): null,
+
+                        itemTypeId: parseInt($("#ItemTypeId").val()),
+
+                        itemTitle: $("#ItemTitle").val().trim(),
+
+                        itemDescription: $("#ItemDescription").val().trim(),
+
+                        itemCondition: $("#ItemCondition").val().trim(),
+
+                        reservePrice: parseFloat($("#ReservePrice").val()),
+
+                        priceIncrement: parseFloat($("#PriceIncrement").val()),
+
+                        minDeposite: parseFloat($("#MinDeposite").val()),
+
+                        startTime: $("#StartTime").val(),
+
+                        endTime: $("#EndTime").val(),
+
+                       registrationRequired: $("#RegistrationRequired").is(":checked") ? 1 : 0,
+
+                        registrationStartDate:
+                            $("#RegistrationStartDate").val(),
+
+                        registrationEndDate:
+                            $("#RegistrationEndDate").val(),
+
+                        itemLocation:
+                            $("#ItemLocation").val().trim(),
+
+                        deleveryMethodId:
+                            parseInt($("#DeleveryMethodId").val()),
+
+                        auctionStatus:
+                            parseInt($("#AuctionStatus").val()),
+
+                        createdBy:
+                            $("#CreatedBy").val(),
+
+                        
+
+                    },
+
+                    images: images
+
+                };
+
+                const response = await fetch(
+
+                    API_BASE + "/UploadAndUpdateAuction",
+
+                    {
+
+                        method: "POST",
+
+                        headers: {
+
+                            "Content-Type": "application/json"
+
+                        },
+
+                        body: JSON.stringify(request)
+
+                    }
+
+                );
+
+                const result = await response.json();
+
+                hideLoading();
+
+                if (response.ok && result.success) {
+
+                    Swal.fire({
+
+                        icon: "success",
+
+                        title: isUpdate
+                            ? "Auction Updated"
+                            : "Auction Created",
+
+                        text: result.message,
+
+                        confirmButtonText: "OK"
+
+                    }).then(() => {
+
+                        window.location.href =
+                            "/Business/Home/Auctions";
+
+                    });
+
+                }
+                else {
+
+                    Swal.fire(
+
+                        "Error",
+
+                        result.message ||
+
+                        "Unable to save auction.",
+
+                        "error"
+
+                    );
+
+                }
+
+            }
+
+            catch (ex) {
+
+                hideLoading();
+
+                console.log(ex);
+
+                Swal.fire(
+
+                    "Error",
+
+                    ex.message,
+
+                    "error"
+
+                );
+
+            }
+
+        }
+
+        //////////////////////////////////////////////////////
+        // Reset Form
+        //////////////////////////////////////////////////////
+
+        $("#auctionForm").on("reset", function () {
+
+            setTimeout(function () {
+
+                $("#previewContainer").empty();
+
+                $("#oldImagesContainer").empty();
+
+                $("#Duration").val("");
+
+              
+                selectedFiles = [];
+
+                existingImages = [];
+
+                removedImages = [];
 
 
-        // function toggleTheme(){
+                toggleRegistrationFields();
 
-        // const html = document.documentElement;
-        // const icon = document.getElementById("themeIcon");
+            }, 200);
 
-        // if(html.getAttribute("data-theme") === "dark"){
+        });
 
-        // html.removeAttribute("data-theme");
-        // localStorage.setItem("theme","light");
-        // icon.className = "fa-solid fa-moon";
+        //////////////////////////////////////////////////////
+        // Prevent Multiple Submit
+        //////////////////////////////////////////////////////
 
-        // }else{
+        $("#btnSave,#btnUpdate").on("dblclick", function (e) {
 
-        // html.setAttribute("data-theme","dark");
-        // localStorage.setItem("theme","dark");
-        // icon.className = "fa-solid fa-sun";
+            e.preventDefault();
 
-        // }
+        });
 
-        // }
+        //////////////////////////////////////////////////////
+        // Close Script
+        //////////////////////////////////////////////////////
 
-        // document.addEventListener("DOMContentLoaded", function(){
-
-        // const savedTheme = localStorage.getItem("theme");
-        // const icon = document.getElementById("themeIcon");
-
-        // if(savedTheme === "dark"){
-        // document.documentElement.setAttribute("data-theme","dark");
-        // icon.className = "fa-solid fa-sun";
-        // }else{
-        // icon.className = "fa-solid fa-moon";
-        // }
-
-        // });
     </script>
 
 </body>
+
 </html>
+

@@ -71,6 +71,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             parameters.Add("@AuctionStatus", entity.AuctionStatus);
             parameters.Add("@CreatedBy", entity.CreatedBy);
             parameters.Add("@RegistrationRequired", entity.RegistrationRequired);
+            parameters.Add("@TimeZoneId", entity.TimeZoneId);
             var result = await connection.QueryAsync<BaseResponse>( "Add_Auction", parameters, commandType: CommandType.StoredProcedure);
 
             return result.FirstOrDefault();

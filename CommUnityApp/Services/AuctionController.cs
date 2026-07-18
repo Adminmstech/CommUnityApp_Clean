@@ -341,6 +341,7 @@ namespace CommUnityApp.Services
                     IsRegistered = auction.IsRegistered,
                     RegistrationRequired=auction.RegistrationRequired,
                     CreatedAt = auction.CreatedAt,
+                    TimeZoneId = auction.TimeZoneId,
 
                     // ✅ FIXED HERE
                     Images = images
@@ -709,6 +710,7 @@ namespace CommUnityApp.Services
                     AuctionStatus = auction.AuctionStatus,
                     CreatedBy = auction.CreatedBy,
                     IsRegistered = auction.IsRegistered,
+                    RegistrationRequired=auction.RegistrationRequired,
                     CreatedAt = auction.CreatedAt,
                     Images = images
                 };
