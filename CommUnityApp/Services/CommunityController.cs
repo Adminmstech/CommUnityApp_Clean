@@ -1211,7 +1211,7 @@ namespace CommUnityApp.Services
        
         [HttpGet("GetTopFiveCommunityPostsByUser")]
         public async Task<IActionResult> GetTopFiveCommunityPostsByUser(Guid userId)
-        {
+        { 
             var data = await _unitOfWork.Community
                 .GetTopFiveCommunityPostsByUser(userId);
 
