@@ -33,6 +33,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<RewardsDashboardModel> GetRewardsDashboard(int businessId);
         Task<List<ShareRewardHistoryModel>> GetShareRewardHistory( int businessId);
 
+
+
     }
 
 }

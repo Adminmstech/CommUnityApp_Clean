@@ -1211,7 +1211,7 @@ namespace CommUnityApp.Services
        
         [HttpGet("GetTopFiveCommunityPostsByUser")]
         public async Task<IActionResult> GetTopFiveCommunityPostsByUser(Guid userId)
-        {
+        { 
             var data = await _unitOfWork.Community
                 .GetTopFiveCommunityPostsByUser(userId);
 
@@ -1280,6 +1280,44 @@ namespace CommUnityApp.Services
                     ResultId = 0,
                     ResultMessage = ex.Message,
                     Status = 0
+                });
+            }
+
+        }
+
+        [HttpGet("GetCharityItemsByUserCommunities")]
+        public async Task<IActionResult> GetCharityItemsByUserCommunities(Guid userId)
+        {
+            try
+            {
+                if (userId == Guid.Empty)
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "UserId is required.",
+                        Status = false
+                    });
+                }
+
+                var result = await _communityRepository
+                    .GetCharityItemsByUserCommunities(userId);
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Charity items fetched successfully.",
+                    Status = true,
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
                 });
             }
         }

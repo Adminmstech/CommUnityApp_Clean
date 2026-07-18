@@ -787,13 +787,25 @@
 
                             <div>
                                 📅 <strong>Starts:</strong>
-                                ${promotion.startDateString}
-                            </div>
+        ${new Date(promotion.startDate).toLocaleString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            })}                            </div>
 
                             <div>
                                 ⏰ <strong>Ends:</strong>
-                                ${promotion.endDateString}
-                            </div>
+        ${new Date(promotion.endDate).toLocaleString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: true
+            })}                            </div>
 
                         </div>
 

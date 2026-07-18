@@ -717,6 +717,34 @@ CommunityPostModel model)
 
             return result;
         }
+
+        public async Task<List<UserCommunityCharityItemModel>> GetCharityItemsByUserCommunities(Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            using var multi = await connection.QueryMultipleAsync(
+                "sp_GetCharityItemsByUserCommunities",
+                new
+                {
+                    UserId = userId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            var charityItems = (await multi.ReadAsync<UserCommunityCharityItemModel>()).ToList();
+
+            var images = (await multi.ReadAsync<CharityItemImageModel>()).ToList();
+
+            foreach (var item in charityItems)
+            {
+                item.Images = images
+                    .Where(x => x.CharityItemId == item.CharityItemId)
+                    .Select(x => x.ImagePath)
+                    .ToList();
+            }
+
+            return charityItems;
+        }
     }
 }
 

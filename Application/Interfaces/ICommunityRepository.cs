@@ -55,7 +55,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<CommunityPostModel>> GetTopFiveCommunityPostsByUser(Guid userId);
         Task<int> AddCharityItemImage(int charityItemId, string imagePath);
         Task<DeleteCharityItemResult> DeleteCharityItem(long charityItemId);
-
+        Task<List<UserCommunityCharityItemModel>> GetCharityItemsByUserCommunities(Guid userId);
 
     }
 

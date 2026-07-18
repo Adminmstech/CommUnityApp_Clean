@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Http;
+using static Dapper.SqlMapper;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CommUnityApp.ApplicationCore.Models
 {
@@ -483,4 +485,46 @@ namespace CommUnityApp.ApplicationCore.Models
         public int Status { get; set; }
         public string Message { get; set; }
     }
+
+    public class UserCommunityCharityItemModel
+    {
+        public long CharityItemId { get; set; }
+
+        public int CommunityId { get; set; }
+
+        public string CommunityName { get; set; }
+
+        public string ItemName { get; set; }
+
+        public string Description { get; set; }
+
+        public int Quantity { get; set; }
+
+        public int RequestedQuantity { get; set; }
+
+        public int AvailableQuantity { get; set; }
+
+        public string AvailabilityStatus { get; set; }
+
+        public string Status { get; set; }
+
+        public DateTime? AssignedDate { get; set; }
+
+        public DateTime CreatedDate { get; set; }
+
+        public Guid? AssignedToUserId { get; set; }
+
+        public Guid PostedByUserId { get; set; }
+
+        public string PostedByName { get; set; }
+
+        public string DeliveryStatus { get; set; }
+
+        public string ItemCategory { get; set; }
+
+        public string ItemCode { get; set; }
+
+        public List<string> Images { get; set; } = new();
+    }
+
 }
