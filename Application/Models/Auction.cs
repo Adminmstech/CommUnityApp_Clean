@@ -39,7 +39,7 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string? CreatedBy { get; set; }
         public int RegistrationRequired { get; set; }
-        public string TimeZoneId { get; set; }
+        public string? TimeZoneId { get; set; }
 
     }
 
