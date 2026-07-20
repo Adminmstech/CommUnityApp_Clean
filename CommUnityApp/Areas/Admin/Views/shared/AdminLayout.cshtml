@@ -276,6 +276,13 @@
                     <i class="fa-solid fa-user-lock"></i> Blocked Users
                 </a> *@
 
+                <div class="nav-section-title">Games</div>
+                <a href="@Url.Action("TextQuizList", "Admin", new { area = "Admin" })">
+                    <i class="fa-solid fa-concierge-bell"></i> Text Quiz
+                </a>
+                
+
+
                 <div class="nav-section-title">Communication</div>
                 <a href="@Url.Action("Communication", "Admin", new { area = "Admin" })">
                     <i class="fa-solid fa-bell"></i> Send Notification
@@ -306,6 +313,7 @@
                 <a href="@Url.Action("Settings", "Settings", new { area = "Admin" })">
                     <i class="fa-solid fa-gear"></i> Settings
                 </a>
+            
             </nav>
 
             <div class="mt-auto">

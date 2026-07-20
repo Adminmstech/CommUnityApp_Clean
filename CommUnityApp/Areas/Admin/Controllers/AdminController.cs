@@ -78,6 +78,13 @@ namespace CommUnityApp.Areas.Admin.Controllers
         {
             return View();
         }
-
+        public IActionResult AddTextQuiz()
+        {
+            return View();
+        }
+        public IActionResult TextQuizList()
+        {
+            return View();
+        }
     }
 }

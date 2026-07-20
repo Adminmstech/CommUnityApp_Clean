@@ -1,0 +1,481 @@
+﻿@{
+    ViewData["Title"] = "Text Quiz";
+    Layout = "AdminLayout";
+
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+
+            <h4>Text Quiz Game</h4>
+
+        </div>
+
+        <div class="card-body">
+
+            <input type="hidden" id="QuizId" value="0" />
+
+            <div class="row">
+
+                <div class="col-md-6">
+
+                    <label>Quiz Name</label>
+
+                    <input type="text"
+                           id="QuizName"
+                           class="form-control" />
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label>Quiz Code</label>
+
+                    <input type="text"
+                           id="QuizCode"
+                           class="form-control" />
+
+                </div>
+
+            </div>
+
+            <br />
+
+            <div class="row">
+
+                <div class="col-md-6">
+
+                    <label>Start Date</label>
+
+                    <input type="datetime-local"
+                           id="StartDate"
+                           class="form-control" />
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label>End Date</label>
+
+                    <input type="datetime-local"
+                           id="EndDate"
+                           class="form-control" />
+
+                </div>
+
+            </div>
+
+            <br />
+
+            <div class="row">
+
+                <div class="col-md-6">
+
+                    <label>SMS Code</label>
+
+                    <input type="text"
+                           id="SmsCode"
+                           class="form-control" />
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label>Quiz Image</label>
+
+                    <input type="file"
+                           id="QuizImage"
+                           class="form-control" />
+
+                </div>
+
+            </div>
+
+            <br />
+
+            <div class="row">
+
+                <div class="col-md-6">
+
+                    <label>QR Code</label>
+
+                    <input type="text"
+                           id="QRCode"
+                           class="form-control" />
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <label>Status</label>
+
+                    <select id="Status"
+                            class="form-control">
+
+                        <option value="true">Active</option>
+
+                        <option value="false">Inactive</option>
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <label>Refer Friend</label>
+
+                    <select id="IsReferFriend"
+                            class="form-control">
+
+                        <option value="true">Yes</option>
+
+                        <option value="false">No</option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+            <br />
+
+            <label>Description</label>
+
+            <textarea id="ShortDescription"
+                      rows="3"
+                      class="form-control"></textarea>
+
+        </div>
+
+    </div>
+
+    <br />
+
+    <div class="card shadow">
+
+        <div class="card-header bg-success text-white">
+
+            <h5>Questions</h5>
+
+        </div>
+
+        <div class="card-body">
+
+            <button type="button"
+                    class="btn btn-primary mb-3"
+                    onclick="addQuestion()">
+
+                Add Question
+
+            </button>
+
+            <div id="questionsContainer"></div>
+
+        </div>
+
+    </div>
+
+    <br />
+
+    <button class="btn btn-success"
+            onclick="saveQuiz()">
+
+        Save Quiz
+
+    </button>
+
+</div>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+<script>
+    let questionIndex = 0;
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const quizId = urlParams.get("quizId");
+
+    $(document).ready(function () {
+
+        if (quizId) {
+            loadQuiz(quizId);
+        }
+
+    });
+
+
+
+    function addQuestion(question = null) {
+
+        questionIndex++;
+
+        let html = `
+
+        <div class="card mb-3 question-card">
+
+            <input type="hidden" class="QuestionId"
+                   value="${question ? question.quizQuestionId : 0}" />
+
+            <div class="card-header">
+
+                <b>Question ${questionIndex}</b>
+
+                <button class="btn btn-danger btn-sm float-end"
+                        onclick="$(this).closest('.question-card').remove()">
+
+                    Remove
+
+                </button>
+
+            </div>
+
+            <div class="card-body">
+
+                <label>Question</label>
+
+                <input type="text"
+                       class="form-control question-text"
+                       value="${question ? question.question : ""}" />
+
+                <br/>
+
+                <table class="table table-bordered">
+
+                    <thead>
+
+                        <tr>
+
+                            <th width="10%">Option</th>
+
+                            <th>Answer</th>
+
+                            <th width="20%">Correct</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>`;
+
+        for (let i = 1; i <= 4; i++) {
+
+            let answer = "";
+
+            let answerId = 0;
+
+            let checked = "";
+
+            if (question && question.answers) {
+
+                let ans = question.answers.find(x => x.answerNumber == i);
+
+                if (ans) {
+
+                    answer = ans.answer;
+                    answerId = ans.quizAnswerId;
+
+                    if (question.correctAnswerNumber == i)
+                        checked = "checked";
+                }
+            }
+
+            html += `
+             
+    <tr>
+
+    <td>${i}</td>
+
+    <td>
+
+    <input type="hidden"
+           class="AnswerId"
+           value="${answerId}" />
+
+    <input class="form-control answer-text"
+           value="${answer}" />
+
+    </td>
+
+    <td class="text-center">
+
+    <input type="radio"
+           name="correct_${questionIndex}"
+           value="${i}"
+           ${checked}/>
+
+    </td>
+
+    </tr>`;
+        }
+
+        html += `
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </div>`;
+
+        $("#questionsContainer").append(html);
+
+    }
+
+    function saveQuiz() {
+
+        let questions = [];
+
+        $(".question-card").each(function (index) {
+
+            let question = {};
+
+            question.QuizQuestionId =
+                $(this).find(".QuestionId").val();
+
+            question.QuestionNum = index + 1;
+
+            question.Question = $(this).find(".question-text").val();
+
+            question.CorrectAnswerNumber = $(this)
+                .find("input[type=radio]:checked")
+                .val();
+
+            question.Answers = [];
+
+            $(this).find(".answer-text").each(function (i) {
+
+                question.Answers.push({
+
+                    QuizAnswerId: $(this)
+                        .closest("td")
+                        .find(".AnswerId")
+                        .val(),
+
+                    AnswerNumber: i + 1,
+
+                    Answer: $(this).val()
+
+                });
+
+            });
+
+            questions.push(question);
+
+        });
+
+        var model = {
+
+            QuizId: $("#QuizId").val(),
+
+            OrgId: 1,
+
+            GroupId: 1,
+
+            QuizName: $("#QuizName").val(),
+
+            QuizCode: $("#QuizCode").val(),
+
+            StartDate: $("#StartDate").val(),
+
+            EndDate: $("#EndDate").val(),
+
+            SmsCode: $("#SmsCode").val(),
+
+            QRCode: $("#QRCode").val(),
+
+            IsReferFriend: $("#IsReferFriend").val() == "true",
+
+            Status: $("#Status").val() == "true",
+
+            ShortDescription: $("#ShortDescription").val(),
+
+            QuizImage: "",
+
+            Questions: questions
+
+        };
+
+        console.log(model);
+
+        $.ajax({
+            url: '/api/TextQuiz/SaveTextQuiz', 
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(model),
+            success: function (res) {
+                alert(res.resultMessage || "Quiz Saved Successfully");
+                console.log(res);
+            },
+            error: function (xhr) {
+                console.log(xhr);
+                alert(xhr.responseText);
+            }
+        });
+
+    }
+
+    function loadQuiz(id) {
+
+        $.ajax({
+
+            url: "/api/TextQuiz/GetTextQuizById?quizId=" + id,
+
+            type: "GET",
+
+            success: function (res) {
+
+                console.log(res); // Check the response
+
+                if (res.status) {
+
+                    populateQuiz(res.data);
+
+                }
+
+            }
+
+        });
+
+    }
+
+    function populateQuiz(data) {
+
+        let quiz = data.quiz;
+
+        $("#QuizId").val(quiz.quizId);
+
+        $("#QuizName").val(quiz.quizName);
+
+        $("#QuizCode").val(quiz.quizCode);
+
+        $("#StartDate").val(quiz.startDate.substring(0, 16));
+
+        $("#EndDate").val(quiz.endDate.substring(0, 16));
+
+        $("#SmsCode").val(quiz.smsCode);
+
+        $("#QRCode").val(quiz.qrCode);
+
+        $("#Status").val(quiz.status.toString());
+
+        $("#IsReferFriend").val(quiz.isReferFriend.toString());
+
+        $("#ShortDescription").val(quiz.shortDescription);
+
+        $("#questionsContainer").html("");
+
+        questionIndex = 0;
+
+        $.each(data.questions, function (i, q) {
+
+            addQuestion(q);
+
+        });
+
+    }
+
+</script>
