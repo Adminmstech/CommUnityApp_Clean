@@ -1,0 +1,88 @@
+﻿@{
+    Layout = null;
+
+    var productId = Context.Request.Query["productId"];
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="utf-8" />
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1" />
+
+    <title>Opening Product</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+          rel="stylesheet" />
+
+    <style>
+
+        body {
+            background: #f4f6f9;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 40px;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,.1);
+        }
+
+        .logo {
+            width: 80px;
+            margin-bottom: 20px;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+        }
+
+    </style>
+
+</head>
+<body>
+
+    <div class="loading-card">
+
+        <img src="/images/logo.png"
+             class="logo"
+             onerror="this.style.display='none';" />
+
+        <div class="spinner-border text-primary">
+        </div>
+
+        <h4 class="mt-4">
+            Opening Product...
+        </h4>
+
+        <p class="text-muted">
+            Please wait while we redirect you.
+        </p>
+
+    </div>
+
+    <script>
+
+        const productId = '@productId';
+
+        setTimeout(function () {
+
+            window.location.href =
+                '/Product/Details?productId=' + productId;
+
+        }, 1000);
+
+    </script>
+
+</body>
+</html>

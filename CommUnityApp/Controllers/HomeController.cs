@@ -133,5 +133,13 @@ namespace CommUnityApp.Controllers
                 return RedirectToAction("Index", "Home");
             }
         }
+
+        public IActionResult PromotionShare(int promotionId, Guid s)
+        {
+            ViewBag.PromotionId = promotionId;
+            ViewBag.ShareToken = s;
+
+            return View();
+        }
     }
 }

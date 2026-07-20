@@ -286,11 +286,18 @@
 
         <td>${formatDate(item.product.endDate)}</td>
 
-        <td>
-               <button class="btn-edit"
-        onclick="editProduct(${item.product.productId})">
-        Edit
-        </button>
+               <td>
+
+            <button class="btn-edit"
+                onclick="editProduct(${item.product.productId})">
+                Edit
+            </button>
+
+            <button class="btn btn-success btn-sm ms-1"
+                onclick="shareProduct(${item.product.productId})">
+                Share
+            </button>
+
         </td>
 
         </tr>
@@ -321,6 +328,65 @@
 
         window.location.href="/Business/Home/AddProduct?productId="+id;
 
+        }
+
+                async function shareProduct(productId) {
+
+            try {
+
+                const userId = localStorage.getItem("UserId");
+
+                const response = await fetch(
+                    '/api/Product/GeneratePromotionShareLink',
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            promotionId: productId,
+                            userId: userId
+                        })
+                    });
+
+                const result = await response.json();
+
+                const shareUrl =
+                    result.shareUrl ||
+                    result.data?.shareUrl;
+
+                if (!shareUrl) {
+                    alert("Unable to generate share link");
+                    return;
+                }
+
+                if (navigator.share) {
+
+                    await navigator.share({
+                        title: 'Check this Product',
+                        text: 'Check this product on IndoCommunity',
+                        url: shareUrl
+                    });
+
+                } else {
+
+                    await navigator.clipboard.writeText(
+                        shareUrl);
+
+                    alert(
+                        "Share link copied successfully.\n\n" +
+                        shareUrl
+                    );
+                }
+
+            }
+            catch (error) {
+
+                console.error(error);
+
+                alert("Failed to generate share link");
+
+            }
         }
 
         loadProducts();

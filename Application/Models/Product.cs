@@ -761,4 +761,18 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public DateTime CreatedAt { get; set; }
     }
+
+
+    public class PromotionShareLinkModel
+    {
+        public long ShareId { get; set; }
+
+        public int PromotionId { get; set; }
+
+        public Guid UserId { get; set; }
+
+        public Guid ShareToken { get; set; }
+
+        public string ShareUrl { get; set; }
+    }
 }
