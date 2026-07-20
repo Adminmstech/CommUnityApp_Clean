@@ -9,7 +9,7 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public int? BusinessId { get; set; }
 
-        public Guid UserId { get; set; }
+        public Guid? UserId { get; set; }
 
         public int? ItemTypeId { get; set; }
 
@@ -39,6 +39,7 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string? CreatedBy { get; set; }
         public int RegistrationRequired { get; set; }
+        public string? TimeZoneId { get; set; }
 
     }
 
@@ -127,6 +128,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string? CreatedBy { get; set; }
         public int RegistrationRequired { get; set; }
         public bool IsRegistered { get; set; }
+        public string? TimeZoneId { get; set; } = string.Empty;
         public List<GetAuctionImagedModel> AuctionImages { get; set; }
         public DateTime? CreatedAt { get; set; }
     }
@@ -153,7 +155,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public int RegistrationRequired { get; set; }
         public bool IsRegistered { get; set; }
         public DateTime? CreatedAt { get; set; }
-
+        public string? TimeZoneId { get; set; } = string.Empty;
         public List<AuctionItemImage> Images { get; set; } = new();
     }
 

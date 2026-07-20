@@ -582,5 +582,45 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 },
                 commandType: CommandType.StoredProcedure);
         }
+
+
+        public async Task<PromotionShareLinkModel> GeneratePromotionShareLink(int promotionId,Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@PromotionId", promotionId);
+            parameters.Add("@UserId", userId);
+
+            var result =
+                await connection.QueryFirstOrDefaultAsync<PromotionShareLinkModel>(
+                    "Generate_PromotionShareLink",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+            return result;
+        }
+
+        public async Task<PromotionDetailsModel> GetPromotionByShareToken( Guid shareToken)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@ShareToken", shareToken);
+
+            return await connection.QueryFirstOrDefaultAsync<
+                PromotionDetailsModel>(
+                "Get_PromotionByShareToken",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+        }
+
+
     }
 }
