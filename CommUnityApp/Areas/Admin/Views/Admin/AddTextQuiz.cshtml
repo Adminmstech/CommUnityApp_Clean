@@ -402,17 +402,29 @@
         console.log(model);
 
         $.ajax({
-            url: '/api/TextQuiz/SaveTextQuiz', 
+            url: '/api/TextQuiz/SaveTextQuiz',
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(model),
+
             success: function (res) {
+
                 alert(res.resultMessage || "Quiz Saved Successfully");
-                console.log(res);
+
+                if (res.status || res.resultId > 0) {
+
+                    window.location.href = "/Admin/Admin/TextQuizList";
+
+                }
+
             },
+
             error: function (xhr) {
+
                 console.log(xhr);
+
                 alert(xhr.responseText);
+
             }
         });
 

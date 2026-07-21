@@ -86,5 +86,13 @@ namespace CommUnityApp.Areas.Admin.Controllers
         {
             return View();
         }
+        public IActionResult AddSmartQuiz()
+        {
+            return View();
+        }
+        public IActionResult SmartQuizList()
+        {
+            return View();
+        }
     }
 }
