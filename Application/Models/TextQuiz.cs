@@ -292,7 +292,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public long QuizQuestionId { get; set; }
 
         public int QuestionNum { get; set; }
-
+        
         public string Question { get; set; }
 
         public long CorrectAnswerId { get; set; }

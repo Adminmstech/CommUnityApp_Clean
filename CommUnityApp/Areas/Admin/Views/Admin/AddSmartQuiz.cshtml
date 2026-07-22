@@ -213,27 +213,24 @@
 
                 file.dataset.answerid = ans.smartQuizAnswerId;
 
-                file.dataset.filename = ans.answerImage;
-
+                file.dataset.filename =
+                    ans.answerImage
+                        ? ans.answerImage.split('/').pop()
+                        : "";
                 file.dataset.base64 = "";
 
-                if (ans.answerImage) {
+                if (ans.answerImage) { 
 
-                    file.nextElementSibling.src =
-                        "/SmartQuiz/" +
-                        editQuizId +
-                        "/" +
-                        ans.answerImage;
+                    file.nextElementSibling.src = ans.answerImage;
 
                     file.nextElementSibling.style.display = "block";
-                }
+                } 
 
-                if (ans.answerNumber == question.correctAnswerId) {
+                if (ans.smartQuizAnswerId == question.correctAnswerId) {
 
                     card.querySelector(
                         "input[value='" + ans.answerNumber + "']"
                     ).checked = true;
-
                 }
 
             });
@@ -247,11 +244,11 @@
 
         let html = "";
 
-        for (let i = 1; i <= 4; i++) {
+        for (let i = 1; i <= 3; i++) {
 
             html += `
 
-            <div class="col-md-3">
+            <div class="col-md-4">
 
                 <label>Answer ${i}</label>
 
@@ -261,14 +258,16 @@
                     class="form-control answerFile"
                     data-answer="${i}" />
 
-                <img
-                    class="preview img-thumbnail mt-2"
-                    style="width:100%;
-                           height:120px;
-                           object-fit:cover;
-                           display:none;" />
+                    <img
+            class="preview img-thumbnail mt-2"
+            style="width:100%;
+                   aspect-ratio:1 / 1;
+                   object-fit:cover;
+                   display:none;
+                   border-radius:8px;" />
 
-                <div class="mt-2">
+        <div class="mt-2">
+
 
                     <input
                         type="radio"
@@ -282,11 +281,9 @@
             </div>
 
             `;
-
         }
 
         return html;
-
     }
 
 
@@ -405,11 +402,7 @@
 
             bannerPreview.style.display = "block";
 
-            bannerPreview.src =
-                "/SmartQuiz/" +
-                quiz.quizId +
-                "/" +
-                quiz.smartQuizImage;
+            bannerPreview.src = quiz.smartQuizImage;
 
         }
 

@@ -340,7 +340,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     Directory.CreateDirectory(folder);
 
                 // Save banner image
-                string bannerImage = "";
+                string bannerImage = model.SmartQuizImageFileName ?? "";
 
                 if (!string.IsNullOrWhiteSpace(model.SmartQuizImage))
                 {
@@ -385,7 +385,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
                     foreach (var answer in question.Answers)
                     {
-                        string answerImage = "";
+                        string answerImage = answer.AnswerImageFileName ?? "";
 
                         if (!string.IsNullOrWhiteSpace(answer.AnswerImage))
                         {
@@ -458,7 +458,11 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             if (quiz == null)
                 return null;
-
+            if (!string.IsNullOrWhiteSpace(quiz.SmartQuizImage))
+            {
+                quiz.SmartQuizImage =
+                    $"{_configuration["BaseUrl"]}/SmartQuizAnswers/{quiz.QuizId}/{quiz.SmartQuizImage}";
+            }
             var questions = (await multi.ReadAsync<SmartQuizQuestionVM>()).ToList();
 
             var answers = (await multi.ReadAsync<SmartQuizAnswerVM>()).ToList();
@@ -469,6 +473,15 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     .Where(a => a.QuestionNumber == q.QuestionNum)
                     .OrderBy(a => a.AnswerNumber)
                     .ToList();
+
+                foreach (var answer in q.Answers)
+                {
+                    if (!string.IsNullOrWhiteSpace(answer.AnswerImage))
+                    {
+                        answer.AnswerImage =
+                            $"{_configuration["BaseUrl"]}/SmartQuizAnswers/{quiz.QuizId}/{answer.AnswerImage}";
+                    }
+                }
             }
 
             return new SmartQuizDetailsModel

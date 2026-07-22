@@ -277,7 +277,7 @@
                     answer = ans.answer;
                     answerId = ans.quizAnswerId;
 
-                    if (question.correctAnswerNumber == i)
+                    if (ans.quizAnswerId == question.correctAnswerId)
                         checked = "checked";
                 }
             }
@@ -340,9 +340,11 @@
 
             question.Question = $(this).find(".question-text").val();
 
-            question.CorrectAnswerNumber = $(this)
-                .find("input[type=radio]:checked")
-                .val();
+            let selectedOption = parseInt(
+                $(this).find("input[type=radio]:checked").val() || 0
+            );
+
+            question.CorrectAnswerId = selectedOption;
 
             question.Answers = [];
 
