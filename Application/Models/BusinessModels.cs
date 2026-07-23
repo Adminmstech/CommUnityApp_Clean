@@ -288,7 +288,197 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public bool IsActive { get; set; }
     }
+    public class AppBusinessLoginRequest
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
 
+    public class AppBusinessLoginResponse
+    {
+        public int ResultId { get; set; }
+        public string ResultMessage { get; set; }
+        public bool Status { get; set; }
+
+        public long BusinessId { get; set; }
+        public string BusinessName { get; set; }
+        public string BusinessNumber { get; set; }
+        public string OwnerName { get; set; }
+        public string Email { get; set; }
+        public string Phone { get; set; }
+        public string Logo { get; set; }
+    }
+
+    public class BusinessPromotionRedemptionModel
+    {
+        public long RedemptionId { get; set; }
+        public long PromotionId { get; set; }
+
+        public string PromotionTitle { get; set; }
+        public string OfferHeadline { get; set; }
+        public string PromoCode { get; set; }
+
+        public long ProductId { get; set; }
+        public string ProductName { get; set; }
+
+        public Guid UserId { get; set; }
+
+        public string CustomerName { get; set; }
+        public string CustomerEmail { get; set; }
+        public string CustomerMobile { get; set; }
+
+        public string RedemptionCode { get; set; }
+        public string QRCodeImage { get; set; }
+
+        public decimal OriginalPrice { get; set; }
+        public decimal CoinDiscount { get; set; }
+        public int CoinsUsed { get; set; }
+        public decimal FinalPrice { get; set; }
+
+        public int IndoCoinsEarned { get; set; }
+        public int FriendRewardCoins { get; set; }
+
+        public string RedemptionStatus { get; set; }
+
+        public DateTime? RedeemedAt { get; set; }
+        public DateTime? ShopVerifiedAt { get; set; }
+        public DateTime? CreatedAt { get; set; }
+    }
+
+    public class AppBusinessPromotionModel
+    {
+        public long PromotionId { get; set; }
+
+        public long ProductId { get; set; }
+
+        public long BusinessId { get; set; }
+
+        public string ProductName { get; set; }
+
+        public string ProductDescription { get; set; }
+
+        public string PromotionTitle { get; set; }
+
+        public string OfferHeadline { get; set; }
+
+        public string PromotionType { get; set; }
+
+        public string OtherPromotionText { get; set; }
+
+        public string PromoCode { get; set; }
+
+        public decimal? ActualPrice { get; set; }
+
+        public decimal? PromotionalPrice { get; set; }
+
+        public decimal? DiscountValue { get; set; }
+
+        public decimal? CashbackValue { get; set; }
+
+        public decimal? MinimumPurchaseAmount { get; set; }
+
+        public int? MaxRedemptionLimit { get; set; }
+
+        public int RedeemedCount { get; set; }
+
+        public decimal? MaxCoinsRedemptionPercentage { get; set; }
+
+        public int IndoCoinsEarned { get; set; }
+
+        public int FriendRewardCoins { get; set; }
+
+        public string PromotionImage { get; set; }
+
+        public string QRCodeImage { get; set; }
+
+        public DateTime? StartDate { get; set; }
+
+        public DateTime? EndDate { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public string PromotionStatus { get; set; }
+
+        public int TotalRedemptions { get; set; }
+    }
+
+    public class ValidatePromotionRedemptionRequest
+    {
+        public long BusinessId { get; set; }
+
+        public string RedemptionCode { get; set; }
+    }
+
+    public class ValidatePromotionRedemptionResult
+    {
+        public int ResultId { get; set; }
+
+        public string ResultMessage { get; set; }
+
+        public bool Status { get; set; }
+
+        public long RedemptionId { get; set; }
+
+        public long PromotionId { get; set; }
+
+        public long BusinessId { get; set; }
+
+        public string PromotionTitle { get; set; }
+
+        public string OfferHeadline { get; set; }
+
+        public string PromotionType { get; set; }
+
+        public string PromoCode { get; set; }
+
+        public long ProductId { get; set; }
+
+        public string ProductName { get; set; }
+
+        public Guid UserId { get; set; }
+
+        public string CustomerName { get; set; }
+
+        public string RedemptionCode { get; set; }
+
+        public decimal OriginalPrice { get; set; }
+
+        public decimal CoinDiscount { get; set; }
+
+        public int CoinsUsed { get; set; }
+
+        public decimal FinalPrice { get; set; }
+
+        public int IndoCoinsEarned { get; set; }
+
+        public int FriendRewardCoins { get; set; }
+
+        public string RedemptionStatus { get; set; }
+
+        public DateTime? StartDate { get; set; }
+
+        public DateTime? EndDate { get; set; }
+    }
+
+    public class ConfirmPromotionRedemptionRequest
+    {
+        public long BusinessId { get; set; }
+
+        public long RedemptionId { get; set; }
+    }
+
+    public class ConfirmPromotionRedemptionResult
+    {
+        public int ResultId { get; set; }
+
+        public string ResultMessage { get; set; }
+
+        public bool Status { get; set; }
+
+        public long RedemptionId { get; set; }
+    }
+
+    
 
 
     /// Wallet

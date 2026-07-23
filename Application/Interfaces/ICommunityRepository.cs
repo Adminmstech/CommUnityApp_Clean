@@ -47,14 +47,15 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<List<UserCommunityResponse>> GetUserCommunitiesAsync(Guid userId);
 
-        Task<dynamic> UpdateCharityItem(UpdateCharityItemModel model);
+        Task<UpdateCharityItemResult> UpdateCharityItem(UpdateCharityItemModel model);
 
         Task<IEnumerable<dynamic>> GetCharityItemsByUserId(Guid userId);
-        Task<dynamic> UpdateCharityItemImage(long charityItemId, string imagePath);
+        Task UpdateCharityItemImage(long charityItemId, string imagePath);
 
         Task<List<CommunityPostModel>> GetTopFiveCommunityPostsByUser(Guid userId);
         Task<int> AddCharityItemImage(int charityItemId, string imagePath);
-
+        Task<DeleteCharityItemResult> DeleteCharityItem(long charityItemId);
+        Task<List<UserCommunityCharityItemModel>> GetCharityItemsByUserCommunities(Guid userId);
 
     }
 

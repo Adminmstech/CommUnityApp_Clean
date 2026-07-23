@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Http;
+using static Dapper.SqlMapper;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace CommUnityApp.ApplicationCore.Models
 {
@@ -136,7 +138,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string ItemName { get; set; }
         public string Description { get; set; }
         public int Quantity { get; set; }
-        public string ImagePath { get; set; }
+        public List<string> ImagePaths { get; set; } = new List<string>();
         public string Status { get; set; }
         public string PostedMemberName { get; set; }
         public string Email { get; set; }
@@ -218,13 +220,31 @@ namespace CommUnityApp.ApplicationCore.Models
     public class CharityItemListModel
     {
         public int CharityItemId { get; set; }
+
+        public long CommunityId { get; set; }
+
+        public string CommunityName { get; set; }
+
         public string ItemName { get; set; }
+
         public string ItemCategory { get; set; }
+
         public string Description { get; set; }
+
         public int Quantity { get; set; }
+
+        public int RequestedQuantity { get; set; }
+
+        public int AvailableQuantity { get; set; }
+
+        public string AvailabilityStatus { get; set; }
+
         public List<string> ImagePaths { get; set; } = new List<string>();
+
         public string Status { get; set; }
+
         public DateTime? CreatedDate { get; set; }
+
         public string CreatedDateString
         {
             get
@@ -234,11 +254,12 @@ namespace CommUnityApp.ApplicationCore.Models
                     : "";
             }
         }
+
         public string DeliveryStatus { get; set; }
     }
     public class MyRequestedItemsModel
     {
-        public int RequestId { get; set; }
+        public int RequestId { get; set; }  
         public int CharityItemId { get; set; }
         public string ItemName { get; set; }
         public string ItemCategory { get; set; }
@@ -425,6 +446,18 @@ namespace CommUnityApp.ApplicationCore.Models
         public string Address { get; set; }
         public int CommunityCategoryId { get; set; }
     }
+   
+
+    public class RequestCharityItemResponseModel
+    {
+        public int ResultId { get; set; }
+
+        public string ResultMessage { get; set; }
+
+        public int Status { get; set; }
+
+        public int? RequestId { get; set; }
+    }
     public class UpdateCharityItemModel
     {
         public long CharityItemId { get; set; }
@@ -439,19 +472,59 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public int Quantity { get; set; }
 
-        public string ImagePath { get; set; }
+        public List<string> ImagePaths { get; set; } = new List<string>();
     }
-
-    public class RequestCharityItemResponseModel
+    public class UpdateCharityItemResult
     {
-        public int ResultId { get; set; }
-
-        public string ResultMessage { get; set; }
-
         public int Status { get; set; }
-
-        public int? RequestId { get; set; }
+        public string Message { get; set; }
     }
 
+    public class DeleteCharityItemResult
+    {
+        public int Status { get; set; }
+        public string Message { get; set; }
+    }
+
+    public class UserCommunityCharityItemModel
+    {
+        public long CharityItemId { get; set; }
+
+        public int CommunityId { get; set; }
+
+        public string CommunityName { get; set; }
+
+        public string ItemName { get; set; }
+
+        public string Description { get; set; }
+
+        public int Quantity { get; set; }
+
+        public int RequestedQuantity { get; set; }
+
+        public int AvailableQuantity { get; set; }
+
+        public string AvailabilityStatus { get; set; }
+
+        public string Status { get; set; }
+
+        public DateTime? AssignedDate { get; set; }
+
+        public DateTime CreatedDate { get; set; }
+
+        public Guid? AssignedToUserId { get; set; }
+
+        public Guid PostedByUserId { get; set; }
+
+        public string PostedByName { get; set; }
+
+        public string DeliveryStatus { get; set; }
+
+        public string ItemCategory { get; set; }
+
+        public string ItemCode { get; set; }
+
+        public List<string> Images { get; set; } = new();
+    }
 
 }

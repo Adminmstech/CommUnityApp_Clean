@@ -18,6 +18,11 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BusinessPostDetailsEntity> GetBusinessPostDetails(long postId);
         Task<List<BusinessPostListEntity>> GetAllBusinessPosts(long businessId);
 
+        Task<AppBusinessLoginResponse> BusinessLogin(AppBusinessLoginRequest request);
+        Task<List<BusinessPromotionRedemptionModel>> GetBusinessPromotionRedemptions(long businessId);
+        Task<List<BusinessPromotionModel>> GetBusinessPromotions(long businessId);
+        Task<ValidatePromotionRedemptionResult> ValidatePromotionRedemptionCode(long businessId,string redemptionCode); 
+        Task<ConfirmPromotionRedemptionResult>ConfirmPromotionRedemption( ConfirmPromotionRedemptionRequest request);
         //Wallet 
         Task<BaseResponse> AllocateBusinessCoins(AllocateBusinessCoinsRequest request);
         Task<BaseResponse> RewardMemberFromBusiness(RewardMemberRequest request);
@@ -28,5 +33,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<RewardsDashboardModel> GetRewardsDashboard(int businessId);
         Task<List<ShareRewardHistoryModel>> GetShareRewardHistory( int businessId);
 
+
+
     }
+
 }
