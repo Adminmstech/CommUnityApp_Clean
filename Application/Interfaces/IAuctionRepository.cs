@@ -2,6 +2,7 @@
 using CommUnityApp.Domain.Entities;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using static CommUnityApp.ApplicationCore.Models.BidRegistrationUserModel;
 
 namespace CommUnityApp.ApplicationCore.Interfaces
 {
@@ -20,7 +21,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<BidDto>> GetRecentBids(int auctionId); 
         Task<BaseResponse> SaveBidRegistration(BidRegistration entity);
         Task<List<AdminLiveAuctionDto>> GetAdminLiveAuctionsAsync();
-        Task<AuctionWinnerSellerDetailsResponse> GetAuctionWinnerSellerDetailsAsync( Guid userId);
+        Task<List<AuctionWinnerSellerDetailsResponse>> GetAuctionWinnerSellerDetailsAsync( Guid userId);
         Task<List<AuctionItemImage>> GetAuctionImagesByAuctionId(int auctionId);
 
         Task DeleteAuctionImages(int auctionId);
@@ -32,5 +33,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
        
         Task<List<BidRegistrationUserModel>>GetAuctionRegisteredUsers(int auctionId);
         Task<BaseResponse> UpdateRegistrationRequired(int auctionId, int registrationRequired);
+        Task<AuctionParticipantDetailsModel> GetAuctionParticipantDetails(int auctionId, Guid userId);
+
     }
 }
