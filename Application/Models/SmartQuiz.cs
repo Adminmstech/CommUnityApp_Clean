@@ -204,6 +204,109 @@ namespace CommUnityApp.ApplicationCore.Models
         public bool IsCorrect { get; set; }
         public int Duration { get; set; }
     }
+    public class SaveSmartQuizModel
+    {
+        public long QuizId { get; set; }
 
+        public long OrgId { get; set; }
+
+        public long GroupId { get; set; }
+
+        public string SmartQuizName { get; set; }
+
+        public string SmartQuizCode { get; set; }
+
+        public DateTime StartDate { get; set; }
+
+        public DateTime EndDate { get; set; }
+
+        public string SmsCode { get; set; }
+
+        public string SmartQuizImage { get; set; }
+        public string SmartQuizImageFileName { get; set; }
+
+        public string QRCode { get; set; }
+
+        public bool IsReferFriend { get; set; }
+
+        public bool Status { get; set; }
+
+        public string ShortDescription { get; set; }
+
+        public int RewardCoins { get; set; }
+
+        public List<SmartQuizQuestionVM> Questions { get; set; } = new();
+    }
+
+    public class SmartQuizQuestionVM
+    {
+        public long SmartQuizQuestionId { get; set; }
+
+        public int QuestionNum { get; set; }
+
+        public string Question { get; set; }
+
+        public long CorrectAnswerId { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public List<SmartQuizAnswerVM> Answers { get; set; } = new();
+    }
+
+    public class SmartQuizAnswerVM
+    {
+        public long SmartQuizAnswerId { get; set; }
+
+        public int QuestionNumber { get; set; }
+
+        public int AnswerNumber { get; set; }
+
+        public string AnswerImage { get; set; }
+
+        public string AnswerImageFileName { get; set; }
+    }
+    public class SmartQuizDetailsModel
+    {
+        public SaveSmartQuizModel Quiz { get; set; }
+
+        public List<SmartQuizQuestionVM> Questions { get; set; }
+    }
+
+    public class SmartQuizGameModel
+    {
+        public long QuizId { get; set; }
+
+        public long OrgId { get; set; }
+
+        public long GroupId { get; set; }
+
+        public string SmartQuizName { get; set; }
+
+        public string SmartQuizCode { get; set; }
+
+        public DateTime StartDate { get; set; }
+
+        public DateTime EndDate { get; set; }
+
+        public string SmsCode { get; set; }
+
+        public string SmartQuizImage { get; set; }
+
+        public string QRCode { get; set; }
+
+        public bool IsReferFriend { get; set; }
+
+        public string ShortDescription { get; set; }
+
+        public int RewardCoins { get; set; }
+
+        public bool Status { get; set; }
+
+        public DateTime CreatedDate { get; set; }
+
+        public DateTime? ModifiedDate { get; set; }
+
+        public int TotalQuestions { get; set; }
+    }
 
 }
