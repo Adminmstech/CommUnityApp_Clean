@@ -56,6 +56,11 @@ namespace CommUnityApp.Areas.Admin.Controllers
             return View();
         }
 
+        public IActionResult AuctionDetails()
+        {
+            return View();
+        }
+
         public IActionResult Services()
         {
             return View();
