@@ -374,6 +374,168 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return sponsor;
         }
+
+        public async Task<SaveResult> SaveTextQuiz(SaveTextQuizModel model)
+        {
+            using var connection = Connection;
+
+            connection.Open();
+
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+
+                var quiz = await connection.QueryFirstAsync<SaveResult>(
+                    "SP_SaveTextQuizGame",
+                    new
+                    {
+                        model.QuizId,
+                        model.OrgId,
+                        model.GroupId,
+                        model.QuizName,
+                        model.QuizCode,
+                        model.StartDate,
+                        model.EndDate,
+                        model.SmsCode,
+                        model.QuizImage,
+                        model.QRCode,
+                        model.IsReferFriend,
+                        model.Status,
+                        model.ShortDescription
+                    },
+                    transaction,
+                    commandType: CommandType.StoredProcedure);
+
+                long quizId = quiz.StatusCode;
+
+
+                foreach (var question in model.Questions)
+                {
+                    var questionResult = await connection.QueryFirstAsync<SaveResult>(
+                        "SP_SaveTextQuizQuestion",
+                        new
+                        {
+                            question.QuizQuestionId,
+                            QuizId = quizId,
+                            question.QuestionNum,
+                            question.Question,
+
+                            CorrectAnswerId = 0
+                        },
+                        transaction,
+                        commandType: CommandType.StoredProcedure);
+
+                    long questionId = questionResult.StatusCode;
+
+                    long correctAnswerId = 0;
+
+
+                    foreach (var answer in question.Answers)
+                    {
+                        var answerResult = await connection.QueryFirstAsync<SaveResult>(
+                            "SP_SaveTextQuizAnswer",
+                            new
+                            {
+                                answer.QuizAnswerId,
+
+                                QuestionNumber = question.QuestionNum,
+
+                                QuizId = quizId,
+
+                                answer.AnswerNumber,
+
+                                answer.Answer
+                            },
+                            transaction,
+                            commandType: CommandType.StoredProcedure);
+
+                        if (answer.AnswerNumber == question.CorrectAnswerId)
+                        {
+                            correctAnswerId = answerResult.StatusCode;
+                        }
+                    }
+
+
+                    await connection.ExecuteAsync(
+                        @"UPDATE TextQuizQuestions
+                  SET CorrectAnswerId=@CorrectAnswerId
+                  WHERE QuizQuestionId=@QuizQuestionId",
+                        new
+                        {
+                            CorrectAnswerId = correctAnswerId,
+                            QuizQuestionId = questionId
+                        },
+                        transaction);
+                }
+
+                transaction.Commit();
+
+                return new SaveResult
+                {
+                    StatusCode = quizId,
+                    StatusMessage = "Quiz Saved Successfully"
+                };
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        public async Task<IEnumerable<TextQuizGameModel>> GetAllTextQuiz()
+        {
+            using var connection = Connection;
+
+            return await connection.QueryAsync<TextQuizGameModel>(
+                "SP_GetAllTextQuiz",
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<TextQuizDetailsModel?> GetTextQuizById(long quizId)
+        {
+            using var connection = Connection;
+
+            using var multi = await connection.QueryMultipleAsync(
+                "SP_GetTextQuizById",
+                new { QuizId = quizId },
+                commandType: CommandType.StoredProcedure);
+
+            var quiz = await multi.ReadFirstOrDefaultAsync<SaveTextQuizModel>();
+            if (quiz == null)
+                return null;
+
+            var questions = (await multi.ReadAsync<TextQuizQuestionVM>()).ToList();
+            var answers = (await multi.ReadAsync<TextQuizAnswerVM>()).ToList();
+
+            foreach (var q in questions)
+            {
+                q.Answers = answers
+                    .Where(a => a.QuestionNumber == q.QuestionNum)
+                    .OrderBy(a => a.AnswerNumber)
+                    .ToList();
+            }
+
+            return new TextQuizDetailsModel
+            {
+                Quiz = quiz,
+                Questions = questions
+            };
+        }
+
+        public async Task<SaveResult> DeleteTextQuiz(long quizId)
+        {
+            using var connection = Connection;
+
+            return await connection.QueryFirstOrDefaultAsync<SaveResult>(
+                "SP_DeleteTextQuiz",
+                new
+                {
+                    QuizId = quizId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
     }
 
 }

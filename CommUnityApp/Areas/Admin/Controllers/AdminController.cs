@@ -78,6 +78,39 @@ namespace CommUnityApp.Areas.Admin.Controllers
         {
             return View();
         }
+        public IActionResult AddTextQuiz()
+        {
+            return View();
+        }
+        public IActionResult TextQuizList()
+        {
+            return View();
+        }
+        public IActionResult AddSmartQuiz()
+        {
+            return View();
+        }
+        public IActionResult SmartQuizList()
+        {
+            return View();
+        }
 
+        public IActionResult SpinGameList()
+        {
+            return View();
+        }
+        public IActionResult AddSpinGame()
+        {
+            return View();
+        }
+
+        public IActionResult BrandGameList()
+        {
+            return View();
+        }
+        public IActionResult AddBrandGame()
+        {
+            return View();
+        }
     }
 }

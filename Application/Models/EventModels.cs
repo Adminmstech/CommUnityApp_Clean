@@ -285,6 +285,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public string ContactPhone { get; set; }
         public string Location { get; set; }
         public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+
         public int TotalTickets { get; set; }
         public int SoldTickets { get; set; }
         public string TicketStatus { get; set; }
@@ -473,7 +475,8 @@ public class BookTicketItem
         public int SoldTickets { get; set; }
 
         public int MaxPerUser { get; set; }
-
+        public string ConditionsApply { get; set; }
+        public string RefundPolicy { get; set; }
         public bool IsActive { get; set; }
 
         public int RemainingTickets { get; set; }

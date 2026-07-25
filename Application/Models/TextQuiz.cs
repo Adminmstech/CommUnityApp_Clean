@@ -255,4 +255,103 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public DateTime? ModifiedDate { get; set; }
     }
+
+    public class SaveTextQuizModel
+    {
+        public long QuizId { get; set; }
+
+        public long OrgId { get; set; }
+
+        public long GroupId { get; set; }
+
+        public string QuizName { get; set; }
+
+        public string QuizCode { get; set; }
+
+        public DateTime StartDate { get; set; }
+
+        public DateTime EndDate { get; set; }
+
+        public string SmsCode { get; set; }
+
+        public string QuizImage { get; set; }
+
+        public string QRCode { get; set; }
+
+        public bool IsReferFriend { get; set; }
+
+        public bool Status { get; set; }
+
+        public string ShortDescription { get; set; }
+
+        public List<TextQuizQuestionVM> Questions { get; set; }
+    }
+
+    public class TextQuizQuestionVM
+    {
+        public long QuizQuestionId { get; set; }
+
+        public int QuestionNum { get; set; }
+        
+        public string Question { get; set; }
+
+        public long CorrectAnswerId { get; set; }
+
+        public List<TextQuizAnswerVM> Answers { get; set; } = new();
+    }
+
+    public class TextQuizAnswerVM
+    {
+        public long QuizAnswerId { get; set; }
+
+        public int AnswerNumber { get; set; }
+
+        public string Answer { get; set; }
+        public int QuestionNumber { get; set; }
+    }
+
+    public class SaveResult
+    {
+        public long StatusCode { get; set; }
+
+        public string StatusMessage { get; set; } = string.Empty;
+    }
+    public class TextQuizDetailsModel
+    {
+        public SaveTextQuizModel Quiz { get; set; }
+
+        public List<TextQuizQuestionVM> Questions { get; set; }
+    }
+    public class TextQuizGameModel
+    {
+        public long QuizId { get; set; }
+
+        public long OrgId { get; set; }
+
+        public long GroupId { get; set; }
+
+        public string QuizName { get; set; } = string.Empty;
+
+        public string QuizCode { get; set; } = string.Empty;
+
+        public DateTime StartDate { get; set; }
+
+        public DateTime EndDate { get; set; }
+
+        public string SmsCode { get; set; } = string.Empty;
+
+        public string QuizImage { get; set; } = string.Empty;
+
+        public string QRCode { get; set; } = string.Empty;
+
+        public bool IsReferFriend { get; set; }
+
+        public string ShortDescription { get; set; } = string.Empty;
+
+        public bool Status { get; set; }
+
+        public DateTime CreatedDate { get; set; }
+
+        public DateTime? ModifiedDate { get; set; }
+    }
 }

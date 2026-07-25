@@ -27,5 +27,13 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<GameSponsor>> GetGameSponsors(int gameTypeId,int gameId);
 
         Task<GameSponsorDetails?> GetGameSponsorDetailsById(int sponsorId);
+
+        Task<SaveResult> SaveTextQuiz(SaveTextQuizModel model);
+
+        Task<IEnumerable<TextQuizGameModel>> GetAllTextQuiz();
+
+        Task<TextQuizDetailsModel> GetTextQuizById(long quizId);
+
+        Task<SaveResult> DeleteTextQuiz(long quizId);
     }
 }

@@ -1,0 +1,756 @@
+﻿@{
+    ViewData["Title"] = "Smart Quiz";
+    Layout = "AdminLayout";
+
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+<div class="container mt-4">
+
+    <div class="card shadow">
+
+        <div class="card-header bg-primary text-white">
+            <h3 id="pageTitle">Add Smart Quiz</h3>
+        </div>
+
+        <div class="card-body">
+
+            <input type="hidden" id="txtQuizId" value="0" />
+
+            <div class="row">
+
+                <div class="col-md-6">
+                    <label class="form-label">Quiz Name</label>
+                    <input id="txtQuizName" class="form-control" />
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Quiz Code</label>
+                    <input id="txtQuizCode" class="form-control" />
+                </div>
+
+                <div class="col-md-3 mt-3">
+                    <label class="form-label">Reward Coins</label>
+                    <input id="txtRewardCoins" type="number" class="form-control" />
+                </div>
+
+                <div class="col-md-3 mt-3">
+                    <label class="form-label">SMS Code</label>
+                    <input id="txtSmsCode" class="form-control" />
+                </div>
+
+                <div class="col-md-3 mt-3">
+                    <label class="form-label">Start Date</label>
+                    <input id="txtStartDate" type="datetime-local" class="form-control" />
+                </div>
+
+                <div class="col-md-3 mt-3">
+                    <label class="form-label">End Date</label>
+                    <input id="txtEndDate" type="datetime-local" class="form-control" />
+                </div>
+
+                <div class="col-md-12 mt-3">
+                    <label class="form-label">Description</label>
+                    <textarea id="txtDescription" rows="3" class="form-control"></textarea>
+                </div>
+
+                <div class="col-md-6 mt-3">
+
+                    <label class="form-label">Banner Image</label>
+
+                    <input type="file"
+                           id="banner"
+                           class="form-control"
+                           accept="image/*" />
+
+                    <img id="bannerPreview"
+                         class="img-thumbnail mt-2"
+                         style="max-width:250px;display:none;" />
+
+                </div>
+
+            </div>
+
+            <hr />
+
+            <button type="button"
+                    id="btnAddQuestion"
+                    class="btn btn-primary">
+
+                Add Question
+
+            </button>
+
+            <div id="questionContainer" class="mt-3"></div>
+
+            <hr />
+
+            <button id="btnSave"
+                    class="btn btn-success">
+
+                Save Smart Quiz
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    let questionNo = 0;
+
+    let bannerBase64 = "";
+
+    let bannerFileName = "";
+
+
+    const urlParams = new URLSearchParams(window.location.search);
+
+    const editQuizId = urlParams.get("quizId");
+
+    if (editQuizId) {
+
+        document.getElementById("pageTitle").innerHTML =
+            "Edit Smart Quiz";
+
+        document.getElementById("btnSave").innerHTML =
+            "Update Smart Quiz";
+
+    }
+
+ 
+
+    document.getElementById("banner")
+        .addEventListener("change", async function () {
+
+            const file = this.files[0];
+
+            if (!file)
+                return;
+
+            bannerFileName = file.name;
+
+            bannerBase64 = await toBase64(file);
+
+            bannerPreview.style.display = "block";
+
+            bannerPreview.src = bannerBase64;
+
+        });
+
+
+    document.getElementById("btnAddQuestion").addEventListener("click", function () {
+
+        createQuestionCard();
+
+    });
+
+
+    function createQuestionCard(question = null) {
+
+        questionNo++;
+
+        let html = `
+
+        <div class="card mt-3 question">
+
+            <div class="card-header bg-light">
+
+                <b>Question ${questionNo}</b>
+
+                <button
+                    type="button"
+                    class="btn btn-danger btn-sm float-end btnDeleteQuestion">
+
+                    Delete
+
+                </button>
+
+            </div>
+
+            <div class="card-body">
+
+                <input type="hidden"
+                       class="questionId"
+                       value="${question ? question.smartQuizQuestionId : 0}" />
+
+                <label>Question</label>
+
+                <input
+                    class="form-control questionText"
+                    value="${question ? question.question : ""}" />
+
+                <br/>
+
+                <div class="row">
+
+                    ${answerHtml(questionNo)}
+
+                </div>
+
+            </div>
+
+        </div>`;
+
+        questionContainer.insertAdjacentHTML("beforeend", html);
+
+        let card = questionContainer.lastElementChild;
+
+  
+
+        if (question && question.answers) {
+
+            card.querySelectorAll(".answerFile").forEach((file, index) => {
+
+                let ans = question.answers[index];
+
+                if (!ans)
+                    return;
+
+                file.dataset.answerid = ans.smartQuizAnswerId;
+
+                file.dataset.filename =
+                    ans.answerImage
+                        ? ans.answerImage.split('/').pop()
+                        : "";
+                file.dataset.base64 = "";
+
+                if (ans.answerImage) { 
+
+                    file.nextElementSibling.src = ans.answerImage;
+
+                    file.nextElementSibling.style.display = "block";
+                } 
+
+                if (ans.smartQuizAnswerId == question.correctAnswerId) {
+
+                    card.querySelector(
+                        "input[value='" + ans.answerNumber + "']"
+                    ).checked = true;
+                }
+
+            });
+
+        }
+
+    }
+
+
+    function answerHtml(questionIndex) {
+
+        let html = "";
+
+        for (let i = 1; i <= 3; i++) {
+
+            html += `
+
+            <div class="col-md-4">
+
+                <label>Answer ${i}</label>
+
+                <input
+                    type="file"
+                    accept="image/*"
+                    class="form-control answerFile"
+                    data-answer="${i}" />
+
+                    <img
+            class="preview img-thumbnail mt-2"
+            style="width:100%;
+                   aspect-ratio:1 / 1;
+                   object-fit:cover;
+                   display:none;
+                   border-radius:8px;" />
+
+        <div class="mt-2">
+
+
+                    <input
+                        type="radio"
+                        name="correct_${questionIndex}"
+                        value="${i}" />
+
+                    Correct
+
+                </div>
+
+            </div>
+
+            `;
+        }
+
+        return html;
+    }
+
+
+
+    document.addEventListener("click", function (e) {
+
+        if (e.target.classList.contains("btnDeleteQuestion")) {
+
+            e.target.closest(".question").remove();
+
+        }
+
+    });
+
+
+
+    document.addEventListener("change", async function (e) {
+
+        if (!e.target.classList.contains("answerFile"))
+            return;
+
+        let file = e.target.files[0];
+
+        if (!file)
+            return;
+
+        let base64 = await toBase64(file);
+
+        e.target.dataset.base64 = base64;
+
+        e.target.dataset.filename = file.name;
+
+        let img = e.target.nextElementSibling;
+
+        img.src = base64;
+
+        img.style.display = "block";
+
+    });
+
+
+    if (editQuizId) {
+
+        loadQuiz(editQuizId);
+
+    }
+
+
+
+    function loadQuiz(id) { 
+
+        fetch("/api/SmartQuiz/GetAdminSmartQuizById?quizId=" + id)
+
+            .then(response => response.json())
+
+            .then(res => {
+
+                console.log(res);
+
+                if (res.status) {
+
+                    populateQuiz(res.data);
+
+                }
+                else {
+
+                    alert(res.resultMessage);
+
+                }
+
+            })
+
+            .catch(err => {
+
+                console.log(err);
+
+                alert("Unable to load Smart Quiz.");
+
+            });
+
+    }
+
+
+    function populateQuiz(data) {
+
+        let quiz = data.quiz;
+
+  
+
+        document.getElementById("txtQuizId").value = quiz.quizId;
+
+        document.getElementById("txtQuizName").value = quiz.smartQuizName;
+
+        document.getElementById("txtQuizCode").value = quiz.smartQuizCode;
+
+        document.getElementById("txtRewardCoins").value = quiz.rewardCoins;
+
+        document.getElementById("txtSmsCode").value = quiz.smsCode;
+
+        document.getElementById("txtDescription").value =
+            quiz.shortDescription || "";
+
+
+        if (quiz.startDate)
+            document.getElementById("txtStartDate").value =
+                formatDateTimeLocal(quiz.startDate);
+
+        if (quiz.endDate)
+            document.getElementById("txtEndDate").value =
+                formatDateTimeLocal(quiz.endDate);
+
+        if (quiz.smartQuizImage &&
+            quiz.smartQuizImage !== "") {
+
+            bannerFileName = quiz.smartQuizImage;
+
+            bannerPreview.style.display = "block";
+
+            bannerPreview.src = quiz.smartQuizImage;
+
+        }
+
+   
+
+        questionContainer.innerHTML = "";
+
+        questionNo = 0;
+
+        if (data.questions &&
+            data.questions.length > 0) {
+
+            data.questions.forEach(q => {
+
+                createQuestionCard(q);
+
+            });
+
+        }
+
+    }
+
+
+    function formatDateTimeLocal(date) {
+
+        let d = new Date(date);
+
+        let year = d.getFullYear();
+
+        let month = ("0" + (d.getMonth() + 1)).slice(-2);
+
+        let day = ("0" + d.getDate()).slice(-2);
+
+        let hour = ("0" + d.getHours()).slice(-2);
+
+        let minute = ("0" + d.getMinutes()).slice(-2);
+
+        return `${year}-${month}-${day}T${hour}:${minute}`;
+
+    }
+
+   
+
+    document.getElementById("btnSave").addEventListener("click", saveQuiz);
+
+    function saveQuiz() {
+
+        let questions = [];
+
+        document.querySelectorAll(".question").forEach((card, index) => {
+
+            let question = {
+
+                smartQuizQuestionId: parseInt(
+                    card.querySelector(".questionId").value || 0),
+
+                questionNum: index + 1,
+
+                question: card.querySelector(".questionText").value,
+
+                correctAnswerId: parseInt(
+                    card.querySelector("input[type=radio]:checked")?.value || 0),
+
+                isActive: true,
+
+                answers: []
+
+            };
+
+            card.querySelectorAll(".answerFile")
+                .forEach((file, answerIndex) => {
+
+                    question.answers.push({
+
+                        smartQuizAnswerId:
+                            parseInt(file.dataset.answerid || 0),
+
+                        questionNumber: index + 1,
+
+                        answerNumber: answerIndex + 1,
+
+                        // New image if selected
+                        answerImage:
+                            file.dataset.base64 || "",
+
+                        // Existing filename
+                        answerImageFileName:
+                            file.dataset.filename || ""
+
+                    });
+
+                });
+
+            questions.push(question);
+
+        });
+
+        let model = {
+
+            quizId: parseInt(txtQuizId.value || 0),
+
+            orgId: 1,
+
+            groupId: 1,
+
+            smartQuizName: txtQuizName.value,
+
+            smartQuizCode: txtQuizCode.value,
+
+            rewardCoins: parseInt(txtRewardCoins.value || 0),
+
+            smsCode: txtSmsCode.value,
+
+            startDate: txtStartDate.value,
+
+            endDate: txtEndDate.value,
+
+            shortDescription: txtDescription.value,
+
+            smartQuizImage: bannerBase64,
+
+            smartQuizImageFileName: bannerFileName,
+
+            qrCode: "",
+
+            isReferFriend: true,
+
+            status: true,
+
+            questions: questions
+
+        };
+
+        console.log(model);
+
+        fetch("/api/SmartQuiz/SaveSmartQuiz", {
+
+            method: "POST",
+
+            headers: {
+
+                "Content-Type": "application/json"
+
+            },
+
+            body: JSON.stringify(model)
+
+        })
+
+            .then(r => r.json())
+
+            .then(res => {
+
+                console.log(res);
+
+                if (res.status) {
+
+                    alert(res.resultMessage);
+
+                    window.location.href =
+                        "/Admin/Admin/SmartQuizList";
+
+                }
+                else {
+
+                    alert(res.resultMessage);
+
+                }
+
+            })
+
+            .catch(err => {
+
+                console.log(err);
+
+                alert("Unable to save Smart Quiz.");
+
+            });
+
+    }
+
+
+
+    async function toBase64(file) {
+
+        return new Promise((resolve, reject) => {
+
+            let reader = new FileReader();
+
+            reader.onload = function () {
+
+                resolve(reader.result);
+
+            };
+
+            reader.onerror = function (error) {
+
+                reject(error);
+
+            };
+
+            reader.readAsDataURL(file);
+
+        });
+
+    }
+
+
+    function validateQuiz() {
+
+        if (txtQuizName.value.trim() == "") {
+
+            alert("Please enter Quiz Name");
+
+            txtQuizName.focus();
+
+            return false;
+
+        }
+
+        if (txtQuizCode.value.trim() == "") {
+
+            alert("Please enter Quiz Code");
+
+            txtQuizCode.focus();
+
+            return false;
+
+        }
+
+        if (txtRewardCoins.value == "") {
+
+            alert("Please enter Reward Coins");
+
+            txtRewardCoins.focus();
+
+            return false;
+
+        }
+
+        if (txtStartDate.value == "") {
+
+            alert("Please select Start Date");
+
+            return false;
+
+        }
+
+        if (txtEndDate.value == "") {
+
+            alert("Please select End Date");
+
+            return false;
+
+        }
+
+        if (document.querySelectorAll(".question").length == 0) {
+
+            alert("Please add at least one question.");
+
+            return false;
+
+        }
+
+        let valid = true;
+
+        document.querySelectorAll(".question").forEach(function (card, index) {
+
+            let question = card.querySelector(".questionText").value;
+
+            if (question.trim() == "") {
+
+                alert("Please enter Question " + (index + 1));
+
+                valid = false;
+
+                return;
+
+            }
+
+            let checked =
+                card.querySelector("input[type=radio]:checked");
+
+            if (!checked) {
+
+                alert("Please select the correct answer for Question " + (index + 1));
+
+                valid = false;
+
+                return;
+
+            }
+
+        });
+
+        return valid;
+
+    }
+
+  
+
+    document.getElementById("btnSave")
+        .removeEventListener("click", saveQuiz);
+
+    document.getElementById("btnSave")
+        .addEventListener("click", function () {
+
+            if (!validateQuiz())
+                return;
+
+            saveQuiz();
+
+        });
+
+  
+
+    function clearForm() {
+
+        txtQuizId.value = 0;
+
+        txtQuizName.value = "";
+
+        txtQuizCode.value = "";
+
+        txtRewardCoins.value = "";
+
+        txtSmsCode.value = "";
+
+        txtDescription.value = "";
+
+        txtStartDate.value = "";
+
+        txtEndDate.value = "";
+
+        bannerBase64 = "";
+
+        bannerFileName = "";
+
+        bannerPreview.src = "";
+
+        bannerPreview.style.display = "none";
+
+        questionContainer.innerHTML = "";
+
+        questionNo = 0;
+
+    }
+
+
+
+</script>

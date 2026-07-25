@@ -1,6 +1,7 @@
 ﻿using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using Dapper;
+using Microsoft.AspNet.SignalR.Infrastructure;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -15,7 +16,6 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
     public class SmartQuizRepository : ISmartQuizRepository
     {
         private readonly IConfiguration _configuration;
-
         public SmartQuizRepository(IConfiguration configuration)
         {
             _configuration = configuration;
@@ -99,7 +99,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return response;
         }
 
-        public async Task<SmartQuizQuestionAndAnswerModel>GetSmartQuizStatusByCustomer(int quizId,Guid userId)
+        public async Task<SmartQuizQuestionAndAnswerModel> GetSmartQuizStatusByCustomer(int quizId, Guid userId)
         {
             using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection"));
@@ -166,7 +166,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result;
         }
 
-        public async Task<SmartQuizQuestionModel> InsertCustomerSmartQuizAnswer( SubmitSmartQuizAnswerRequest request)
+        public async Task<SmartQuizQuestionModel> InsertCustomerSmartQuizAnswer(SubmitSmartQuizAnswerRequest request)
         {
             using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection"));
@@ -187,7 +187,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result;
         }
-        public async Task<List<SmartQuizResultModel>> GetCustomerSmartQuizResult(int quizId,Guid userId)
+        public async Task<List<SmartQuizResultModel>> GetCustomerSmartQuizResult(int quizId, Guid userId)
         {
             using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection"));
@@ -206,7 +206,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result;
         }
 
-        public async Task<List<SmartQuizResultModel>>GetSmartQuizResultsByUserId(Guid userId)
+        public async Task<List<SmartQuizResultModel>> GetSmartQuizResultsByUserId(Guid userId)
         {
             using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection"));
@@ -292,7 +292,242 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
+
+        public async Task<SaveResult> SaveSmartQuiz(SaveSmartQuizModel model)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            connection.Open();
+
+            using var transaction = connection.BeginTransaction();
+
+            try
+            {
+                var quiz = await connection.QueryFirstAsync<SaveResult>(
+                    "SP_SaveSmartQuiz",
+                    new
+                    {
+                        model.QuizId,
+                        model.OrgId,
+                        model.GroupId,
+                        model.SmartQuizName,
+                        model.SmartQuizCode,
+                        model.StartDate,
+                        model.EndDate,
+                        model.SmsCode,
+
+                        SmartQuizImage = "",
+
+                        model.QRCode,
+                        model.IsReferFriend,
+                        model.ShortDescription,
+                        model.RewardCoins,
+                        model.Status
+                    },
+                    transaction,
+                    commandType: CommandType.StoredProcedure);
+
+                long quizId = quiz.StatusCode;
+
+                string folder = Path.Combine(
+     Directory.GetCurrentDirectory(),
+     "wwwroot",
+     "SmartQuizAnswers",
+     quizId.ToString());
+
+                if (!Directory.Exists(folder))
+                    Directory.CreateDirectory(folder);
+
+                // Save banner image
+                string bannerImage = model.SmartQuizImageFileName ?? "";
+
+                if (!string.IsNullOrWhiteSpace(model.SmartQuizImage))
+                {
+                    bannerImage = Guid.NewGuid().ToString() +
+                                  Path.GetExtension(model.SmartQuizImageFileName);
+
+                    SaveBase64Image(
+                        model.SmartQuizImage,
+                        Path.Combine(folder, bannerImage));
+
+                    await connection.ExecuteAsync(
+                        @"UPDATE SmartQuiz
+                  SET SmartQuizImage=@Image
+                  WHERE QuizId=@QuizId",
+                        new
+                        {
+                            Image = bannerImage,
+                            QuizId = quizId
+                        },
+                        transaction);
+                }
+
+                foreach (var question in model.Questions)
+                {
+                    var questionResult = await connection.QueryFirstAsync<SaveResult>(
+                        "SP_SaveSmartQuizQuestion",
+                        new
+                        {
+                            question.SmartQuizQuestionId,
+                            QuizId = quizId,
+                            question.QuestionNum,
+                            question.Question,
+                            CorrectAnswerId = 0,
+                            question.IsActive
+                        },
+                        transaction,
+                        commandType: CommandType.StoredProcedure);
+
+                    long questionId = questionResult.StatusCode;
+
+                    long correctAnswerId = 0;
+
+                    foreach (var answer in question.Answers)
+                    {
+                        string answerImage = answer.AnswerImageFileName ?? "";
+
+                        if (!string.IsNullOrWhiteSpace(answer.AnswerImage))
+                        {
+                            answerImage = Guid.NewGuid().ToString() +
+                                          Path.GetExtension(answer.AnswerImageFileName);
+
+                            SaveBase64Image(
+                                answer.AnswerImage,
+                                Path.Combine(folder, answerImage));
+                        }
+
+                        var answerResult = await connection.QueryFirstAsync<SaveResult>(
+                            "SP_SaveSmartQuizAnswer",
+                            new
+                            {
+                                answer.SmartQuizAnswerId,
+                                QuizId = quizId,
+                                QuestionNumber = question.QuestionNum,
+                                answer.AnswerNumber,
+                                AnswerImage = answerImage
+                            },
+                            transaction,
+                            commandType: CommandType.StoredProcedure);
+
+                        if (answer.AnswerNumber == question.CorrectAnswerId)
+                        {
+                            correctAnswerId = answerResult.StatusCode;
+                        }
+                    }
+
+                    await connection.ExecuteAsync(
+                        @"UPDATE SmartQuizQuestions
+                  SET CorrectAnswerId=@CorrectAnswerId
+                  WHERE SmartQuizQuestionId=@SmartQuizQuestionId",
+                        new
+                        {
+                            CorrectAnswerId = correctAnswerId,
+                            SmartQuizQuestionId = questionId
+                        },
+                        transaction);
+                }
+
+                transaction.Commit();
+
+                return new SaveResult
+                {
+                    StatusCode = quizId,
+                    StatusMessage = "Smart Quiz Saved Successfully"
+                };
+            }
+            catch
+            {
+                transaction.Rollback();
+                throw;
+            }
+        }
+
+        public async Task<SmartQuizDetailsModel?> GetSmartQuizById(long quizId)
+        {
+            using var connection = new SqlConnection(
+                 _configuration.GetConnectionString("DefaultConnection"));
+            connection.Open();
+
+            using var multi = await connection.QueryMultipleAsync(
+                "SP_GetSmartQuizById",
+                new { QuizId = quizId },
+                commandType: CommandType.StoredProcedure);
+
+            var quiz = await multi.ReadFirstOrDefaultAsync<SaveSmartQuizModel>();
+
+            if (quiz == null)
+                return null;
+            if (!string.IsNullOrWhiteSpace(quiz.SmartQuizImage))
+            {
+                quiz.SmartQuizImage =
+                    $"{_configuration["BaseUrl"]}/SmartQuizAnswers/{quiz.QuizId}/{quiz.SmartQuizImage}";
+            }
+            var questions = (await multi.ReadAsync<SmartQuizQuestionVM>()).ToList();
+
+            var answers = (await multi.ReadAsync<SmartQuizAnswerVM>()).ToList();
+
+            foreach (var q in questions)
+            {
+                q.Answers = answers
+                    .Where(a => a.QuestionNumber == q.QuestionNum)
+                    .OrderBy(a => a.AnswerNumber)
+                    .ToList();
+
+                foreach (var answer in q.Answers)
+                {
+                    if (!string.IsNullOrWhiteSpace(answer.AnswerImage))
+                    {
+                        answer.AnswerImage =
+                            $"{_configuration["BaseUrl"]}/SmartQuizAnswers/{quiz.QuizId}/{answer.AnswerImage}";
+                    }
+                }
+            }
+
+            return new SmartQuizDetailsModel
+            {
+                Quiz = quiz,
+                Questions = questions
+            };
+        }
+        public async Task<IEnumerable<SmartQuizGameModel>> GetAllSmartQuiz()
+        {
+            using var connection = new SqlConnection(
+                            _configuration.GetConnectionString("DefaultConnection"));
+            connection.Open();
+            return await connection.QueryAsync<SmartQuizGameModel>(
+                "SP_GetAllSmartQuizzes",
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<SaveResult> DeleteSmartQuiz(long quizId)
+        {
+            using var connection = new SqlConnection(
+                            _configuration.GetConnectionString("DefaultConnection"));
+            connection.Open();
+            return await connection.QueryFirstOrDefaultAsync<SaveResult>(
+                "SP_DeleteSmartQuiz",
+                new
+                {
+                    QuizId = quizId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+        private void SaveBase64Image(string base64, string filePath)
+        {
+            if (string.IsNullOrWhiteSpace(base64))
+                return;
+
+            if (base64.Contains(","))
+                base64 = base64.Substring(base64.IndexOf(",") + 1);
+
+            byte[] bytes = Convert.FromBase64String(base64);
+
+            File.WriteAllBytes(filePath, bytes);
+        }
+
+       
     }
 
-
+   
 }
