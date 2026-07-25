@@ -654,10 +654,12 @@ namespace CommUnityApp.ApplicationCore.Models
 
     public class PromotionRedemptionResult
     {
-        public long RedemptionId { get; set; }
+        public int ResultId { get; set; }
+        public string ResultMessage { get; set; }
+        public bool Status { get; set; }
 
+        public long? RedemptionId { get; set; }
         public string RedemptionCode { get; set; }
-
         public string QRCodeImage { get; set; }
     }
 

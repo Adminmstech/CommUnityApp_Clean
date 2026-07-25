@@ -274,7 +274,22 @@
                 </a>
               @*   <a href="@Url.Action("BlockedUsers", "User", new { area = "Admin" })">
                     <i class="fa-solid fa-user-lock"></i> Blocked Users
-                </a> *@
+                </a> *@ 
+
+                <div class="nav-section-title">Games</div>
+                <a href="@Url.Action("TextQuizList", "Admin", new { area = "Admin" })">
+                    <i class="fa-solid fa-concierge-bell"></i> Text Quiz
+                </a>
+                <a href="@Url.Action("SmartQuizList", "Admin", new { area = "Admin" })">
+                    <i class="fa-solid fa-concierge-bell"></i> Smart Quiz
+                </a>
+                <a href="@Url.Action("Index", "SpinGame", new { area = "Admin" })">
+                    <i class="fa-solid fa-concierge-bell"></i> Spin Game
+                </a>
+                <a href="@Url.Action("Index", "Game", new { area = "Admin" })">
+                    <i class="fa-solid fa-concierge-bell"></i> Brand Game
+                </a>
+
 
                 <div class="nav-section-title">Communication</div>
                 <a href="@Url.Action("Communication", "Admin", new { area = "Admin" })">
@@ -306,6 +321,7 @@
                 <a href="@Url.Action("Settings", "Settings", new { area = "Admin" })">
                     <i class="fa-solid fa-gear"></i> Settings
                 </a>
+            
             </nav>
 
             <div class="mt-auto">

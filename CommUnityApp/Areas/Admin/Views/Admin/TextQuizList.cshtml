@@ -1,0 +1,302 @@
+﻿@{
+    ViewData["Title"] = "Text Quiz List";
+    Layout = "AdminLayout";
+}
+
+<div class="container-fluid mt-3">
+
+    <div class="card">
+        <div class="card-header bg-dark text-white">
+            <h4>Text Quiz List</h4>
+        </div>
+
+        <div class="card-body">
+
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <input id="txtSearch" class="form-control" placeholder="Search Quiz Name / Code" />
+                </div>
+
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100" onclick="searchQuiz()">Search</button>
+                </div>
+
+                <div class="col-md-2">
+                    <button class="btn btn-secondary w-100" onclick="loadQuizzes()">Refresh</button>
+                </div>
+
+                <div class="col-md-2">
+                    <a href="/Admin/Admin/AddTextQuiz" class="btn btn-success w-100">Add Quiz</a>
+                </div>
+            </div>
+
+            <table class="table table-bordered table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th width="60">S.No</th>
+                        <th>Quiz Name</th>
+                        <th>Quiz Code</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                        <th width="180">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="quizTableBody"></tbody>
+            </table>
+
+        </div>
+    </div>
+
+</div>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+@section Scripts {
+
+    <script>
+        
+
+        let allQuizzes = [];
+
+        $(function () {
+
+            loadQuizzes();
+           
+
+        });
+
+        function loadQuizzes() {
+
+            $.ajax({
+
+                url: '/api/TextQuiz/GetAllTextQuiz',
+
+                type: 'GET',
+
+                success: function (res) {
+
+                    if (res.status) {
+
+                        allQuizzes = res.data;
+
+                        bindGrid(allQuizzes);
+
+                    }
+                    else {
+
+                        alert(res.resultMessage);
+
+                    }
+
+                },
+
+                error: function () {
+
+                    alert("Unable to load quizzes.");
+
+                }
+
+            });
+
+        }
+
+        function bindGrid(data) {
+
+            let html = "";
+
+            if (!data || data.length === 0) {
+
+                html = "<tr><td colspan='6' class='text-center'>No Records Found</td></tr>";
+
+            }
+            else {
+
+                $.each(data, function (i, item) {
+
+                    html += `
+                    <tr>
+                        <td>${i + 1}</td>
+
+                        <td>${item.quizName}</td>
+
+                        <td>${item.quizCode}</td>
+
+                        <td>${formatDate(item.startDate)}</td>
+
+                        <td>${formatDate(item.endDate)}</td>
+
+                        <td>
+                        ${item.status
+                            ? "<span class='badge bg-success'>Active</span>"
+                            : "<span class='badge bg-danger'>Inactive</span>"}
+                        </td>
+
+                        <td>
+
+                            <button class="btn btn-warning btn-sm"
+                            onclick="editQuiz(${item.quizId})">
+
+                            Edit
+
+                            </button>
+
+                            <button class="btn btn-danger btn-sm"
+                            onclick="deleteQuiz(${item.quizId})">
+
+                            Delete
+
+                            </button>
+
+                        </td>
+
+                    </tr>`;
+                });
+            }
+
+            $("#quizTableBody").html(html);
+
+        }
+
+        function searchQuiz() {
+
+            let search = $("#txtSearch").val().toLowerCase();
+
+            if (search === "") {
+
+                bindGrid(allQuizzes);
+
+                return;
+
+            }
+
+            let filtered = allQuizzes.filter(x =>
+
+                (x.quizName || "").toLowerCase().includes(search) ||
+
+                (x.quizCode || "").toLowerCase().includes(search)
+
+            );
+
+            bindGrid(filtered);
+
+        }
+
+        function deleteQuiz(id) {
+
+            if (!confirm("Are you sure you want to delete this quiz?"))
+                return;
+
+            $.ajax({
+
+                url: "/api/TextQuiz/DeleteTextQuiz?quizId=" + id,
+
+                type: "POST",
+
+                success: function (res) {
+
+                    alert(res.resultMessage);
+
+                    loadQuizzes();
+
+                },
+
+                error: function (xhr) {
+
+                    alert("Delete Failed");
+
+                    console.log(xhr);
+
+                }
+
+            });
+
+        }
+
+        function editQuiz(id) {
+
+            window.location.href = "/Admin/Admin/AddTextQuiz?quizId=" + id;
+
+        }
+
+        function formatDate(value) {
+
+            if (value == null)
+                return "";
+
+            let d = new Date(value);
+
+            return d.toLocaleString();
+
+        }
+
+        function loadQuiz(id) {
+
+            $.ajax({
+
+                url: "/api/TextQuiz/GetTextQuizById?quizId=" + id,
+
+                type: "GET",
+
+                success: function (res) {
+
+                    if (res.status) {
+
+                        populateQuiz(res.data);
+
+                    }
+                    else {
+
+                        alert(res.resultMessage);
+
+                    }
+
+                },
+
+                error: function () {
+
+                    alert("Unable to load quiz.");
+
+                }
+
+            });
+
+        }
+
+        function populateQuiz(data) {
+
+            let quiz = data.quiz;
+
+            $("#QuizId").val(quiz.quizId);
+
+            $("#OrgId").val(quiz.orgId);
+
+            $("#GroupId").val(quiz.groupId);
+
+            $("#QuizName").val(quiz.quizName);
+
+            $("#QuizCode").val(quiz.quizCode);
+
+            $("#StartDate").val(quiz.startDate.substring(0, 16));
+
+            $("#EndDate").val(quiz.endDate.substring(0, 16));
+
+            $("#SmsCode").val(quiz.smsCode);
+
+            $("#ShortDescription").val(quiz.shortDescription);
+
+            $("#Status").prop("checked", quiz.status);
+
+            $("#IsReferFriend").prop("checked", quiz.isReferFriend);
+
+            $("#questionsContainer").empty();
+
+            $.each(data.questions, function (i, q) {
+
+                addQuestion(q);
+
+            });
+
+        }
+
+    </script>
+
+}

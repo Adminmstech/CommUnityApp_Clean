@@ -128,6 +128,21 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public bool IsActive { get; set; }
     }
+
+    public class CompleteCareConnectRequestModel
+    {
+        public long RequestId { get; set; }
+    }
+    public class CompleteCareConnectRequestResult
+    {
+        public int ResultId { get; set; }
+
+        public string ResultMessage { get; set; }
+
+        public bool Status { get; set; }
+
+        public long RequestId { get; set; }
+    }
 }
 
 

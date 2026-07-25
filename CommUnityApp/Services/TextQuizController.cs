@@ -1,6 +1,8 @@
 ﻿using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
+using CommUnityApp.InfrastructureLayer.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CommUnityApp.Services
 {
@@ -206,6 +208,105 @@ namespace CommUnityApp.Services
                 Status = true,
                 Data = data
             });
+        }
+
+        [HttpPost("SaveTextQuiz")]
+        public async Task<IActionResult> SaveTextQuiz([FromBody] SaveTextQuizModel model)
+        {
+            try
+            {
+                var result = await _textQuizRepository.SaveTextQuiz(model);
+
+                return Ok(new
+                {
+                    ResultId = result.StatusCode > 0 ? 1 : 0,
+                    ResultMessage = result.StatusMessage,
+                    Status = result.StatusCode > 0,
+                    QuizId = result.StatusCode
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+        [HttpGet("GetAllTextQuiz")]
+        public async Task<IActionResult> GetAllTextQuiz()
+        {
+            try
+            {
+                var data = await _textQuizRepository.GetAllTextQuiz();
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Success",
+                    Status = true,
+                    Data = data
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+        [HttpGet("GetTextQuizById")]
+        public async Task<IActionResult> GetTextQuizById(long quizId)
+        {
+            var data = await _textQuizRepository.GetTextQuizById(quizId);
+
+            if (data == null)
+            {
+                return NotFound(new
+                {
+                    ResultId = 0,
+                    ResultMessage = "Quiz not found",
+                    Status = false
+                });
+            }
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
+        }
+
+        [HttpPost("DeleteTextQuiz")]
+        public async Task<IActionResult> DeleteTextQuiz(long quizId)
+        {
+            try
+            {
+                var result = await _textQuizRepository.DeleteTextQuiz(quizId);
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = result.StatusMessage,
+                    Status = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
         }
     }
 }

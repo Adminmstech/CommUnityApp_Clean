@@ -446,7 +446,109 @@ namespace CommUnityApp.Services
                 });
             }
         }
-       
+
+
+        [HttpPost("SaveSmartQuiz")]
+        public async Task<IActionResult> SaveSmartQuiz([FromBody] SaveSmartQuizModel model)
+        {
+            try
+            {
+                var result = await _smartQuizRepository.SaveSmartQuiz(model);
+
+                return Ok(new
+                {
+                    ResultId = result.StatusCode > 0 ? 1 : 0,
+                    ResultMessage = result.StatusMessage,
+                    Status = result.StatusCode > 0,
+                    QuizId = result.StatusCode
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+
+        [HttpGet("GetAllSmartQuiz")]
+        public async Task<IActionResult> GetAllSmartQuiz()
+        {
+            try
+            {
+                var data = await _smartQuizRepository.GetAllSmartQuiz();
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Success",
+                    Status = true,
+                    Data = data
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+
+        [HttpGet("GetAdminSmartQuizById")]
+        public async Task<IActionResult> GetSmartQuizById(long quizId)
+        {
+            var data = await _smartQuizRepository.GetSmartQuizById(quizId);
+
+            if (data == null)
+            {
+                return NotFound(new
+                {
+                    ResultId = 0,
+                    ResultMessage = "Quiz not found",
+                    Status = false
+                });
+            }
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data
+            });
+        }
+
+        [HttpPost("DeleteSmartQuiz")]
+        public async Task<IActionResult> DeleteSmartQuiz(long quizId)
+        {
+            try
+            {
+                var result = await _smartQuizRepository.DeleteSmartQuiz(quizId);
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = result.StatusMessage,
+                    Status = true
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+
 
     }
 }

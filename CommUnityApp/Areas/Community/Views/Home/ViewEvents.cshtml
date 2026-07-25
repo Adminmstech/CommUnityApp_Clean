@@ -277,7 +277,7 @@
                     </td>
 
                           <td>
-        <div class="action-btn-group">
+            <div class="action-btn-group">
 
             <a href="/Community/Home/AddEvent?eventId=${e.eventId}"
                class="action-btn edit-btn">✏ Edit</a>
@@ -285,9 +285,11 @@
             <a href="/Community/Home/PostEvent?eventId=${e.eventId}"
                class="action-btn post-btn">🚀 Post</a>
 
-            <a href="/Community/Home/ViewRegistrations?eventId=${e.eventId}"
-               class="action-btn reg-btn">📋 Registrations</a>
+            @*<a href="/Community/Home/ViewRegistrations?eventId=${e.eventId}"
+               class="action-btn reg-btn">📋 Registrations</a>*@
 
+                 <a href="/Community/Home/EventTicketBookings?eventId=${e.eventId}"
+            class="action-btn reg-btn">🎫 Ticket Bookings</a>
             <button class="action-btn sponsor-btn"
                     onclick="viewSponsors(${e.eventId}, '${e.eventName}')">
                 👁 Sponsors

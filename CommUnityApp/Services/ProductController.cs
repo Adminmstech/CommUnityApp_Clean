@@ -825,18 +825,27 @@ namespace CommUnityApp.Services
                         request.PromotionId,
                         request.UserId);
 
-                if (result == null || result.RedemptionId <= 0)
+                if (result == null)
                 {
-                    return BadRequest(new
+                    return Ok(new
                     {
                         ResultId = 0,
-                        ResultMessage = "Failed to redeem promotion",
+                        ResultMessage = "Something went wrong.",
                         Status = false
                     });
                 }
 
-                string qrImageUrl = "";
+                if (!result.Status || result.RedemptionId == null || result.RedemptionId <= 0)
+                {
+                    return Ok(new
+                    {
+                        ResultId = result.ResultId,
+                        ResultMessage = result.ResultMessage,
+                        Status = result.Status
+                    });
+                }
 
+                string qrImageUrl = "";
 
                 string qrFolder = Path.Combine(
                     Directory.GetCurrentDirectory(),
@@ -847,8 +856,7 @@ namespace CommUnityApp.Services
                 if (!Directory.Exists(qrFolder))
                     Directory.CreateDirectory(qrFolder);
 
-                using (QRCodeGenerator qrGenerator =
-                    new QRCodeGenerator())
+                using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
                 {
                     var qrPayload = new
                     {
@@ -857,8 +865,7 @@ namespace CommUnityApp.Services
                     };
 
                     string qrContent =
-                        System.Text.Json.JsonSerializer
-                        .Serialize(qrPayload);
+                        System.Text.Json.JsonSerializer.Serialize(qrPayload);
 
                     QRCodeData qrCodeData =
                         qrGenerator.CreateQrCode(
@@ -868,24 +875,17 @@ namespace CommUnityApp.Services
                     PngByteQRCode qrCode =
                         new PngByteQRCode(qrCodeData);
 
-                    byte[] qrBytes =
-                        qrCode.GetGraphic(20);
+                    byte[] qrBytes = qrCode.GetGraphic(20);
 
-                    string fileName =
-                        Guid.NewGuid() + ".png";
+                    string fileName = Guid.NewGuid() + ".png";
 
-                    string filePath =
-                        Path.Combine(qrFolder, fileName);
+                    string filePath = Path.Combine(qrFolder, fileName);
 
-                    await System.IO.File.WriteAllBytesAsync(
-                        filePath,
-                        qrBytes);
+                    await System.IO.File.WriteAllBytesAsync(filePath, qrBytes);
 
                     qrImageUrl =
                         $"{Request.Scheme}://{Request.Host}/Uploads/PromotionRedemptions/{fileName}";
                 }
-
-              
 
                 using (var connection = new SqlConnection(
                     _configuration.GetConnectionString("DefaultConnection")))
@@ -907,9 +907,9 @@ namespace CommUnityApp.Services
 
                 return Ok(new
                 {
-                    ResultId = 1,
-                    ResultMessage = "Promotion Redeemed Successfully",
-                    Status = true,
+                    ResultId = result.ResultId,
+                    ResultMessage = result.ResultMessage,
+                    Status = result.Status,
                     Data = result
                 });
             }

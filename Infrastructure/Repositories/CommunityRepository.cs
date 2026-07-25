@@ -92,13 +92,26 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         }
         public async Task<CharityItemModel> GetCharityItemDetails(int charityItemId)
         {
-            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
-            {
-                return await con.QueryFirstOrDefaultAsync<CharityItemModel>(
-                    "sp_GetCharityItemDetails",
-                    new { CharityItemId = charityItemId },
-                    commandType: CommandType.StoredProcedure);
-            }
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            using var multi = await con.QueryMultipleAsync(
+                "sp_GetCharityItemDetails",
+                new
+                {
+                    CharityItemId = charityItemId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            var charityItem = await multi.ReadFirstOrDefaultAsync<CharityItemModel>();
+
+            if (charityItem == null)
+                return null;
+
+            charityItem.ImagePaths =
+                (await multi.ReadAsync<string>()).ToList();
+
+            return charityItem;
         }
 
         public async Task<bool> UpdateVolunteerStatusAsync(UpdateStatusRequest request)
@@ -164,23 +177,21 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             );
         }
 
-        public async Task UpdateCharityItemImage(int charityItemId, string imagePath)
+        public async Task UpdateCharityItemImage(
+    long charityItemId,
+    string imagePath)
         {
-            using (var con =
-                new SqlConnection(
-                    _configuration.GetConnectionString(
-                        "DefaultConnection")))
-            {
-                await con.ExecuteAsync(
-                    "SP_UpdateCharityItemImage",
-                    new
-                    {
-                        CharityItemId = charityItemId,
-                        ImagePath = imagePath
-                    },
-                    commandType:
-                    CommandType.StoredProcedure);
-            }
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            await con.ExecuteAsync(
+                "SP_UpdateCharityItemImage",
+                new
+                {
+                    CharityItemId = charityItemId,
+                    ImagePath = imagePath
+                },
+                commandType: CommandType.StoredProcedure);
         }
         public async Task<int> AddCharityItemImage(
     int charityItemId,
@@ -639,39 +650,33 @@ CommunityPostModel model)
             return result.ToList();
         }
 
-
-        public async Task<dynamic> UpdateCharityItem(UpdateCharityItemModel model)
+        public async Task<UpdateCharityItemResult> UpdateCharityItem(
+    UpdateCharityItemModel model)
         {
-            using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-            {
-                var result = await con.QueryFirstOrDefaultAsync<dynamic>(
-                    "SP_UpdateCharityItem",
-                    new
-                    {
-                        CharityItemId = model.CharityItemId,
-                        CommunityId = model.CommunityId,
-                        ItemName = model.ItemName,
-                        ItemCategory = model.ItemCategory,
-                        Description = model.Description,
-                        Quantity = model.Quantity,
-                        ImagePath = model.ImagePath
-                    },
-                    commandType: CommandType.StoredProcedure);
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
 
-                return result;
+            var result = await con.QueryFirstOrDefaultAsync<UpdateCharityItemResult>(
+                "SP_UpdateCharityItem",
+                new
+                {
+                    CharityItemId = model.CharityItemId,
+                    CommunityId = model.CommunityId,
+                    ItemName = model.ItemName,
+                    ItemCategory = model.ItemCategory,
+                    Description = model.Description,
+                    Quantity = model.Quantity
+                },
+                commandType: CommandType.StoredProcedure);
 
-            }
+            return result;
         }
-
         public Task<IEnumerable<dynamic>> GetCharityItemsByUserId(Guid userId)
         {
             throw new NotImplementedException();
         }
 
-        public Task<dynamic> UpdateCharityItemImage(long charityItemId, string imagePath)
-        {
-            throw new NotImplementedException();
-        }
+        
 
        
 
@@ -690,6 +695,55 @@ CommunityPostModel model)
                     commandType: CommandType.StoredProcedure);
 
             return result.ToList();
+        }
+
+        public Task UpdateCharityItemImage(int charityItemId, string imagePath)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<DeleteCharityItemResult> DeleteCharityItem(long charityItemId)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await con.QueryFirstOrDefaultAsync<DeleteCharityItemResult>(
+                "SP_DeleteCharityItem",
+                new
+                {
+                    CharityItemId = charityItemId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result;
+        }
+
+        public async Task<List<UserCommunityCharityItemModel>> GetCharityItemsByUserCommunities(Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            using var multi = await connection.QueryMultipleAsync(
+                "sp_GetCharityItemsByUserCommunities",
+                new
+                {
+                    UserId = userId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            var charityItems = (await multi.ReadAsync<UserCommunityCharityItemModel>()).ToList();
+
+            var images = (await multi.ReadAsync<CharityItemImageModel>()).ToList();
+
+            foreach (var item in charityItems)
+            {
+                item.Images = images
+                    .Where(x => x.CharityItemId == item.CharityItemId)
+                    .Select(x => x.ImagePath)
+                    .ToList();
+            }
+
+            return charityItems;
         }
     }
 }

@@ -381,5 +381,95 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result.ToList();
         }
+
+        public async Task<AppBusinessLoginResponse> BusinessLogin(AppBusinessLoginRequest request)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await con.QueryFirstOrDefaultAsync<AppBusinessLoginResponse>(
+                "sp_BusinessLogin",
+                new
+                {
+                    request.Email,
+                    request.Password
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result;
+        }
+
+
+        public async Task<List<BusinessPromotionRedemptionModel>> GetBusinessPromotionRedemptions(long businessId)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await con.QueryAsync<BusinessPromotionRedemptionModel>(
+                "sp_GetBusinessPromotionRedemptions",
+                new
+                {
+                    BusinessId = businessId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+        public async Task<List<BusinessPromotionModel>> GetBusinessPromotions(long businessId)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await con.QueryAsync<BusinessPromotionModel>(
+                "sp_GetBusinessPromotions",
+                new
+                {
+                    BusinessId = businessId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+        public async Task<ValidatePromotionRedemptionResult>
+     ValidatePromotionRedemptionCode(
+         long businessId,
+         string redemptionCode)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await con.QueryFirstOrDefaultAsync<
+                ValidatePromotionRedemptionResult>(
+                    "sp_ValidatePromotionRedemptionCode",
+                    new
+                    {
+                        BusinessId = businessId,
+                        RedemptionCode = redemptionCode
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+            return result;
+        }
+
+        public async Task<ConfirmPromotionRedemptionResult> ConfirmPromotionRedemption(ConfirmPromotionRedemptionRequest request)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await con
+                .QueryFirstOrDefaultAsync<ConfirmPromotionRedemptionResult>(
+                    "sp_ConfirmPromotionRedemption",
+                    new
+                    {
+                        BusinessId = request.BusinessId,
+                        RedemptionId = request.RedemptionId
+                    },
+                    commandType: CommandType.StoredProcedure);
+
+            return result;
+        }
+
     }
 }

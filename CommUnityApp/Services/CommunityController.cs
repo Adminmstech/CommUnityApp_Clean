@@ -171,14 +171,49 @@ namespace CommUnityApp.Services
         {
             try
             {
-                var result = await _communityRepository.GetCharityItemDetails(charityItemId);
+                var result = await _communityRepository
+                    .GetCharityItemDetails(charityItemId);
+
+                if (result == null)
+                {
+                    return NotFound(new
+                    {
+                        status = false,
+                        message = "Charity item not found."
+                    });
+                }
+
+                string baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+                if (result.ImagePaths != null && result.ImagePaths.Any())
+                {
+                    result.ImagePaths = result.ImagePaths
+                        .Select(imagePath =>
+                            !string.IsNullOrWhiteSpace(imagePath)
+                                ? baseUrl + imagePath
+                                : baseUrl + "/images/noimage.png")
+                        .ToList();
+                }
+                else
+                {
+                    result.ImagePaths = new List<string>
+            {
+                baseUrl + "/images/noimage.png"
+            };
+                }
+
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new
+                {
+                    status = false,
+                    message = ex.Message
+                });
             }
         }
+
         [HttpPost("UpdateVolunteerStatus")]
         public async Task<IActionResult> UpdateVolunteerStatus([FromBody] UpdateStatusRequest request)
         {
@@ -874,7 +909,7 @@ namespace CommUnityApp.Services
             var data = await _unitOfWork.Community.GetCommunitiesByCategoryAsync(communityCategoryId);
             return Ok(data);
         }
-
+         
         [HttpPost("Update_UserCommunity")]
         public async Task<IActionResult> UpdateUserCommunityAsync(UpdateUserCommunityRequest request)
         {
@@ -882,9 +917,9 @@ namespace CommUnityApp.Services
             return Ok(data);
         }
         [HttpPost("AddCommunityPost")]
-        public async Task<IActionResult> AddCommunityPost(
+        public async Task<IActionResult> AddCommunityPost( 
     [FromForm] CommunityPostModel model)
-        {
+        { 
             try
             {
                 string imagePath = "";
@@ -1008,84 +1043,123 @@ namespace CommUnityApp.Services
 
         [HttpPost]
         [Route("UpdateCharityItem")]
-        public async Task<IActionResult> UpdateCharityItem([FromBody] UpdateCharityItemModel model)
-
+        public async Task<IActionResult> UpdateCharityItem(
+    [FromBody] UpdateCharityItemModel model)
         {
             try
             {
-                string imagePath = "";
+                var result = await _communityRepository.UpdateCharityItem(model);
 
-                var result =
-                    await _communityRepository
-                    .UpdateCharityItem(model);
+                if (result == null)
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Unable to update charity item.",
+                        Status = 0
+                    });
+                }
 
                 if (result.Status != 1)
                 {
                     return Ok(result);
                 }
 
-                if (!string.IsNullOrEmpty(model.ImagePath)
-                    && model.ImagePath.Contains("base64"))
+                var savedImagePaths = new List<string>();
+
+                if (model.ImagePaths != null && model.ImagePaths.Any())
                 {
-                    string folderPath =
-                        Path.Combine(
-                            Directory.GetCurrentDirectory(),
-                            "wwwroot",
-                            "uploads",
-                            "charity",
-                            model.CharityItemId.ToString());
+                    string folderPath = Path.Combine(
+                        Directory.GetCurrentDirectory(),
+                        "wwwroot",
+                        "uploads",
+                        "charity",
+                        model.CharityItemId.ToString());
 
                     if (!Directory.Exists(folderPath))
                     {
                         Directory.CreateDirectory(folderPath);
                     }
 
-                    string base64String = model.ImagePath;
-
-                    if (base64String.Contains(","))
+                    foreach (var image in model.ImagePaths)
                     {
-                        base64String =
-                            base64String.Substring(
+                        if (string.IsNullOrWhiteSpace(image))
+                        {
+                            continue;
+                        }
+
+                        string base64String = image.Trim();
+
+                        if (base64String.Contains(","))
+                        {
+                            base64String = base64String.Substring(
                                 base64String.IndexOf(",") + 1);
-                    }
+                        }
 
-                    string fileName =
-                        Guid.NewGuid().ToString()
-                        + Path.GetExtension(model.ImagePath);
+                        base64String = base64String
+                            .Replace("\r", "")
+                            .Replace("\n", "")
+                            .Trim();
 
-                    string filePath =
-                        Path.Combine(folderPath, fileName);
+                        byte[] imageBytes;
 
-                    byte[] imageBytes =
-                        Convert.FromBase64String(base64String);
+                        try
+                        {
+                            imageBytes = Convert.FromBase64String(base64String);
+                        }
+                        catch (FormatException)
+                        {
+                            return BadRequest(new
+                            {
+                                ResultId = 0,
+                                ResultMessage = "One of the provided images contains invalid Base64 data.",
+                                Status = 0
+                            });
+                        }
 
-                    System.IO.File.WriteAllBytes(
-                        filePath,
-                        imageBytes);
+                      
+                        string fileName =
+                            Guid.NewGuid().ToString() + ".jpg";
 
-                    imagePath =
-                        "/uploads/charity/"
-                        + model.CharityItemId
-                        + "/"
-                        + fileName;
+                        string filePath = Path.Combine(
+                            folderPath,
+                            fileName);
 
-                    await _communityRepository
-                        .UpdateCharityItemImage(
+                        await System.IO.File.WriteAllBytesAsync(
+                            filePath,
+                            imageBytes);
+
+                        string imagePath =
+                            "/uploads/charity/"
+                            + model.CharityItemId
+                            + "/"
+                            + fileName;
+
+                        await _communityRepository.UpdateCharityItemImage(
                             model.CharityItemId,
                             imagePath);
+
+                        savedImagePaths.Add(imagePath);
+                    }
                 }
 
                 return Ok(new
                 {
                     ResultId = 1,
                     ResultMessage = "Charity item updated successfully",
+                    Status = 1,
                     CharityItemId = model.CharityItemId,
-                    ImagePath = imagePath
+                    ImagePaths = savedImagePaths
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = 0
+                });
             }
         }
 
@@ -1137,7 +1211,7 @@ namespace CommUnityApp.Services
        
         [HttpGet("GetTopFiveCommunityPostsByUser")]
         public async Task<IActionResult> GetTopFiveCommunityPostsByUser(Guid userId)
-        {
+        { 
             var data = await _unitOfWork.Community
                 .GetTopFiveCommunityPostsByUser(userId);
 
@@ -1148,6 +1222,104 @@ namespace CommUnityApp.Services
                 Status = true,
                 Data = data
             });
+        }
+
+        [HttpDelete]
+        [Route("DeleteCharityItem")]
+        public async Task<IActionResult> DeleteCharityItem(long charityItemId)
+        {
+            try
+            {
+                var result = await _communityRepository
+                    .DeleteCharityItem(charityItemId);
+
+                if (result == null)
+                {
+                    return Ok(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Unable to delete charity item.",
+                        Status = 0
+                    });
+                }
+
+                if (result.Status != 1)
+                {
+                    return Ok(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = result.Message,
+                        Status = 0
+                    });
+                }
+
+                string folderPath = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot",
+                    "uploads",
+                    "charity",
+                    charityItemId.ToString());
+
+                if (Directory.Exists(folderPath))
+                {
+                    Directory.Delete(folderPath, true);
+                }
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = result.Message,
+                    Status = 1,
+                    CharityItemId = charityItemId
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = 0
+                });
+            }
+
+        }
+
+        [HttpGet("GetCharityItemsByUserCommunities")]
+        public async Task<IActionResult> GetCharityItemsByUserCommunities(Guid userId)
+        {
+            try
+            {
+                if (userId == Guid.Empty)
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "UserId is required.",
+                        Status = false
+                    });
+                }
+
+                var result = await _communityRepository
+                    .GetCharityItemsByUserCommunities(userId);
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Charity items fetched successfully.",
+                    Status = true,
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
         }
     }
 
