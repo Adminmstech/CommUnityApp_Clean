@@ -118,7 +118,7 @@ namespace CommUnityApp.Services
 
             if (!consumeResult.IsConsumed)
             {
-                await _brandGameRepository.TrackGameplayAsync(
+                var trackresult=await _brandGameRepository.TrackGameplayAsync(
                     game.BrandGameID,
                     request.UserId,
                     "NoPrize",
@@ -128,6 +128,7 @@ namespace CommUnityApp.Services
 
                 return Ok(new
                 {
+                    RedeemCode= trackresult.ResultMessage,
                     resultId = 0,
                     resultMessage = "No prize balance available.",
                     gameId = game.BrandGameID,
@@ -150,7 +151,7 @@ namespace CommUnityApp.Services
             }
 
             var isWinner = finalPrizeType != "ConsolationPrize";
-            await _brandGameRepository.TrackGameplayAsync(
+            var trackresult1 = await _brandGameRepository.TrackGameplayAsync(
                 game.BrandGameID,
                 request.UserId,
                 finalPrizeType,
@@ -163,6 +164,7 @@ namespace CommUnityApp.Services
             game.BrandGameID);
             return Ok(new
             {
+                RedeemCode = trackresult1.ResultMessage,
                 resultId = 1,
                 resultMessage = "Game played successfully.",
                 gameId = game.BrandGameID,
@@ -333,17 +335,47 @@ namespace CommUnityApp.Services
 
             if (result.ResultId > 0)
             {
+                var baseUrl = (_configuration["ApiSettings:BaseUrl"] ?? string.Empty).TrimEnd('/');
                 var game = await _spinGameRepository.GetSpinGameByIdAsync(request.GameId);
+                var section = await _spinGameRepository.GetSectionByIdAsync(request.SectionId);
 
-                if (game != null && game.RewardCoins > 0) 
+                if (game != null && game.RewardCoins > 0)
                 {
                     await _spinGameRepository.AddSpinGameRewardCoinsAsync(
                         request.UserId,
                         game.RewardCoins,
                         request.GameId);
                 }
+                
+                // Backward compatible response + enriched fields for app/store redemption flows.
+                return Ok(new
+                {
+                    // existing result payload preserved
+                    result.ResultId,
+                    result.ResultMessage,
+                    result.GameResultId,
+                    result.GameId,
+                    result.SectionId,
+                    result.RewardValue,
+                    result.RedeemCode,
+                    result.Status,
+                    result.PlayedAt,
 
-                return Ok(result);
+                    // enriched fields
+                    gameImage = BuildFullImageUrl(baseUrl, game?.GameImage),
+                    offerText = section?.PrizeText ?? result.RewardValue,
+                    sectionImage = BuildFullImageUrl(baseUrl, section?.SectionImage),
+                    redeemCode = result.RedeemCode,
+                    reward = new
+                    {
+                        gameId = result.GameId,
+                        sectionId = result.SectionId,
+                        offerText = section?.PrizeText ?? result.RewardValue,
+                        redeemCode = result.RedeemCode,
+                        gameImage = BuildFullImageUrl(baseUrl, game?.GameImage),
+                        sectionImage = BuildFullImageUrl(baseUrl, section?.SectionImage)
+                    }
+                });
             }
 
             return BadRequest(result);

@@ -163,10 +163,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                             {
                                 sectionModel.GameId,
                                 sectionModel.SectionNumber,
-                                sectionModel.Points,
-                                sectionModel.PromotionId,
+                                sectionModel.SectionImage,
                                 sectionModel.PrizeText,
-                                sectionModel.Color
+                                sectionModel.Color,
+                                //IsActive = true
                             };
                         }
                         else
@@ -176,8 +176,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                 sectionModel.SectionId,
                                 sectionModel.GameId,
                                 sectionModel.SectionNumber,
-                                sectionModel.Points,
-                                sectionModel.PromotionId,
+                                sectionModel.SectionImage,
                                 sectionModel.PrizeText,
                                 sectionModel.Color,
                                 IsActive = true
@@ -392,7 +391,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             {
                  return new PlaySpinResponse { ResultId = 0, ResultMessage = "Invalid section or section does not belong to this game." };
             }
-
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var random = new Random();
+            var redeemCode = new string(Enumerable.Repeat(chars, 6)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
             // Insert into GameSpin (using the entity name as table name, common in this project schema e.g., SpinGame, SpinSection)
             var gameSpin = new CommUnityApp.Domain.Entities.GameSpin
             {
@@ -401,11 +403,12 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 SelectedSectionId = selectedSection.SectionId,
                 PointsAwarded = selectedSection.Points,
                 PromotionId = selectedSection.PromotionId
+                redeemCode= redeemCode
             };
 
             var insertQuery = @"
-                INSERT INTO GameSpins (UserId, SpinDate, SelectedSectionId, PointsAwarded, PromotionId)
-                VALUES (@UserId, @SpinDate, @SelectedSectionId, @PointsAwarded, @PromotionId);
+                INSERT INTO GameSpins (UserId, SpinDate, SelectedSectionId, PointsAwarded, PromotionId,RedeemCode)
+                VALUES (@UserId, @SpinDate, @SelectedSectionId, @PointsAwarded, @PromotionId,@redeemCode);
                 SELECT CAST(SCOPE_IDENTITY() as int);";
 
             try
