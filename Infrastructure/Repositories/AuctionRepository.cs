@@ -9,6 +9,7 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using static CommUnityApp.ApplicationCore.Models.BidRegistrationUserModel;
 
 namespace CommUnityApp.InfrastructureLayer.Repositories
 {
@@ -299,7 +300,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         }
 
 
-        public async Task<AuctionWinnerSellerDetailsResponse> GetAuctionWinnerSellerDetailsAsync(Guid userId)
+        public async Task<List<AuctionWinnerSellerDetailsResponse>> GetAuctionWinnerSellerDetailsAsync(Guid userId)
         {
             using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection")
@@ -312,13 +313,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
            
             parameters.Add("@UserId", userId);
 
-            var result = await connection.QueryFirstOrDefaultAsync<AuctionWinnerSellerDetailsResponse>(
-                "Get_AuctionWinnerSellerDetails",
-                parameters,
-                commandType: CommandType.StoredProcedure
+            var result = await connection.QueryAsync<AuctionWinnerSellerDetailsResponse>("Get_AuctionWinnerSellerDetails", parameters, commandType: CommandType.StoredProcedure
             );
 
-            return result;
+            return result.ToList();
         }
 
         public async Task DeleteAuctionImages(int auctionId)
@@ -416,5 +414,25 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result.FirstOrDefault();
         }
+
+        public async Task<AuctionParticipantDetailsModel> GetAuctionParticipantDetails(int auctionId, Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@AuctionId", auctionId);
+            parameters.Add("@UserId", userId);
+
+            var result = await connection.QueryAsync<AuctionParticipantDetailsModel>(
+                "Get_AuctionParticipantDetails",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return result.FirstOrDefault();
+        }
+
+
     }
 }

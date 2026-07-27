@@ -624,15 +624,14 @@ namespace CommUnityApp.Services
             var data = await _unitOfWork.Auction.GetAdminLiveAuctionsAsync();
             return Ok(data);
         }
-
-        [HttpGet("Get_AuctionWinnerSellerDetails")]
-        public async Task<IActionResult> GetAuctionWinnerSellerDetails( Guid userId)
+        [HttpGet("Get_UserParticipatedAuctions")]
+        public async Task<IActionResult> GetAuctionWinnerSellerDetails(Guid userId)
         {
             try
             {
-                var result = await _unitOfWork.Auction.GetAuctionWinnerSellerDetailsAsync( userId);
+                var auctions = await _unitOfWork.Auction.GetAuctionWinnerSellerDetailsAsync(userId);
 
-                if (result == null)
+                if (auctions == null || !auctions.Any())
                 {
                     return Ok(new BaseResponse
                     {
@@ -641,7 +640,12 @@ namespace CommUnityApp.Services
                     });
                 }
 
-                return Ok(result);
+                foreach (var auction in auctions)
+                {
+                    auction.Images = await _unitOfWork.Auction.GetAuctionImages(auction.AuctionId);
+                }
+
+                return Ok(auctions);
             }
             catch (Exception ex)
             {
@@ -812,6 +816,85 @@ namespace CommUnityApp.Services
                     registrationRequired);
 
             return Ok(result);
+        }
+
+        [HttpPost("Get_AuctionParticipantDetails")]
+        public async Task<IActionResult> Get_AuctionParticipantDetails(int auctionId, Guid userId)
+        {
+            var result = await _unitOfWork.Auction.GetAuctionParticipantDetails(auctionId,userId);
+
+            return Ok(result);
+        }
+
+        [HttpGet("Get_AuctionTransactionDetails")]
+        public async Task<IActionResult> Get_AuctionTransactionDetails(int auctionId, Guid userId)
+        {
+            try
+            {
+                // 1. Get Auction Details
+                var auctions = await _unitOfWork.Auction.GetAuctionAuctionId(auctionId, userId);
+
+                if (auctions == null || !auctions.Any())
+                {
+                    return Ok(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Auction not found."
+                    });
+                }
+
+                var auction = auctions.FirstOrDefault();
+
+                // 2. Get Auction Images
+                var images = await _unitOfWork.Auction.GetAuctionImages(auctionId);
+
+                // 3. Get Participant Details
+                var participant = await _unitOfWork.Auction
+                    .GetAuctionParticipantDetails(auctionId, userId);
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Success",
+
+                    Auction = new
+                    {
+                        auction.AuctionId,
+                        auction.BusinessId,
+                        auction.UserId,
+                        auction.User,
+                        auction.ItemTypeId,
+                        auction.ItemTitle,
+                        auction.ItemDescription,
+                        auction.ItemCondition,
+                        auction.PriceIncrement,
+                        auction.ReservePrice,
+                        auction.MinDeposite,
+                        auction.StartTime,
+                        auction.EndTime,
+                        auction.ItemLocation,
+                        auction.DeleveryMethodId,
+                        auction.AuctionStatus,
+                        auction.CreatedBy,
+                        auction.CreatedAt,
+                        auction.IsRegistered,
+                        auction.RegistrationRequired,
+                        auction.TimeZoneId,
+
+                        Images = images
+                    },
+
+                    Participant = participant
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message
+                });
+            }
         }
     }
 }

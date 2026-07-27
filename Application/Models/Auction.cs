@@ -300,6 +300,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string? BusinessPhone { get; set; }
 
         public string? BusinessAddress { get; set; }
+        public List<AuctionItemImage> Images { get; set; } = new();
     }
     public class BidRegistrationUserModel
     {
@@ -322,5 +323,44 @@ namespace CommUnityApp.ApplicationCore.Models
                     : "Pending";
             }
         }
+
+
+        public class AuctionParticipantDetailsModel
+        {
+            public int ResultId { get; set; }
+            public string ResultMessage { get; set; }
+
+            public string UserType { get; set; } // Seller / Receiver
+
+            public Guid UserId { get; set; }
+
+            public string FirstName { get; set; }
+
+            public string LastName { get; set; }
+
+            public string FullName { get; set; }
+
+            public string Email { get; set; }
+
+            public string Mobile { get; set; }
+
+            public int? BusinessId { get; set; }
+
+            public string BusinessName { get; set; }
+
+            public string OwnerName { get; set; }
+
+            public string BusinessPhone { get; set; }
+
+            public string BusinessEmail { get; set; }
+
+            public string BusinessAddress { get; set; }
+
+            public decimal? WinningBidAmount { get; set; }
+
+            public DateTime? WinnerDeclaredOn { get; set; }
+        }
+
+
     }
 }
