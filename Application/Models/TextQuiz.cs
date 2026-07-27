@@ -75,9 +75,9 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string QuizName { get; set; } = string.Empty;
 
-        public string QuizImage { get; set; } = string.Empty;
+        public string QuizImage { get; set; }  
 
-        public string QuizImagePath { get; set; } = string.Empty;
+        public string QuizImagePath { get; set; } 
 
         public int Status { get; set; }
 

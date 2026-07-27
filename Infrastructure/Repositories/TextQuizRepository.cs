@@ -74,7 +74,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             {
                 result.QuizImagePath = string.IsNullOrEmpty(result.QuizImage)
                     ? string.Empty
-                    : $"{_configuration["ImageBaseUrl"]}/TextQuiz/{result.QuizId}/{result.QuizImage}";
+                    : $"{_configuration["ImageBaseUrl"]}/Uploads/TextQuiz/{result.QuizId}/{result.QuizImage}";
             }
 
             return result ?? new TextQuizGameDetailResponse();
