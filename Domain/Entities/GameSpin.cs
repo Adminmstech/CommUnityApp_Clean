@@ -10,6 +10,7 @@ namespace CommUnityApp.Domain.Entities
         public int SelectedSectionId { get; set; }
         public int? PointsAwarded { get; set; }
         public int? PromotionId { get; set; }
+        public string? redeemCode { get; set; }
     }
 }
 
