@@ -402,7 +402,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 SpinDate = DateTime.Now,
                 SelectedSectionId = selectedSection.SectionId,
                 PointsAwarded = selectedSection.Points,
-                PromotionId = selectedSection.PromotionId
+                PromotionId = selectedSection.PromotionId,
                 redeemCode= redeemCode
             };
 
