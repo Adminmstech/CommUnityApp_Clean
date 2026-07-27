@@ -5,6 +5,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Models\GameSpin.cs" />
+    <Compile Remove="Models\SpinGame.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
     <PackageReference Include="Dapper" Version="2.1.72" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />

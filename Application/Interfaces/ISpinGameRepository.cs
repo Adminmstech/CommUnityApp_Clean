@@ -13,6 +13,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BaseResponse> DeleteSpinGameAsync(int gameId);
         Task<SpinGameConfigRequest?> GetConfigByIdAsync(int configId);
         Task<IEnumerable<SpinSectionRequest>> GetSectionsByGameIdAsync(int gameId);
+        Task<SpinSectionRequest?> GetSectionByIdAsync(int sectionId);
         Task<BaseResponse> AddUpdateConfigAsync(SpinGameConfigRequest model);
         Task<BaseResponse> AddUpdateSectionAsync(SpinSectionRequest model);
         Task<BaseResponse> DeleteSectionAsync(int sectionId);

@@ -68,8 +68,14 @@ namespace CommUnityApp.ApplicationCore.Models
         public int ResultId { get; set; }
         public string ResultMessage { get; set; } = string.Empty;
         public SpinSectionRequest? SelectedSection { get; set; }
-
         public int CoinsEarned { get; set; }
+        public int GameResultId { get; set; }
+        public int GameId { get; set; }
+        public int SectionId { get; set; }
+        public string? RewardValue { get; set; }
+        public string? RedeemCode { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public DateTime PlayedAt { get; set; }
     }
     public class GameSpinResultDto
     {
