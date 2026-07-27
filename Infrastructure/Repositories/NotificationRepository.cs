@@ -177,7 +177,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public async Task<List<PostResponse>> GetMessageBoardPosts() 
+        public async Task<List<PostResponse>> GetMessageBoardPosts()  
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
