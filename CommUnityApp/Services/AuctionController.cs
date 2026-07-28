@@ -342,6 +342,8 @@ namespace CommUnityApp.Services
                     RegistrationRequired=auction.RegistrationRequired,
                     CreatedAt = auction.CreatedAt,
                     TimeZoneId = auction.TimeZoneId,
+                    RegistrationStartDate=auction.RegistrationStartDate,
+                    RegistrationEndDate=auction.RegistrationEndDate,
 
                     // ✅ FIXED HERE
                     Images = images
@@ -826,65 +828,69 @@ namespace CommUnityApp.Services
             return Ok(result);
         }
 
+
         [HttpGet("Get_AuctionTransactionDetails")]
         public async Task<IActionResult> Get_AuctionTransactionDetails(int auctionId, Guid userId)
         {
             try
             {
-                // 1. Get Auction Details
+                // Check whether the user participated in this auction
+                bool isParticipant = await _unitOfWork.Auction
+                    .CheckUserAuctionParticipation(auctionId, userId);
+
+                if (!isParticipant)
+                {
+                    return Ok(new
+                    {
+                        ResultId = 1,
+                        ResultMessage = "Success",
+                        Auction = Array.Empty<object>(),
+                        Participant = Array.Empty<object>()
+                    });
+                }
+
+                // Get auction details
                 var auctions = await _unitOfWork.Auction.GetAuctionAuctionId(auctionId, userId);
 
                 if (auctions == null || !auctions.Any())
                 {
                     return Ok(new
                     {
-                        ResultId = 0,
-                        ResultMessage = "Auction not found."
+                        ResultId = 1,
+                        ResultMessage = "Success",
+                        Auction = Array.Empty<object>(),
+                        Participant = Array.Empty<object>()
                     });
                 }
 
-                var auction = auctions.FirstOrDefault();
+                var auction = auctions.First();
 
-                // 2. Get Auction Images
                 var images = await _unitOfWork.Auction.GetAuctionImages(auctionId);
-
-                // 3. Get Participant Details
-                var participant = await _unitOfWork.Auction
-                    .GetAuctionParticipantDetails(auctionId, userId);
+                var participant = await _unitOfWork.Auction.GetAuctionParticipantDetails(auctionId, userId);
 
                 return Ok(new
                 {
                     ResultId = 1,
                     ResultMessage = "Success",
-
-                    Auction = new
+                    Auction = new[]
                     {
-                        auction.AuctionId,
-                        auction.BusinessId,
-                        auction.UserId,
-                        auction.User,
-                        auction.ItemTypeId,
-                        auction.ItemTitle,
-                        auction.ItemDescription,
-                        auction.ItemCondition,
-                        auction.PriceIncrement,
-                        auction.ReservePrice,
-                        auction.MinDeposite,
-                        auction.StartTime,
-                        auction.EndTime,
-                        auction.ItemLocation,
-                        auction.DeleveryMethodId,
-                        auction.AuctionStatus,
-                        auction.CreatedBy,
-                        auction.CreatedAt,
-                        auction.IsRegistered,
-                        auction.RegistrationRequired,
-                        auction.TimeZoneId,
-
-                        Images = images
-                    },
-
-                    Participant = participant
+                new
+                {
+                    auction.AuctionId,
+                    auction.BusinessId,
+                    auction.UserId,
+                    auction.User,
+                    auction.ItemTitle,
+                    auction.ItemDescription,
+                    auction.ReservePrice,
+                    auction.StartTime,
+                    auction.EndTime,
+                    Images = images
+                }
+            },
+                    Participant = participant == null
+                        ? Array.Empty<object>()
+                        : new[] { participant }
                 });
             }
             catch (Exception ex)

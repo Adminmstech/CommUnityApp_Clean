@@ -34,6 +34,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<BidRegistrationUserModel>>GetAuctionRegisteredUsers(int auctionId);
         Task<BaseResponse> UpdateRegistrationRequired(int auctionId, int registrationRequired);
         Task<AuctionParticipantDetailsModel> GetAuctionParticipantDetails(int auctionId, Guid userId);
+        Task<bool> CheckUserAuctionParticipation(int auctionId, Guid userId);
 
     }
 }

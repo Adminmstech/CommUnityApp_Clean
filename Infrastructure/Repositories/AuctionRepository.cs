@@ -434,5 +434,23 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         }
 
 
+        public async Task<bool> CheckUserAuctionParticipation(int auctionId, Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@AuctionId", auctionId);
+            parameters.Add("@UserId", userId);
+
+            var result = await connection.QueryFirstOrDefaultAsync<AuctionParticipationModel>(
+                "Check_UserAuctionParticipation",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return result?.IsParticipant ?? false;
+        }
+
     }
 }

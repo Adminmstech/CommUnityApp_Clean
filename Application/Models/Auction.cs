@@ -127,6 +127,8 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string? CreatedBy { get; set; }
         public int RegistrationRequired { get; set; }
+        public DateTime RegistrationStartDate { get; set; }
+        public DateTime RegistrationEndDate { get; set; }
         public bool IsRegistered { get; set; }
         public string? TimeZoneId { get; set; } = string.Empty;
         public List<GetAuctionImagedModel> AuctionImages { get; set; }
@@ -156,6 +158,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public bool IsRegistered { get; set; }
         public DateTime? CreatedAt { get; set; }
         public string? TimeZoneId { get; set; } = string.Empty;
+        public DateTime RegistrationStartDate { get; set; }
+        public DateTime RegistrationEndDate { get; set; }
         public List<AuctionItemImage> Images { get; set; } = new();
     }
 
@@ -359,6 +363,11 @@ namespace CommUnityApp.ApplicationCore.Models
             public decimal? WinningBidAmount { get; set; }
 
             public DateTime? WinnerDeclaredOn { get; set; }
+        }
+
+        public class AuctionParticipationModel
+        {
+            public bool IsParticipant { get; set; }
         }
 
 
