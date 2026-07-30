@@ -525,13 +525,26 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         {
             using (var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
+                const string sql = @"
+                    SELECT DISTINCT
+                        u.UserId,
+                        u.FirstName,
+                        u.LastName,
+                        u.Email,
+                        u.Mobile,
+                        u.DeviceToken
+                    FROM Users u
+                    WHERE ISNULL(u.IsActive, 1) = 1
+                      AND EXISTS (
+                          SELECT 1
+                          FROM STRING_SPLIT(CONVERT(nvarchar(max), ISNULL(u.CommunityId, '')), ',') c
+                          WHERE TRY_CONVERT(int, LTRIM(RTRIM(c.value))) = @CommunityId
+                      )
+                    ORDER BY u.FirstName, u.LastName;";
+
                 var result = await con.QueryAsync<UserModel>(
-                    "sp_GetUsersByCommunity",
-                    new
-                    {
-                        CommunityId = communityId
-                    },
-                    commandType: CommandType.StoredProcedure);
+                    sql,
+                    new { CommunityId = communityId });
 
                 return result.ToList();
             }

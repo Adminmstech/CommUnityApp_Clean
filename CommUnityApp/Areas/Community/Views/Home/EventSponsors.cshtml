@@ -3,30 +3,34 @@
     Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
 }
 
+<input type="hidden" id="CommunityId" value="@Context.Session.GetString("CommunityId")" />
+
 <div class="card shadow-sm mt-3">
     <div class="card-body">
         <h5>Event Sponsors</h5>
 
-        <table class="table table-bordered table-striped" id="tblSponsors">
-            <thead class="table-dark">
-                <tr>
-                    <th>#</th>
-                    <th>Logo</th>
-                    <th>Name</th>
-                    <th>Mobile</th>
-                    <th>Email</th>
-                    <th>Amount</th>
-                    <th>Type</th>
-                    <th>Other Info</th>
-                    <th>Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td colspan="9" class="text-center">Loading...</td>
-                </tr>
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped align-middle" id="tblSponsors">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Logo</th>
+                        <th>Name</th>
+                        <th>Mobile</th>
+                        <th>Email</th>
+                        <th>Amount</th>
+                        <th>Type</th>
+                        <th>Other Info</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td colspan="9" class="text-center">Loading...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 
@@ -38,9 +42,10 @@
     });
 
     function loadSponsors() {
+        var communityId = $("#CommunityId").val();
 
         $.ajax({
-            url: '/api/Event/GetSponsorsByCommunity',
+            url: '/api/Event/GetSponsorsByCommunity?communityId=' + encodeURIComponent(communityId),
             type: 'GET',
             success: function (res) {
 
@@ -51,10 +56,15 @@
                 }
                 else {
                     $.each(res, function (i, item) {
+                        var logoPath = item.logoPath || "";
+
+                        if (logoPath && !logoPath.startsWith("/") && !logoPath.startsWith("http")) {
+                            logoPath = "/" + logoPath;
+                        }
 
                         html += "<tr>";
                         html += "<td>" + (i + 1) + "</td>";
-                        html += "<td><img src='" + item.logoPath + "' width='60' height='60'/></td>";
+                        html += "<td>" + (logoPath ? "<img src='" + logoPath + "' alt='Sponsor logo' />" : "-") + "</td>";
                         html += "<td>" + item.sponsorName + "</td>";
                         html += "<td>" + item.mobile + "</td>";
                         html += "<td>" + item.email + "</td>";
@@ -75,8 +85,10 @@
 
                 $("#tblSponsors tbody").html(html);
             },
-            error: function () {
-                alert("Error loading sponsors");
+            error: function (err) {
+                var message = err.responseText || "Unable to load sponsors";
+                $("#tblSponsors tbody").html("<tr><td colspan='9' class='text-center text-danger'>" + message + "</td></tr>");
+                console.log(message);
             }
         });
     }

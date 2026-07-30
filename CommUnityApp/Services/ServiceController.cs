@@ -200,7 +200,32 @@ namespace CommUnityApp.Services
                 if (serviceResult == null || serviceResult.ResultId <= 0)
                     return BadRequest("Failed to create service");
 
-                int newServiceId = serviceResult.ResultId; // make sure your SP returns ServiceId
+                int newServiceId = serviceResult.ResultId;
+
+                if (request.Service.ServiceId.GetValueOrDefault() > 0)
+                {
+                    newServiceId = request.Service.ServiceId.Value;
+                }
+                else if (request.Service.BusinessId.GetValueOrDefault() > 0)
+                {
+                    var businessServices = await _unitOfWork.Service.GetBusinessServices(
+                        request.Service.BusinessId.Value
+                    );
+
+                    var createdService = businessServices
+                        .Where(service =>
+                            string.Equals(service.ServiceName, request.Service.ServiceName, StringComparison.OrdinalIgnoreCase)
+                            && string.Equals(service.Description ?? string.Empty, request.Service.Description ?? string.Empty, StringComparison.OrdinalIgnoreCase)
+                            && service.Price == request.Service.Price
+                            && service.DurationMinutes == request.Service.DurationMinutes)
+                        .OrderByDescending(service => service.CreatedAt)
+                        .FirstOrDefault();
+
+                    if (createdService != null)
+                    {
+                        newServiceId = createdService.ServiceId;
+                    }
+                }
 
                 // 🔹 Save Images
                 if (request.Images != null && request.Images.Any())

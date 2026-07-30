@@ -47,11 +47,36 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         {
             using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
-            return (await con.QueryAsync<CharityItem>(
+            var items = (await con.QueryAsync<CharityItem>(
                 "SP_GetCharityItemsByCommunityId",
                 new { CommunityId = communityId },
                 commandType: CommandType.StoredProcedure
             )).ToList();
+
+            if (items.Count == 0)
+                return items;
+
+            const string imageSql = @"
+                SELECT CharityItemId, MIN(ImagePath) AS ImagePath
+                FROM CharityItemImages
+                WHERE CharityItemId IN @CharityItemIds
+                GROUP BY CharityItemId;";
+
+            var imageLookup = (await con.QueryAsync<CharityItemImageModel>(
+                    imageSql,
+                    new { CharityItemIds = items.Select(x => x.CharityItemId).ToArray() }))
+                .ToDictionary(x => x.CharityItemId, x => x.ImagePath);
+
+            foreach (var item in items)
+            {
+                if (string.IsNullOrWhiteSpace(item.ImagePath) &&
+                    imageLookup.TryGetValue((int)item.CharityItemId, out var imagePath))
+                {
+                    item.ImagePath = imagePath;
+                }
+            }
+
+            return items;
         }
         public async Task<IEnumerable<dynamic>> GetVolunteersList(long? communityId)
         {
@@ -342,11 +367,30 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
+                const string sql = @"
+                    SELECT DISTINCT
+                        u.UserId,
+                        @CommunityId AS CommunityId,
+                        u.FirstName,
+                        u.LastName,
+                        u.Email,
+                        u.Mobile,
+                        u.Role,
+                        u.IsActive,
+                        u.ProfileImagePath,
+                        u.City,
+                        u.CreatedDate
+                    FROM Users u
+                    WHERE EXISTS (
+                        SELECT 1
+                        FROM STRING_SPLIT(CONVERT(nvarchar(max), ISNULL(u.CommunityId, '')), ',') c
+                        WHERE TRY_CONVERT(int, LTRIM(RTRIM(c.value))) = @CommunityId
+                    )
+                    ORDER BY u.CreatedDate DESC;";
+
                 var result = await connection.QueryAsync<MemberModel>(
-                    "sp_GetMembersByCommunity",
-                    new { CommunityId = communityId },
-                    commandType: CommandType.StoredProcedure
-                );
+                    sql,
+                    new { CommunityId = communityId });
 
                 return result.ToList();
             }
@@ -671,9 +715,9 @@ CommunityPostModel model)
 
             return result;
         }
-        public Task<IEnumerable<dynamic>> GetCharityItemsByUserId(Guid userId)
+        public async Task<IEnumerable<dynamic>> GetCharityItemsByUserId(Guid userId)
         {
-            throw new NotImplementedException();
+            return await GetCharityItemsByUserCommunities(userId);
         }
 
         
@@ -699,7 +743,7 @@ CommunityPostModel model)
 
         public Task UpdateCharityItemImage(int charityItemId, string imagePath)
         {
-            throw new NotImplementedException();
+            return UpdateCharityItemImage((long)charityItemId, imagePath);
         }
 
         public async Task<DeleteCharityItemResult> DeleteCharityItem(long charityItemId)

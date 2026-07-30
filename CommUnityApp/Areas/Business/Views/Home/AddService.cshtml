@@ -1,10 +1,20 @@
-﻿```cshtml
 @{
     ViewData["Title"] = "Add Service";
     Layout = "_BusinessLayout";
 }
 
 <div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">
+            <i class="fa-solid fa-briefcase me-2"></i>
+            Add Service
+        </h3>
+
+        <a href="/Business/Home/Services" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i>
+            Back
+        </a>
+    </div>
 
     <input type="hidden"
            id="BusinessId"
@@ -14,13 +24,13 @@
            id="ServiceId"
            value="@ViewBag.ServiceId" />
 
-    <div class="card shadow">
+    <div class="card business-form-card">
 
-        <div class="card-header bg-primary text-white">
+        <div class="card-header">
 
-            <h4 id="pageTitle">
+            <span id="pageTitle">
                 Add Service
-            </h4>
+            </span>
 
         </div>
 
@@ -140,24 +150,26 @@
 
             <hr />
 
-            <button type="button"
-                    class="btn btn-success"
-                    onclick="saveService()">
+            <div class="business-form-actions">
+                <button type="button"
+                        class="btn btn-primary"
+                        onclick="saveService()">
 
-                <i class="fa fa-save"></i>
+                    <i class="fa-solid fa-floppy-disk me-1"></i>
 
-                <span id="btnText">
-                    Save Service
-                </span>
+                    <span id="btnText">
+                        Save Service
+                    </span>
 
-            </button>
+                </button>
 
-            <a href="/Business/Home/Services"
-               class="btn btn-secondary">
+                <a href="/Business/Home/Services"
+                   class="btn btn-secondary">
 
-                Cancel
+                    Cancel
 
-            </a>
+                </a>
+            </div>
 
         </div>
 

@@ -23,24 +23,49 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             
         }
 
-        public Task<int> AddAsync(Auction entity)
+        public async Task<int> AddAsync(Auction entity)
         {
-            throw new NotImplementedException();
+            var result = await SaveAuction(entity);
+            return result?.ResultId ?? 0;
         }
 
-        public Task<int> DeleteAsync(int id)
+        public async Task<int> DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var result = await DeleteAuction(id);
+            return result?.ResultId ?? 0;
         }
 
-        public Task<IReadOnlyList<Auction>> GetAllAsync()
+        public async Task<IReadOnlyList<Auction>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<Auction>(
+                "Get_All_Auctions",
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
         }
 
-        public Task<Auction> GetByIdAsync(int id)
+        public async Task<Auction> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryFirstOrDefaultAsync<Auction>(
+                "Get_AuctionById",
+                new { AuctionId = id },
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result;
         }
 
         public async Task<BaseResponse> SaveAuction(Auction entity)
@@ -94,9 +119,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result.ToList();
         }
 
-        public Task<int> UpdateAsync(Auction entity)
+        public async Task<int> UpdateAsync(Auction entity)
         {
-            throw new NotImplementedException();
+            var result = await SaveAuction(entity);
+            return result?.ResultId ?? 0;
         }
 
 

@@ -39,9 +39,25 @@ namespace CommUnityApp.InfrastructureLayer.Services
             await SendEmailAsync(toEmail, subject, body);
         }
 
-        public Task SendPasswordResetSuccessEmailAsync(string toEmail)
+        public async Task SendPasswordResetSuccessEmailAsync(string toEmail)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(toEmail))
+                return;
+
+            const string subject = "CommUnityApp - Password Reset Successful";
+            const string body = @"
+<html>
+<body>
+    <p>Hello,</p>
+    <p>Your CommUnityApp password was reset successfully.</p>
+    <p>If you did not make this change, please contact support immediately.</p>
+    <br/>
+    <p>Regards,<br/>
+    CommUnityApp Team</p>
+</body>
+</html>";
+
+            await SendEmailAsync(toEmail, subject, body);
         }
 
         public async Task SendRegistrationEmailAsync(
@@ -72,13 +88,13 @@ namespace CommUnityApp.InfrastructureLayer.Services
                 IsBodyHtml = true
             };
 
-            mail.To.Add(toEmail);
-
-            var qrAttachment = new Attachment(qrImagePath);
+            using var qrAttachment = new Attachment(qrImagePath);
             qrAttachment.ContentId = "qrCodeImage";
             qrAttachment.ContentDisposition.Inline = true;
             qrAttachment.ContentDisposition.DispositionType = DispositionTypeNames.Inline;
             mail.Attachments.Add(qrAttachment);
+
+            mail.To.Add(toEmail);
 
             mail.Body = $@"
         <div style='font-family: Arial; background:#f4f6f9; padding:20px;'>
@@ -124,9 +140,30 @@ namespace CommUnityApp.InfrastructureLayer.Services
             await client.SendMailAsync(mail);
         }
 
-        public Task SendWelcomeEmailAsync(string toEmail, string fullName, string password)
+        public async Task SendWelcomeEmailAsync(string toEmail, string fullName, string password)
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrWhiteSpace(toEmail))
+                return;
+
+            var displayName = string.IsNullOrWhiteSpace(fullName) ? "there" : WebUtility.HtmlEncode(fullName);
+            var encodedPassword = WebUtility.HtmlEncode(password);
+
+            string subject = "Welcome to CommUnityApp";
+            string body = $@"
+<html>
+<body>
+    <p>Hello {displayName},</p>
+    <p>Your CommUnityApp account has been created.</p>
+    <p>Your temporary password is:</p>
+    <h2 style='color:#2563eb'>{encodedPassword}</h2>
+    <p>Please sign in and change this password as soon as possible.</p>
+    <br/>
+    <p>Regards,<br/>
+    CommUnityApp Team</p>
+</body>
+</html>";
+
+            await SendEmailAsync(toEmail, subject, body);
         }
 
 
@@ -169,13 +206,22 @@ namespace CommUnityApp.InfrastructureLayer.Services
             var password = smtp["Password"];
             var from = smtp["FromEmail"];
 
-            var smtpClient = new SmtpClient(host, port)
+            if (string.IsNullOrWhiteSpace(host) ||
+                string.IsNullOrWhiteSpace(username) ||
+                string.IsNullOrWhiteSpace(password) ||
+                string.IsNullOrWhiteSpace(from))
+            {
+                Console.Error.WriteLine("SMTP configuration is missing; email was not sent.");
+                return;
+            }
+
+            using var smtpClient = new SmtpClient(host, port)
             {
                 Credentials = new NetworkCredential(username, password),
                 EnableSsl = true
             };
 
-            var mailMessage = new MailMessage
+            using var mailMessage = new MailMessage
             {
                 From = new MailAddress(from),
                 Subject = subject,

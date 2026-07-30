@@ -442,18 +442,19 @@ namespace CommUnityApp.Services
             return Ok(data);
         }
         [HttpGet("GetSponsorsByCommunity")]
-        public async Task<IActionResult> GetSponsorsByCommunity()
+        public async Task<IActionResult> GetSponsorsByCommunity([FromQuery] int? communityId)
         {
             try
             {
-                var communityId = HttpContext.Session.GetString("CommunityId");
+                var sessionCommunityId = HttpContext.Session.GetString("CommunityId");
 
-                if (string.IsNullOrEmpty(communityId))
+                if (!communityId.HasValue && !string.IsNullOrEmpty(sessionCommunityId))
+                    communityId = Convert.ToInt32(sessionCommunityId);
+
+                if (!communityId.HasValue || communityId.Value <= 0)
                     return Unauthorized("Community not logged in");
 
-                int cid = Convert.ToInt32(communityId);
-
-                var sponsors = await _repository.GetSponsorsByCommunity(cid);
+                var sponsors = await _repository.GetSponsorsByCommunity(communityId.Value);
 
                 return Ok(sponsors);
             }

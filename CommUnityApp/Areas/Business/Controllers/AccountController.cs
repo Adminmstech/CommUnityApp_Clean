@@ -23,15 +23,25 @@ namespace CommUnityApp.Areas.Business.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
-            var request = new BusinessLoginRequest { Email = email, Password = password };
-            var response = await _businessRepository.LoginAsync(request);
+            BusinessLoginResponse? response;
+
+            try
+            {
+                var request = new BusinessLoginRequest { Email = email, Password = password };
+                response = await _businessRepository.LoginAsync(request);
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("ConnectionString", StringComparison.OrdinalIgnoreCase))
+            {
+                ViewBag.Error = "Database connection is not configured. Set ConnectionStrings:DefaultConnection in appsettings.Development.json.";
+                return View();
+            }
 
             if (response != null && response.BusinessId > 0)
             {
                 HttpContext.Session.SetString("BusinessId", response.BusinessId.ToString());
                 HttpContext.Session.SetString("BusinessName", response.BusinessName);
 
-                return RedirectToAction("Index", "Home", new { area = "Business" });
+                return RedirectToAction("BusinessPromotions", "Home", new { area = "Business" });
             }
 
             ViewBag.Error = response?.ResultMessage ?? "Invalid email or password";
