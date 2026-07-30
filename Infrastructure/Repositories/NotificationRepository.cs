@@ -176,7 +176,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 },
                 commandType: CommandType.StoredProcedure);
         }
-         
+          
         public async Task<List<PostResponse>> GetMessageBoardPosts(Guid userId)  
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
