@@ -49,28 +49,39 @@
     }
 
     .action-btn-group {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        width: 156px;
     }
 
     /* Base button */
     .action-btn {
+        min-height: 34px;
+        width: 100%;
         font-size: 12px;
-        padding: 6px 10px;
+        font-weight: 700;
+        line-height: 1.15;
+        padding: 7px 9px;
         border-radius: 6px;
         text-decoration: none;
         color: #fff;
         border: none;
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
         transition: 0.3s;
         cursor: pointer;
+        white-space: nowrap;
+        text-align: center;
     }
 
         /* Hover effect */
         .action-btn:hover {
             transform: translateY(-2px);
             opacity: 0.9;
+            color: #fff;
         }
 
     /* Individual styles */
@@ -84,11 +95,13 @@
 
     .reg-btn {
         background: #f6c23e;
-        color: #000;
+        color: #172625;
+        grid-column: 1 / -1;
     }
 
     .sponsor-btn {
         background: #36b9cc;
+        grid-column: 1 / -1;
     }
 
     /* Optional: active row highlight compatibility */
@@ -96,29 +109,153 @@
         box-shadow: 0 0 5px rgba(0,0,0,0.2);
     }
 
+    .events-table-wrap {
+        overflow-x: auto;
+    }
+
+    .events-table-wrap > .community-events-table {
+        table-layout: fixed;
+        width: 100%;
+        min-width: 1420px;
+    }
+
+    .community-events-table th,
+    .community-events-table td {
+        vertical-align: middle;
+        border-color: #d8e0e3;
+    }
+
+    .community-events-table .col-index {
+        width: 55px;
+        text-align: center;
+    }
+
+    .community-events-table .col-image {
+        width: 112px;
+        text-align: center;
+    }
+
+    .community-events-table .col-event {
+        width: 195px;
+    }
+
+    .community-events-table .col-category {
+        width: 122px;
+    }
+
+    .community-events-table .col-date {
+        width: 124px;
+    }
+
+    .community-events-table .col-location {
+        width: 216px;
+    }
+
+    .community-events-table .col-fundraising {
+        width: 130px;
+        text-align: center;
+    }
+
+    .community-events-table .col-status {
+        width: 150px;
+        text-align: center;
+    }
+
+    .community-events-table .col-qr {
+        width: 124px;
+        text-align: center;
+    }
+
+    .community-events-table .col-actions {
+        width: 190px;
+        text-align: center;
+    }
+
+    .community-events-table .event-name-cell,
+    .community-events-table .location-cell {
+        white-space: normal;
+        overflow-wrap: anywhere;
+        font-size: 15px;
+        line-height: 1.45;
+    }
+
+    .community-events-table .date-cell {
+        font-size: 15px;
+        line-height: 1.6;
+        white-space: normal;
+    }
+
+    .community-events-table .event-thumb,
+    .community-events-table .qr-thumb,
+    #sponsorSection .sponsor-logo {
+        margin: 0 auto;
+        background: #fff;
+    }
+
+    .community-events-table .event-thumb {
+        width: 86px;
+        height: 58px;
+        max-width: 86px;
+        object-fit: cover;
+        border-radius: 7px;
+        border: 1px solid #d8e3e2;
+    }
+
+    .community-events-table .qr-thumb {
+        width: 88px;
+        height: 88px;
+        max-width: 88px;
+        object-fit: contain;
+        border: 1px solid #d8e3e2;
+        border-radius: 7px;
+        padding: 8px;
+    }
+
+    #sponsorSection .sponsor-logo {
+        width: 50px;
+        height: 50px;
+        max-width: 50px;
+        object-fit: cover;
+        border: 1px solid #d8e3e2;
+        border-radius: 7px;
+    }
+
 </style>
 <div class="card">
     <div class="card-body">
         <h5 class="mb-3">Community Events</h5>
 
-        <table class="table table-bordered table-striped align-middle">
-            <thead>
-                <tr>
-                    <th style="width:60px;">#</th>
-                    <th style="width:90px;">Image</th>
-                    <th>Event</th>
-                    <th>Category</th>
-                    <th>Date</th>
-                    <th>Location</th>
-                    <th>Fundraising</th>
-                    <th style="width:120px;">Posted Status</th>
-                    <th style="width:100px;">QR Code</th>
-
-                    <th style="width:160px;">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="eventTable"></tbody>
-        </table>
+        <div class="table-responsive events-table-wrap">
+            <table class="table table-bordered table-striped align-middle community-events-table">
+                <colgroup>
+                    <col class="col-index" />
+                    <col class="col-image" />
+                    <col class="col-event" />
+                    <col class="col-category" />
+                    <col class="col-date" />
+                    <col class="col-location" />
+                    <col class="col-fundraising" />
+                    <col class="col-status" />
+                    <col class="col-qr" />
+                    <col class="col-actions" />
+                </colgroup>
+                <thead>
+                    <tr>
+                        <th class="col-index">#</th>
+                        <th class="col-image">Image</th>
+                        <th class="col-event">Event</th>
+                        <th class="col-category">Category</th>
+                        <th class="col-date">Date</th>
+                        <th class="col-location">Location</th>
+                        <th class="col-fundraising">Fundraising</th>
+                        <th class="col-status">Posted Status</th>
+                        <th class="col-qr">QR Code</th>
+                        <th class="col-actions">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="eventTable"></tbody>
+            </table>
+        </div>
         <div class="d-flex justify-content-between mt-3">
             <div>
                 <strong>Showing:</strong> <span id="pageInfo"></span>
@@ -164,18 +301,20 @@
 
         </div>
 
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Logo</th>
-                    <th>Name</th>
-                    <th>Amount</th>
-                    <th>Type</th>
-                </tr>
-            </thead>
-            <tbody id="sponsorTableBody"></tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-bordered align-middle">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Logo</th>
+                        <th>Name</th>
+                        <th>Amount</th>
+                        <th>Type</th>
+                    </tr>
+                </thead>
+                <tbody id="sponsorTableBody"></tbody>
+            </table>
+        </div>
     </div>
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
@@ -211,7 +350,7 @@
         var pageData = allEvents.slice(start, end);
 
         if (pageData.length === 0) {
-            rows = "<tr><td colspan='9' class='text-center'>No records found</td></tr>";
+            rows = "<tr><td colspan='10' class='text-center'>No records found</td></tr>";
         }
         else {
 
@@ -224,43 +363,35 @@
                     : "/content/images/noimage.png";
 
                 let qrHtml = e.qrCodeImage
-                    ? `<img src="${e.qrCodeImage}"
-                             style="width:70px;height:70px;
-                                    border:1px solid #ddd;
-                                    padding:4px;
-                                    background:#fff;" />`
+                    ? `<img src="${e.qrCodeImage}" class="qr-thumb" alt="QR code" />`
                     : '-';
 
                 rows += `
                 <tr>
-                    <td class="text-center">${index}</td>
+                    <td class="col-index">${index}</td>
 
-                    <td class="text-center">
-                        <img src="${imageUrl}"
-                             style="width:70px;height:50px;
-                                    object-fit:cover;
-                                    border-radius:6px;
-                                    border:1px solid #ddd;" />
+                    <td class="col-image">
+                        <img src="${imageUrl}" class="event-thumb" alt="Event image" />
                     </td>
 
-                    <td>${e.eventName}</td>
+                    <td class="event-name-cell">${e.eventName}</td>
                     <td>${e.categoryName}</td>
 
-                    <td>
+                    <td class="col-date date-cell">
                         ${formatDate(e.startDate)}<br/>
                         <small class="text-muted">
                             to ${formatDate(e.endDate)}
                         </small>
                     </td>
 
-                    <td>${e.location ?? '-'}</td>
+                    <td class="location-cell">${e.location ?? '-'}</td>
 
-                    <td>
+                    <td class="col-fundraising">
                         <span class="badge ${e.isFundRaising == 1 ? 'bg-success' : 'bg-secondary'}">
                             ${e.isFundRaising == 1 ? 'Yes' : 'No'}
                         </span>
                     </td>
-                               <td>
+                    <td class="col-status">
         ${e.isPosted
 
                         ? `<span class="badge bg-success">
@@ -272,11 +403,11 @@
                </span>`
                     }
     </td>
-                    <td class="text-center">
+                    <td class="col-qr">
                         ${qrHtml}
                     </td>
 
-                          <td>
+                    <td class="col-actions">
             <div class="action-btn-group">
 
             <a href="/Community/Home/AddEvent?eventId=${e.eventId}"
@@ -358,11 +489,13 @@
                         var logo = "-";
 
                         if (item.logoPath) {
-                            if (item.logoPath.startsWith("http")) {
-                                logo = `<img src="${item.logoPath}" width="50"/>`;
-                            } else {
-                                logo = `<img src="${baseUrl}/uploads/sponsors/${item.logoPath}" width="50"/>`;
+                            var logoPath = item.logoPath;
+
+                            if (!logoPath.startsWith("http") && !logoPath.startsWith("/")) {
+                                logoPath = "/uploads/sponsors/" + logoPath;
                             }
+
+                            logo = `<img src="${logoPath.startsWith("http") ? logoPath : baseUrl + logoPath}" class="sponsor-logo" alt="Sponsor logo"/>`;
                         }
 
                         html += `<tr>

@@ -1,42 +1,31 @@
-﻿@{
+@{
     ViewData["Title"] = "My Services";
     Layout = "_BusinessLayout";
 }
 
 <div class="container-fluid">
-
     <div class="d-flex justify-content-between align-items-center mb-4">
-
-        <h3>
-            <i class="fa fa-briefcase"></i>
-            My Services
+        <h3 class="mb-0">
+            <i class="fa-solid fa-concierge-bell me-2"></i>
+            Services
         </h3>
 
-        <a href="/Business/Home/AddService"
-           class="btn btn-primary">
-            <i class="fa fa-plus"></i>
+        <a href="/Business/Home/AddService" class="btn btn-primary">
+            <i class="fa-solid fa-plus me-1"></i>
             Add Service
         </a>
-
     </div>
 
-    <input type="hidden"
-           id="BusinessId"
-           value="@ViewBag.BusinessId" />
+    <input type="hidden" id="BusinessId" value="@ViewBag.BusinessId" />
 
-    <div class="card shadow">
-
+    <div class="card">
         <div class="card-body">
-
             <div class="table-responsive">
-
-                <table class="table table-bordered table-hover align-middle">
-
-                    <thead class="table-dark">
-
+                <table class="table table-hover align-middle">
+                    <thead>
                         <tr>
                             <th>Image</th>
-                            <th>Service Name</th>
+                            <th>Service</th>
                             <th>Category</th>
                             <th>Sub Category</th>
                             <th>Price</th>
@@ -47,241 +36,84 @@
                             <th>Created</th>
                             <th>Actions</th>
                         </tr>
-
                     </thead>
-
                     <tbody id="serviceTableBody">
-
                         <tr>
-                            <td colspan="11" class="text-center">
-                                Loading Services...
-                            </td>
+                            <td colspan="11" class="text-center p-4">Loading services...</td>
                         </tr>
-
                     </tbody>
-
                 </table>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
 
 @section Scripts {
-
     <script>
+        $(document).ready(loadServices);
 
-        $(document).ready(function(){
+        function imagePath(path) {
+            if (!path) return "/images/no-image.png";
+            if (path.startsWith("http") || path.startsWith("/")) return path;
+            return "/" + path;
+        }
 
-            loadServices();
+        function loadServices() {
+            const businessId = parseInt($("#BusinessId").val()) || 0;
 
-        });
-
-        function loadServices(){
-
-            const businessId =
-                parseInt($("#BusinessId").val()) || 0;
-
-            if(businessId === 0){
-
-                $("#serviceTableBody").html(`
-                    <tr>
-                        <td colspan="11"
-                            class="text-danger text-center">
-
-                            Business Session Expired
-
-                        </td>
-                    </tr>
-                `);
-
+            if (businessId === 0) {
+                $("#serviceTableBody").html(businessUi.error(11, "Business session expired."));
                 return;
             }
 
             $.ajax({
-
-                url:
-                    "/api/Service/Get_ServicesByBusinessId?businessId="
-                    + businessId,
-
-                type:"GET",
-
-                success:function(response){
-
-                    bindServices(response);
-
+                url: "/api/Service/Get_ServicesByBusinessId?businessId=" + encodeURIComponent(businessId),
+                type: "GET",
+                success: function (response) {
+                    bindServices(businessUi.list(response));
                 },
-
-                error:function(){
-
-                    $("#serviceTableBody").html(`
-                        <tr>
-                            <td colspan="11"
-                                class="text-danger text-center">
-
-                                Failed To Load Services
-
-                            </td>
-                        </tr>
-                    `);
-
+                error: function () {
+                    $("#serviceTableBody").html(businessUi.error(11, "Failed to load services."));
                 }
-
             });
-
         }
 
-        function bindServices(data){
-
-            let html = '';
-
-            if(!data || data.length === 0){
-
-                html = `
-                    <tr>
-                        <td colspan="11"
-                            class="text-center">
-
-                            No Services Found
-
-                        </td>
-                    </tr>
-                `;
-
-                $("#serviceTableBody").html(html);
+        function bindServices(data) {
+            if (!data.length) {
+                $("#serviceTableBody").html(businessUi.empty(11, "No services found."));
                 return;
             }
 
-            data.forEach(function(item){
-
-                html += `
-
+            const rows = data.map(item => `
                 <tr>
-
                     <td>
-
-                        <img src="/${item.imageUrl || 'images/no-image.png'}"
-                             style="width:70px;height:70px;object-fit:cover"
-                             class="rounded border"/>
-
+                        <img src="${imagePath(item.imageUrl)}" style="width:64px;height:64px;object-fit:cover" class="rounded border" />
                     </td>
-
+                    <td class="cell-strong text-wrap">${businessUi.escape(item.serviceName || "-")}</td>
+                    <td>${businessUi.escape(item.categoryName || "-")}</td>
+                    <td>${businessUi.escape(item.subCategoryName || "-")}</td>
+                    <td class="cell-money">₹ ${Number(item.price || 0).toLocaleString()}</td>
+                    <td>${item.durationMinutes || 0} min</td>
                     <td>
-                        ${item.serviceName || ''}
+                        ${item.isBookingRequired ? '<span class="badge bg-success">Required</span>' : '<span class="badge bg-secondary">No</span>'}
                     </td>
-
                     <td>
-                        ${item.categoryName || '-'}
+                        ${item.isActive ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Inactive</span>'}
                     </td>
-
-                    <td>
-                        ${item.subCategoryName || '-'}
-                    </td>
-
-                    <td>
-                        ₹${item.price || 0}
-                    </td>
-
-                    <td>
-                        ${item.durationMinutes || 0} Min
-                    </td>
-
-                    <td>
-
-                        ${
-                            item.isBookingRequired
-                            ? '<span class="badge bg-success">Required</span>'
-                            : '<span class="badge bg-secondary">No</span>'
-                        }
-
-                    </td>
-
-                    <td>
-
-                        ${
-                            item.isActive
-                            ? '<span class="badge bg-success">Active</span>'
-                            : '<span class="badge bg-danger">Inactive</span>'
-                        }
-
-                    </td>
-
-                    <td>
-
-                        <span class="badge bg-warning text-dark">
-
-                            ${item.rating || 0}
-
-                        </span>
-
-                    </td>
-
-                    <td>
-
-                        ${formatDate(item.createdAt)}
-
-                    </td>
-
-                    <td>
-
-                        <button
-                            class="btn btn-sm btn-info"
-                            onclick="viewService(${item.serviceId})">
-
-                            <i class="fa fa-eye"></i>
-
+                    <td><span class="badge bg-warning">${item.rating || 0}</span></td>
+                    <td>${businessUi.date(item.createdAt)}</td>
+                    <td class="cell-actions">
+                        <button class="btn btn-sm btn-primary" onclick="editService(${item.serviceId})">
+                            <i class="fa-solid fa-pen"></i>
                         </button>
-
-                        <button
-                            class="btn btn-sm btn-primary"
-                            onclick="editService(${item.serviceId})">
-
-                            <i class="fa fa-edit"></i>
-
-                        </button>
-
                     </td>
+                </tr>`).join("");
 
-                </tr>
-
-                `;
-
-            });
-
-            $("#serviceTableBody").html(html);
-
+            $("#serviceTableBody").html(rows);
         }
 
-        function formatDate(dateString){
-
-            if(!dateString)
-                return '-';
-
-            let d = new Date(dateString);
-
-            return d.toLocaleDateString();
-
+        function editService(serviceId) {
+            window.location.href = "/Business/Home/AddService?serviceId=" + serviceId;
         }
-
-        function viewService(serviceId){
-
-            window.location.href =
-                "/Business/Home/ServiceDetails?serviceId="
-                + serviceId;
-
-        }
-
-        function editService(serviceId){
-
-            window.location.href =
-                "/Business/Home/AddService?serviceId="
-                + serviceId;
-
-        }
-
     </script>
-
 }

@@ -325,7 +325,25 @@
 }
 </style>
 
-<div class="row">
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">
+            <i class="fa-solid fa-bullhorn me-2"></i>
+            Add Promotion
+        </h3>
+
+        <a href="/Business/Home/BusinessPromotions" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i>
+            Back
+        </a>
+    </div>
+
+    <div class="card business-form-card">
+        <div class="card-header">
+            Promotion Details
+        </div>
+        <div class="card-body">
+            <div class="row">
 
     <div class="col-md-6 mb-3">
         <label class="form-label">Featured Product(s) / Service(s)</label>
@@ -424,14 +442,20 @@
              style="max-height:250px;display:none;">
     </div>
 
-    <div class="col-md-12">
-        <button class="btn btn-success"
+    <div class="col-md-12 business-form-actions">
+        <button class="btn btn-primary"
                 onclick="savePromotion()">
             <i class="fa fa-save me-2"></i>
             Save Promotion
         </button>
+        <a href="/Business/Home/BusinessPromotions" class="btn btn-secondary">
+            Cancel
+        </a>
     </div>
 
+            </div>
+        </div>
+    </div>
 </div>
 
 <div class="modal fade"

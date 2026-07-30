@@ -5,12 +5,29 @@ namespace CommUnityApp.Areas.Business.Controllers
     [Area("Business")]
     public class HomeController : Controller
     {
-        public IActionResult Index()
+        private string? CurrentBusinessId => HttpContext.Session.GetString("BusinessId");
+
+        private IActionResult? RequireBusinessSession()
         {
-            if (string.IsNullOrEmpty(HttpContext.Session.GetString("BusinessId")))
+            var businessId = CurrentBusinessId;
+
+            if (string.IsNullOrEmpty(businessId))
             {
                 return RedirectToAction("Login", "Account");
             }
+
+            ViewBag.BusinessId = businessId;
+            return null;
+        }
+
+        public IActionResult Index()
+        {
+            var redirect = RequireBusinessSession();
+            if (redirect != null)
+            {
+                return redirect;
+            }
+
             return View();
         }
 
@@ -114,16 +131,34 @@ namespace CommUnityApp.Areas.Business.Controllers
 
         public IActionResult AddAuction()
         {
+            var redirect = RequireBusinessSession();
+            if (redirect != null)
+            {
+                return redirect;
+            }
+
             return View();
         }
 
         public IActionResult Auctions()
         {
+            var redirect = RequireBusinessSession();
+            if (redirect != null)
+            {
+                return redirect;
+            }
+
             return View();
         }
 
         public IActionResult AuctionDetails()
         {
+            var redirect = RequireBusinessSession();
+            if (redirect != null)
+            {
+                return redirect;
+            }
+
             return View();
         }
 
@@ -214,14 +249,23 @@ namespace CommUnityApp.Areas.Business.Controllers
 
         public IActionResult BusinessPromotions()
         {
-            ViewBag.BusinessId =
-                HttpContext.Session.GetString("BusinessId");
+            var redirect = RequireBusinessSession();
+            if (redirect != null)
+            {
+                return redirect;
+            }
 
             return View();
         }
 
         public IActionResult PromotionDetails()
         {
+            var redirect = RequireBusinessSession();
+            if (redirect != null)
+            {
+                return redirect;
+            }
+
             return View();
         }
 

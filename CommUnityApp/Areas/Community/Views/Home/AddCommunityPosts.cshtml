@@ -3,6 +3,115 @@
     Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
 }
 
+<style>
+    .community-posts-card .card-body {
+        padding: 20px;
+    }
+
+    .community-posts-table-wrap {
+        overflow-x: auto;
+    }
+
+    .community-posts-table-wrap > .community-posts-table {
+        table-layout: fixed;
+        width: 100%;
+        min-width: 1180px;
+    }
+
+    .community-posts-table th,
+    .community-posts-table td {
+        border-color: #d8e0e3;
+        vertical-align: middle;
+    }
+
+    .community-posts-table thead th {
+        font-size: 13px;
+        text-transform: none;
+    }
+
+    .community-posts-table .col-index {
+        width: 34px;
+        text-align: center;
+    }
+
+    .community-posts-table .col-image {
+        width: 134px;
+    }
+
+    .community-posts-table .col-title {
+        width: 190px;
+    }
+
+    .community-posts-table .col-message {
+        width: auto;
+    }
+
+    .community-posts-table .col-date {
+        width: 106px;
+    }
+
+    .community-posts-table .col-actions {
+        width: 98px;
+        text-align: center;
+    }
+
+    .post-image-cell,
+    .post-action-cell {
+        text-align: center;
+    }
+
+    .community-posts-table .post-title-cell,
+    .community-posts-table .post-message-cell,
+    .community-posts-table .post-date-cell {
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .community-posts-table .post-title-cell {
+        font-size: 15px;
+        line-height: 1.45;
+    }
+
+    .community-posts-table .post-message-cell {
+        font-size: 15px;
+        line-height: 1.52;
+    }
+
+    .community-posts-table .post-date-cell {
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .community-posts-table .community-post-image {
+        width: 112px;
+        height: 88px;
+        max-width: 112px;
+        object-fit: cover;
+        border: 1px solid #d8e0e3;
+        border-radius: 8px;
+        background: #fff;
+    }
+
+    .post-no-image {
+        color: #6b7280;
+        font-size: 14px;
+        white-space: nowrap;
+    }
+
+    .post-delete-btn {
+        min-width: 74px;
+        min-height: 64px;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        font-size: 13px;
+        font-weight: 700;
+        border-radius: 6px;
+    }
+</style>
+
 <div class="container-fluid mt-4">
 
     <!-- CREATE POST -->
@@ -102,7 +211,7 @@
 
     <!-- POSTS GRID -->
 
-    <div class="card shadow-sm border-0">
+    <div class="card shadow-sm border-0 community-posts-card">
 
         <div class="card-body">
 
@@ -114,10 +223,19 @@
 
             </h4>
 
-            <div class="table-responsive">
+            <div class="table-responsive community-posts-table-wrap">
 
                 <table class="table table-bordered
-                              align-middle">
+                              align-middle community-posts-table">
+
+                    <colgroup>
+                        <col class="col-index" />
+                        <col class="col-image" />
+                        <col class="col-title" />
+                        <col class="col-message" />
+                        <col class="col-date" />
+                        <col class="col-actions" />
+                    </colgroup>
 
                     <thead class="table-dark">
 
@@ -332,29 +450,26 @@
 
                         <tr>
 
-                            <td>
+                            <td class="col-index">
                                 ${index + 1}
                             </td>
 
-                            <td>
+                            <td class="post-image-cell">
 
                                 ${p.imagePath
                             ?
                             `<img src="${p.imagePath}"
-                                          style="
-                                            width:90px;
-                                            height:70px;
-                                            object-fit:cover;
-                                            border-radius:8px;">`
+                                          class="community-post-image"
+                                          alt="Post image">`
                             :
-                            `<span class="text-muted">
+                            `<span class="post-no-image">
                                         No Image
                                      </span>`
                         }
 
                             </td>
 
-                            <td>
+                            <td class="post-title-cell">
 
                                 <strong>
 
@@ -364,21 +479,21 @@
 
                             </td>
 
-                            <td>
+                            <td class="post-message-cell">
 
                                 ${p.message}
 
                             </td>
 
-                            <td>
+                            <td class="post-date-cell">
 
                                 ${p.createdDateString}
 
                             </td>
 
-                            <td>
+                            <td class="post-action-cell">
 
-                                <button class="btn btn-danger btn-sm"
+                                <button class="btn btn-danger btn-sm post-delete-btn"
                                         onclick="deletePost(${p.postId})">
 
                                     <i class="fa-solid fa-trash"></i>

@@ -6,7 +6,6 @@ using Microsoft.Data.SqlClient;
 using Org.BouncyCastle.Bcpg;
 using QRCoder;
 using Dapper;
-using NuGet.Protocol.Core.Types;
 
 namespace CommUnityApp.Services
 {

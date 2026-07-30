@@ -30,9 +30,16 @@
         public string Language { get; set; }     
         public int? AgeGroupId { get; set; }
         public int? Gender { get; set; }
- 
+
+        // Add this
+        public bool? IsSupporter { get; set; }
+
+        // Returned by Get_UserByUserId
+        public string AgeRange { get; set; }
 
         public bool IsActive { get; set; } = true;
+
+        
     }
 
     public class UserDetailsResponse

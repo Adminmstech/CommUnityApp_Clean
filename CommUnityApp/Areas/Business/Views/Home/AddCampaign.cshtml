@@ -1,25 +1,29 @@
-﻿@{
+@{
     ViewData["Title"] = "Add Campaign";
     var businessId = Context.Session.GetString("BusinessId");
     Layout = "_BusinessLayout";
 }
 
-<div class="container mt-5">
-    <div class="card shadow">
-        <div class="card-header bg-dark text-white">
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="mb-0">
+            <i class="fa-solid fa-bullseye me-2"></i>
             Add Campaign
-        </div>
+        </h3>
 
+        <a href="/Business/Home/Campaigns" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left me-1"></i>
+            Back
+        </a>
+    </div>
+
+    <div class="card business-form-card">
+        <div class="card-header">Campaign Details</div>
         <div class="card-body">
-
-            <div id="result"></div>
-
             <form id="campaignForm">
-
                 <input type="hidden" id="businessId" value="@businessId" />
 
                 <div class="row">
-
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Campaign Name</label>
                         <input type="text" id="campaignName" class="form-control" required />
@@ -30,24 +34,20 @@
                         <input type="text" id="campaignType" class="form-control" />
                     </div>
 
-                </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Short Note</label>
+                        <input type="text" id="shortNote" class="form-control" />
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Short Note</label>
-                    <input type="text" id="shortNote" class="form-control" />
-                </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea id="description" class="form-control"></textarea>
+                    </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Description</label>
-                    <textarea id="description" class="form-control"></textarea>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label">Promotion Link</label>
-                    <input type="text" id="promotionLink" class="form-control" />
-                </div>
-
-                <div class="row">
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Promotion Link</label>
+                        <input type="text" id="promotionLink" class="form-control" />
+                    </div>
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Budget</label>
@@ -58,10 +58,6 @@
                         <label class="form-label">Target Location</label>
                         <input type="text" id="targetLocation" class="form-control" />
                     </div>
-
-                </div>
-
-                <div class="row">
 
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Min Age</label>
@@ -75,16 +71,12 @@
 
                     <div class="col-md-4 mb-3">
                         <label class="form-label">Gender</label>
-                        <select id="targetGender" class="form-control">
+                        <select id="targetGender" class="form-select">
                             <option>All</option>
                             <option>Male</option>
                             <option>Female</option>
                         </select>
                     </div>
-
-                </div>
-
-                <div class="row">
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Start Date</label>
@@ -96,13 +88,9 @@
                         <input type="datetime-local" id="endDate" class="form-control" />
                     </div>
 
-                </div>
-
-                <div class="row">
-
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Referral</label>
-                        <select id="isReferral" class="form-control">
+                        <select id="isReferral" class="form-select">
                             <option value="false">No</option>
                             <option value="true">Yes</option>
                         </select>
@@ -110,101 +98,100 @@
 
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Status</label>
-                        <select id="status" class="form-control">
+                        <select id="status" class="form-select">
                             <option value="Active">Active</option>
                             <option value="Paused">Paused</option>
                         </select>
                     </div>
 
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label">Campaign Image</label>
+                        <input type="file" id="campaignImage" class="form-control" accept="image/*">
+                    </div>
                 </div>
 
-                <!-- Image Upload -->
-                <div class="mb-3">
-                    <label class="form-label">Campaign Image</label>
-                    <input type="file" id="campaignImage" class="form-control" accept="image/*">
+                <div class="business-form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fa-solid fa-floppy-disk me-1"></i>
+                        Save Campaign
+                    </button>
+                    <a href="/Business/Home/Campaigns" class="btn btn-secondary">Cancel</a>
                 </div>
-
-                <button type="submit" class="btn btn-success w-100">
-                    Save Campaign
-                </button>
-
             </form>
         </div>
     </div>
 </div>
 
-<script>
+@section Scripts {
+    <script>
+        function convertToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = err => reject(err);
+                reader.readAsDataURL(file);
+            });
+        }
 
-    function convertToBase64(file){
-        return new Promise((resolve,reject)=>{
-            const reader = new FileReader();
-            reader.onload = ()=> resolve(reader.result);
-            reader.onerror = err => reject(err);
-            reader.readAsDataURL(file);
+        document.getElementById("campaignForm").addEventListener("submit", async function (e) {
+            e.preventDefault();
+
+            const businessId = document.getElementById("businessId").value;
+
+            if (!businessId) {
+                Swal.fire("Session expired", "Please login again.", "warning");
+                return;
+            }
+
+            let base64Image = "";
+            const fileInput = document.getElementById("campaignImage");
+
+            if (fileInput.files.length > 0) {
+                base64Image = await convertToBase64(fileInput.files[0]);
+            }
+
+            const data = {
+                campaignId: 0,
+                campaignName: document.getElementById("campaignName").value,
+                shortNote: document.getElementById("shortNote").value,
+                description: document.getElementById("description").value,
+                campaignImage: base64Image,
+                promotionLink: document.getElementById("promotionLink").value,
+                isReferral: document.getElementById("isReferral").value === "true",
+                businessId: parseInt(businessId),
+                campaignType: document.getElementById("campaignType").value,
+                budget: parseFloat(document.getElementById("budget").value) || 0,
+                targetLocation: document.getElementById("targetLocation").value,
+                targetAgeMin: parseInt(document.getElementById("targetAgeMin").value) || 0,
+                targetAgeMax: parseInt(document.getElementById("targetAgeMax").value) || 0,
+                targetGender: document.getElementById("targetGender").value,
+                startDate: document.getElementById("startDate").value,
+                endDate: document.getElementById("endDate").value,
+                status: document.getElementById("status").value
+            };
+
+            try {
+                const response = await fetch("/api/Campaign/Campaign_Save", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+                const result = await response.json();
+
+                if (result.resultId > 0) {
+                    Swal.fire("Saved", result.resultMessage || "Campaign saved.", "success")
+                        .then(() => window.location.href = "/Business/Home/Campaigns");
+                    return;
+                }
+
+                Swal.fire("Error", result.resultMessage || "Campaign could not be saved.", "error");
+            } catch (error) {
+                console.error(error);
+                Swal.fire("Error", "Failed to save campaign.", "error");
+            }
         });
-    }
-
-    document.getElementById("campaignForm").addEventListener("submit", async function(e){
-
-        e.preventDefault();
-
-        const businessId = document.getElementById("businessId").value;
-
-        if(!businessId){
-            alert("Session expired. Please login again.");
-            return;
-        }
-
-        let base64Image = "";
-
-        const fileInput = document.getElementById("campaignImage");
-        if(fileInput.files.length > 0){
-            base64Image = await convertToBase64(fileInput.files[0]);
-        }
-
-        const data = {
-            campaignId: 0,
-            campaignName: document.getElementById("campaignName").value,
-            shortNote: document.getElementById("shortNote").value,
-            description: document.getElementById("description").value,
-            campaignImage: base64Image,
-            promotionLink: document.getElementById("promotionLink").value,
-            isReferral: document.getElementById("isReferral").value === "true",
-            businessId: parseInt(businessId),
-            campaignType: document.getElementById("campaignType").value,
-            budget: parseFloat(document.getElementById("budget").value) || 0,
-            targetLocation: document.getElementById("targetLocation").value,
-            targetAgeMin: parseInt(document.getElementById("targetAgeMin").value) || 0,
-            targetAgeMax: parseInt(document.getElementById("targetAgeMax").value) || 0,
-            targetGender: document.getElementById("targetGender").value,
-            startDate: document.getElementById("startDate").value,
-            endDate: document.getElementById("endDate").value,
-            status: document.getElementById("status").value
-        };
-
-        fetch("/api/Campaign/Campaign_Save", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        })
-        .then(res => res.json())
-            .then(result => {
-
-        if(result.resultId > 0){
-            document.getElementById("result").innerHTML =
-                "<div class='alert alert-success'>" + result.resultMessage + "</div>";
-
-            document.getElementById("campaignForm").reset();
-        }
-        else {
-            document.getElementById("result").innerHTML =
-                "<div class='alert alert-danger'>" + result.resultMessage + "</div>";
-        }
-
-    })
-
-    });
-
-</script>
+    </script>
+}

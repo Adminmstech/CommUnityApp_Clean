@@ -326,7 +326,7 @@
 
                                 <tr>
 
-                                    <td>
+                                    <td class="cell-strong">
 
                                         <strong>${user.userName}</strong>
 
@@ -367,19 +367,19 @@
 
                                 <tr>
 
-                                    <td>
+                                    <td class="cell-strong">
 
                                         ${bid.userName}
 
                                     </td>
 
-                                    <td>
+                                    <td class="cell-money">
 
                                         ₹${bid.bidAmount}
 
                                     </td>
 
-                                    <td>
+                                    <td class="cell-date">
 
                                         ${formatDateTime(bid.bidTime)}
 
@@ -629,17 +629,17 @@
 
                                         <tr>
                                             <th>Item Title</th>
-                                            <td>${auction.itemTitle}</td>
+                                            <td class="cell-wrap">${auction.itemTitle}</td>
                                         </tr>
 
                                         <tr>
                                             <th>Description</th>
-                                            <td>${auction.itemDescription}</td>
+                                            <td class="cell-wrap">${auction.itemDescription}</td>
                                         </tr>
 
                                         <tr>
                                             <th>Seller</th>
-                                            <td>${auction.user}</td>
+                                            <td class="cell-strong">${auction.user}</td>
                                         </tr>
 
                                         <tr>
@@ -649,7 +649,7 @@
 
                                         <tr>
                                             <th>Reserve Price</th>
-                                            <td>
+                                            <td class="cell-money">
                                                 <strong class="text-success">
                                                     ₹${auction.reservePrice}
                                                 </strong>
@@ -658,22 +658,22 @@
 
                                         <tr>
                                             <th>Minimum Deposit</th>
-                                            <td>₹${auction.minDeposite}</td>
+                                            <td class="cell-money">₹${auction.minDeposite}</td>
                                         </tr>
 
                                         <tr>
                                             <th>Location</th>
-                                            <td>${auction.itemLocation}</td>
+                                            <td class="cell-wrap">${auction.itemLocation}</td>
                                         </tr>
 
                                         <tr>
                                             <th>Start Time</th>
-                                            <td>${formatDateTime(auction.startTime)}</td>
+                                            <td class="cell-date">${formatDateTime(auction.startTime)}</td>
                                         </tr>
 
                                         <tr>
                                             <th>End Time</th>
-                                            <td>${formatDateTime(auction.endTime)}</td>
+                                            <td class="cell-date">${formatDateTime(auction.endTime)}</td>
                                         </tr>
 
                                     </table>
@@ -944,9 +944,9 @@
 
                         <tr>
 
-                            <td>${bid.userName}</td>
+                            <td class="cell-strong">${bid.userName}</td>
 
-                            <td>
+                            <td class="cell-money">
 
                                 <strong class="text-success">
 
@@ -956,7 +956,7 @@
 
                             </td>
 
-                            <td>${formatDateTime(bid.bidTime)}</td>
+                            <td class="cell-date">${formatDateTime(bid.bidTime)}</td>
 
                         </tr>
 
