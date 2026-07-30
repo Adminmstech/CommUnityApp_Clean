@@ -224,7 +224,7 @@ namespace CommUnityApp.Services
         [HttpGet("GetPostDetails")]
         public async Task<IActionResult> GetPostDetails(int postId)
         {
-            var data = await _notificationRepository.GetMessageBoardPosts();
+            var data = await _notificationRepository.GetMessageBoardPosts(Guid.Empty);
 
             var post = data.FirstOrDefault(x => x.PostId == postId);
 
