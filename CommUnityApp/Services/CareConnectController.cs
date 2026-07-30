@@ -288,6 +288,54 @@ namespace CommUnityApp.Services
                 });
             }
         }
+
+        [HttpGet("GetCareConnectSentRequests")]
+        public async Task<IActionResult> GetSentRequests(Guid userId)
+        {
+            try
+            {
+                var result = await _careConnectRepository.GetSentRequests(userId);
+
+                return Ok(new
+                {
+                    Status = 1,
+                    Message = "Success",
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Status = 0,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("GetCareConnectReceivedRequests")]
+        public async Task<IActionResult> GetReceivedRequests(Guid supporterId)
+        {
+            try
+            {
+                var result = await _careConnectRepository.GetReceivedRequests(supporterId);
+
+                return Ok(new
+                {
+                    Status = 1,
+                    Message = "Success",
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Status = 0,
+                    Message = ex.Message
+                });
+            }
+        }
     }
 }
     

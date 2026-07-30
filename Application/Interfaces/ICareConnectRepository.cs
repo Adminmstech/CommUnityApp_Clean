@@ -26,5 +26,9 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<CareConnectDashboardResponse> GetCareConnectRequests();
 
         Task<CompleteCareConnectRequestResult> CompleteCareConnectRequest(long requestId);
+
+        Task<List<CareConnectChatListModel>> GetSentRequests(Guid userId);
+
+        Task<List<CareConnectChatListModel>> GetReceivedRequests(Guid supporterId);
     }
 }

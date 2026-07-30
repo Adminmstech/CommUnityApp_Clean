@@ -65,7 +65,9 @@ namespace CommUnityApp.ApplicationCore.Models
         public string LastName { get; set; }
         public string FullName => $"{FirstName} {LastName}";
         public string ProfileImagePath { get; set; }
+
         public List<string> Images { get; set; }
+        public bool IsLiked { get; set; }
         public int LikesCount { get; set; }
         public int CommentsCount { get; set; }
 
