@@ -18,7 +18,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BaseResponse> AddComment(AddCommentModel model);
         Task AddReply(AddReplyModel model);
 
-        Task<List<PostResponse>> GetMessageBoardPosts();
+        Task<List<PostResponse>> GetMessageBoardPosts(Guid userId);
         Task<List<CategoryDto>> GetCategories();
         Task<List<SubCategoryDto>> GetSubCategories(int categoryId);
 

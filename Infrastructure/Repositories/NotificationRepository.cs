@@ -176,14 +176,17 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 },
                 commandType: CommandType.StoredProcedure);
         }
-
-        public async Task<List<PostResponse>> GetMessageBoardPosts()  
+         
+        public async Task<List<PostResponse>> GetMessageBoardPosts(Guid userId)  
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
                 using (var multi = await connection.QueryMultipleAsync(
                     "dbo.GetCommunityMessageBoardPostsWithDetails",
-                    //new { CommunityId = communityId },
+                    new
+                    {
+                        UserId = userId
+                    },
                     commandType: CommandType.StoredProcedure))
                 {
                     var posts = (await multi.ReadAsync<PostResponse>()).ToList();

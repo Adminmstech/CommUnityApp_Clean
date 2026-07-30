@@ -1,6 +1,7 @@
 ﻿using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using Dapper;
+using Microsoft.AspNet.SignalR.Infrastructure;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -282,6 +283,36 @@ item.ServiceImagePath =
                 Status = false,
                 RequestId = requestId
             };
+        }
+
+        public async Task<List<CareConnectChatListModel>> GetSentRequests(Guid userId)
+        {
+            using var con = new SqlConnection(
+                   _configuration.GetConnectionString("DefaultConnection"));
+            var result = await con.QueryAsync<CareConnectChatListModel>(
+                "SP_GetSentCareRequests",
+                new
+                {
+                    UserId = userId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+        public async Task<List<CareConnectChatListModel>> GetReceivedRequests(Guid supporterId)
+        {
+            using var con = new SqlConnection(
+                   _configuration.GetConnectionString("DefaultConnection"));
+            var result = await con.QueryAsync<CareConnectChatListModel>(
+                "SP_GetReceivedCareRequests",
+                new
+                {
+                    SupporterId = supporterId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
         }
     }
 
