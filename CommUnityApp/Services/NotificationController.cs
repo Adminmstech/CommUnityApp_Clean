@@ -162,9 +162,9 @@ namespace CommUnityApp.Services
             }
         }
         [HttpGet("GetMessageBoardPosts")]
-        public async Task<IActionResult> GetPosts()
+        public async Task<IActionResult> GetPosts(Guid userId)
         {
-            var result = await _notificationRepository.GetMessageBoardPosts();
+            var result = await _notificationRepository.GetMessageBoardPosts(userId);
 
             return Ok(new
             {

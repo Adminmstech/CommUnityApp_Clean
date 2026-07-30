@@ -143,6 +143,35 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public long RequestId { get; set; }
     }
+
+    public class CareConnectChatListModel
+    {
+        public long MessageId { get; set; }
+        public long ChatThreadId { get; set; }
+        public long RequestId { get; set; }
+
+        public Guid UserId { get; set; }
+        public Guid SupporterId { get; set; }
+        public Guid SenderId { get; set; }
+
+        public string SenderName { get; set; }
+        public string SupporterName { get; set; }
+        public string ProfileImagePath { get; set; }
+
+        public int ServiceId { get; set; }
+        public string ServiceName { get; set; }
+
+        public string MessageText { get; set; }
+        public string MessageType { get; set; }
+
+        public bool IsRead { get; set; }
+
+        public string RequestStatus { get; set; }
+        public bool IsRequestClosed { get; set; }
+        public string StatusMessage { get; set; }
+
+        public DateTime CreatedDate { get; set; }
+    }
 }
 
 
