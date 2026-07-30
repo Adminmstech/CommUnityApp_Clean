@@ -9,11 +9,13 @@ using Microsoft.OpenApi;
 using Stripe;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
-using Microsoft.AspNetCore.SignalR;
-
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
 
 // Resolve firebase credential path: config -> env var -> content root
 string firebasePath = builder.Configuration["Firebase:ServiceAccountPath"]
@@ -103,7 +105,6 @@ builder.Services.AddTransient<INotificationRepository, NotificationRepository>()
 builder.Services.AddTransient<IGameResultsRepository, GameResultsRepository>();
 builder.Services.AddTransient<ICareConnectRepository, CareConnectRepository>();
 builder.Services.AddTransient<IJobRepository, JobRepository>();
-builder.Services.AddTransient<IDapperWrapper, DapperWrapper>();
 builder.Services.AddTransient<ICampaignRepository, CampignRepository>();
 builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
 builder.Services.AddTransient<ISmartQuizRepository, SmartQuizRepository>();
@@ -120,7 +121,6 @@ builder.Services.AddTransient<ISpinGameRepository>(provider =>
     return new SpinGameRepository(connectionFactory, dapper,configuration);
 });
 
-builder.Services.AddSession();
 builder.Services.AddTransient<IQuizGameRepository>(provider =>
 {
     var configuration = provider.GetRequiredService<IConfiguration>();
@@ -144,6 +144,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.LoginPath = "/";   // Redirect if not logged in
         options.AccessDeniedPath = "/Home/AccessDenied";
         options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = builder.Environment.IsDevelopment()
+            ? CookieSecurePolicy.SameAsRequest
+            : CookieSecurePolicy.Always;
         options.ExpireTimeSpan = TimeSpan.FromHours(8);
         options.SlidingExpiration = true;
     });
@@ -158,7 +162,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("Swagger:Enabled"))
+if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI(c =>
@@ -168,7 +172,11 @@ if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("Swagger
     });
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
 app.UseStaticFiles();
 
 app.UseRouting();
@@ -178,8 +186,6 @@ app.UseSession();
 
 app.UseAuthentication();
 app.UseAuthorization();
-
-app.MapControllers();
 
 app.MapControllers();
 

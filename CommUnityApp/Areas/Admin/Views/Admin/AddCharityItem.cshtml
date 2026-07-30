@@ -277,11 +277,8 @@
                 postedByUserId:
                     "00000000-0000-0000-0000-000000000000",
 
-                fileName:
-                    fileName,
-
-                imagePath:
-                    imageBase64
+                imagePaths:
+                    imageBase64 ? [imageBase64] : []
             };
 
             $.ajax({

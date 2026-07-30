@@ -24,6 +24,20 @@
                 </div>
 
                 <div class="col-md-6 mb-3">
+                    <label class="form-label fw-bold">Category</label>
+                    <select id="categoryId" class="form-select">
+                        <option value="">Select Category</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3" id="subCategoryGroup" style="display:none;">
+                    <label class="form-label fw-bold">Sub Category</label>
+                    <select id="subCategoryId" class="form-select">
+                        <option value="">Select Sub Category</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
                     <label class="form-label fw-bold">Service Name</label>
                     <input type="text" id="serviceName" class="form-control" />
                 </div>
@@ -94,9 +108,14 @@
 
         $(document).ready(function () {
             loadBusinesses();
+            loadCategories();
 
             $("#serviceImages").change(function (e) {
                 handleImageSelection(e.target.files);
+            });
+
+            $("#categoryId").change(function () {
+                loadSubCategories($(this).val());
             });
         });
 
@@ -117,6 +136,58 @@
 
                 error: function () {
                     Swal.fire("Failed to load businesses.");
+                }
+            });
+        }
+
+        function loadCategories() {
+            $.ajax({
+                url: "/api/Business/Get_BusinessCategory",
+                type: "GET",
+                success: function (response) {
+                    $("#categoryId")
+                        .empty()
+                        .append('<option value="">Select Category</option>');
+
+                    response.forEach(category => {
+                        $("#categoryId").append(`
+                            <option value="${category.categoryId}">
+                                ${category.categoryName}
+                            </option>
+                        `);
+                    });
+                },
+                error: function () {
+                    Swal.fire("Failed to load categories.");
+                }
+            });
+        }
+
+        function loadSubCategories(categoryId) {
+            $("#subCategoryId")
+                .empty()
+                .append('<option value="">Select Sub Category</option>');
+            $("#subCategoryGroup").hide();
+
+            if (!categoryId) return;
+
+            $.ajax({
+                url: "/api/Service/GetServicesByCategory?categoryId=" + categoryId,
+                type: "GET",
+                success: function (response) {
+                    if (response.type !== "subcategories" || !Array.isArray(response.data) || response.data.length === 0) {
+                        return;
+                    }
+
+                    response.data.forEach(subCategory => {
+                        $("#subCategoryId").append(`
+                            <option value="${subCategory.subCategoryId}">
+                                ${subCategory.subCategoryName}
+                            </option>
+                        `);
+                    });
+
+                    $("#subCategoryGroup").show();
                 }
             });
         }
@@ -178,6 +249,11 @@
                 return;
             }
 
+            if (!$("#categoryId").val()) {
+                Swal.fire("Please select category.");
+                return;
+            }
+
             if (!$("#serviceName").val()) {
                 Swal.fire("Service name is required.");
                 return;
@@ -185,7 +261,12 @@
 
             const payload = {
                 service: {
+                    serviceId: 0,
                     businessId: parseInt($("#businessId").val()),
+                    categoryId: parseInt($("#categoryId").val()),
+                    subCategoryId: $("#subCategoryId").val()
+                        ? parseInt($("#subCategoryId").val())
+                        : null,
                     serviceName: $("#serviceName").val(),
                     description: $("#description").val(),
                     price: parseFloat($("#price").val()) || 0,
@@ -224,6 +305,9 @@
 
         function resetForm() {
             $("#businessId").val('');
+            $("#categoryId").val('');
+            $("#subCategoryId").empty().append('<option value="">Select Sub Category</option>');
+            $("#subCategoryGroup").hide();
             $("#serviceName").val('');
             $("#description").val('');
             $("#price").val('');

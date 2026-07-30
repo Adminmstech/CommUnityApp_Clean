@@ -20,24 +20,25 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             _configuration = configuration;
         }
 
-        public Task<int> AddAsync(Users entity)
+        public async Task<int> AddAsync(Users entity)
         {
-            throw new NotImplementedException();
+            var result = await SaveUser(entity);
+            return result?.ResultId ?? 0;
         }
 
         public Task<int> DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(0);
         }
 
         public Task<IReadOnlyList<Users>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return Task.FromResult<IReadOnlyList<Users>>(Array.Empty<Users>());
         }
 
         public Task<Users> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            return Task.FromResult<Users>(null);
         }
 
 
@@ -92,16 +93,24 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             parameters.Add("@ZipCode", entity.ZipCode);
             parameters.Add("@City", entity.City);
 
+            parameters.Add("@Language", entity.Language);
+            parameters.Add("@AgeGroupId", entity.AgeGroupId);
+            parameters.Add("@Gender", entity.Gender);
+            parameters.Add("@IsSupporter", entity.IsSupporter);
+
             parameters.Add("@IsActive", entity.IsActive);
+
+         
 
             var result = await connection.QueryFirstOrDefaultAsync<BaseResponse>( "Add_User",   parameters, commandType: CommandType.StoredProcedure );
 
             return result;
         }
 
-        public Task<int> UpdateAsync(Users entity)
+        public async Task<int> UpdateAsync(Users entity)
         {
-            throw new NotImplementedException();
+            var result = await UpdateUser(entity);
+            return result?.ResultId ?? 0;
         }
 
         public async Task<BaseResponse> AddOrUpdateUserWallet(UserWallets entity)

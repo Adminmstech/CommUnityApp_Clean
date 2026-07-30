@@ -4,12 +4,125 @@
 
 }
 
-<div class="container mt-3">
+<style>
+    .message-board-page {
+        max-width: 100%;
+    }
+
+    .message-board-search {
+        max-width: 720px;
+    }
+
+    .message-board-table-wrap {
+        overflow-x: auto;
+    }
+
+    .message-board-table-wrap > .message-board-table {
+        table-layout: fixed;
+        width: 100%;
+        min-width: 1260px;
+    }
+
+    .message-board-table th,
+    .message-board-table td {
+        border-color: #d8e0e3;
+        vertical-align: top;
+    }
+
+    .message-board-table thead th {
+        font-size: 13px;
+        text-transform: none;
+        vertical-align: middle;
+    }
+
+    .message-board-table .col-index {
+        width: 34px;
+        text-align: center;
+    }
+
+    .message-board-table .col-image {
+        width: 122px;
+    }
+
+    .message-board-table .col-category {
+        width: 138px;
+    }
+
+    .message-board-table .col-description {
+        width: auto;
+    }
+
+    .message-board-table .col-location {
+        width: 110px;
+    }
+
+    .message-board-table .col-date {
+        width: 122px;
+    }
+
+    .message-board-table .col-comments {
+        width: 120px;
+    }
+
+    .message-board-table .col-action {
+        width: 146px;
+    }
+
+    .message-board-table .index-cell,
+    .message-board-table .image-cell,
+    .message-board-table .comments-cell,
+    .message-board-table .action-cell {
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .message-board-table .category-cell,
+    .message-board-table .description-cell,
+    .message-board-table .location-cell,
+    .message-board-table .date-cell {
+        white-space: normal;
+        overflow-wrap: anywhere;
+        line-height: 1.5;
+    }
+
+    .message-board-table .message-post-image {
+        width: 98px;
+        height: 98px;
+        max-width: 98px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid #d8e0e3;
+        background: #fff;
+    }
+
+    .message-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 7px;
+        width: 116px;
+        margin: 0 auto;
+    }
+
+    .message-actions .btn {
+        width: 100%;
+        min-height: 36px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        font-weight: 700;
+        border-radius: 6px;
+        white-space: nowrap;
+        margin: 0 !important;
+    }
+</style>
+
+<div class="container mt-3 message-board-page">
 
     <h4 class="mb-3">All Posts</h4>
 
     <!-- 🔍 SEARCH -->
-    <div class="row mb-3">
+    <div class="row mb-3 message-board-search">
         <div class="col-md-4">
             <input type="text" id="txtSearch" class="form-control" placeholder="Search by category or description..." />
         </div>
@@ -22,7 +135,18 @@
     <div class="card shadow-sm">
         <div class="card-body">
 
-            <table class="table table-bordered table-striped" id="tblPosts">
+            <div class="table-responsive message-board-table-wrap">
+            <table class="table table-bordered table-striped message-board-table" id="tblPosts">
+                <colgroup>
+                    <col class="col-index" />
+                    <col class="col-image" />
+                    <col class="col-category" />
+                    <col class="col-description" />
+                    <col class="col-location" />
+                    <col class="col-date" />
+                    <col class="col-comments" />
+                    <col class="col-action" />
+                </colgroup>
                 <thead class="table-dark">
                     <tr>
                         <th>#</th>
@@ -41,6 +165,7 @@
                     </tr>
                 </tbody>
             </table>
+            </div>
 
             <!-- 📄 PAGINATION -->
             <div class="d-flex justify-content-between mt-3">
@@ -135,27 +260,29 @@
                 var rowNumber = start + i + 1;
 
                 html += "<tr>";
-                html += "<td>" + rowNumber + "</td>";
+                html += "<td class='index-cell'>" + rowNumber + "</td>";
 
-                html += "<td>";
+                html += "<td class='image-cell'>";
                 if (p.ImagePath) {
-                    html += "<img src='" + p.ImagePath + "' style='width:80px;height:80px' class='img-thumbnail'/>";
+                    html += "<img src='" + p.ImagePath + "' class='message-post-image' alt='Post image'/>";
                 } else {
-                    html += "<img src='/images/noimage.png' style='width:80px;height:80px' class='img-thumbnail'/>";
+                    html += "<img src='/images/noimage.png' class='message-post-image' alt='No image'/>";
                 }
                 html += "</td>";
 
-                html += "<td>" + (p.Category || "") + "</td>";
-                html += "<td>" + (p.Description || "") + "</td>";
-                html += "<td>" + (p.Location || "") + "</td>";
-                html += "<td>" + new Date(p.CreatedDate).toLocaleDateString() + "</td>";
+                html += "<td class='category-cell'>" + (p.Category || "") + "</td>";
+                html += "<td class='description-cell'>" + (p.Description || "") + "</td>";
+                html += "<td class='location-cell'>" + (p.Location || "") + "</td>";
+                html += "<td class='date-cell'>" + new Date(p.CreatedDate).toLocaleDateString() + "</td>";
 
-                html += "<td>" + p.CommentCount + "</td>";
+                html += "<td class='comments-cell'>" + p.CommentCount + "</td>";
 
-                html += "<td>";
-                html += "<button class='btn btn-sm btn-info me-1' onclick='viewComments(" + p.PostId + ")'>View</button>";
+                html += "<td class='action-cell'>";
+                html += "<div class='message-actions'>";
+                html += "<button class='btn btn-sm btn-info' onclick='viewComments(" + p.PostId + ")'>View</button>";
                 html += "<button class='btn btn-sm btn-danger' onclick='deletePost(" + p.PostId + ")'>Delete</button>";
-                html += "<button class='btn btn-sm btn-primary me-1' onclick='viewPostDetails(" + p.PostId + ")'>View Details</button>";
+                html += "<button class='btn btn-sm btn-primary' onclick='viewPostDetails(" + p.PostId + ")'>View Details</button>";
+                html += "</div>";
                 html += "</td>";
 
                 html += "</tr>";

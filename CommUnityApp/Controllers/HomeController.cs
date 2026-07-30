@@ -13,11 +13,16 @@ namespace CommUnityApp.Controllers
     {
         private readonly ILogger<HomeController> _logger;
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IBusinessRepository _businessRepository;
 
-        public HomeController(ILogger<HomeController> logger, IUnitOfWork unitOfWork)
+        public HomeController(
+            ILogger<HomeController> logger,
+            IUnitOfWork unitOfWork,
+            IBusinessRepository businessRepository)
         {
             _logger = logger;
             _unitOfWork = unitOfWork;
+            _businessRepository = businessRepository;
         }
 
         public IActionResult Index()
@@ -73,7 +78,20 @@ namespace CommUnityApp.Controllers
                 });
             }
 
-            var result = await _unitOfWork.User.UserLogin(request);
+            LoginResponse result;
+
+            try
+            {
+                result = await _unitOfWork.User.UserLogin(request);
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("ConnectionString", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = "Database connection is not configured. Set ConnectionStrings:DefaultConnection in appsettings.Development.json."
+                });
+            }
 
             if (result == null || result.ResultId == 0)
             {
@@ -118,11 +136,42 @@ namespace CommUnityApp.Controllers
             // Role-based redirection
             if (roles.Contains("1")) // Admin
             {
+                HttpContext.Session.SetString("AdminId", result.UserId.ToString());
+                HttpContext.Session.SetString("AdminName", result.FullName ?? "Super Admin");
                 return RedirectToAction("AddBusiness", "Admin", new { area = "Admin" });
             }
             else if (roles.Contains("2")) // Business
             {
-                return RedirectToAction("Auctions", "Home", new { area = "Business" });
+                BusinessLoginResponse? business;
+
+                try
+                {
+                    business = await _businessRepository.LoginAsync(new BusinessLoginRequest
+                    {
+                        Email = request.Email,
+                        Password = request.Password
+                    });
+                }
+                catch (InvalidOperationException ex) when (ex.Message.Contains("ConnectionString", StringComparison.OrdinalIgnoreCase))
+                {
+                    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Database connection is not configured. Set ConnectionStrings:DefaultConnection in appsettings.Development.json."
+                    });
+                }
+
+                if (business == null || business.BusinessId <= 0)
+                {
+                    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    return RedirectToAction("Login", "Account", new { area = "Business" });
+                }
+
+                HttpContext.Session.SetString("BusinessId", business.BusinessId.ToString());
+                HttpContext.Session.SetString("BusinessName", business.BusinessName ?? result.FullName ?? "Business");
+
+                return RedirectToAction("BusinessPromotions", "Home", new { area = "Business" });
             }
             else if (roles.Contains("3")) // Member
             {
