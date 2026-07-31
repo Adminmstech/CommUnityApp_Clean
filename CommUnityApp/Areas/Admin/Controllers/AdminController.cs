@@ -181,6 +181,11 @@ namespace CommUnityApp.Areas.Admin.Controllers
             return View();
         }
 
+        public IActionResult QuizGameplays()
+        {
+            return View();
+        }
+
         public IActionResult SpinGameList()
         {
             return View();

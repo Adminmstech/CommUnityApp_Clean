@@ -330,64 +330,58 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             }
         }
 
-        public async Task<List<PostResponse>> GetTopFiveMessageBoardPosts()
+        public async Task<List<PostResponse>> GetTopFiveMessageBoardPosts(Guid userId)
         {
-            using (var connection = new SqlConnection(
-                _configuration.GetConnectionString("DefaultConnection")))
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@UserId", userId);
+
+            using var multi = await connection.QueryMultipleAsync(
+                "dbo.GetCommunityMessageBoardPostsWithDetails",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            var posts = (await multi.ReadAsync<PostResponse>())
+                .Take(5)
+                .ToList();
+
+            var images = (await multi.ReadAsync<dynamic>()).ToList();
+            var likes = (await multi.ReadAsync<dynamic>()).ToList();
+            var comments = (await multi.ReadAsync<dynamic>()).ToList();
+
+            foreach (var post in posts)
             {
-                using (var multi = await connection.QueryMultipleAsync(
-                    "dbo.GetCommunityMessageBoardPostsWithDetails",
-                    commandType: CommandType.StoredProcedure))
-                {
-                    var posts =
-                        (await multi.ReadAsync<PostResponse>())
-                        .Take(5)
-                        .ToList();
+                post.Images = images
+                    .Where(i => (int)i.PostId == post.PostId)
+                    .Select(i => (string)i.ImagePath)
+                    .ToList();
 
-                    var images =
-                        (await multi.ReadAsync<dynamic>())
-                        .ToList();
+                post.LikesCount = likes.Count(l => (int)l.PostId == post.PostId);
 
-                    var likes =
-                        (await multi.ReadAsync<dynamic>())
-                        .ToList();
+                var postComments = comments
+                    .Where(c => (int)c.PostId == post.PostId)
+                    .ToList();
 
-                    var comments =
-                        (await multi.ReadAsync<dynamic>())
-                        .ToList();
-
-                    foreach (var post in posts)
+                post.Comments = postComments
+                    .Select(c => new CommentDto
                     {
-                        post.Images = images
-                            .Where(i => i.PostId == post.PostId)
-                            .Select(i => (string)i.ImagePath)
-                            .ToList();
+                        CommentId = (int)c.CommentId,
+                        FullName = c.FullName?.ToString(),
+                        CommentText = c.CommentText?.ToString(),
+                        UserId = c.UserId?.ToString()
+                    })
+                    .ToList();
 
-                        post.LikesCount = likes
-                            .Count(l => l.PostId == post.PostId);
-
-                        var postComments = comments
-                            .Where(c => c.PostId == post.PostId)
-                            .ToList();
-
-                        post.Comments = postComments
-                            .Select(c => new CommentDto
-                            {
-                                CommentId = c.CommentId,
-                                FullName = c.FullName,
-                                CommentText = c.CommentText,
-                                UserId = c.UserId.ToString()
-                            })
-                            .ToList();
-
-                        post.CommentsCount =
-                            post.Comments.Count;
-                    }
-
-                    return posts;
-                }
+                post.CommentsCount = post.Comments.Count;
             }
+
+            return posts;
         }
     }
     }
+    
 

@@ -232,9 +232,9 @@ namespace CommUnityApp.Services
         }
 
         [HttpGet("GetTopFiveMessageBoardPosts")]
-        public async Task<IActionResult> GetTopFiveMessageBoardPosts()
+        public async Task<IActionResult> GetTopFiveMessageBoardPosts(Guid UserId)
         {
-            var data = await _notificationRepository.GetTopFiveMessageBoardPosts();
+            var data = await _notificationRepository.GetTopFiveMessageBoardPosts(UserId);
 
             return Ok(new
             {

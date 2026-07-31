@@ -38,6 +38,7 @@
                             <th>Category</th>
                             <th>Owner</th>
                             <th>Email</th>
+                            <th>Password</th>
                             <th>Phone</th>
                             <th>Location</th>
                             <th>Status</th>
@@ -49,7 +50,7 @@
 
                     <tbody id="businessTableBody">
                         <tr>
-                            <td colspan="11" class="text-center py-4">
+                            <td colspan="12" class="text-center py-4">
                                 Loading businesses...
                             </td>
                         </tr>
@@ -151,7 +152,7 @@
             if (!data || data.length === 0) {
                 tbody.html(`
                     <tr>
-                        <td colspan="11" class="text-center py-4">
+                        <td colspan="12" class="text-center py-4">
                             No businesses found.
                         </td>
                     </tr>
@@ -189,6 +190,8 @@
                         <td>${item.ownerName ?? ''}</td>
 
                         <td>${item.businessEmail ?? ''}</td>
+
+                        <td>${item.password ?? ''}</td>
 
                         <td>${item.phone ?? ''}</td>
 
