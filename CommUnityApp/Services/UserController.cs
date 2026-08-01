@@ -189,7 +189,7 @@ namespace CommUnityApp.Services
             }
         }
 
-        [HttpPost("GetUserProfile")]
+        [HttpGet("GetUserProfile")]
         public async Task<IActionResult> GetUserProfile(Guid UserId)
         {
             var data = await _unitOfWork.User.GetUserProfile(UserId);
