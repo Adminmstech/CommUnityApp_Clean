@@ -41,6 +41,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public int RegistrationRequired { get; set; }
         public string? TimeZoneId { get; set; }
 
+       
+
     }
 
     public class AuctionItemImage
@@ -133,6 +135,19 @@ namespace CommUnityApp.ApplicationCore.Models
         public string? TimeZoneId { get; set; } = string.Empty;
         public List<GetAuctionImagedModel> AuctionImages { get; set; }
         public DateTime? CreatedAt { get; set; }
+
+
+        public Guid? WinnerUserId { get; set; }
+        public decimal? WinningBidAmount { get; set; }
+        public bool? WinnerDeclared { get; set; }
+        public DateTime? WinnerDeclaredOn { get; set; }
+
+        public string? WinnerFirstName { get; set; }
+        public string? WinnerLastName { get; set; }
+        public string? WinnerName { get; set; }
+        public string? WinnerEmail { get; set; }
+        public string? WinnerMobile { get; set; }
+        public string? WinnerProfileImage { get; set; }
     }
 
     public class AuctionWithImagesModel
@@ -161,6 +176,18 @@ namespace CommUnityApp.ApplicationCore.Models
         public DateTime RegistrationStartDate { get; set; }
         public DateTime RegistrationEndDate { get; set; }
         public List<AuctionItemImage> Images { get; set; } = new();
+
+        public Guid? WinnerUserId { get; set; }
+        public decimal? WinningBidAmount { get; set; }
+        public bool? WinnerDeclared { get; set; }
+        public DateTime? WinnerDeclaredOn { get; set; }
+
+        public string? WinnerFirstName { get; set; }
+        public string? WinnerLastName { get; set; }
+        public string? WinnerName { get; set; }
+        public string? WinnerEmail { get; set; }
+        public string? WinnerMobile { get; set; }
+        public string? WinnerProfileImage { get; set; }
     }
 
     public class PlaceBidRequest
@@ -370,6 +397,29 @@ namespace CommUnityApp.ApplicationCore.Models
             public bool IsParticipant { get; set; }
         }
 
+        public class WinnerDetailsModel
+        {
+            public Guid? WinnerUserId { get; set; }
 
+            public string? WinnerFirstName { get; set; }
+
+            public string? WinnerLastName { get; set; }
+
+            public string? WinnerName { get; set; }
+
+            public string? WinnerEmail { get; set; }
+
+            public string? WinnerMobile { get; set; }
+
+            public string? WinnerProfileImage { get; set; }
+
+            public decimal? WinningBidAmount { get; set; }
+
+            public bool? WinnerDeclared { get; set; }
+
+            public DateTime? WinnerDeclaredOn { get; set; }
+        }
+
+       
     }
 }

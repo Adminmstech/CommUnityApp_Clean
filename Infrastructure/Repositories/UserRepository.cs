@@ -107,6 +107,33 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result;
         }
 
+        public async Task<BaseResponse> EditUserProfile(EditProfile entity)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@UserId", entity.UserId); 
+            parameters.Add("@FirstName", entity.FirstName);
+            parameters.Add("@LastName", entity.LastName);
+            parameters.Add("@Email", entity.Email);
+            parameters.Add("@Mobile", entity.Mobile);
+            parameters.Add("@ProfileImagePath", entity.ProfileImagePath);
+            parameters.Add("@AddressLine1", entity.AddressLine1);
+            parameters.Add("@AddressLine2", entity.AddressLine2);
+            parameters.Add("@ZipCode", entity.ZipCode);
+            parameters.Add("@City", entity.City);
+            parameters.Add("@Gender", entity.Gender);
+            parameters.Add("@IsActive", entity.IsActive);
+
+
+            var result = await connection.QueryFirstOrDefaultAsync<BaseResponse>("Add_User", parameters, commandType: CommandType.StoredProcedure);
+
+            return result;
+        }
         public async Task<int> UpdateAsync(Users entity)
         {
             var result = await UpdateUser(entity);
@@ -147,6 +174,22 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             parameters.Add("@UserId", userId, DbType.Guid);
 
             var result = await connection.QueryFirstOrDefaultAsync<UserDetailsResponse>("Get_UserByUserId",  parameters,commandType: CommandType.StoredProcedure);
+
+            return result;
+        }
+
+        public async Task<GetProfileResponse> GetUserProfile(Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@UserId", userId, DbType.Guid);
+
+            var result = await connection.QueryFirstOrDefaultAsync<GetProfileResponse>("Get_Profile", parameters, commandType: CommandType.StoredProcedure);
 
             return result;
         }

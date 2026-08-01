@@ -3,7 +3,7 @@
     public class Users
     {
         public Guid? UserId { get; set; }
-        public int? CommunityId { get; set; }
+        public string CommunityId { get; set; }
 
         // Required Fields
         public string FirstName { get; set; }
@@ -45,7 +45,7 @@
     public class UserDetailsResponse
     {
         public Guid? UserId { get; set; }
-        public int? CommunityId { get; set; }
+        public string CommunityId { get; set; }
 
         // Required Fields
         public string FirstName { get; set; }
@@ -276,5 +276,57 @@
 
         public decimal Balance { get; set; }
         public int RewardCoins { get; set; }
+    }
+
+    public class GetProfileResponse
+    {
+        public int ResultId { get; set; }
+        public string ResultMessage { get; set; }
+
+        public Guid UserId { get; set; }
+
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+
+        public string? Email { get; set; }
+        public string? Mobile { get; set; }
+
+        public string? ProfileImagePath { get; set; }
+
+        public string? AddressLine1 { get; set; }
+        public string? AddressLine2 { get; set; }
+
+        public string? ZipCode { get; set; }
+        public string? City { get; set; }
+
+        public int? Gender { get; set; }
+
+        public bool IsActive { get; set; }
+    }
+
+    public class EditProfile
+    {
+       
+
+        public Guid UserId { get; set; }
+
+        public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+
+        public string? Email { get; set; }
+        public string? Mobile { get; set; }
+
+        public string? ProfileImagePath { get; set; }
+        public string? ProfileImageBase64 { get; set; }
+
+        public string? AddressLine1 { get; set; }
+        public string? AddressLine2 { get; set; }
+
+        public string? ZipCode { get; set; }
+        public string? City { get; set; }
+
+        public int? Gender { get; set; }
+
+        public bool IsActive { get; set; }
     }
 }
