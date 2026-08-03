@@ -485,7 +485,6 @@ namespace CommUnityApp.Services
             var events = await _repository.GetEventsByCommunity(communityId);
             return Ok(events);
         }
-
         [HttpGet("GetEventDetailsWithSponsors")]
         public async Task<IActionResult> GetEventDetailsWithSponsors(int eventId)
         {
@@ -493,16 +492,16 @@ namespace CommUnityApp.Services
 
             var baseUrl = $"{Request.Scheme}://{Request.Host}";
 
-            if (!string.IsNullOrEmpty(data.EventImage))
+            if (!string.IsNullOrWhiteSpace(data.EventImage))
             {
-                data.EventImage = baseUrl + "/uploads/Events/" + data.EventImage;
+                data.EventImage = $"{baseUrl}/{data.EventImage.TrimStart('/')}";
             }
 
             foreach (var s in data.Sponsors)
             {
-                if (!string.IsNullOrEmpty(s.LogoPath))
+                if (!string.IsNullOrWhiteSpace(s.LogoPath))
                 {
-                    s.LogoPath = baseUrl + "/uploads/sponsors/" + s.LogoPath;
+                    s.LogoPath = $"{baseUrl}/{s.LogoPath.TrimStart('/')}";
                 }
             }
 

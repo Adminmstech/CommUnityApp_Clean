@@ -154,7 +154,7 @@ namespace CommUnityApp.Services
             var trackresult1 = await _brandGameRepository.TrackGameplayAsync(
                 game.BrandGameID,
                 request.UserId,
-                finalPrizeType,
+                finalPrizeType, 
                 isWinner,
                 attemptNumber > 0 ? attemptNumber : null
             );
@@ -193,7 +193,7 @@ namespace CommUnityApp.Services
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(ModelState); 
             }
 
             var result = await _spinGameRepository.AddUpdateSpinGameAsync(request);
@@ -463,5 +463,293 @@ namespace CommUnityApp.Services
             return Ok(new { resultId = 1, resultMessage = $"{allPrizes.Count} prizes found.", prizes = allPrizes });
         }
 
+        [HttpPost("GetBrandGameDetails")]
+        public async Task<IActionResult> GetBrandGameDetails([FromBody] GetGameDetails request)
+        {
+            if (request == null || request.GameId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid gameId is required."
+                });
+            }
+
+            if (request.UserId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid memberId is required."
+                });
+            }
+
+            var game = await _brandGameRepository.GetBrandGameByIdAsync(request.GameId);
+
+            if (game == null)
+            {
+                return NotFound(new
+                {
+                    resultId = 0,
+                    resultMessage = "Game not found."
+                });
+            }
+
+            var baseUrl = (_configuration["ApiSettings:BaseUrl"] ?? "").TrimEnd('/');
+
+            return Ok(new
+            {
+                resultId = 1,
+                resultMessage = "Game details retrieved successfully.",
+
+                gameId = game.BrandGameID,
+
+                gameName = game.BrandGameName,
+
+                gameTitle = game.BrandGameTitle,
+
+                description = game.BrandGameDesc,
+
+                conditionsApply = game.ConditionsApply,
+
+                destinationUrl = game.DestinationUrl,
+
+                onceIn = game.OnceIn,
+
+                isReleased = game.IsReleased,
+
+                panelCount = game.PanelCount,
+
+                panelOpeningLimit = game.PanelOpeningLimit,
+
+                chanceCount = game.ChanceCount,
+
+                pointsAwarded = game.PointsAwarded,
+
+                expiryText = game.ExpiryText,
+
+                permitNumber = game.PermitNumber,
+
+                classNumber = game.ClassNumber,
+
+                formColor = game.FormColor,
+
+                textColor = game.TextColor,
+
+                promotionalCode = game.PromotionalCode,
+
+                startDate = game.DateStart,
+
+                endDate = game.DateEnd,
+
+                gameImage = BuildFullImageUrl(baseUrl, game.BrandGameImage),
+
+                primaryPrizeImage = BuildFullImageUrl(baseUrl, game.PrimaryPrizeImage),
+
+                secondaryPrizeImage = BuildFullImageUrl(baseUrl, game.SecondaryPrizeImage),
+
+                consolationPrizeImage = BuildFullImageUrl(baseUrl, game.ConsolationPrizeImage),
+
+                unsuccessfulImage = BuildFullImageUrl(baseUrl, game.UnSuccessfulImage),
+
+                primaryOfferText = game.PrimaryOfferText,
+
+                secondaryOfferText = game.OfferText,
+
+                primaryWinMessage = game.PrimaryWinMessage,
+
+                secondaryWinMessage = game.SecondaryWinMessage,
+
+                consolationMessage = game.ConsolationMessage,
+
+                prizeBalance = new
+                {
+                    primary = game.PrimaryPrizeBalCount,
+                    secondary = game.SecondaryPrizeBalCount,
+                    consolation = game.ConsolationPrizeBalCount
+                }
+            });
         }
+
+
+        [HttpPost("SubmitBrandGame")]
+        public async Task<IActionResult> SubmitBrandGame([FromBody] PlayGameRequest request)
+        {
+            if (request == null || request.GameId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid gameId is required."
+                });
+            }
+
+            if (request.UserId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid memberId is required."
+                });
+            }
+
+            var game = await _brandGameRepository.GetBrandGameByIdAsync(request.GameId);
+
+            if (game == null)
+            {
+                return NotFound(new
+                {
+                    resultId = 0,
+                    resultMessage = "Game not found."
+                });
+            }
+
+            var baseUrl = (_configuration["ApiSettings:BaseUrl"] ?? "").TrimEnd('/');
+
+            var onceIn = game.OnceIn.GetValueOrDefault(1);
+
+            if (onceIn <= 0)
+                onceIn = 1;
+
+            var isReleased = game.IsReleased.GetValueOrDefault(0) == 1;
+
+            var attemptNumber = request.AttemptNumber.GetValueOrDefault(0);
+
+            var isWinningAttempt = attemptNumber > 0
+                ? attemptNumber % onceIn == 0
+                : Random.Shared.Next(1, onceIn + 1) == 1;
+
+            var primaryBalance = game.PrimaryPrizeBalCount.GetValueOrDefault() > 0
+                ? game.PrimaryPrizeBalCount.GetValueOrDefault()
+                : game.PrimaryPrizeCount.GetValueOrDefault();
+
+            var secondaryBalance = game.SecondaryPrizeBalCount.GetValueOrDefault() > 0
+                ? game.SecondaryPrizeBalCount.GetValueOrDefault()
+                : game.SecondaryPrizeCount.GetValueOrDefault();
+
+            string finalPrizeType = "ConsolationPrize";
+            string prizeLabel = game.OfferText;
+            string prizeMessage = game.ConsolationMessage;
+            string prizeImage = game.ConsolationPrizeImage ?? game.UnSuccessfulImage ?? game.BrandGameImage;
+
+            if (isReleased && isWinningAttempt)
+            {
+                if (primaryBalance > 0)
+                {
+                    finalPrizeType = "PrimaryPrize";
+                    prizeLabel = game.PrimaryOfferText;
+                    prizeMessage = game.PrimaryWinMessage;
+                    prizeImage = game.PrimaryPrizeImage ?? game.BrandGameImage;
+                }
+                else if (secondaryBalance > 0)
+                {
+                    finalPrizeType = "SecondaryPrize";
+                    prizeLabel = game.OfferText;
+                    prizeMessage = game.SecondaryWinMessage;
+                    prizeImage = game.SecondaryPrizeImage ?? game.BrandGameImage;
+                }
+            }
+
+            var consumeResult = await _brandGameRepository.TryConsumePrizeAsync(
+                game.BrandGameID,
+                finalPrizeType);
+
+            if (!consumeResult.IsConsumed && finalPrizeType != "ConsolationPrize")
+            {
+                finalPrizeType = "ConsolationPrize";
+
+                prizeLabel = game.OfferText;
+                prizeMessage = game.ConsolationMessage;
+                prizeImage = game.ConsolationPrizeImage ?? game.UnSuccessfulImage ?? game.BrandGameImage;
+
+                consumeResult = await _brandGameRepository.TryConsumePrizeAsync(
+                    game.BrandGameID,
+                    finalPrizeType);
+            }
+
+            if (!consumeResult.IsConsumed)
+            {
+                await _brandGameRepository.TrackGameplayAsync(
+                    game.BrandGameID,
+                    request.UserId,
+                    "NoPrize",
+                    false,
+                    attemptNumber > 0 ? attemptNumber : null);
+
+                return Ok(new
+                {
+                    resultId = 0,
+                    resultMessage = "No prize balance available.",
+
+                    gameId = game.BrandGameID,
+                    memberId = request.UserId,
+
+                    isWinner = false,
+
+                    prizeType = "NoPrize",
+
+                    prizeLabel = "",
+
+                    prizeMessage = "Prize stock is over.",
+
+                    prizeImage = BuildFullImageUrl(
+                        baseUrl,
+                        game.UnSuccessfulImage ?? game.BrandGameImage),
+
+                    coinsEarned = 0,
+
+                    prizeBalances = new
+                    {
+                        primary = consumeResult.PrimaryPrizeBalCount,
+                        secondary = consumeResult.SecondaryPrizeBalCount,
+                        consolation = consumeResult.ConsolationPrizeBalCount
+                    }
+                });
+            }
+
+            bool isWinner = finalPrizeType != "ConsolationPrize";
+
+            await _brandGameRepository.TrackGameplayAsync(
+                game.BrandGameID,
+                request.UserId,
+                finalPrizeType,
+                isWinner,
+                attemptNumber > 0 ? attemptNumber : null);
+
+            await _brandGameRepository.AddRewardCoinsAsync(
+                request.UserId,
+                game.PointsAwarded.GetValueOrDefault(),
+                game.BrandGameID);
+
+            return Ok(new
+            {
+                resultId = 1,
+                resultMessage = "Game played successfully.",
+
+                gameId = game.BrandGameID,
+                memberId = request.UserId,
+
+                isWinner,
+
+                prizeType = finalPrizeType,
+
+                prizeLabel,
+
+                prizeMessage,
+
+                prizeImage = BuildFullImageUrl(baseUrl, prizeImage),
+
+                coinsEarned = game.PointsAwarded.GetValueOrDefault(),
+
+                prizeBalances = new
+                {
+                    primary = consumeResult.PrimaryPrizeBalCount,
+                    secondary = consumeResult.SecondaryPrizeBalCount,
+                    consolation = consumeResult.ConsolationPrizeBalCount
+                }
+            });
+        }
+
+
+    }
 }

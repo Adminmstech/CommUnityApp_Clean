@@ -330,13 +330,17 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             }
         }
 
-        public async Task<List<PostResponse>> GetTopFiveMessageBoardPosts()
+        public async Task<List<PostResponse>> GetTopFiveMessageBoardPosts(Guid userId)
         {
             using (var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection")))
             {
                 using (var multi = await connection.QueryMultipleAsync(
                     "dbo.GetCommunityMessageBoardPostsWithDetails",
+                    new
+                    {
+                        UserId = userId
+                    },
                     commandType: CommandType.StoredProcedure))
                 {
                     var posts =
