@@ -153,7 +153,7 @@ namespace CommUnityApp.Services
             await _brandGameRepository.TrackGameplayAsync(
                 game.BrandGameID,
                 request.UserId,
-                finalPrizeType,
+                finalPrizeType, 
                 isWinner,
                 attemptNumber > 0 ? attemptNumber : null
             );
