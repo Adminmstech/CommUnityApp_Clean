@@ -614,7 +614,7 @@ namespace CommUnityApp.Services
                     _unitOfWork.Community.GetTopFiveCommunityPostsByUser(userId);
 
                 var messageBoardTask =
-                    _unitOfWork.Notification.GetTopFiveMessageBoardPosts();
+                    _unitOfWork.Notification.GetTopFiveMessageBoardPosts(userId);
 
                 var promotionsTask =
                     _unitOfWork.Product.GetTopFiveProductPromotions();
