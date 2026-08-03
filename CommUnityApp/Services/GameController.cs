@@ -365,7 +365,7 @@ namespace CommUnityApp.Services
                     gameImage = BuildFullImageUrl(baseUrl, game?.GameImage),
                     offerText = section?.PrizeText ?? result.RewardValue,
                     sectionImage = BuildFullImageUrl(baseUrl, section?.SectionImage),
-                    redeemCode = result.RedeemCode,
+                   spinRedeemCode = result.RedeemCode,
                     reward = new
                     {
                         gameId = result.GameId,
