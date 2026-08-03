@@ -14,7 +14,7 @@ namespace CommUnityApp.Areas.Business.Controllers
     public class SpinGameController : Controller
     {
         private readonly ISpinGameRepository _spinGameRepository;
-        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly IWebHostEnvironment _webHostEnvironment; 
 
         public SpinGameController(ISpinGameRepository spinGameRepository, IWebHostEnvironment webHostEnvironment)
         {
