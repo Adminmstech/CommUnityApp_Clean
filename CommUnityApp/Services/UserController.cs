@@ -147,7 +147,54 @@ namespace CommUnityApp.Services
             }
         }
 
+        [HttpPost("Edit_Profile")]
+        public async Task<IActionResult> EditProfile([FromBody] EditProfile entity)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                    return BadRequest(ModelState);
 
+                if (!string.IsNullOrWhiteSpace(entity.ProfileImageBase64))
+                {
+                    if (!TryConvertFromBase64(entity.ProfileImageBase64, out byte[] fileBytes))
+                        return BadRequest("Invalid image format.");
+
+                    if (fileBytes.Length > 2097152)
+                        return BadRequest("Image size exceeds 2MB limit.");
+
+                    string fileName = $"{Guid.NewGuid():N}.jpg";
+                    string folderPath = Path.Combine("wwwroot", "ProfilePics");
+                    Directory.CreateDirectory(folderPath);
+
+                    string filePath = Path.Combine(folderPath, fileName);
+                    await System.IO.File.WriteAllBytesAsync(filePath, fileBytes);
+
+                    entity.ProfileImagePath = $"ProfilePics/{fileName}";
+                }
+
+                var result = await _unitOfWork.User.EditUserProfile(entity);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error editing profile for UserId {UserId}", entity?.UserId);
+
+                return StatusCode(500, new BaseResponse
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("GetUserProfile")]
+        public async Task<IActionResult> GetUserProfile(Guid UserId)
+        {
+            var data = await _unitOfWork.User.GetUserProfile(UserId);
+            return Ok(data);
+        }
 
 
         [HttpPost("Get_UserByUserId")]

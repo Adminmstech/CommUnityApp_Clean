@@ -1,0 +1,1145 @@
+﻿@{
+    ViewData["Title"] = "Auction Details";
+    Layout = "AdminLayout";
+}
+
+
+
+<style>
+
+    body {
+        background: #f5f7fb;
+    }
+
+    .page-header {
+        background: linear-gradient(135deg,#0d6efd,#4e73df);
+        color: #fff;
+        border-radius: 18px;
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0 10px 25px rgba(0,0,0,.15);
+    }
+
+        .page-header h2 {
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .page-header p {
+            margin: 0;
+            opacity: .9;
+        }
+
+    .summary-card {
+        border: none;
+        border-radius: 18px;
+        transition: .25s;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0,0,0,.08);
+    }
+
+        .summary-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .summary-card .card-body {
+            padding: 25px;
+        }
+
+    .summary-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 24px;
+        margin-bottom: 15px;
+    }
+
+    .bg1 {
+        background: #0d6efd;
+    }
+
+    .bg2 {
+        background: #198754;
+    }
+
+    .bg3 {
+        background: #ffc107;
+        color: #000;
+    }
+
+    .bg4 {
+        background: #dc3545;
+    }
+
+    .card-title-small {
+        color: #777;
+        font-size: 14px;
+    }
+
+    .card-value {
+        font-size: 30px;
+        font-weight: 700;
+    }
+
+    .section-card {
+        border: none;
+        border-radius: 18px;
+        margin-bottom: 25px;
+        overflow: hidden;
+        box-shadow: 0 8px 20px rgba(0,0,0,.08);
+    }
+
+    .section-header {
+        background: #fff;
+        padding: 18px 25px;
+        border-bottom: 1px solid #eee;
+    }
+
+        .section-header h5 {
+            margin: 0;
+            font-weight: 600;
+        }
+
+    .section-body {
+        padding: 25px;
+    }
+
+    .gallery-image {
+        width: 100%;
+        height: 240px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 3px solid #fff;
+        transition: .3s;
+        cursor: pointer;
+        box-shadow: 0 5px 15px rgba(0,0,0,.12);
+    }
+
+        .gallery-image:hover {
+            transform: scale(1.03);
+        }
+
+    .info-table th {
+        width: 230px;
+        background: #f8f9fa;
+    }
+
+    .table td,
+    .table th {
+        vertical-align: middle;
+    }
+
+    .badge-status {
+        font-size: 14px;
+        padding: 8px 15px;
+        border-radius: 30px;
+    }
+
+    .loading {
+        padding: 120px;
+        text-align: center;
+    }
+
+        .loading .spinner-border {
+            width: 4rem;
+            height: 4rem;
+        }
+
+    .timeline-table tbody tr {
+        transition: .2s;
+    }
+
+        .timeline-table tbody tr:hover {
+            background: #f7f7f7;
+        }
+
+    .back-btn {
+        border-radius: 30px;
+        padding: 10px 20px;
+    }
+
+</style>
+
+
+
+<div class="container-fluid mt-4">
+
+    <div class="page-header">
+
+        <div class="d-flex justify-content-between align-items-center">
+
+            <div>
+
+                <h2>
+
+                    <i class="fa fa-gavel me-2"></i>
+
+                    Auction Details
+
+                </h2>
+
+                <p>
+
+                    Manage auction information, participants and live bidding
+
+                </p>
+
+            </div>
+
+            <div>
+
+                <a href="/Admin/Admin/LiveAuctions"
+                   class="btn btn-light back-btn">
+
+                    <i class="fa fa-arrow-left me-2"></i>
+
+                    Back
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div id="auctionDetailsBody">
+
+        <div class="loading">
+
+            <div class="spinner-border text-primary"></div>
+
+            <h5 class="mt-4">
+
+                Loading Auction Details...
+
+            </h5>
+            <div class="alert alert-warning text-center">
+
+                <strong>Time Remaining:</strong>
+
+                <span id="auctionCountdown"></span>
+
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+
+<script>
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const auctionId = urlParams.get("auctionId");
+
+        console.log("AuctionId:", auctionId);
+
+        if (!auctionId) {
+            $("#auctionDetailsBody").html(`
+                <div class="alert alert-danger">
+                    Auction Id not found in URL.
+                </div>
+            `);
+            throw new Error("AuctionId missing");
+        }
+
+    let currentAuctionId=auctionId;
+
+    $(document).ready(function(){
+
+        loadAuctionDetails();
+
+        });
+        console.log("AuctionId:", auctionId);
+            function loadAuctionDetails() {
+
+                $.ajax({
+
+                    url: `/api/Auction/Get_AdminAuctionDetails?auctionId=${auctionId}`,
+                    type: "GET",
+
+                    success: function (response) {
+                            console.log(response);
+                        if (!response || response.resultId != 1) {
+
+                            $("#auctionDetailsBody").html(`
+                                <div class="alert alert-warning">
+                                    Auction details not found.
+                                </div>
+                            `);
+
+                            return;
+                        }
+
+                        const auction = response.auction;
+                        const registeredUsers = response.registeredUsers || [];
+                        const bidHistory = response.bidHistory || [];
+
+                        let imageHtml = "";
+
+                        if (auction.images && auction.images.length > 0) {
+
+                            auction.images.forEach(img => {
+
+                                imageHtml += `
+                                    <div class="col-lg-4 col-md-6 mb-4">
+
+                                        <img src="/${img.imageUrl}"
+                                             class="gallery-image"/>
+
+                                    </div>
+                                `;
+
+                            });
+
+                        }
+                        else {
+
+                            imageHtml = `
+                                <div class="col-12">
+
+                                    <div class="alert alert-secondary">
+
+                                        No Images Uploaded
+
+                                    </div>
+
+                                </div>
+                            `;
+
+                        }
+
+                        let participantRows = "";
+
+                        registeredUsers.forEach(user => {
+
+                            participantRows += `
+
+                                <tr>
+
+                                    <td class="cell-strong">
+
+                                        <strong>${user.userName}</strong>
+
+                                    </td>
+
+                                    <td>${user.email ?? "-"}</td>
+
+                                    <td>
+
+                                        <span class="badge bg-success">
+
+                                            ${user.paymentStatus}
+
+                                        </span>
+
+                                    </td>
+
+                                </tr>
+
+                            `;
+
+                        });
+
+                        if (participantRows == "")
+                            participantRows = `
+                                <tr>
+                                    <td colspan="3" class="text-center">
+                                        No Participants
+                                    </td>
+                                </tr>
+                            `;
+
+                        let bidRows = "";
+
+                        bidHistory.forEach(bid => {
+
+                            bidRows += `
+
+                                <tr>
+
+                                    <td class="cell-strong">
+
+                                        ${bid.userName}
+
+                                    </td>
+
+                                    <td class="cell-money">
+
+                                        ₹${bid.bidAmount}
+
+                                    </td>
+
+                                    <td class="cell-date">
+
+                                        ${formatDateTime(bid.bidTime)}
+
+                                    </td>
+
+                                </tr>
+
+                            `;
+
+                        });
+
+                        if (bidRows == "")
+                            bidRows = `
+                                <tr>
+                                    <td colspan="3" class="text-center">
+                                        No Bids Yet
+                                    </td>
+                                </tr>
+                            `;
+
+                        $("#auctionDetailsBody").html(`
+
+            <div class="row mb-4">
+
+            <div class="col-md-3">
+
+            <div class="card summary-card">
+
+            <div class="card-body text-center">
+
+            <div class="summary-icon bg1">
+
+            <i class="fa fa-users"></i>
+
+            </div>
+
+            <div class="card-title-small">
+
+            Participants
+
+            </div>
+
+            <div class="card-value">
+
+            ${response.totalRegisteredUsers}
+
+            </div>
+
+            </div>
+
+            </div>
+
+            </div>
+
+            <div class="col-md-3">
+
+            <div class="card summary-card">
+
+            <div class="card-body text-center">
+
+            <div class="summary-icon bg2">
+
+            <i class="fa fa-gavel"></i>
+
+            </div>
+
+            <div class="card-title-small">
+
+            Total Bids
+
+            </div>
+
+            <div class="card-value" id="totalBids">
+
+            ${response.totalBids}
+
+            </div>
+
+            </div>
+
+            </div>
+
+            </div>
+
+            <div class="col-md-3">
+
+            <div class="card summary-card">
+
+            <div class="card-body text-center">
+
+            <div class="summary-icon bg3">
+
+            <i class="fa fa-indian-rupee-sign"></i>
+
+            </div>
+
+            <div class="card-title-small">
+
+            Highest Bid
+
+            </div>
+
+            <div class="card-value"
+
+            id="highestBid">
+
+            ₹${response.highestBid}
+
+            </div>
+
+            </div>
+
+            </div>
+
+            </div>
+
+            <div class="col-md-3">
+
+            <div class="card summary-card">
+
+            <div class="card-body text-center">
+
+            <div class="summary-icon bg4">
+
+            <i class="fa fa-crown"></i>
+
+            </div>
+
+            <div class="card-title-small">
+
+            Highest Bidder
+
+            </div>
+
+            <div style="font-size:22px;font-weight:700"
+
+            id="highestBidder">
+
+            ${response.highestBidder}
+
+            </div>
+
+            </div>
+
+            </div>
+
+            </div>
+
+            </div>
+
+            <div class="section-card">
+
+            <div class="section-header">
+
+            <h5>
+
+            <i class="fa fa-images me-2"></i>
+
+            Auction Images
+
+            </h5>
+
+            </div>
+
+            <div class="section-body">
+
+            <div class="row">
+
+            ${imageHtml}
+
+            </div>
+
+            </div>
+
+            </div>
+
+            <div class="section-card">
+
+            <div class="section-header">
+
+            <h5>
+
+            <i class="fa fa-sliders me-2"></i>
+
+            Auction Settings
+
+            </h5>
+
+            </div>
+
+            <div class="section-body">
+
+            <div class="d-flex justify-content-between align-items-center">
+
+            <div>
+
+            <h6 class="mb-1">
+
+            Registration Required
+
+            </h6>
+
+            <small class="text-muted">
+
+            Enable registration before bidding.
+
+            </small>
+
+            </div>
+
+            <div class="form-check form-switch">
+
+            <input class="form-check-input"
+
+            type="checkbox"
+
+            id="registrationRequiredToggle"
+
+            ${auction.registrationRequired==1?"checked":""}
+
+            onchange="updateRegistrationRequired(${auction.auctionId},this)">
+
+            </div>
+
+            </div>
+
+            </div>
+
+            </div>
+                                    <div class="section-card">
+
+                                <div class="section-header">
+                                    <h5>
+                                        <i class="fa fa-circle-info me-2"></i>
+                                        Auction Information
+                                    </h5>
+                                </div>
+
+                                <div class="section-body">
+
+                                    <table class="table table-bordered info-table">
+
+                                        <tr>
+                                            <th>Auction ID</th>
+                                            <td>${auction.auctionId}</td>
+                                        </tr>
+
+                                        <tr>
+                                            <th>Item Title</th>
+                                            <td class="cell-wrap">${auction.itemTitle}</td>
+                                        </tr>
+
+                                        <tr>
+                                            <th>Description</th>
+                                            <td class="cell-wrap">${auction.itemDescription}</td>
+                                        </tr>
+
+                                        <tr>
+                                            <th>Seller</th>
+                                            <td class="cell-strong">${auction.user}</td>
+                                        </tr>
+
+                                        <tr>
+                                            <th>Condition</th>
+                                            <td>${auction.itemCondition}</td>
+                                        </tr>
+
+                                        <tr>
+                                            <th>Reserve Price</th>
+                                            <td class="cell-money">
+                                                <strong class="text-success">
+                                                    ₹${auction.reservePrice}
+                                                </strong>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <th>Minimum Deposit</th>
+                                            <td class="cell-money">₹${auction.minDeposite}</td>
+                                        </tr>
+
+                                        <tr>
+                                            <th>Location</th>
+                                            <td class="cell-wrap">${auction.itemLocation}</td>
+                                        </tr>
+
+                                        <tr>
+                                            <th>Start Time</th>
+                                            <td class="cell-date">${formatDateTime(auction.startTime)}</td>
+                                        </tr>
+
+                                        <tr>
+                                            <th>End Time</th>
+                                            <td class="cell-date">${formatDateTime(auction.endTime)}</td>
+                                        </tr>
+
+                                    </table>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="section-card">
+
+                                <div class="section-header d-flex justify-content-between align-items-center">
+
+                                    <h5>
+
+                                        <i class="fa fa-users me-2"></i>
+
+                                        Registered Participants
+
+                                    </h5>
+
+                                    <span class="badge bg-primary">
+
+                                        ${response.totalRegisteredUsers}
+
+                                    </span>
+
+                                </div>
+
+                                <div class="section-body">
+
+                                    <div class="table-responsive">
+
+                                        <table class="table table-hover align-middle">
+
+                                            <thead class="table-dark">
+
+                                                <tr>
+
+                                                    <th>Name</th>
+
+                                                    <th>Email</th>
+
+                                                    <th>Status</th>
+
+                                                </tr>
+
+                                            </thead>
+
+                                            <tbody>
+
+                                                ${participantRows}
+
+                                            </tbody>
+
+                                        </table>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div class="section-card">
+
+                                <div class="section-header d-flex justify-content-between align-items-center">
+
+                                    <h5>
+
+                                        <i class="fa fa-clock-rotate-left me-2"></i>
+
+                                        Latest Bids
+
+                                    </h5>
+
+                                    <span class="badge bg-success">
+
+                                        Live
+
+                                    </span>
+
+                                </div>
+
+                                <div class="section-body">
+
+                                    <div class="table-responsive">
+
+                                        <table class="table table-hover timeline-table">
+
+                                            <thead class="table-dark">
+
+                                                <tr>
+
+                                                    <th>Bidder</th>
+
+                                                    <th>Bid Amount</th>
+
+                                                    <th>Bid Time</th>
+
+                                                </tr>
+
+                                            </thead>
+
+                                            <tbody id="bidHistoryBody">
+
+                                                ${bidRows}
+
+                                            </tbody>
+
+                                        </table>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        `);
+
+                        joinAuctionGroup(auction.auctionId);
+
+
+                          startCountdown(auction.endTime);
+                    },
+
+                       error: function (xhr) {
+
+            console.log(xhr.status);
+            console.log(xhr.responseText);
+
+            $("#auctionDetailsBody").html(`
+                <div class="alert alert-danger">
+                    <h5>Failed to load auction details</h5>
+                    <p>Status: ${xhr.status}</p>
+                </div>
+            `);
+        }
+
+                });
+
+            }
+                    function updateRegistrationRequired(auctionId, toggle) {
+
+                const registrationRequired = toggle.checked ? 1 : 0;
+
+                $.ajax({
+
+                    url: `/api/Auction/UpdateRegistrationRequired?auctionId=${auctionId}&registrationRequired=${registrationRequired}`,
+                    type: "POST",
+
+                    success: function () {
+
+                        Swal.fire({
+                            icon: "success",
+                            title: "Updated",
+                            text: registrationRequired == 1
+                                ? "Registration is now required."
+                                : "Registration requirement removed.",
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
+
+                    },
+
+                    error: function () {
+
+                        toggle.checked = !toggle.checked;
+
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: "Failed to update registration setting."
+                        });
+
+                    }
+
+                });
+
+            }
+
+            function formatDateTime(dateString) {
+
+                if (!dateString)
+                    return "-";
+
+                return new Date(dateString).toLocaleString();
+
+            }
+
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl("/auctionHub")
+                .withAutomaticReconnect()
+                .build();
+
+            connection.start()
+                .then(function () {
+
+                    console.log("SignalR Connected");
+
+
+
+                })
+                .catch(function (err) {
+
+                    console.error(err);
+
+                });
+
+            connection.onclose(function () {
+
+                console.log("SignalR Closed");
+
+            });
+
+            connection.onreconnecting(function () {
+
+                console.log("Reconnecting...");
+
+            });
+
+            connection.onreconnected(function () {
+
+                console.log("Reconnected");
+
+                if (currentAuctionId > 0) {
+
+                    joinAuctionGroup(currentAuctionId);
+
+                }
+
+            });
+
+            function joinAuctionGroup(auctionId) {
+
+                currentAuctionId = auctionId;
+
+                connection.invoke("JoinAuction", auctionId)
+                    .then(function () {
+
+                        console.log("Joined Auction", auctionId);
+
+                    })
+                    .catch(function (err) {
+
+                        console.error(err);
+
+                    });
+
+            }
+
+
+
+            connection.on("RecentBidsUpdated", function (bids) {
+
+                if (!bids)
+                    return;
+
+                let html = "";
+
+                let highestBid = 0;
+
+                let highestBidder = "";
+
+                bids.forEach(function (bid) {
+
+                    html += `
+
+                        <tr>
+
+                            <td class="cell-strong">${bid.userName}</td>
+
+                            <td class="cell-money">
+
+                                <strong class="text-success">
+
+                                    ₹${bid.bidAmount}
+
+                                </strong>
+
+                            </td>
+
+                            <td class="cell-date">${formatDateTime(bid.bidTime)}</td>
+
+                        </tr>
+
+                    `;
+
+                    let amount = parseFloat(bid.bidAmount);
+
+                    if (amount > highestBid) {
+
+                        highestBid = amount;
+
+                        highestBidder = bid.userName;
+
+                    }
+
+                });
+
+                if (html == "") {
+
+                    html = `
+
+                        <tr>
+
+                            <td colspan="3"
+
+                                class="text-center">
+
+                                No bids available
+
+                            </td>
+
+                        </tr>
+
+                    `;
+
+                }
+
+                $("#bidHistoryBody").html(html);
+
+                $("#totalBids").text(bids.length);
+
+                $("#highestBid").text("₹" + highestBid);
+
+                $("#highestBidder").text(highestBidder);
+
+            });
+                    // ===============================
+            // LIVE STATUS
+            // ===============================
+
+            function getAuctionStatus(startTime, endTime) {
+
+                const now = new Date();
+
+                const start = new Date(startTime);
+
+                const end = new Date(endTime);
+
+                if (now < start)
+                    return {
+                        text: "Upcoming",
+                        class: "bg-warning text-dark"
+                    };
+
+                if (now >= start && now <= end)
+                    return {
+                        text: "Live",
+                        class: "bg-success"
+                    };
+
+                return {
+                    text: "Closed",
+                    class: "bg-secondary"
+                };
+
+            }
+
+
+            // ===============================
+            // COUNTDOWN
+            // ===============================
+
+            function startCountdown(endTime){
+
+                clearInterval(window.auctionTimer);
+
+                window.auctionTimer = setInterval(function(){
+
+                    let now = new Date().getTime();
+
+                    let end = new Date(endTime).getTime();
+
+                    let distance = end - now;
+
+                    if(distance <= 0){
+
+                        $("#auctionCountdown").html("Auction Closed");
+
+                        clearInterval(window.auctionTimer);
+
+                        return;
+
+                    }
+
+                    let days=Math.floor(distance/(1000*60*60*24));
+
+                    let hours=Math.floor((distance%(1000*60*60*24))/(1000*60*60));
+
+                    let mins=Math.floor((distance%(1000*60*60))/(1000*60));
+
+                    let secs=Math.floor((distance%(1000*60))/1000);
+
+                    $("#auctionCountdown").html(
+
+                        `${days}d ${hours}h ${mins}m ${secs}s`
+
+                    );
+
+                },1000);
+
+            }
+
+
+
+            // ===============================
+            // IMAGE PREVIEW
+            // ===============================
+
+            $(document).on("click",".gallery-image",function(){
+
+                let src=$(this).attr("src");
+
+                Swal.fire({
+
+                    imageUrl:src,
+
+                    imageWidth:900,
+
+                    showConfirmButton:false,
+
+                    width:'950px'
+
+                });
+
+            });
+
+
+
+
+
+
+
+            // ===============================
+            // PAGE ANIMATION
+            // ===============================
+
+            $(document).ajaxComplete(function(){
+
+                $(".summary-card").hide().fadeIn(400);
+
+                $(".section-card").hide().slideDown(300);
+
+            });
+
+
+
+
+
+
+
+            // ===============================
+            // WINDOW LEAVE
+            // ===============================
+
+            window.addEventListener("beforeunload",function(){
+
+                if(currentAuctionId>0){
+
+                    connection.invoke("LeaveAuction",currentAuctionId);
+
+                }
+
+            });
+
+
+</script>

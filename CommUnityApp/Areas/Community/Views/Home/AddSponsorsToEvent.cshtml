@@ -90,8 +90,9 @@
                 $("#SponsorId").html(html);
             },
             error: function (err) {
-                alert("Error loading sponsors");
-                console.log(err.responseText);
+                var message = err.responseText || "Unable to load sponsors";
+                $("#SponsorId").html("<option value=''>" + message + "</option>");
+                console.log(message);
             }
         });
     }

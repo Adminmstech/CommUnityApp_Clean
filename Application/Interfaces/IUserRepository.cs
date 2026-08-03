@@ -21,5 +21,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<UserCommunicationDto>> GetUsersForCommunicationAsync();
 
         Task<List<WalletTransactionModel>> GetUserWalletTransactions(Guid userId);
+        Task<GetProfileResponse> GetUserProfile(Guid userId);
+        Task<BaseResponse> EditUserProfile(EditProfile entity);
     }
 }

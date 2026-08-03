@@ -161,6 +161,11 @@ WHERE BrandGameID = @GameId;";
 
         public async Task<BaseResponse> TrackGameplayAsync(int gameId, Guid userId, string prizeType, bool isWinner, int? attemptNumber)
         {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var random = new Random();
+            var redeemCode = new string(Enumerable.Repeat(chars, 6)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+
             const string sql = @"
 
 INSERT INTO [dbo].[BrandGamePlayHistory]
@@ -169,7 +174,7 @@ INSERT INTO [dbo].[BrandGamePlayHistory]
     [UserId],
     [AttemptNumber],
     [PrizeType],
-    [IsWinner]
+    [IsWinner],redeemCode
 )
 VALUES
 (
@@ -177,7 +182,7 @@ VALUES
     @UserId,
     @AttemptNumber,
     @PrizeType,
-    @IsWinner
+    @IsWinner,@redeemCode
 );";
 
             using var con = Connection;
@@ -187,13 +192,14 @@ VALUES
                 UserId = userId,
                 AttemptNumber = attemptNumber,
                 PrizeType = prizeType,
-                IsWinner = isWinner
+                IsWinner = isWinner,
+                redeemCode= redeemCode
             });
 
             return new BaseResponse
             {
                 ResultId = affected > 0 ? 1 : 0,
-                ResultMessage = affected > 0 ? "Gameplay tracked successfully." : "Gameplay tracking failed."
+                ResultMessage = redeemCode
             };
         }
 

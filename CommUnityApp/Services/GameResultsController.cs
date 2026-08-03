@@ -1,7 +1,6 @@
 ﻿using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using Microsoft.AspNetCore.Mvc;
-using CommUnityApp.ApplicationCore.Models;
 
 
 namespace CommUnityApp.Services
@@ -40,6 +39,32 @@ namespace CommUnityApp.Services
                 data = result.Data,
                 totalCount = result.Total
             });
+        }
+
+        [HttpGet("GetQuizRankings")]
+        public async Task<IActionResult> GetQuizRankings(string? quizType = null, int? quizId = null)
+        {
+            try
+            {
+                var result = await _gameResultsRepository.GetQuizRankings(quizType, quizId);
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Success",
+                    Status = true,
+                    Data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
         }
 
        

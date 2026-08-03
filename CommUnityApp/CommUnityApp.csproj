@@ -8,19 +8,17 @@
 
   <ItemGroup>
     <Content Remove="Areas\Community\Views\Home\CharityDeliveryReport.cshtml" />
+    <Content Remove="wwwroot\Uploads\charity\(13, 20260331-1EE264)\**" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.1.0" />
     <PackageReference Include="Dapper" Version="2.1.72" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR" Version="1.2.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.12" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.12">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.OpenApi" Version="2.4.1" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.23" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
     <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
     <PackageReference Include="QRCoder" Version="1.7.0" />
@@ -40,6 +38,7 @@
 
   <ItemGroup>
     <_ContentIncludedByDefault Remove="Areas\Community\Views\Home\CharityDeliveryReport.cshtml" />
+    <_ContentIncludedByDefault Remove="wwwroot\Uploads\charity\(13, 20260331-1EE264)\**" />
   </ItemGroup>
 
   <ItemGroup>

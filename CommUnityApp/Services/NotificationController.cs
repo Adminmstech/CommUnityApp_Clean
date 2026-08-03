@@ -221,20 +221,20 @@ namespace CommUnityApp.Services
             return Ok(res);
         }
 
-        //[HttpGet("GetPostDetails")]
-        //public async Task<IActionResult> GetPostDetails(int postId)
-        //{
-        //    var data = await _notificationRepository.GetMessageBoardPosts();
+        [HttpGet("GetPostDetails")]
+        public async Task<IActionResult> GetPostDetails(int postId)
+        {
+            var data = await _notificationRepository.GetMessageBoardPosts(Guid.Empty);
 
-        //    var post = data.FirstOrDefault(x => x.PostId == postId);
+            var post = data.FirstOrDefault(x => x.PostId == postId);
 
-        //    return Ok(post);
-        //}
+            return Ok(post);
+        }
 
         [HttpGet("GetTopFiveMessageBoardPosts")]
-        public async Task<IActionResult> GetTopFiveMessageBoardPosts(Guid userId)
+        public async Task<IActionResult> GetTopFiveMessageBoardPosts(Guid UserId)
         {
-            var data = await _notificationRepository.GetTopFiveMessageBoardPosts(userId);
+            var data = await _notificationRepository.GetTopFiveMessageBoardPosts(UserId);
 
             return Ok(new
             {

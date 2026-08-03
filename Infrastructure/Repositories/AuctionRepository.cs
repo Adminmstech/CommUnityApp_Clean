@@ -9,6 +9,7 @@ using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using static CommUnityApp.ApplicationCore.Models.BidRegistrationUserModel;
 
 namespace CommUnityApp.InfrastructureLayer.Repositories
 {
@@ -22,24 +23,49 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             
         }
 
-        public Task<int> AddAsync(Auction entity)
+        public async Task<int> AddAsync(Auction entity)
         {
-            throw new NotImplementedException();
+            var result = await SaveAuction(entity);
+            return result?.ResultId ?? 0;
         }
 
-        public Task<int> DeleteAsync(int id)
+        public async Task<int> DeleteAsync(int id)
         {
-            throw new NotImplementedException();
+            var result = await DeleteAuction(id);
+            return result?.ResultId ?? 0;
         }
 
-        public Task<IReadOnlyList<Auction>> GetAllAsync()
+        public async Task<IReadOnlyList<Auction>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryAsync<Auction>(
+                "Get_All_Auctions",
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result.ToList();
         }
 
-        public Task<Auction> GetByIdAsync(int id)
+        public async Task<Auction> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryFirstOrDefaultAsync<Auction>(
+                "Get_AuctionById",
+                new { AuctionId = id },
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result;
         }
 
         public async Task<BaseResponse> SaveAuction(Auction entity)
@@ -93,9 +119,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result.ToList();
         }
 
-        public Task<int> UpdateAsync(Auction entity)
+        public async Task<int> UpdateAsync(Auction entity)
         {
-            throw new NotImplementedException();
+            var result = await SaveAuction(entity);
+            return result?.ResultId ?? 0;
         }
 
 
@@ -299,7 +326,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         }
 
 
-        public async Task<AuctionWinnerSellerDetailsResponse> GetAuctionWinnerSellerDetailsAsync(Guid userId)
+        public async Task<List<AuctionWinnerSellerDetailsResponse>> GetAuctionWinnerSellerDetailsAsync(Guid userId)
         {
             using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection")
@@ -312,13 +339,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
            
             parameters.Add("@UserId", userId);
 
-            var result = await connection.QueryFirstOrDefaultAsync<AuctionWinnerSellerDetailsResponse>(
-                "Get_AuctionWinnerSellerDetails",
-                parameters,
-                commandType: CommandType.StoredProcedure
+            var result = await connection.QueryAsync<AuctionWinnerSellerDetailsResponse>("Get_AuctionWinnerSellerDetails", parameters, commandType: CommandType.StoredProcedure
             );
 
-            return result;
+            return result.ToList();
         }
 
         public async Task DeleteAuctionImages(int auctionId)
@@ -416,5 +440,43 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result.FirstOrDefault();
         }
+
+        public async Task<AuctionParticipantDetailsModel> GetAuctionParticipantDetails(int auctionId, Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@AuctionId", auctionId);
+            parameters.Add("@UserId", userId);
+
+            var result = await connection.QueryAsync<AuctionParticipantDetailsModel>(
+                "Get_AuctionParticipantDetails",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return result.FirstOrDefault();
+        }
+
+
+        public async Task<bool> CheckUserAuctionParticipation(int auctionId, Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@AuctionId", auctionId);
+            parameters.Add("@UserId", userId);
+
+            var result = await connection.QueryFirstOrDefaultAsync<AuctionParticipationModel>(
+                "Check_UserAuctionParticipation",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return result?.IsParticipant ?? false;
+        }
+
     }
 }

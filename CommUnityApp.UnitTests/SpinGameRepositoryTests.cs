@@ -123,7 +123,7 @@ namespace CommUnityApp.UnitTests
             _mockDapper.Verify(d => d.QueryFirstOrDefaultAsync<BaseResponse>(
                 _mockConnection.Object,
                 "sp_AddSpinGame",
-                It.Is<object>(p => (int)p.GetType().GetProperty("GameId").GetValue(p) == 0 && (int)p.GetType().GetProperty("CreatedByAdminId").GetValue(p) == 1),
+                It.Is<object>(p => (int)p.GetType().GetProperty("BusinessId").GetValue(p) == 1 && (int)p.GetType().GetProperty("CreatedByAdminId").GetValue(p) == 1),
                 _mockTransaction.Object,
                 It.IsAny<int?>(),
                 CommandType.StoredProcedure), Times.Once);
@@ -131,7 +131,7 @@ namespace CommUnityApp.UnitTests
             _mockDapper.Verify(d => d.QueryFirstOrDefaultAsync<BaseResponse>(
                 _mockConnection.Object,
                 "sp_AddSpinGameConfig",
-                It.Is<object>(p => (int)p.GetType().GetProperty("ConfigId").GetValue(p) == 0),
+                It.Is<object>(p => (int)p.GetType().GetProperty("MaxSpinsPerDay").GetValue(p) == 1),
                 _mockTransaction.Object,
                 It.IsAny<int?>(),
                 CommandType.StoredProcedure), Times.Once);

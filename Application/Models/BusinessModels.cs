@@ -105,7 +105,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string? OwnerName { get; set; }
 
         public string? BusinessEmail { get; set; }
-
+        
         public string? Phone { get; set; }
 
         public string? Address { get; set; }

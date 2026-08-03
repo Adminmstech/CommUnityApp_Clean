@@ -1,0 +1,358 @@
+@{
+    ViewData["Title"] = "Gameplays & Winners";
+    Layout = "AdminLayout";
+}
+
+<style>
+    .ranking-toolbar {
+        display: grid;
+        grid-template-columns: minmax(180px, 220px) minmax(120px, 160px) auto auto 1fr;
+        gap: 12px;
+        align-items: end;
+    }
+
+    .winner-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 14px;
+    }
+
+    .winner-card {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--surface);
+        padding: 16px;
+    }
+
+    .winner-rank {
+        width: 42px;
+        height: 42px;
+        border-radius: 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #fef3c7;
+        color: #92400e;
+        font-weight: 800;
+    }
+
+    .stat-line {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 12px;
+    }
+
+    .stat-pill {
+        border-radius: 999px;
+        background: #f3f4f6;
+        color: #374151;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .empty-state {
+        min-height: 180px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        color: var(--text-muted);
+    }
+
+    .loading-row {
+        height: 140px;
+    }
+
+    @@media (max-width: 992px) {
+        .ranking-toolbar {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .ranking-toolbar {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="container-fluid">
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <h4 class="mb-0">
+                    <i class="fa-solid fa-trophy me-2"></i>
+                    Gameplays & Winners
+                </h4>
+                <span class="badge bg-info" id="totalPlayersBadge">0 Players</span>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="ranking-toolbar">
+                <div>
+                    <label class="form-label fw-bold">Quiz Type</label>
+                    <select id="quizType" class="form-select">
+                        <option value="">All Quiz Types</option>
+                        <option value="Smart Quiz">Smart Quiz</option>
+                        <option value="Text Quiz">Text Quiz</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="form-label fw-bold">Quiz Id</label>
+                    <input id="quizId" type="number" min="1" class="form-control" placeholder="All" />
+                </div>
+
+                <button class="btn btn-primary" type="button" onclick="loadRankings()">
+                    <i class="fa-solid fa-filter me-1"></i>
+                    Apply
+                </button>
+
+                <button class="btn btn-secondary" type="button" onclick="resetFilters()">
+                    <i class="fa-solid fa-rotate-right me-1"></i>
+                    Reset
+                </button>
+
+                <div class="text-end text-muted small" id="lastUpdated"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h4 class="mb-0">
+                <i class="fa-solid fa-medal me-2 text-warning"></i>
+                Winners
+            </h4>
+        </div>
+        <div class="card-body">
+            <div id="winnerGrid" class="winner-grid"></div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h4 class="mb-0">
+                <i class="fa-solid fa-users me-2"></i>
+                Player Rankings
+            </h4>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Rank</th>
+                            <th>Quiz Type</th>
+                            <th>Quiz Id</th>
+                            <th>Player</th>
+                            <th>Email</th>
+                            <th>Correct</th>
+                            <th>Answered</th>
+                            <th>Duration</th>
+                            <th>Finished At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="playersTableBody">
+                        <tr>
+                            <td colspan="9" class="text-center text-muted loading-row">
+                                Loading gameplay results...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            loadRankings();
+
+            $("#quizId").on("keydown", function (e) {
+                if (e.key === "Enter") {
+                    loadRankings();
+                }
+            });
+        });
+
+        function loadRankings() {
+            const quizType = $("#quizType").val();
+            const quizId = $("#quizId").val();
+            const params = new URLSearchParams();
+
+            if (quizType) {
+                params.append("quizType", quizType);
+            }
+
+            if (quizId) {
+                params.append("quizId", quizId);
+            }
+
+            $("#playersTableBody").html(`
+                <tr>
+                    <td colspan="9" class="text-center text-muted loading-row">
+                        Loading gameplay results...
+                    </td>
+                </tr>`);
+
+            $("#winnerGrid").html(`
+                <div class="empty-state">
+                    <i class="fa-solid fa-spinner fa-spin fa-2x"></i>
+                    <span>Loading winners...</span>
+                </div>`);
+
+            $.ajax({
+                url: "/api/GameResults/GetQuizRankings" + (params.toString() ? "?" + params.toString() : ""),
+                type: "GET",
+                success: function (res) {
+                    if (res.status || res.Status) {
+                        const data = res.data || res.Data || {};
+                        bindWinners(data.winners || data.Winners || []);
+                        bindPlayers(data.players || data.Players || []);
+                        $("#lastUpdated").text("Updated " + new Date().toLocaleString());
+                    }
+                    else {
+                        showError(res.resultMessage || res.ResultMessage || "Unable to load gameplay results.");
+                    }
+                },
+                error: function (xhr) {
+                    const message = xhr.responseJSON?.resultMessage ||
+                        xhr.responseJSON?.ResultMessage ||
+                        "Unable to load gameplay results.";
+
+                    showError(message);
+                }
+            });
+        }
+
+        function bindWinners(winners) {
+            if (!winners || winners.length === 0) {
+                $("#winnerGrid").html(`
+                    <div class="empty-state">
+                        <i class="fa-regular fa-circle-question fa-2x"></i>
+                        <span>No winners found for the selected filters.</span>
+                    </div>`);
+                return;
+            }
+
+            let html = "";
+
+            $.each(winners, function (_, item) {
+                html += `
+                    <div class="winner-card">
+                        <div class="d-flex align-items-start justify-content-between gap-3">
+                            <div>
+                                <div class="cell-muted">${escapeHtml(item.quizType)} #${item.quizId}</div>
+                                <div class="cell-strong mt-1">${escapeHtml(item.fullName)}</div>
+                                <div class="cell-muted">${escapeHtml(item.email)}</div>
+                            </div>
+                            <div class="winner-rank">#${item.winnerRank || item.rankNo}</div>
+                        </div>
+
+                        <div class="stat-line">
+                            <span class="stat-pill">${item.correctAnswerCount} Correct</span>
+                            <span class="stat-pill">${item.answeredCount} Answered</span>
+                            <span class="stat-pill">${formatDuration(item.duration)}</span>
+                        </div>
+                    </div>`;
+            });
+
+            $("#winnerGrid").html(html);
+        }
+
+        function bindPlayers(players) {
+            $("#totalPlayersBadge").text((players?.length || 0) + " Players");
+
+            if (!players || players.length === 0) {
+                $("#playersTableBody").html(`
+                    <tr>
+                        <td colspan="9" class="text-center text-muted loading-row">
+                            No player results found.
+                        </td>
+                    </tr>`);
+                return;
+            }
+
+            let html = "";
+
+            $.each(players, function (_, item) {
+                html += `
+                    <tr>
+                        <td><span class="badge bg-info">#${item.rankNo}</span></td>
+                        <td>${escapeHtml(item.quizType)}</td>
+                        <td>${item.quizId}</td>
+                        <td>
+                            <div class="cell-strong">${escapeHtml(item.fullName)}</div>
+                            <div class="cell-muted">${escapeHtml(item.userId)}</div>
+                        </td>
+                        <td>${escapeHtml(item.email)}</td>
+                        <td>${item.correctAnswerCount}</td>
+                        <td>${item.answeredCount}</td>
+                        <td>${formatDuration(item.duration)}</td>
+                        <td class="cell-date">${formatDate(item.endTime)}</td>
+                    </tr>`;
+            });
+
+            $("#playersTableBody").html(html);
+        }
+
+        function resetFilters() {
+            $("#quizType").val("");
+            $("#quizId").val("");
+            loadRankings();
+        }
+
+        function showError(message) {
+            $("#winnerGrid").html(`
+                <div class="empty-state text-danger">
+                    <i class="fa-solid fa-triangle-exclamation fa-2x"></i>
+                    <span>${escapeHtml(message)}</span>
+                </div>`);
+
+            $("#playersTableBody").html(`
+                <tr>
+                    <td colspan="9" class="text-center text-danger loading-row">
+                        ${escapeHtml(message)}
+                    </td>
+                </tr>`);
+        }
+
+        function formatDate(value) {
+            if (!value) {
+                return "";
+            }
+
+            return new Date(value).toLocaleString();
+        }
+
+        function formatDuration(value) {
+            const totalSeconds = Number(value || 0);
+
+            if (totalSeconds < 60) {
+                return totalSeconds + " sec";
+            }
+
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+
+            return minutes + "m " + seconds + "s";
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+}

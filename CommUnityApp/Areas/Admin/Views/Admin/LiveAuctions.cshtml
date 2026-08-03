@@ -32,7 +32,7 @@
             </div>
 
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle admin-table">
                     <thead class="table-dark">
                         <tr>
                             <th>Item</th>
@@ -188,27 +188,27 @@
                 tbody.append(`
                     <tr>
 
-                        <td>
+                        <td class="cell-wrap">
                             <strong>${item.itemTitle || ''}</strong>
                         </td>
 
-                        <td>${item.userName || ''}</td>
+                        <td class="cell-strong">${item.userName || ''}</td>
 
                         <td>${item.itemCondition || '-'}</td>
 
-                        <td>₹${item.reservePrice || 0}</td>
+                        <td class="cell-money">₹${item.reservePrice || 0}</td>
 
-                        <td>₹${item.minDeposite || 0}</td>
+                        <td class="cell-money">₹${item.minDeposite || 0}</td>
 
-                        <td>${formatDateTime(item.startTime)}</td>
+                        <td class="cell-date">${formatDateTime(item.startTime)}</td>
 
-                        <td>${formatDateTime(item.endTime)}</td>
+                        <td class="cell-date">${formatDateTime(item.endTime)}</td>
 
-                        <td>${item.itemLocation || '-'}</td>
+                        <td class="cell-wrap">${item.itemLocation || '-'}</td>
 
                         <td>${statusBadge}</td>
 
-                        <td>
+                        <td class="cell-actions">
                             <button class="btn btn-primary btn-sm"
                                     onclick="viewDetails(${item.auctionId})">
                                 <i class="fa fa-eye"></i> Details
@@ -279,7 +279,7 @@
 
                     participantsHtml += `
                         <tr>
-                            <td>${user.userName}</td>
+                            <td class="cell-strong">${user.userName}</td>
                             <td>${user.email || ''}</td>
                             <td>
                                 <span class="badge bg-success">
@@ -299,12 +299,21 @@
 
                     bidHistoryHtml += `
                         <tr>
-                            <td>${bid.userName}</td>
-                            <td>₹${bid.bidAmount}</td>
-                            <td>${formatDateTime(bid.bidTime)}</td>
+                            <td class="cell-strong">${bid.userName}</td>
+                            <td class="cell-money">₹${bid.bidAmount}</td>
+                            <td class="cell-date">${formatDateTime(bid.bidTime)}</td>
                         </tr>
                     `;
                 });
+            }
+            else {
+                bidHistoryHtml = `
+                    <tr>
+                        <td colspan="3" class="text-center py-4">
+                            No bids available.
+                        </td>
+                    </tr>
+                `;
             }
 
             $("#auctionDetailsBody").html(`
@@ -380,7 +389,7 @@
 
             </div>
         </div>
-                <table class="table table-bordered">
+                <table class="table table-bordered info-table">
 
                     <tr>
                         <th>Item Title</th>
@@ -553,9 +562,9 @@
 
                 html += `
                     <tr>
-                        <td>${bid.userName}</td>
-                        <td>₹${bid.bidAmount}</td>
-                        <td>${formatDateTime(bid.bidTime)}</td>
+                        <td class="cell-strong">${bid.userName}</td>
+                        <td class="cell-money">₹${bid.bidAmount}</td>
+                        <td class="cell-date">${formatDateTime(bid.bidTime)}</td>
                     </tr>
                 `;
             });

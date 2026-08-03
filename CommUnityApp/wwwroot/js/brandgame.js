@@ -150,7 +150,7 @@ function bindGameForm(data) {
 function loadGameForEdit(brandGameId) {
     if (!brandGameId) return;
 
-    const detailsUrl = `/Business/Game/Details/${brandGameId}`;
+    const detailsUrl = `/Admin/Game/Details/${brandGameId}`;
     console.log('Loading game for edit, URL:', detailsUrl);
     
     $.getJSON(detailsUrl)
@@ -470,7 +470,7 @@ function goToTab(nextTabId) {
     $nextBtn.prop('disabled', true).html('<i class="fa-solid fa-spinner fa-spin me-1"></i> Saving...');
 
     $.ajax({
-        url: '/Business/Game/AjaxSave',
+        url: '/Admin/Game/AjaxSave',
         type: 'POST',
         data: formData,
         processData: false,

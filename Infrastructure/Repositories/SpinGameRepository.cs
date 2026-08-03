@@ -16,10 +16,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
     {
         private readonly Func<IDbConnection> _connectionFactory;
         private readonly IDapperWrapper _dapper; // New dependency
-        private readonly IConfiguration _configuration;
+        private readonly IConfiguration? _configuration;
 
 
-        public SpinGameRepository(Func<IDbConnection> connectionFactory, IDapperWrapper dapper, IConfiguration configuration) // Modified constructor
+        public SpinGameRepository(Func<IDbConnection> connectionFactory, IDapperWrapper dapper, IConfiguration? configuration = null) // Modified constructor
         {
             _connectionFactory = connectionFactory;
             _dapper = dapper; // Initialize new dependency
@@ -163,10 +163,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                             {
                                 sectionModel.GameId,
                                 sectionModel.SectionNumber,
-                                sectionModel.Points,
-                                sectionModel.PromotionId,
+                                sectionModel.SectionImage,
                                 sectionModel.PrizeText,
-                                sectionModel.Color
+                                sectionModel.Color,
+                                //IsActive = true
                             };
                         }
                         else
@@ -176,8 +176,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                 sectionModel.SectionId,
                                 sectionModel.GameId,
                                 sectionModel.SectionNumber,
-                                sectionModel.Points,
-                                sectionModel.PromotionId,
+                                sectionModel.SectionImage,
                                 sectionModel.PrizeText,
                                 sectionModel.Color,
                                 IsActive = true
@@ -226,9 +225,20 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             using var con = Connection;
             return await _dapper.QueryAsync<SpinSectionRequest>(
                 con,
-                @"SELECT SectionId, GameId, SectionNumber, Points, PromotionId, PrizeText, Color 
+                @"SELECT SectionId, GameId, SectionNumber, Points, PromotionId, PrizeText, Color, SectionImage 
                   FROM SpinSection WHERE GameId = @GameId ORDER BY SectionNumber",
                 new { GameId = gameId }
+            );
+        }
+
+        public async Task<SpinSectionRequest?> GetSectionByIdAsync(int sectionId)
+        {
+            using var con = Connection;
+            return await _dapper.QueryFirstOrDefaultAsync<SpinSectionRequest>(
+                con,
+                @"SELECT SectionId, GameId, SectionNumber, Points, PromotionId, PrizeText, Color, SectionImage
+                  FROM SpinSection WHERE SectionId = @SectionId",
+                new { SectionId = sectionId }
             );
         }
 
@@ -236,7 +246,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         {
             using var con = Connection;
             object parameters;
-            
+
             if (model.ConfigId == 0)
             {
                 parameters = new
@@ -368,31 +378,34 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         public async Task<PlaySpinResponse> PlaySpinGameAsync(PlaySpinRequest request)
         {
             using var con = Connection;
-            
+
             // Validate game
             var game = await GetSpinGameByIdAsync(request.GameId);
             if (game == null || !game.IsActive)
-                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "Game not found or inactive." };
+                return new PlaySpinResponse { ResultId = 0, ResultMessage = "Game not found or inactive." };
 
             // Optional: validate config (IsActive, date range)
             var config = await GetConfigByIdAsync(game.ConfigId);
             if (config == null || !config.IsActive || config.GameStartDate > DateTime.Now || config.GameEndDate < DateTime.Now)
             {
-                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "Game configuration is invalid or expired." };
+                return new PlaySpinResponse { ResultId = 0, ResultMessage = "Game configuration is invalid or expired." };
             }
 
             // Fetch sections
             var sections = await GetSectionsByGameIdAsync(request.GameId);
             if (sections == null || !sections.Any())
-                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "No sections configured for this game." };
+                return new PlaySpinResponse { ResultId = 0, ResultMessage = "No sections configured for this game." };
 
             // Validate and select the section provided in the request
             var selectedSection = sections.FirstOrDefault(s => s.SectionId == request.SectionId);
             if (selectedSection == null)
             {
-                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "Invalid section or section does not belong to this game." };
+                return new PlaySpinResponse { ResultId = 0, ResultMessage = "Invalid section or section does not belong to this game." };
             }
-
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            var random = new Random();
+            var redeemCode = new string(Enumerable.Repeat(chars, 6)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
             // Insert into GameSpin (using the entity name as table name, common in this project schema e.g., SpinGame, SpinSection)
             var gameSpin = new CommUnityApp.Domain.Entities.GameSpin
             {
@@ -400,12 +413,13 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 SpinDate = DateTime.Now,
                 SelectedSectionId = selectedSection.SectionId,
                 PointsAwarded = selectedSection.Points,
-                PromotionId = selectedSection.PromotionId
+                PromotionId = selectedSection.PromotionId,
+                redeemCode = redeemCode
             };
 
             var insertQuery = @"
-                INSERT INTO GameSpins (UserId, SpinDate, SelectedSectionId, PointsAwarded, PromotionId)
-                VALUES (@UserId, @SpinDate, @SelectedSectionId, @PointsAwarded, @PromotionId);
+                INSERT INTO GameSpins (UserId, SpinDate, SelectedSectionId, PointsAwarded, PromotionId,RedeemCode)
+                VALUES (@UserId, @SpinDate, @SelectedSectionId, @PointsAwarded, @PromotionId,@redeemCode);
                 SELECT CAST(SCOPE_IDENTITY() as int);";
 
             try
@@ -418,7 +432,14 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     ResultId = 1,
                     ResultMessage = "Spin played successfully.",
                     SelectedSection = selectedSection,
-                    CoinsEarned = game.RewardCoins
+                    CoinsEarned = game.RewardCoins,
+                    GameResultId = spinId,
+                    GameId = request.GameId,
+                    SectionId = selectedSection.SectionId,
+                    RewardValue = selectedSection.PrizeText,
+                    RedeemCode = redeemCode,
+                    Status = "Success",
+                    PlayedAt = gameSpin.SpinDate
                 };
             }
             catch (Exception ex)
@@ -464,7 +485,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         public async Task AddSpinGameRewardCoinsAsync(Guid userId, int coins, int gameId)
         {
             using var connection = new SqlConnection(
-                _configuration.GetConnectionString("DefaultConnection"));
+                _configuration?.GetConnectionString("DefaultConnection")
+                    ?? throw new InvalidOperationException("DefaultConnection is not configured."));
 
             await connection.OpenAsync();
 
@@ -479,7 +501,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-      
+
     }
 }
 

@@ -2,7 +2,146 @@
 @{
     ViewData["Title"] = Model.GameId > 0 ? "Edit Spin Game" : "Create Spin Game";
     Layout = "AdminLayout";
+
+    var firstConfig = (Model.Configs != null && Model.Configs.Count > 0) ? Model.Configs[0] : null;
+    var isEditMode = Model.GameId > 0 && firstConfig != null;
+    var serializedFirstConfig = firstConfig != null ? System.Text.Json.JsonSerializer.Serialize(firstConfig) : "null";
+    
+    // Default wheel section colors, cycled by section index when no color is set yet.
+    string[] defaultSectionColors = new[]
+    {
+        "#3498db", "#e74c3c", "#2ecc71", "#f39c12",
+        "#9b59b6", "#1abc9c", "#e67e22", "#34495e",
+        "#f1c40f", "#16a085", "#d35400", "#8e44ad"
+    };
+
+    // Default prize text, cycled by section index when no prize text is set yet.
+    string[] defaultPrizeTexts = new[]
+    {
+        "10% Off", "Free Item", "Try Again", "20% Off",
+        "Grand Prize", "Free Shipping", "5% Off", "Bonus Points",
+        "Buy 1 Get 1", "No Prize", "15% Off", "Mystery Gift"
+    };
 }
+
+<style>
+    :root {
+        --spin-primary: #6c5ce7;
+        --spin-primary-dark: #5a4bd6;
+        --spin-accent: #ffb400;
+    }
+
+    /* ---- Tab bar theme (forced horizontal, independent of Bootstrap load order) ---- */
+    #gameTabs {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap;
+        align-items: stretch;
+        list-style: none;
+        margin: 0;
+        background: #f1f2f9;
+        padding: .5rem .5rem 0 .5rem;
+        gap: .25rem;
+    }
+
+        #gameTabs .nav-item {
+            display: inline-flex;
+            flex: 0 0 auto;
+        }
+
+        #gameTabs .nav-link {
+            display: inline-flex !important;
+            align-items: center;
+            width: auto;
+            white-space: nowrap;
+            border: none;
+            border-radius: 12px 12px 0 0;
+            color: #6b7280;
+            background: transparent;
+            position: relative;
+            transition: all .2s ease;
+        }
+
+            #gameTabs .nav-link i {
+                color: #9ca3af;
+                transition: color .2s ease;
+            }
+
+            #gameTabs .nav-link:hover {
+                color: var(--spin-primary-dark);
+                background: rgba(108, 92, 231, 0.08);
+            }
+
+                #gameTabs .nav-link:hover i {
+                    color: var(--spin-primary-dark);
+                }
+
+            #gameTabs .nav-link.active {
+                color: #fff;
+                background: linear-gradient(135deg, var(--spin-primary), var(--spin-primary-dark));
+                box-shadow: 0 -2px 10px rgba(108, 92, 231, 0.35);
+            }
+
+                #gameTabs .nav-link.active i {
+                    color: #fff;
+                }
+
+                #gameTabs .nav-link.active::after {
+                    content: "";
+                    position: absolute;
+                    left: 50%;
+                    bottom: -1px;
+                    transform: translateX(-50%);
+                    width: 40%;
+                    height: 3px;
+                    background: var(--spin-accent);
+                    border-radius: 3px;
+                }
+
+    .tab-content {
+        background: #fff;
+    }
+
+    /* ---- Section image cell ---- */
+    .section-img-cell {
+        display: flex;
+        align-items: center;
+        gap: .5rem;
+        flex-wrap: wrap;
+    }
+
+    .section-img-preview {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid #e5e7eb;
+        background: #f8f9fa;
+    }
+
+    .section-img-input {
+        max-width: 150px;
+        font-size: .8rem;
+    }
+
+    #sectionsTable thead.table-dark th {
+        background: linear-gradient(135deg, var(--spin-primary), var(--spin-primary-dark));
+        border: none;
+    }
+
+    .section-field-error {
+        display: block;
+        font-size: .75rem;
+        color: #dc3545;
+        margin-top: .25rem;
+        width: 100%;
+    }
+
+    #sectionsBody tr.table-danger .section-img-preview,
+    #sectionsBody tr.table-danger .form-control {
+        border-color: #dc3545;
+    }
+</style>
 
 <div class="container-fluid">
     <div class="d-flex align-items-center mb-4">
@@ -28,7 +167,7 @@
         <input type="hidden" asp-for="BusinessId" name="BusinessId" />
         <input type="hidden" asp-for="ConfigId" name="ConfigId" />
         <input type="hidden" asp-for="CreatedByAdminId" name="CreatedByAdminId" value="1" />
-        
+
         <!-- Config hidden fields for model binding -->
         <input type="hidden" name="Configs[0].ConfigId" id="ConfigId" class="config-input" />
         <input type="hidden" name="Configs[0].MaxSpinsPerDay" id="MaxSpinsPerDay" class="config-input" value="5" />
@@ -61,13 +200,13 @@
                     <div class="row g-4">
                         <div class="col-md-8">
                             <label asp-for="GameName" class="form-label fw-600 fs-5">Game Name *</label>
-                            <input asp-for="GameName" name="GameName" id="GameName" class="form-control form-control-lg" data-val="true" data-val-required="Game Name is required." data-val-length="Game Name must be between 3 and 100 characters." data-val-length-min="3" data-val-length-max="100" />
+                            <input asp-for="GameName" name="GameName" value="@Model.GameName" id="GameName" class="form-control form-control-lg" data-val="true" data-val-required="Game Name is required." data-val-length="Game Name must be between 3 and 100 characters." data-val-length-min="3" data-val-length-max="100" />
                             <span asp-validation-for="GameName" class="text-danger"></span>
                         </div>
                         <div class="col-md-4 form-group">
                             <label asp-for="IsActive" class="form-label fw-600">Status</label>
                             <div class="form-check mt-2">
-                                <input asp-for="IsActive" name="IsActive" id="IsActive" value="true" class="form-check-input" type="checkbox" checked />
+                                <input asp-for="IsActive" name="IsActive" id="IsActive" value="true" class="form-check-input" type="checkbox" />
                                 <label class="form-check-label fw-600" for="IsActive">
                                     Active Game
                                 </label>
@@ -75,7 +214,7 @@
                         </div>
                         <div class="col-12 form-group">
                             <label asp-for="Description" class="form-label fw-600">Description</label>
-                            <textarea asp-for="Description" name="Description" id="Description" class="form-control" rows="4" data-val="true" data-val-length-max="500" data-val-length="Description cannot exceed 500 characters." ></textarea>
+                            <textarea asp-for="Description"  name="Description" id="Description" class="form-control" rows="4" data-val="true" data-val-length-max="500" data-val-length="Description cannot exceed 500 characters.">@Model.Description</textarea>
                             <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
                         <div class="col-12 form-group">
@@ -106,12 +245,12 @@
                         </div>
                         <div class="col-md-6 form-group">
                             <label class="form-label fw-600">Game Start Date</label>
-                            <input type="date" class="form-control config-input" id="GameStartDateVisible" data-val="true" data-val-date="Must be a valid date." />
+                            <input type="date" value="@(firstConfig != null ? firstConfig.GameStartDate.ToString("yyyy-MM-dd") : "")" class="form-control config-input" id="GameStartDateVisible" data-val="true" data-val-date="Must be a valid date." />
                             <span class="text-danger field-error" data-field="startdate"></span>
                         </div>
                         <div class="col-md-6 form-group">
                             <label class="form-label fw-600">Game End Date *</label>
-                            <input type="date" class="form-control config-input" id="GameEndDateVisible" data-val="true" data-val-required="End date is required." data-val-date="Must be a valid date." />
+                            <input type="date" value="@(firstConfig != null ? firstConfig.GameEndDate.ToString("yyyy-MM-dd") : "")" class="form-control config-input" id="GameEndDateVisible" data-val="true" data-val-required="End date is required." data-val-date="Must be a valid date." />
                             <span class="text-danger field-error" data-field="enddate"></span>
                         </div>
                         <div class="col-12 form-group">
@@ -138,40 +277,50 @@
                                 <tr>
                                     <th>#</th>
                                     <th>Section #</th>
-                                    <th>Points (optional)</th>
-                                    <th>Promotion ID (optional)</th>
+                                    <th>Image *</th>
                                     <th>Prize Text *</th>
                                     <th>Color</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody id="sectionsBody">
-                                @for (int i = 0; i < Model.Sections.Count; i++)
+                                @if (Model.Sections != null)
                                 {
-                                    var section1 = Model.Sections[i];
-                                    <tr data-section-id="@section1.SectionId">
-                                        <td class="display-idx">@(i + 1)</td>
-                                        <td class="display-secnum">@section1.SectionNumber</td>
-                                        <td>
-                                            <input type="hidden" name="Sections[@i].SectionId" value="@section1.SectionId" class="sec-id-input" />
-                                            <input type="hidden" name="Sections[@i].SectionNumber" value="@section1.SectionNumber" class="sec-num-input" />
-                                            <input type="number" name="Sections[@i].Points" class="form-control points-input" value="@section1.Points" min="0" />
-                                        </td>
-                                        <td><input type="number" name="Sections[@i].PromotionId" class="form-control promo-input" value="@section1.PromotionId" min="0" /></td>
-                                        <td><input type="text" name="Sections[@i].PrizeText" class="form-control text-input" value="@section1.PrizeText" data-val="true" data-val-required="Prize text is required." /></td>
-                                        <td><input type="color" name="Sections[@i].Color" class="form-control color-input" value="@section1.Color" /></td>
-                                        <td>
-                                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteSection(this)">
-                                                <i class="fa-solid fa-trash"></i>
-                                            </button>
-                                        </td>
-                                    </tr>
+                                    @for (int i = 0; i < Model.Sections.Count; i++)
+                                    {
+                                        var section1 = Model.Sections[i];
+                                        <tr data-section-id="@section1.SectionId">
+                                            <td class="display-idx">@(i + 1)</td>
+                                            <td class="display-secnum">@section1.SectionNumber</td>
+                                            <td>
+                                                <input type="hidden" name="Sections[@i].SectionId" value="@section1.SectionId" class="sec-id-input" />
+                                                <input type="hidden" name="Sections[@i].SectionNumber" value="@section1.SectionNumber" class="sec-num-input" />
+                                                <div class="section-img-cell">
+                                                    <img src="@(string.IsNullOrEmpty(section1.SectionImage) ? "" : section1.SectionImage)"
+                                                         class="section-img-preview @(string.IsNullOrEmpty(section1.SectionImage) ? "d-none" : "")" />
+                                                    <input type="hidden" name="Sections[@i].SectionImage" value="@section1.SectionImage" class="sec-img-hidden" />
+                                                    <input type="file" name="Sections[@i].SectionImageFile" class="form-control form-control-sm section-img-input" accept="image/*" />
+                                                    <span class="section-field-error img-error"></span>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <input type="text" name="Sections[@i].PrizeText" class="form-control text-input" value="@(string.IsNullOrWhiteSpace(section1.PrizeText) ? defaultPrizeTexts[i % defaultPrizeTexts.Length] : section1.PrizeText)" data-val="true" data-val-required="Prize text is required." />
+                                                <span class="section-field-error prize-error"></span>
+                                            </td>
+                                            <td><input type="color" name="Sections[@i].Color" class="form-control color-input" value="@(string.IsNullOrWhiteSpace(section1.Color) ? defaultSectionColors[i % defaultSectionColors.Length] : section1.Color)" /></td>
+                                            <td>
+                                                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteSection(this)">
+                                                    <i class="fa-solid fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
                                 }
                             </tbody>
                         </table>
                     </div>
                     <div id="sectionsError" class="alert alert-danger mt-3" style="display:none;">
-                        Please fix section errors and ensure at least 4 sections.
+                        Please fix section errors and ensure at least 4 sections, each with a prize text and image.
                     </div>
                 </div>
             </div>
@@ -197,219 +346,313 @@
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")
     <script>
-let sectionCounter = @(Model.Sections.Count > 0 ? Model.Sections.Count : 0);
+        let sectionCounter = @(Model.Sections?.Count ?? 0) || 0;
 
-function addSection() {
-    sectionCounter++;
-    const tbody = document.getElementById('sectionsBody');
-    const idx = tbody.children.length;
-    const row = `
-        <tr data-section-id="0">
-            <td class="display-idx">${sectionCounter}</td>
-            <td class="display-secnum">${sectionCounter}</td>
-            <td>
-                <input type="hidden" name="Sections[${idx}].SectionId" value="0" class="sec-id-input" />
-                <input type="hidden" name="Sections[${idx}].SectionNumber" value="${sectionCounter}" class="sec-num-input" />
-                <input type="number" name="Sections[${idx}].Points" class="form-control points-input" value="0" min="0" />
-            </td>
-            <td><input type="number" name="Sections[${idx}].PromotionId" class="form-control promo-input" value="" min="0" /></td>
-            <td><input type="text" name="Sections[${idx}].PrizeText" class="form-control text-input" value="Try Again" data-val="true" data-val-required="Prize text is required." /></td>
-            <td><input type="color" name="Sections[${idx}].Color" class="form-control color-input" value="#3498db" /></td>
-            <td>
-                <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteSection(this)">
-                    <i class="fa-solid fa-trash"></i>
-                </button>
-            </td>
-        </tr>`;
-    tbody.insertAdjacentHTML('beforeend', row);
-    // Revalidate sections after add
-    validateSections();
-}
+        // Keep in sync with defaultSectionColors on the server side
+        const defaultSectionColors = [
+            '#3498db', '#e74c3c', '#2ecc71', '#f39c12',
+            '#9b59b6', '#1abc9c', '#e67e22', '#34495e',
+            '#f1c40f', '#16a085', '#d35400', '#8e44ad'
+        ];
 
-function deleteSection(btn) {
-    if (confirm('Delete this section?')) {
-        btn.closest('tr').remove();
-        reindexSections();
-        validateSections();
-    }
-}
+        // Keep in sync with defaultPrizeTexts on the server side
+        const defaultPrizeTexts = [
+            '10% Off', 'Free Item', 'Try Again', '20% Off',
+            'Grand Prize', 'Free Shipping', '5% Off', 'Bonus Points',
+            'Buy 1 Get 1', 'No Prize', '15% Off', 'Mystery Gift'
+        ];
 
-function reindexSections() {
-    const rows = document.querySelectorAll('#sectionsBody tr');
-    rows.forEach((row, index) => {
-        row.querySelector('.display-idx').textContent = index + 1;
-        row.querySelector('.display-secnum').textContent = index + 1;
-        
-        row.querySelector('.sec-id-input').name = `Sections[${index}].SectionId`;
-        const secNumInput = row.querySelector('.sec-num-input');
-        secNumInput.name = `Sections[${index}].SectionNumber`;
-        secNumInput.value = index + 1;
-        
-        row.querySelector('.points-input').name = `Sections[${index}].Points`;
-        row.querySelector('.promo-input').name = `Sections[${index}].PromotionId`;
-        row.querySelector('.text-input').name = `Sections[${index}].PrizeText`;
-        row.querySelector('.color-input').name = `Sections[${index}].Color`;
-    });
-    sectionCounter = rows.length;
-}
-
-function validateSections() {
-    const rows = document.querySelectorAll('#sectionsBody tr');
-    let valid = rows.length >= 4;
-    rows.forEach(row => {
-        const prizeInput = row.querySelector('.text-input');
-
-        if (!prizeInput.value.trim()) {
-            valid = false;
-            row.classList.add('table-danger');
-        } else {
-            row.classList.remove('table-danger');
-        }
-    });
-    const errorDiv = document.getElementById('sectionsError');
-    if (!valid) {
-        errorDiv.style.display = 'block';
-    } else {
-        errorDiv.style.display = 'none';
-    }
-    return valid;
-}
-
-function syncConfigFields() {
-    document.getElementById('ConfigId').value = @Model.ConfigId;
-    document.getElementById('MaxSpinsPerDay').value = document.getElementById('MaxSpinsPerDayVisible').value;
-    document.getElementById('NumberOfSections').value = document.getElementById('NumberOfSectionsVisible').value;
-    document.getElementById('GameStartDate').value = document.getElementById('GameStartDateVisible').value;
-    document.getElementById('GameEndDate').value = document.getElementById('GameEndDateVisible').value;
-    document.getElementById('ConfigIsActive').value = document.getElementById('ConfigActive').checked;
-}
-
-$(document).ready(function() {
-    // Initialize visible config fields if editing
-    if (@Model.GameId > 0 && @Model.Configs.Count > 0) {
-        const config = @Html.Raw(Json.Serialize(Model.Configs[0]));
-        $('#MaxSpinsPerDayVisible').val(config.MaxSpinsPerDay);
-        $('#NumberOfSectionsVisible').val(config.NumberOfSections);
-        if (config.GameStartDate) {
-            $('#GameStartDateVisible').val(new Date(config.GameStartDate).toISOString().split('T')[0]);
-        }
-        if (config.GameEndDate) {
-            $('#GameEndDateVisible').val(new Date(config.GameEndDate).toISOString().split('T')[0]);
-        }
-        $('#ConfigActive').prop('checked', config.IsActive);
-        syncConfigFields(); // Sync initial values to hidden fields
-    }
-
-    // Tab navigation wizard logic
-    const tabs = ['#game-tab', '#config-tab', '#sections-tab'];
-    let currentTabId = 0;
-
-    function updateWizardButtons() {
-        if (currentTabId === 0) {
-            $('.btn-prev').addClass('d-none');
-        } else {
-            $('.btn-prev').removeClass('d-none');
+        function addSection() {
+            sectionCounter++;
+            const tbody = document.getElementById('sectionsBody');
+            const idx = tbody.children.length;
+            const defaultColor = defaultSectionColors[idx % defaultSectionColors.length];
+            const defaultPrize = defaultPrizeTexts[idx % defaultPrizeTexts.length];
+            const row = `
+                <tr data-section-id="0">
+                    <td class="display-idx">${sectionCounter}</td>
+                    <td class="display-secnum">${sectionCounter}</td>
+                    <td>
+                        <input type="hidden" name="Sections[${idx}].SectionId" value="0" class="sec-id-input" />
+                        <input type="hidden" name="Sections[${idx}].SectionNumber" value="${sectionCounter}" class="sec-num-input" />
+                        <div class="section-img-cell">
+                            <img src="" class="section-img-preview d-none" />
+                            <input type="hidden" name="Sections[${idx}].SectionImage" value="" class="sec-img-hidden" />
+                            <input type="file" name="Sections[${idx}].SectionImageFile" class="form-control form-control-sm section-img-input" accept="image/*" />
+                            <span class="section-field-error img-error"></span>
+                        </div>
+                    </td>
+                    <td>
+                        <input type="text" name="Sections[${idx}].PrizeText" class="form-control text-input" value="${defaultPrize}" data-val="true" data-val-required="Prize text is required." />
+                        <span class="section-field-error prize-error"></span>
+                    </td>
+                    <td><input type="color" name="Sections[${idx}].Color" class="form-control color-input" value="${defaultColor}" /></td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteSection(this)">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            tbody.insertAdjacentHTML('beforeend', row);
+            // Revalidate sections after add
+            validateSections();
         }
 
-        if (currentTabId === tabs.length - 1) {
-            $('.btn-next').addClass('d-none');
-            $('.btn-save').removeClass('d-none');
-        } else {
-            $('.btn-next').removeClass('d-none');
-            $('.btn-save').addClass('d-none');
-        }
-    }
-
-    $('.btn-next').click(function() {
-        if (currentTabId < tabs.length - 1) {
-            currentTabId++;
-            $(tabs[currentTabId]).tab('show');
-            updateWizardButtons();
-        }
-    });
-
-    $('.btn-prev').click(function() {
-        if (currentTabId > 0) {
-            currentTabId--;
-            $(tabs[currentTabId]).tab('show');
-            updateWizardButtons();
-        }
-    });
-
-    $('#gameTabs button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
-        currentTabId = tabs.indexOf('#' + $(e.target).attr('id'));
-        updateWizardButtons();
-    });
-
-    updateWizardButtons();
-
-    // Custom validator methods
-    $.validator.addMethod('dateCompare', function(value, element, params) {
-        const startDate = new Date($(params.start).val());
-        const endDate = new Date(value);
-        return endDate >= startDate;
-    }, 'End date must be after or same as start date.');
-
-    // Initialize validator
-    const validator = $('#spinGameForm').validate({
-        rules: {
-            'Configs[0].GameEndDate': {
-                dateCompare: { start: '#GameStartDateVisible' }
+        function deleteSection(btn) {
+            if (confirm('Delete this section?')) {
+                btn.closest('tr').remove();
+                reindexSections();
+                validateSections();
             }
-        },
-        messages: {},
-        errorClass: 'text-danger',
-        validClass: 'text-success',
-        errorPlacement: function(error, element) {
-            error.insertAfter(element);
-        },
-        invalidHandler: function(event, validator) {
-            const invalidTabs = {};
-            validator.errorList.forEach(err => {
-                const field = $(err.element);
-                const tabId = field.closest('.tab-pane').attr('id');
-                if (tabId) invalidTabs[tabId] = true;
+        }
+
+        function reindexSections() {
+            const rows = document.querySelectorAll('#sectionsBody tr');
+            rows.forEach((row, index) => {
+                row.querySelector('.display-idx').textContent = index + 1;
+                row.querySelector('.display-secnum').textContent = index + 1;
+
+                row.querySelector('.sec-id-input').name = `Sections[${index}].SectionId`;
+                const secNumInput = row.querySelector('.sec-num-input');
+                secNumInput.name = `Sections[${index}].SectionNumber`;
+                secNumInput.value = index + 1;
+
+                row.querySelector('.sec-img-hidden').name = `Sections[${index}].SectionImage`;
+                row.querySelector('.section-img-input').name = `Sections[${index}].SectionImageFile`;
+                row.querySelector('.text-input').name = `Sections[${index}].PrizeText`;
+                row.querySelector('.color-input').name = `Sections[${index}].Color`;
             });
-            // Activate first invalid tab
-            Object.keys(invalidTabs)[0] && $(`#${Object.keys(invalidTabs)[0]}-tab`).tab('show');
-        },
-        submitHandler: function(form) {
-            syncConfigFields();
-            if (validateSections()) {
-                reindexSections(); // Ensure indices are sequential before submit
-                form.submit();
+            sectionCounter = rows.length;
+        }
+
+        function validateSections() {
+            const rows = document.querySelectorAll('#sectionsBody tr');
+            let valid = rows.length >= 4;
+
+            rows.forEach(row => {
+                let rowValid = true;
+
+                // Prize text required
+                const prizeInput = row.querySelector('.text-input');
+                const prizeError = row.querySelector('.prize-error');
+                if (!prizeInput.value.trim()) {
+                    rowValid = false;
+                    prizeError.textContent = 'Prize text is required.';
+                } else {
+                    prizeError.textContent = '';
+                }
+
+                // Image required: either an existing image path or a newly selected file
+                const imgHidden = row.querySelector('.sec-img-hidden');
+                const imgFile = row.querySelector('.section-img-input');
+                const imgError = row.querySelector('.img-error');
+                const hasExistingImage = imgHidden && imgHidden.value.trim().length > 0;
+                const hasNewFile = imgFile && imgFile.files && imgFile.files.length > 0;
+                if (!hasExistingImage && !hasNewFile) {
+                    rowValid = false;
+                    imgError.textContent = 'Image is required.';
+                } else {
+                    imgError.textContent = '';
+                }
+
+                if (!rowValid) {
+                    valid = false;
+                    row.classList.add('table-danger');
+                } else {
+                    row.classList.remove('table-danger');
+                }
+            });
+
+            const errorDiv = document.getElementById('sectionsError');
+            if (!valid) {
+                errorDiv.style.display = 'block';
             } else {
-                $('#sections-tab').tab('show');
-                return false;
+                errorDiv.style.display = 'none';
             }
+            return valid;
         }
-    });
 
-    // Event listeners for real-time sync and validation
-    $('.config-input').on('change input', function() {
-        syncConfigFields();
-    });
-
-    $('#NumberOfSectionsVisible').on('change', function() {
-        const num = parseInt(this.value) || 8;
-        const tbody = document.getElementById('sectionsBody');
-        while (tbody.children.length < num) addSection();
-        while (tbody.children.length > num && tbody.children.length > 4) {  // Don't delete below min
-            tbody.removeChild(tbody.lastChild);
+        function syncConfigFields() {
+            document.getElementById('ConfigId').value = @Model.ConfigId;
+            document.getElementById('MaxSpinsPerDay').value = document.getElementById('MaxSpinsPerDayVisible').value;
+            document.getElementById('NumberOfSections').value = document.getElementById('NumberOfSectionsVisible').value;
+            document.getElementById('GameStartDate').value = document.getElementById('GameStartDateVisible').value;
+            document.getElementById('GameEndDate').value = document.getElementById('GameEndDateVisible').value;
+            document.getElementById('ConfigIsActive').value = document.getElementById('ConfigActive').checked ? 'true' : 'false';
         }
-        sectionCounter = tbody.children.length;
-    });
 
-    // Initial sections validation
-    if (document.getElementById('sectionsBody').children.length > 0) {
-        validateSections();
-    }
+        // Live preview for section image uploads + immediate re-validation
+        $(document).on('change', '.section-img-input', function () {
+            const file = this.files && this.files[0];
+            const cell = $(this).closest('.section-img-cell');
+            const preview = cell.find('.section-img-preview');
+            const hiddenImage = cell.find('.sec-img-hidden');
 
-    // Points and promo number validation (basic HTML5)
-    $(document).on('input', '.points-input, .promo-input', function() {
-        if (this.value < 0) this.value = 0;
-    });
-});
+            if (file) {
+                // New file selected for this section: clear existing image path so backend
+                // cleanly treats this as replacement, then preview the selected file.
+                hiddenImage.val('');
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    preview.attr('src', e.target.result).removeClass('d-none');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                // If no file selected, preserve existing hidden value for edit rows.
+                // For new rows hidden value stays empty, preview should be hidden.
+                const existing = (hiddenImage.val() || '').trim();
+                if (existing) {
+                    preview.attr('src', existing).removeClass('d-none');
+                } else {
+                    preview.attr('src', '').addClass('d-none');
+                }
+            }
+            validateSections();
+        });
+
+        // Re-validate as prize text is typed
+        $(document).on('input', '.text-input', function () {
+            validateSections();
+        });
+
+        $(document).ready(function () {
+            // Some admin themes only reveal pre-filled text (floating labels, etc.)
+            // once an 'input'/'change' event fires. Nudge every text field that
+            // already has a server-rendered value so the theme's own JS notices it.
+            $('input.form-control, textarea.form-control').each(function () {
+                if ($(this).val()) {
+                    $(this).trigger('input').trigger('change');
+                }
+            });
+
+            // Initialize visible config fields if editing
+            if (@Html.Raw(isEditMode ? "true" : "false")) {
+                const config = @Html.Raw(serializedFirstConfig);
+                $('#MaxSpinsPerDayVisible').val(config.MaxSpinsPerDay);
+                $('#NumberOfSectionsVisible').val(config.NumberOfSections);
+                if (config.GameStartDate) {
+                    $('#GameStartDateVisible').val(new Date(config.GameStartDate).toISOString().split('T')[0]);
+                }
+                if (config.GameEndDate) {
+                    $('#GameEndDateVisible').val(new Date(config.GameEndDate).toISOString().split('T')[0]);
+                }
+                $('#ConfigActive').prop('checked', config.IsActive);
+                syncConfigFields(); // Sync initial values to hidden fields
+            }
+
+            // Tab navigation wizard logic
+            const tabs = ['#game-tab', '#config-tab', '#sections-tab'];
+            let currentTabId = 0;
+
+            function updateWizardButtons() {
+                if (currentTabId === 0) {
+                    $('.btn-prev').addClass('d-none');
+                } else {
+                    $('.btn-prev').removeClass('d-none');
+                }
+
+                if (currentTabId === tabs.length - 1) {
+                    $('.btn-next').addClass('d-none');
+                    $('.btn-save').removeClass('d-none');
+                } else {
+                    $('.btn-next').removeClass('d-none');
+                    $('.btn-save').addClass('d-none');
+                }
+            }
+
+            $('.btn-next').click(function () {
+                if (currentTabId < tabs.length - 1) {
+                    currentTabId++;
+                    $(tabs[currentTabId]).tab('show');
+                    updateWizardButtons();
+                }
+            });
+
+            $('.btn-prev').click(function () {
+                if (currentTabId > 0) {
+                    currentTabId--;
+                    $(tabs[currentTabId]).tab('show');
+                    updateWizardButtons();
+                }
+            });
+
+            $('#gameTabs button[data-bs-toggle="tab"]').on('shown.bs.tab', function (e) {
+                currentTabId = tabs.indexOf('#' + $(e.target).attr('id'));
+                updateWizardButtons();
+            });
+
+            updateWizardButtons();
+
+            // Custom validator methods
+            $.validator.addMethod('dateCompare', function (value, element, params) {
+                const startDate = new Date($(params.start).val());
+                const endDate = new Date(value);
+                return endDate >= startDate;
+            }, 'End date must be after or same as start date.');
+
+            // Initialize validator
+            const validator = $('#spinGameForm').validate({
+                rules: {
+                    'Configs[0].GameEndDate': {
+                        dateCompare: { start: '#GameStartDateVisible' }
+                    }
+                },
+                messages: {},
+                errorClass: 'text-danger',
+                validClass: 'text-success',
+                errorPlacement: function (error, element) {
+                    error.insertAfter(element);
+                },
+                invalidHandler: function (event, validator) {
+                    const invalidTabs = {};
+                    validator.errorList.forEach(err => {
+                        const field = $(err.element);
+                        const tabId = field.closest('.tab-pane').attr('id');
+                        if (tabId) invalidTabs[tabId] = true;
+                    });
+                    // Activate first invalid tab
+                    Object.keys(invalidTabs)[0] && $('#' + Object.keys(invalidTabs)[0] + '-tab').tab('show');
+                },
+                submitHandler: function (form) {
+                    syncConfigFields();
+                    if (validateSections()) {
+                        reindexSections(); // Ensure indices are sequential before submit
+                        form.submit();
+                    } else {
+                        $('#sections-tab').tab('show');
+                        return false;
+                    }
+                }
+            });
+
+            // Event listeners for real-time sync and validation
+            $('.config-input').on('change input', function () {
+                syncConfigFields();
+            });
+
+            $('#NumberOfSectionsVisible').on('change', function () {
+                const num = parseInt(this.value) || 8;
+                const tbody = document.getElementById('sectionsBody');
+                while (tbody.children.length < num) addSection();
+                while (tbody.children.length > num && tbody.children.length > 4) {  // Don't delete below min
+                    tbody.removeChild(tbody.lastChild);
+                }
+                sectionCounter = tbody.children.length;
+            });
+
+            // For a brand-new game with no sections yet, pre-fill the default
+            // number of sections so colors and prize text are set on load.
+            if (document.getElementById('sectionsBody').children.length === 0) {
+                const defaultCount = parseInt($('#NumberOfSectionsVisible').val(), 10) || 8;
+                for (let n = 0; n < defaultCount; n++) {
+                    addSection();
+                }
+            }
+
+            // Initial sections validation
+            if (document.getElementById('sectionsBody').children.length > 0) {
+                validateSections();
+            }
+        });
     </script>
 }
-

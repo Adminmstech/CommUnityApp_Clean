@@ -14,5 +14,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<(IEnumerable<dynamic> Data, int Total)> GetSpinGameResults(int page, int size, string search);
         Task<bool> AssignPrize(AssignPrizeModel model);
+
+        Task<QuizRankingResult> GetQuizRankings(string? quizType, int? quizId);
     }
 }

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using System;
 
 namespace CommUnityApp.ApplicationCore.Models
@@ -33,8 +34,10 @@ namespace CommUnityApp.ApplicationCore.Models
         public int SectionNumber { get; set; }
         public int? Points { get; set; }
         public int? PromotionId { get; set; }
-        public string? Color { get; set; } = "#3498db";
-        public string? PrizeText { get; set; } = "Try Again";
+        public string? Color { get; set; } 
+        public string? PrizeText { get; set; } 
+        public string? SectionImage { get; set; }       // saved relative path, e.g. "/images/spingames/sections/xxx.jpg"
+        public IFormFile? SectionImageFile { get; set; } // the uploaded file, not persisted directly 
     }
 
     public class AddUpdateSpinGameRequest
@@ -65,8 +68,14 @@ namespace CommUnityApp.ApplicationCore.Models
         public int ResultId { get; set; }
         public string ResultMessage { get; set; } = string.Empty;
         public SpinSectionRequest? SelectedSection { get; set; }
-
         public int CoinsEarned { get; set; }
+        public int GameResultId { get; set; }
+        public int GameId { get; set; }
+        public int SectionId { get; set; }
+        public string? RewardValue { get; set; }
+        public string? RedeemCode { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public DateTime PlayedAt { get; set; }
     }
     public class GameSpinResultDto
     {

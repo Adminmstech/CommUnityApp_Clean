@@ -308,49 +308,70 @@ namespace CommUnityApp.Services
         [HttpGet("Get_AuctionByAuctionId")]
         public async Task<IActionResult> AuctionByIdWithImages_Edit(int AuctionId, Guid? userId = null)
         {
-            // Step 1: Get auction(s)
-            var auctions = await _unitOfWork.Auction.GetAuctionAuctionId(AuctionId, userId = null);
+            var auctions = await _unitOfWork.Auction.GetAuctionAuctionId(AuctionId, userId);
 
-            var combinedAuctions = new List<AuctionWithImagesModel>();
-
-            foreach (var auction in auctions)
+            if (auctions == null || !auctions.Any())
             {
-                // Step 2: Get images
-                var images = await _unitOfWork.Auction.GetAuctionImages(auction.AuctionId);
-
-                // Step 3: Combine
-                var auctionDetails = new AuctionWithImagesModel
+                return Ok(new
                 {
-                    AuctionId = auction.AuctionId,
-                    BusinessId = auction.BusinessId,
-                    UserId = auction.UserId,
-                    User = auction.User,
-                    ItemTypeId = auction.ItemTypeId,
-                    ItemTitle = auction.ItemTitle,
-                    ItemDescription = auction.ItemDescription,
-                    ItemCondition = auction.ItemCondition,
-                    PriceIncrement = auction.PriceIncrement,
-                    ReservePrice = auction.ReservePrice,
-                    MinDeposite = auction.MinDeposite,
-                    StartTime = auction.StartTime,
-                    EndTime = auction.EndTime,
-                    ItemLocation = auction.ItemLocation,
-                    DeleveryMethodId = auction.DeleveryMethodId,
-                    AuctionStatus = auction.AuctionStatus,
-                    CreatedBy = auction.CreatedBy,
-                    IsRegistered = auction.IsRegistered,
-                    RegistrationRequired=auction.RegistrationRequired,
-                    CreatedAt = auction.CreatedAt,
-                    TimeZoneId = auction.TimeZoneId,
-
-                    // ✅ FIXED HERE
-                    Images = images
-                };
-
-                combinedAuctions.Add(auctionDetails);
+                    ResultId = 0,
+                    ResultMessage = "Auction not found"
+                });
             }
 
-            return Ok(combinedAuctions);
+            var auction = auctions.First();
+
+            var images = await _unitOfWork.Auction.GetAuctionImages(auction.AuctionId);
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+
+                Auction = new
+                {
+                    auction.AuctionId,
+                    auction.BusinessId,
+                    auction.UserId,
+                    auction.User,
+                    auction.ItemTypeId,
+                    auction.ItemTitle,
+                    auction.ItemDescription,
+                    auction.ItemCondition,
+                    auction.PriceIncrement,
+                    auction.ReservePrice,
+                    auction.MinDeposite,
+                    auction.StartTime,
+                    auction.EndTime,
+                    auction.ItemLocation,
+                    auction.DeleveryMethodId,
+                    auction.AuctionStatus,
+                    auction.CreatedBy,
+                    auction.RegistrationRequired,
+                    auction.RegistrationStartDate,
+                    auction.RegistrationEndDate,
+                    auction.TimeZoneId,
+                    auction.CreatedAt,
+                    auction.IsRegistered,
+                    Images = images
+                },
+
+                Winner = auction.WinnerDeclared == true
+                    ? new
+                    {
+                        auction.WinnerUserId,
+                        auction.WinnerName,
+                        auction.WinnerFirstName,
+                        auction.WinnerLastName,
+                        auction.WinnerEmail,
+                        auction.WinnerMobile,
+                        auction.WinnerProfileImage,
+                        auction.WinningBidAmount,
+                        auction.WinnerDeclared,
+                        auction.WinnerDeclaredOn
+                    }
+                    : null
+            });
         }
 
         [HttpGet("Get_AuctionByCategoryId")]
@@ -624,15 +645,14 @@ namespace CommUnityApp.Services
             var data = await _unitOfWork.Auction.GetAdminLiveAuctionsAsync();
             return Ok(data);
         }
-
-        [HttpGet("Get_AuctionWinnerSellerDetails")]
-        public async Task<IActionResult> GetAuctionWinnerSellerDetails( Guid userId)
+        [HttpGet("Get_UserParticipatedAuctions")]
+        public async Task<IActionResult> GetAuctionWinnerSellerDetails(Guid userId)
         {
             try
             {
-                var result = await _unitOfWork.Auction.GetAuctionWinnerSellerDetailsAsync( userId);
+                var auctions = await _unitOfWork.Auction.GetAuctionWinnerSellerDetailsAsync(userId);
 
-                if (result == null)
+                if (auctions == null || !auctions.Any())
                 {
                     return Ok(new BaseResponse
                     {
@@ -641,7 +661,12 @@ namespace CommUnityApp.Services
                     });
                 }
 
-                return Ok(result);
+                foreach (var auction in auctions)
+                {
+                    auction.Images = await _unitOfWork.Auction.GetAuctionImages(auction.AuctionId);
+                }
+
+                return Ok(auctions);
             }
             catch (Exception ex)
             {
@@ -812,6 +837,87 @@ namespace CommUnityApp.Services
                     registrationRequired);
 
             return Ok(result);
+        }
+
+        [HttpPost("Get_AuctionParticipantDetails")]
+        public async Task<IActionResult> Get_AuctionParticipantDetails(int auctionId, Guid userId)
+        {
+            var result = await _unitOfWork.Auction.GetAuctionParticipantDetails(auctionId,userId);
+
+            return Ok(result);
+        }
+
+
+        [HttpGet("Get_AuctionTransactionDetails")]
+        public async Task<IActionResult> Get_AuctionTransactionDetails(int auctionId, Guid userId)
+        {
+            try
+            {
+                // Check whether the user is Seller/Winner
+                var participant = await _unitOfWork.Auction
+                    .GetAuctionParticipantDetails(auctionId, userId);
+
+                if (participant == null || participant.ResultId != 1)
+                {
+                    return Ok(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "You are not associated with this auction.",
+                        Auction = Array.Empty<object>(),
+                        Participant = Array.Empty<object>()
+                    });
+                }
+
+                // Get auction details
+                var auctions = await _unitOfWork.Auction.GetAuctionAuctionId(auctionId, userId);
+
+                if (auctions == null || !auctions.Any())
+                {
+                    return Ok(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Auction not found.",
+                        Auction = Array.Empty<object>(),
+                        Participant = Array.Empty<object>()
+                    });
+                }
+
+                var auction = auctions.First();
+                var images = await _unitOfWork.Auction.GetAuctionImages(auctionId);
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Success",
+
+                    Auction = new[]
+                    {
+                new
+                {
+                    auction.AuctionId,
+                    auction.BusinessId,
+                    auction.UserId,
+                    auction.User,
+                    auction.ItemTitle,
+                    auction.ItemDescription,
+                    auction.ReservePrice,
+                    auction.StartTime,
+                    auction.EndTime,
+                    Images = images
+                }
+            },
+
+                    Participant = new[] { participant }
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message
+                });
+            }
         }
     }
 }

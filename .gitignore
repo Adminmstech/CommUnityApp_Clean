@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /CommUnityApp/wwwroot/Images/brandgames
 *.sql
+/CommUnityApp/wwwroot/Images/spingames

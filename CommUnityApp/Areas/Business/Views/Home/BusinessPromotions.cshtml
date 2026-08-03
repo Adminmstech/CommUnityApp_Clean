@@ -1,392 +1,186 @@
-﻿@{
+@{
     ViewData["Title"] = "My Promotions";
     Layout = "_BusinessLayout";
 }
 
 <div class="container-fluid">
-
     <div class="d-flex justify-content-between align-items-center mb-4">
-
         <h3 class="mb-0">
-            <i class="fa fa-tags me-2"></i>
-            My Promotions
+            <i class="fa-solid fa-tags me-2"></i>
+            Promotions
         </h3>
 
-        <a href="/Business/Home/AddPromotion"
-           class="btn btn-primary">
-            <i class="fa fa-plus me-1"></i>
+        <a href="/Business/Home/AddPromotion" class="btn btn-primary">
+            <i class="fa-solid fa-plus me-1"></i>
             Add Promotion
         </a>
-
     </div>
 
-    <div class="card shadow border-0">
-
+    <div class="card">
         <div class="card-body">
-
             <div class="table-responsive">
-
-                <table class="table table-bordered table-hover align-middle">
-
-                    <thead class="table-dark">
-
+                <table class="table table-hover align-middle">
+                    <thead>
                         <tr>
                             <th>#</th>
-                            <th>Promotion Image</th>
-                            <th>Promotion Title</th>
-                            <th>Featured Products</th>
-                            <th>Offer Headline</th>
+                            <th>Image</th>
+                            <th>Promotion</th>
+                            <th>Products</th>
+                            <th>Offer</th>
                             <th>Price</th>
-                            <th>Coins Earned</th>
+                            <th>Coins</th>
                             <th>Friend Reward</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th style="min-width:120px;">QR Code</th>
+                            <th>Start</th>
+                            <th>End</th>
+                            <th>QR Code</th>
                             <th>Status</th>
-                            <th width="220">Actions</th>
+                            <th>Actions</th>
                         </tr>
-
                     </thead>
-
                     <tbody id="promotionTableBody">
-
                         <tr>
-                            <td colspan="11" class="text-center">
-                                Loading Promotions...
-                            </td>
+                            <td colspan="13" class="text-center p-4">Loading promotions...</td>
                         </tr>
-
                     </tbody>
-
                 </table>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
 
-<!-- QR Modal -->
-
-<div class="modal fade"
-     id="qrModal"
-     tabindex="-1">
-
+<div class="modal fade" id="qrModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-
         <div class="modal-content">
-
             <div class="modal-header bg-primary text-white">
-
-                <h5 class="modal-title">
-                    Promotion QR Code
-                </h5>
-
-                <button type="button"
-                        class="btn-close btn-close-white"
-                        data-bs-dismiss="modal">
-                </button>
-
+                <h5 class="modal-title">Promotion QR Code</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-
             <div class="modal-body text-center">
-
-                <img id="qrPreview"
-                     class="img-fluid rounded shadow" />
-
+                <img id="qrPreview" class="img-fluid rounded shadow" />
             </div>
-
         </div>
-
     </div>
-
 </div>
 
 @section Scripts {
-
     <script>
-
         const businessId = @ViewBag.BusinessId;
 
-        $(document).ready(function () {
+        $(document).ready(loadPromotions);
 
-            loadPromotions();
-
-        });
+        function imagePath(path) {
+            if (!path) return "/images/no-image.png";
+            if (path.startsWith("http") || path.startsWith("/")) return path;
+            return "/" + path;
+        }
 
         function loadPromotions() {
-
             $.ajax({
-
-                url: '/api/product/Get_BusinessPromotions?businessId=' + businessId,
-
-                type: 'GET',
-
+                url: "/api/Product/Get_BusinessPromotions?businessId=" + encodeURIComponent(businessId),
+                type: "GET",
                 success: function (response) {
-
-                    bindPromotions(response);
-
+                    bindPromotions(businessUi.list(response));
                 },
-
                 error: function () {
-
-                    Swal.fire(
-                        "Error",
-                        "Failed to load promotions",
-                        "error"
-                    );
+                    $("#promotionTableBody").html(businessUi.error(13, "Failed to load promotions."));
                 }
             });
         }
 
         function bindPromotions(data) {
-
-            let html = '';
-
-            if (!data || data.length === 0) {
-
-                html = `
-                <tr>
-                    <td colspan="13" class="text-center">
-                        No promotions found.
-                    </td>
-                </tr>
-                `;
-
-                $("#promotionTableBody").html(html);
+            if (!data.length) {
+                $("#promotionTableBody").html(businessUi.empty(13, "No promotions found."));
                 return;
             }
 
-            data.forEach(function (item, index) {
+            const rows = data.map((item, index) => {
+                const promotionImage = imagePath(item.promotionImage);
+                const qrImage = imagePath(item.qrCodeImage);
+                const title = businessUi.escape(item.promotionTitle || "-");
+                const product = businessUi.escape(item.featuredProducts || item.productName || "-");
+                const offer = businessUi.escape(item.offerHeadline || "-");
+                const shareUrl = businessUi.escape(item.promotionUrl || "");
 
-                const promotionImage =
-                    item.promotionImage
-                        ? '/' + item.promotionImage
-                        : '/images/no-image.png';
+                return `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td class="text-center">
+                            <img src="${promotionImage}" class="rounded border" style="width:64px;height:64px;object-fit:cover;" />
+                        </td>
+                        <td class="cell-strong text-wrap">${title}</td>
+                        <td class="text-wrap">${product}</td>
+                        <td class="text-wrap">${offer}</td>
+                        <td class="cell-money">${businessUi.money(item.promotionalPrice || item.actualPrice || 0)}</td>
+                        <td>${item.indoCoinsEarned || 0}</td>
+                        <td>${item.friendRewardCoins || 0}</td>
+                        <td>${businessUi.date(item.startDate)}</td>
+                        <td>${businessUi.date(item.endDate)}</td>
+                        <td class="text-center">
+                            ${item.qrCodeImage ? `<img src="${qrImage}" class="rounded border bg-white p-1" style="width:72px;height:72px;object-fit:contain;cursor:pointer;" onclick="showQR('${qrImage}')" />` : "-"}
+                        </td>
+                        <td>
+                            ${item.isActive ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Inactive</span>'}
+                        </td>
+                        <td class="cell-actions">
+                            <button class="btn btn-primary btn-sm" onclick="viewPromotion(${item.promotionId})">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                            <button class="btn btn-success btn-sm" ${shareUrl ? `onclick="sharePromotion('${shareUrl}')"` : "disabled"}>
+                                <i class="fa-solid fa-share-nodes"></i>
+                            </button>
+                            <button class="btn btn-warning btn-sm" onclick="editPromotion(${item.promotionId}, ${item.businessId || businessId})">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="deletePromotion(${item.promotionId})">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>`;
+            }).join("");
 
-                html += `
-
-                <tr>
-
-                    <td>${index + 1}</td>
-
-                    <td class="text-center">
-
-                        <img src="${promotionImage}"
-                             class="img-thumbnail"
-                             style="width:70px;height:70px;object-fit:cover;" />
-
-                    </td>
-
-                    <td>
-                        <strong>${item.promotionTitle || '-'}</strong>
-                    </td>
-
-                    <td>
-                        ${item.featuredProducts || '-'}
-                    </td>
-
-                    <td>
-                        ${item.offerHeadline || '-'}
-                    </td>
-
-                    <td>
-                        $${item.promotionalPrice || 0}
-                    </td>
-
-                    <td>
-                        ${item.indoCoinsEarned || 0}
-                    </td>
-
-                    <td>
-                        ${item.friendRewardCoins || 0}
-                    </td>
-
-                    <td>
-                        ${formatDate(item.startDate)}
-                    </td>
-
-                    <td>
-                        ${formatDate(item.endDate)}
-                    </td>
-
-                    <td class="text-center">
-
-                        ${item.qrCodeImage
-                        ? `
-                                   <img src="${item.qrCodeImage}"
-             class="img-thumbnail"
-             style="
-                width:100px;
-                height:100px;
-                object-fit:contain;
-                cursor:pointer;
-                background:#fff;
-                padding:5px;"
-             onclick="showQR('${item.qrCodeImage}')" />
-                            `
-                        : '-'}
-
-                    </td>
-
-                    <td>
-
-                        ${item.isActive
-                        ? '<span class="badge bg-success">Active</span>'
-                        : '<span class="badge bg-danger">Inactive</span>'}
-
-                    </td>
-
-                    <td>
-
-                        <button
-                            class="btn btn-primary btn-sm"
-                            onclick="viewPromotion(${item.promotionId})">
-
-                            <i class="fa fa-eye"></i>
-                        </button>
-
-                        <button
-                            class="btn btn-success btn-sm"
-                            onclick="sharePromotion('${item.promotionUrl}')">
-
-                            <i class="fa fa-share-alt"></i>
-                        </button>
-                                       <button
-                               class="btn btn-warning btn-sm"
-                                  onclick="editPromotion(${item.promotionId}, ${item.businessId})">
-
-                             <i class="fa fa-edit"></i>
-                          </button>
-                        <button
-                            class="btn btn-danger btn-sm"
-                            onclick="deletePromotion(${item.promotionId})">
-
-                            <i class="fa fa-trash"></i>
-                         </button>
-                       @* ${item.qrCodeImage
-                        ? `
-                            <a href="${item.qrCodeImage}"
-                               download
-                               class="btn btn-info btn-sm">
-
-                                <i class="fa fa-download"></i>
-
-                            </a>
-                            `
-                        : ''}*@
-
-                    </td>
-
-                </tr>
-                `;
-            });
-
-            $("#promotionTableBody").html(html);
+            $("#promotionTableBody").html(rows);
         }
 
         function showQR(imageUrl) {
-
             $("#qrPreview").attr("src", imageUrl);
-
-            const modal = new bootstrap.Modal(
-                document.getElementById("qrModal")
-            );
-
-            modal.show();
+            new bootstrap.Modal(document.getElementById("qrModal")).show();
         }
 
         function sharePromotion(url) {
-
-            window.open(
-                "https://wa.me/?text=" +
-                encodeURIComponent(url),
-                "_blank"
-            );
+            window.open("https://wa.me/?text=" + encodeURIComponent(url), "_blank");
         }
 
         function viewPromotion(id) {
-
-            window.location.href =
-                "/Business/Home/PromotionDetails?promotionId=" + id;
-        }
-
-        function formatDate(dateString) {
-
-            if (!dateString)
-                return "-";
-
-            return new Date(dateString)
-                .toLocaleDateString();
+            window.location.href = "/Business/Home/PromotionDetails?promotionId=" + id;
         }
 
         function deletePromotion(id) {
-
             Swal.fire({
-
-                title: "Delete Promotion?",
-
+                title: "Delete promotion?",
                 text: "This promotion will be deleted permanently.",
-
                 icon: "warning",
-
                 showCancelButton: true,
-
-                confirmButtonColor: "#d33",
-
+                confirmButtonColor: "#b91c1c",
                 confirmButtonText: "Delete"
-
             }).then((result) => {
-
-                if (!result.isConfirmed)
-                    return;
+                if (!result.isConfirmed) return;
 
                 $.ajax({
-
                     url: "/api/Product/DeletePromotion?promotionId=" + id,
-
                     type: "DELETE",
-
                     success: function (res) {
-
-                        Swal.fire(
-                            "Deleted",
-                            res.resultMessage,
-                            "success"
-                        ).then(() => {
-
-                            location.reload();
-
-                        });
-
+                        Swal.fire("Deleted", res.resultMessage || "Promotion deleted.", "success");
+                        loadPromotions();
                     },
-
                     error: function () {
-
-                        Swal.fire(
-                            "Error",
-                            "Unable to delete promotion.",
-                            "error");
-
+                        Swal.fire("Error", "Unable to delete promotion.", "error");
                     }
-
                 });
-
             });
-
         }
 
-        function editPromotion(promotionId, businessId) {
-
-            window.location.href =
-                "/Business/Home/AddPromotion?businessId=" +
-                businessId +
-                "&promotionId=" +
-                promotionId;
+        function editPromotion(promotionId, itemBusinessId) {
+            window.location.href = "/Business/Home/AddPromotion?businessId=" + itemBusinessId + "&promotionId=" + promotionId;
         }
-
     </script>
-
 }

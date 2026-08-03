@@ -83,5 +83,110 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return result > 0;
             }
         }
+
+        public async Task<QuizRankingResult> GetQuizRankings(string? quizType, int? quizId)
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            const string sql = @"
+;WITH QuizResults AS
+(
+    SELECT
+        'Smart Quiz' AS QuizType,
+        S.QuizId,
+        S.UserId,
+        CONCAT(U.FirstName, ' ', ISNULL(U.LastName, '')) AS FullName,
+        U.Email,
+        S.CorrectAnswerCount,
+        S.AnsweredCount,
+        S.Duration,
+        S.EndTime,
+        S.IsFinished
+    FROM SmartQuizResults S
+    INNER JOIN Users U ON U.UserId = S.UserId
+
+    UNION ALL
+
+    SELECT
+        'Text Quiz' AS QuizType,
+        T.QuizId,
+        T.UserId,
+        CONCAT(U.FirstName, ' ', ISNULL(U.LastName, '')) AS FullName,
+        U.Email,
+        T.CorrectAnswerCount,
+        T.AnsweredCount,
+        T.Duration,
+        T.EndTime,
+        T.IsFinished
+    FROM TextQuizResults T
+    INNER JOIN Users U ON U.UserId = T.UserId
+),
+Ranked AS
+(
+    SELECT *,
+           ROW_NUMBER() OVER
+           (
+               PARTITION BY QuizType, QuizId
+               ORDER BY CorrectAnswerCount DESC,
+                        Duration ASC,
+                        EndTime ASC
+           ) AS RankNo
+    FROM QuizResults
+    WHERE IsFinished = 1
+)
+SELECT *
+INTO #Ranked
+FROM Ranked;
+
+SELECT
+    QuizType,
+    QuizId,
+    UserId,
+    FullName,
+    Email,
+    CorrectAnswerCount,
+    AnsweredCount,
+    Duration,
+    EndTime,
+    RankNo,
+    RankNo AS WinnerRank
+FROM #Ranked
+WHERE RankNo = 1
+  AND (@QuizType IS NULL OR QuizType = @QuizType)
+  AND (@QuizId IS NULL OR QuizId = @QuizId)
+ORDER BY QuizType, QuizId;
+
+SELECT
+    QuizType,
+    QuizId,
+    UserId,
+    FullName,
+    Email,
+    CorrectAnswerCount,
+    AnsweredCount,
+    Duration,
+    EndTime,
+    RankNo
+FROM #Ranked
+WHERE (@QuizType IS NULL OR QuizType = @QuizType)
+  AND (@QuizId IS NULL OR QuizId = @QuizId)
+ORDER BY QuizType, QuizId, RankNo;
+
+DROP TABLE #Ranked;";
+
+            using var multi = await con.QueryMultipleAsync(
+                sql,
+                new
+                {
+                    QuizType = string.IsNullOrWhiteSpace(quizType) ? null : quizType,
+                    QuizId = quizId
+                });
+
+            return new QuizRankingResult
+            {
+                Winners = (await multi.ReadAsync<QuizRankingWinner>()).ToList(),
+                Players = (await multi.ReadAsync<QuizRankingPlayer>()).ToList()
+            };
+        }
     }
 }
