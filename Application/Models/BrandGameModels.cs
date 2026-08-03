@@ -61,6 +61,11 @@ namespace CommUnityApp.ApplicationCore.Models
         public long? QRlinkedId { get; set; }
         public int? IsArchive { get; set; }
     }
+    public class GetGameDetails
+    {
+        public int GameId { get; set; }
+        public Guid UserId { get; set; }
+    }
     public class PlayGameRequest
     {
         public int GameId { get; set; }
