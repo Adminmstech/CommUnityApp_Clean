@@ -7,7 +7,7 @@ using System.Threading.Tasks;
  
 namespace CommUnityApp.ApplicationCore.Interfaces
 {
-    public interface IGameResultsRepository
+    public interface IGameResultsRepository 
     {
 
         Task<(IEnumerable<dynamic> Data, int Total)> GetGamePlayMembers(int page, int size, string search);
