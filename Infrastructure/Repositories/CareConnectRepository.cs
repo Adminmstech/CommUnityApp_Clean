@@ -92,7 +92,7 @@ item.ServiceImagePath =
                    Message = model.Message
                },
         commandType: CommandType.StoredProcedure
-    );
+               );
         }
 
         public async Task<dynamic> ConnectSupporter(ConnectSupporterModel model)
