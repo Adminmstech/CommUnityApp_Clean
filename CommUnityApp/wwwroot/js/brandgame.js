@@ -99,6 +99,7 @@ function bindGameForm(data) {
         ['[name="BrandGameDesc"]', getProp(data, 'brandGameDesc')],
         ['[name="DestinationUrl"]', getProp(data, 'destinationUrl')],
         ['[name="PromotionalCode"]', getProp(data, 'promotionalCode')],
+        ['[name="BusinessLocation"]', getProp(data, 'businessLocation')],
         ['[name="OnceIn"]', getProp(data, 'onceIn')],
         ['[name="IsReleased"]', getProp(data, 'isReleased')],
         ['[name="IsPrizeClosed"]', getProp(data, 'isPrizeClosed')],
@@ -310,6 +311,7 @@ $(document).ready(function () {
             BrandGameName: { required: true },
             BrandGameTitle: { required: true },
             BrandGameDesc: { required: true },
+            BusinessLocation: { required: true },
             DateStart: { required: true },
             DateEnd: { required: true },
 
@@ -324,7 +326,7 @@ $(document).ready(function () {
             SecondaryPrizeCount: { required: true, min: 0 },
             SecondaryWinMessage: { required: true },
             ConsolationPrizeCount: { required: true, min: 0 },
-            PointsAwarded: { required: true, min: 0 },
+            //PointsAwarded: { required: true, min: 0 },
             ConsolationMessage: { required: true }
         },
         messages: {
@@ -352,7 +354,7 @@ $(document).ready(function () {
             SecondaryPrizeCount: "Required",
             SecondaryWinMessage: "Required",
             ConsolationPrizeCount: "Required",
-            PointsAwarded: "Required",
+            //PointsAwarded: "Required",
             ConsolationMessage: "Required"
         },
         errorElement: 'span',

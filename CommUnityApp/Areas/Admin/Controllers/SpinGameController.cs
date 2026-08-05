@@ -43,6 +43,7 @@ namespace CommUnityApp.Areas.Admin.Controllers
                     model.ConfigId = game.ConfigId;
                     model.IsActive = game.IsActive;
                     model.BusinessId = game.BusinessId; // was previously stuck at 0 on edit
+                    model.BusinessLocation = game.BusinessLocation; // was previously stuck at 0 on edit
 
                     var config = await _spinGameRepository.GetConfigByIdAsync(model.ConfigId);
                     if (config != null)
