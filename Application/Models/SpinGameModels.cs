@@ -9,6 +9,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public int BusinessId { get; set; }
         public string GameName { get; set; } = string.Empty;
         public string? Description { get; set; }
+        public string? BusinessLocation { get; set; }
         public string? GameImage { get; set; }
         public int ConfigId { get; set; }
         public bool IsActive { get; set; }
@@ -54,6 +55,7 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public List<SpinGameConfigRequest> Configs { get; set; } = new();
         public List<SpinSectionRequest> Sections { get; set; } = new();
+        public string? BusinessLocation { get; set; }
     }
 
     public class PlaySpinRequest
