@@ -51,4 +51,37 @@ namespace CommUnityApp.ApplicationCore.Models
     {
         public int WinnerRank { get; set; }
     }
+
+    public class UserGameHistoryModel
+    {
+        public long GameResultId { get; set; }
+
+        public string GameType { get; set; }
+
+        public int GameId { get; set; }
+
+        public string GameName { get; set; }
+
+        public string GameTitle { get; set; }
+
+        public string GameImage { get; set; }
+
+        public string PrizeImage { get; set; }
+
+        public DateTime? PlayedAt { get; set; }
+
+        public string RewardValue { get; set; }
+
+        public string RedeemCode { get; set; }
+
+        public bool IsWinner { get; set; }
+
+        public int? PointsAwarded { get; set; }
+
+        public string BusinessLocation { get; set; }
+
+        public int? SectionId { get; set; }
+
+        public string SectionImage { get; set; }
+    }
 }
