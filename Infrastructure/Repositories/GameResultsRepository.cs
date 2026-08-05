@@ -1,6 +1,7 @@
 ﻿using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using Dapper;
+using Microsoft.AspNet.SignalR.Infrastructure;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -187,6 +188,16 @@ DROP TABLE #Ranked;";
                 Winners = (await multi.ReadAsync<QuizRankingWinner>()).ToList(),
                 Players = (await multi.ReadAsync<QuizRankingPlayer>()).ToList()
             };
+        }
+
+        public async Task<IEnumerable<UserGameHistoryModel>> GetUserGameHistory(Guid userId)
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            return await con.QueryAsync<UserGameHistoryModel>(
+                "SP_GetUserGameHistory",
+                new { UserId = userId },
+                commandType: CommandType.StoredProcedure);
         }
     }
 }

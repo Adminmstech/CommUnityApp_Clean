@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-
+ 
 namespace CommUnityApp.ApplicationCore.Interfaces
 {
     public interface IGameResultsRepository
@@ -16,5 +16,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<bool> AssignPrize(AssignPrizeModel model);
 
         Task<QuizRankingResult> GetQuizRankings(string? quizType, int? quizId);
+
+        Task<IEnumerable<UserGameHistoryModel>> GetUserGameHistory(Guid userId);
     }
 }
