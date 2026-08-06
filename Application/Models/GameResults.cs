@@ -73,7 +73,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string RewardValue { get; set; }
 
         public string RedeemCode { get; set; }
-
+        public string? QRCodePath { get; set; }
         public bool IsWinner { get; set; }
 
         public int? PointsAwarded { get; set; }

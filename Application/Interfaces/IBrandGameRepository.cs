@@ -12,7 +12,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<IEnumerable<BrandGameDto>> GetAllBrandGamesAsync();
         Task<IEnumerable<BrandGameDto>> GetBrandGamesByMerchantAsync(int merchantId);
         Task<PrizeConsumeResult> TryConsumePrizeAsync(int gameId, string prizeType);
-        Task<BaseResponse> TrackGameplayAsync(int gameId, Guid userId, string prizeType, bool isWinner, int? attemptNumber);
+        Task<BaseResponse> TrackGameplayAsync(int gameId, Guid userId, string prizeType, bool isWinner, int? attemptNumber, string? redeemCode,string? qrCodePath);
         Task<BaseResponse> DeleteBrandGameAsync(int brandGameId);
 
         Task AddRewardCoinsAsync(Guid userId, int coins, int gameId);

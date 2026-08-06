@@ -7,6 +7,8 @@ namespace CommUnityApp.ApplicationCore.Models
     {
         public int GameId { get; set; }
         public int BusinessId { get; set; }
+        public string? BusinessLocation { get; set; }
+
         public string GameName { get; set; } = string.Empty;
         public string? Description { get; set; }
         public string? GameImage { get; set; }
@@ -74,6 +76,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public int SectionId { get; set; }
         public string? RewardValue { get; set; }
         public string? RedeemCode { get; set; }
+        public string? QRCodePath { get; set; }
+        public string? BusinessLocation { get; set; }
         public string Status { get; set; } = string.Empty;
         public DateTime PlayedAt { get; set; }
     }
@@ -88,6 +92,11 @@ namespace CommUnityApp.ApplicationCore.Models
         public string PrizeText { get; set; } = string.Empty;
         public int? PointsAwarded { get; set; }
         public int? PromotionId { get; set; }
+        public string? RedeemCode { get; set; }
+
+        public string? QRCodePath { get; set; }
+
+        public string? BusinessLocation { get; set; }
     }
 
     // Add more DTOs for configs, sections, spins as needed

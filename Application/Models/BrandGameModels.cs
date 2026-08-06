@@ -12,6 +12,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public string BrandGameImage { get; set; }
         public int? UserGroupId { get; set; }
         public int? BusinessId { get; set; }
+        public string BusinessLocation { get; set; }
+
         public string BrandGameDesc { get; set; }
         public string ConditionsApply { get; set; }
         public int? GameClassificationID { get; set; }

@@ -159,31 +159,35 @@ WHERE BrandGameID = @GameId;";
             return result ?? new PrizeConsumeResult { IsConsumed = false };
         }
 
-        public async Task<BaseResponse> TrackGameplayAsync(int gameId, Guid userId, string prizeType, bool isWinner, int? attemptNumber)
+        public async Task<BaseResponse> TrackGameplayAsync(int gameId, Guid userId, string prizeType, bool isWinner, int? attemptNumber, string? redeemCode,
+    string? qrCodePath)
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            var random = new Random();
-            var redeemCode = new string(Enumerable.Repeat(chars, 6)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
+            //const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            //var random = new Random();
+            //var redeemCode = new string(Enumerable.Repeat(chars, 6)
+            //    .Select(s => s[random.Next(s.Length)]).ToArray());
 
             const string sql = @"
-
-INSERT INTO [dbo].[BrandGamePlayHistory]
+INSERT INTO BrandGamePlayHistory
 (
-    [BrandGameID],
-    [UserId],
-    [AttemptNumber],
-    [PrizeType],
-    [IsWinner],redeemCode
+BrandGameID,
+UserId,
+AttemptNumber,
+PrizeType,
+IsWinner,
+RedeemCode,
+QRCodePath
 )
 VALUES
 (
-    @GameId,
-    @UserId,
-    @AttemptNumber,
-    @PrizeType,
-    @IsWinner,@redeemCode
-);";
+@GameId,
+@UserId,
+@AttemptNumber,
+@PrizeType,
+@IsWinner,
+@RedeemCode,
+@QRCodePath
+)";
 
             using var con = Connection;
             var affected = await con.ExecuteAsync(sql, new
@@ -193,7 +197,8 @@ VALUES
                 AttemptNumber = attemptNumber,
                 PrizeType = prizeType,
                 IsWinner = isWinner,
-                redeemCode= redeemCode
+                RedeemCode = redeemCode,
+                QRCodePath = qrCodePath
             });
 
             return new BaseResponse

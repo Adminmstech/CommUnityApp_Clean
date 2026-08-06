@@ -111,10 +111,14 @@ namespace CommUnityApp.Services
                 PrizeImage = BuildFullImageUrl(baseUrl, x.PrizeImage),
 
                 x.PlayedAt,
-
+                 
                 x.RewardValue,
 
                 x.RedeemCode,
+
+                RedeemQRCode = string.IsNullOrEmpty(x.QRCodePath)
+    ? null
+    : BuildFullImageUrl(baseUrl, x.QRCodePath),
 
                 x.IsWinner,
 
