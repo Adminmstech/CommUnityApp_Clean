@@ -112,7 +112,7 @@ namespace CommUnityApp.Services
 
                 x.PlayedAt,
                  
-                x.RewardValue,
+                x.RewardValue, 
 
                 x.RedeemCode,
 
