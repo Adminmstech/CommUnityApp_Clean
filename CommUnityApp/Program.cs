@@ -1,10 +1,13 @@
 using System;
 using System.IO;
+using CommUnityApp.ApplicationCore.BAL;
 using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.InfrastructureLayer.Repositories;
 using CommUnityApp.InfrastructureLayer.Services;
+using CommUnityApp.Hubs;
 using CommUnityApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi;
 using Stripe;
 using FirebaseAdmin;
@@ -62,6 +65,14 @@ builder.Services.AddSwaggerGen(c =>
         Title = "CommUnityApp API",
         Version = "v1"
     });
+
+    c.DocInclusionPredicate((_, api) => !api.ActionDescriptor.EndpointMetadata
+        .OfType<ApiExplorerSettingsAttribute>()
+        .Any(x => x.IgnoreApi));
+    c.CustomSchemaIds(type => type.FullName?.Replace("+", ".") ?? type.Name);
+    c.ResolveConflictingActions(apiDescriptions => apiDescriptions.First());
+    c.OrderActionsBy(apiDescription =>
+        $"{apiDescription.ActionDescriptor.RouteValues["controller"]}_{apiDescription.RelativePath}_{apiDescription.HttpMethod}");
 });
 
 // Http Context & HttpClient
@@ -102,6 +113,8 @@ builder.Services.AddTransient<IOrderRepository, OrderRepository>();
 builder.Services.AddTransient<IServiceRepository, ServiceRepository>();
 builder.Services.AddTransient<IVolunteerRepository, VolunteerRepository>();
 builder.Services.AddTransient<INotificationRepository, NotificationRepository>();
+builder.Services.AddTransient<IPushNotificationsDal, PushNotificationsDal>();
+builder.Services.AddTransient<IPushNotificationsBal, PushNotificationsBal>();
 builder.Services.AddTransient<IGameResultsRepository, GameResultsRepository>();
 builder.Services.AddTransient<ICareConnectRepository, CareConnectRepository>();
 builder.Services.AddTransient<IJobRepository, JobRepository>();
@@ -109,6 +122,7 @@ builder.Services.AddTransient<ICampaignRepository, CampignRepository>();
 builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
 builder.Services.AddTransient<ISmartQuizRepository, SmartQuizRepository>();
 builder.Services.AddTransient<ITextQuizRepository,TextQuizRepository>();
+builder.Services.AddTransient<ITalentShowRepository, TalentShowRepository>();
 builder.Services.AddTransient<ISpinGameRepository>(provider =>
 {
     var configuration = provider.GetRequiredService<IConfiguration>();
@@ -166,8 +180,12 @@ app.UseSwagger();
 
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CommUnityApp API v1");
+    c.SwaggerEndpoint("v1/swagger.json", "CommUnityApp API v1");
     c.RoutePrefix = "swagger";   // Swagger at /swagger
+    c.EnableDeepLinking();
+    c.DisplayRequestDuration();
+    c.DocExpansion(Swashbuckle.AspNetCore.SwaggerUI.DocExpansion.List);
+    c.DefaultModelsExpandDepth(-1);
 });
 
 if (!app.Environment.IsDevelopment())
@@ -198,5 +216,6 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}"
 );
 app.MapHub<AuctionHub>("/auctionHub");
+app.MapHub<TalentShowHub>("/talentShowHub");
 
 app.Run();

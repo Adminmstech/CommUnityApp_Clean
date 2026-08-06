@@ -300,6 +300,10 @@ namespace CommUnityApp.ApplicationCore.Models
 
     public class AuctionWinnerSellerDetailsResponse
     {
+        public int ResultId { get; set; }
+
+        public string? ResultMessage { get; set; }
+
         public int AuctionId { get; set; }
 
         public string? ItemTitle { get; set; }
@@ -308,9 +312,19 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string? ItemLocation { get; set; }
 
+        public DateTime? StartTime { get; set; }
+
+        public DateTime? EndTime { get; set; }
+
         public int? DeleveryMethodId { get; set; }
 
         public string? CreatedBy { get; set; }
+
+        public decimal? WinningBidAmount { get; set; }
+
+        public bool? WinnerDeclared { get; set; }
+
+        public DateTime? WinnerDeclaredOn { get; set; }
 
         public Guid? SellerUserId { get; set; }
 

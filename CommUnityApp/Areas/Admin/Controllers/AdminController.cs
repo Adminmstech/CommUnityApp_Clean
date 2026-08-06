@@ -108,7 +108,7 @@ namespace CommUnityApp.Areas.Admin.Controllers
         {
             HttpContext.Session.Clear();
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction(nameof(Login));
+            return RedirectToAction("Index", "Home", new { area = "" });
         }
 
         public IActionResult Users()

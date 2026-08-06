@@ -652,28 +652,63 @@ namespace CommUnityApp.Services
             {
                 var auctions = await _unitOfWork.Auction.GetAuctionWinnerSellerDetailsAsync(userId);
 
-                if (auctions == null || !auctions.Any())
+                if (auctions == null || !auctions.Any() || !auctions.Any(x => x.ResultId == 1))
                 {
-                    return Ok(new BaseResponse
+                    return Ok(new
                     {
                         ResultId = 0,
-                        ResultMessage = "No details found."
+                        ResultMessage = "No details found.",
+                        Auctions = Array.Empty<object>()
                     });
                 }
+
+                auctions = auctions
+                    .Where(x => x.ResultId == 1)
+                    .ToList();
 
                 foreach (var auction in auctions)
                 {
                     auction.Images = await _unitOfWork.Auction.GetAuctionImages(auction.AuctionId);
                 }
 
-                return Ok(auctions);
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Success",
+                    Auctions = auctions.Select(auction => new
+                    {
+                        auction.AuctionId,
+                        auction.ItemTitle,
+                        auction.ItemDescription,
+                        auction.ItemLocation,
+                        auction.StartTime,
+                        auction.EndTime,
+                        auction.DeleveryMethodId,
+                        auction.CreatedBy,
+                        auction.WinningBidAmount,
+                        auction.WinnerDeclared,
+                        auction.WinnerDeclaredOn,
+                        auction.SellerUserId,
+                        auction.SellerName,
+                        auction.SellerEmail,
+                        auction.SellerPhone,
+                        auction.BusinessId,
+                        auction.BusinessName,
+                        auction.OwnerName,
+                        auction.BusinessEmail,
+                        auction.BusinessPhone,
+                        auction.BusinessAddress,
+                        auction.Images
+                    })
+                });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new BaseResponse
+                return StatusCode(500, new
                 {
                     ResultId = -1,
-                    ResultMessage = ex.Message
+                    ResultMessage = ex.Message,
+                    Auctions = Array.Empty<object>()
                 });
             }
         }
@@ -884,6 +919,41 @@ namespace CommUnityApp.Services
 
                 var auction = auctions.First();
                 var images = await _unitOfWork.Auction.GetAuctionImages(auctionId);
+                Guid? participantUserId = null;
+
+                if (string.Equals(participant.UserType, "Seller", StringComparison.OrdinalIgnoreCase))
+                {
+                    participantUserId = auction.WinnerUserId;
+                }
+                else
+                {
+                    participantUserId = auction.UserId;
+                }
+
+                if (!participantUserId.HasValue)
+                {
+                    return Ok(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Participant details not found.",
+                        Auction = Array.Empty<object>(),
+                        Participant = Array.Empty<object>()
+                    });
+                }
+
+                var transactionParticipant = await _unitOfWork.Auction
+                    .GetAuctionParticipantDetails(auctionId, participantUserId.Value);
+
+                if (transactionParticipant == null || transactionParticipant.ResultId != 1)
+                {
+                    return Ok(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Participant details not found.",
+                        Auction = Array.Empty<object>(),
+                        Participant = Array.Empty<object>()
+                    });
+                }
 
                 return Ok(new
                 {
@@ -907,7 +977,7 @@ namespace CommUnityApp.Services
                 }
             },
 
-                    Participant = new[] { participant }
+                    Participant = new[] { transactionParticipant }
                 });
             }
             catch (Exception ex)

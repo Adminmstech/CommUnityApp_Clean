@@ -48,8 +48,8 @@
         </div>
     }
 
-    <form asp-action="Create" method="post" enctype="multipart/form-data" class="game-form">
-        <input type="hidden" asp-for="BrandGameID" />
+    <form   enctype="multipart/form-data" class="game-form">
+        <input type="hidden" asp-for="BrandGameID" value="@Model.BrandGameID"/>
 
         <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
             <!-- Tab Navigation -->
@@ -125,7 +125,11 @@
                                     <span class="ms-2 text-success fw-600"><i class="fa-solid fa-check-circle me-1"></i>Current Image</span>
                                 </div>
                             </div>
-
+                            <div class="col-12 form-group">
+                                <label asp-for="BusinessLocation" class="form-label fw-600">Business Location *</label>
+                                <input asp-for="BusinessLocation" value="@Model.BusinessLocation" name="BusinessLocation" id="BusinessLocation" class="form-control" data-val="true" data-val-required="Business Location is required." data-val-length="Business Location must be between 3 and 200 characters." data-val-length-min="3" data-val-length-max="200" />
+                                <span asp-validation-for="BusinessLocation" class="text-danger"></span>
+                            </div>
 
                         </div>
                         <div class="wizard-footer">
@@ -245,7 +249,7 @@
                                 <label class="form-label fw-600">Success Message</label>
                                 <textarea asp-for="PrimaryWinMessage" name="PrimaryWinMessage" class="form-control" rows="2" placeholder="Congratulations! You won the grand prize!"></textarea>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6" style="display:none">
                                 <label class="form-label fw-600">Promotion Linked ID</label>
                                 <input asp-for="PrimaryPrizePromotionId" name="PrimaryPrizePromotionId" type="number" class="form-control" />
                             </div>
@@ -329,8 +333,8 @@
                                 <label class="form-label fw-600">Total Consolation Count</label>
                                 <input asp-for="ConsolationPrizeCount" name="ConsolationPrizeCount" type="number" class="form-control" min="0" />
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-600">Points Awarded</label>
+                            <div class="col-md-6" style="display:none">
+                                <label class="form-label fw-600" >Points Awarded</label>
                                 <input asp-for="PointsAwarded" name="PointsAwarded" type="number" class="form-control" min="0" />
                             </div>
                             <div class="col-12">

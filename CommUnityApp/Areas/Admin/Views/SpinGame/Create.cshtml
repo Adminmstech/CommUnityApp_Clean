@@ -228,6 +228,12 @@
                             <input type="hidden" asp-for="GameImage" name="GameImage" />
                             <input type="file" asp-for="GameImageFile" name="GameImageFile" class="form-control" accept="image/*" />
                         </div>
+
+                        <div class="col-12 form-group">
+                            <label asp-for="BusinessLocation" class="form-label fw-600">Business Location *</label>
+                            <input asp-for="BusinessLocation" value="@Model.BusinessLocation" name="BusinessLocation" id="BusinessLocation" class="form-control" data-val="true" data-val-required="Business Location is required." data-val-length="Business Location must be between 3 and 200 characters." data-val-length-min="3" data-val-length-max="200" />
+                            <span asp-validation-for="BusinessLocation" class="text-danger"></span>
+                        </div>
                     </div>
                 </div>
 

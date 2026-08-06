@@ -86,7 +86,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     model.CustomTagIds,
                     model.GroupId,
                     model.QRlinkedId,
-                    model.IsArchive
+                    model.IsArchive,
+                    BusinessLocation=model.BusinessLocation
                 },
                 commandType: CommandType.StoredProcedure
             );

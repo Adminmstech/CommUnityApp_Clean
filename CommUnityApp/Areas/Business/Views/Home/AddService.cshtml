@@ -177,6 +177,7 @@
 
 </div>
 
+@section Scripts {
 <script>
 
     let images = [];
@@ -186,7 +187,18 @@
 
         serviceId = parseInt($("#ServiceId").val()) || 0;
 
-        loadCategories();
+        loadCategories().then(function () {
+
+            if (serviceId > 0) {
+
+                $("#pageTitle").text("Edit Service");
+                $("#btnText").text("Update Service");
+
+                loadServiceDetails(serviceId);
+
+            }
+
+        });
 
         $("#CategoryId").change(function () {
 
@@ -211,13 +223,23 @@
     // LOAD CATEGORIES
     // ============================
 
-        function loadCategories(selectedCategoryId = null) {
+    function responseList(response) {
+        if (Array.isArray(response)) return response;
+        if (Array.isArray(response?.data)) return response.data;
+        if (Array.isArray(response?.Data)) return response.Data;
+        if (Array.isArray(response?.categories)) return response.categories;
+        if (Array.isArray(response?.Categories)) return response.Categories;
+        return [];
+    }
+
+    function loadCategories(selectedCategoryId = null) {
 
         return $.ajax({
             url: "/api/Business/Get_BusinessCategory",
             type: "GET"
         }).done(function (response) {
 
+            let categories = responseList(response);
             let ddl = $("#CategoryId");
 
             ddl.empty();
@@ -226,11 +248,11 @@
                 '<option value="">Select Category</option>'
             );
 
-            $.each(response, function (i, item) {
+            $.each(categories, function (i, item) {
 
                 ddl.append(
-                    `<option value="${item.categoryId}">
-                        ${item.categoryName}
+                    `<option value="${item.categoryId ?? item.CategoryId}">
+                        ${businessUi.escape(item.categoryName ?? item.CategoryName)}
                     </option>`
                 );
 
@@ -240,10 +262,26 @@
                 ddl.val(selectedCategoryId);
             }
 
+        }).fail(function () {
+
+            $("#CategoryId").html(
+                '<option value="">Failed to load categories</option>'
+            );
+
+            Swal.fire(
+                "Error",
+                "Failed to load business categories.",
+                "error"
+            );
+
         });
     }
 
     function loadSubCategories(categoryId, selectedSubCategoryId = null) {
+
+        $("#SubCategoryId").html(
+            '<option value="">Select Sub Category</option>'
+        );
 
         return $.ajax({
             url:
@@ -252,7 +290,10 @@
             type: "GET"
         }).done(function (response) {
 
-            let data = response.data || response;
+            let data =
+                response?.type === "subcategories"
+                    ? responseList(response)
+                    : [];
 
             let ddl = $("#SubCategoryId");
 
@@ -262,11 +303,22 @@
                 '<option value="">Select Sub Category</option>'
             );
 
+            data = data.filter(function (item) {
+                return item.subCategoryId || item.SubCategoryId;
+            });
+
+            if (data.length === 0) {
+                ddl.append(
+                    '<option value="0">No Sub Category</option>'
+                );
+                return;
+            }
+
             $.each(data, function (i, item) {
 
                 ddl.append(
-                    `<option value="${item.subCategoryId}">
-                        ${item.subCategoryName}
+                    `<option value="${item.subCategoryId ?? item.SubCategoryId}">
+                        ${businessUi.escape(item.subCategoryName ?? item.SubCategoryName)}
                     </option>`
                 );
 
@@ -277,6 +329,18 @@
                 ddl.val(selectedSubCategoryId);
 
             }
+
+        }).fail(function () {
+
+            $("#SubCategoryId").html(
+                '<option value="">Failed to load sub categories</option>'
+            );
+
+            Swal.fire(
+                "Error",
+                "Failed to load sub categories.",
+                "error"
+            );
 
         });
 
@@ -323,15 +387,12 @@
                         : "false"
                     );
 
-                loadCategories(service.categoryId)
-                    .then(function () {
+                $("#CategoryId").val(service.categoryId);
 
-                        return loadSubCategories(
-                            service.categoryId,
-                            service.subCategoryId
-                        );
-
-                    });
+                loadSubCategories(
+                    service.categoryId,
+                    service.subCategoryId
+                );
 
                 bindExistingImages(
                     response.data.images || []
@@ -422,26 +483,6 @@
                 reader.readAsDataURL(file);
 
             });
-
-    });
-
-        $(document).ready(function () {
-
-        let serviceId =
-            parseInt($("#ServiceId").val()) || 0;
-
-        if (serviceId > 0) {
-
-            $("#pageTitle").text("Edit Service");
-            $("#btnText").text("Update Service");
-
-            loadServiceDetails(serviceId);
-
-        } else {
-
-            loadCategories();
-
-        }
 
     });
 
@@ -575,3 +616,4 @@
     }
 
 </script>
+}

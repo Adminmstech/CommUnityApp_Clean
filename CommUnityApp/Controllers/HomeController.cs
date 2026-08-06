@@ -66,6 +66,14 @@ namespace CommUnityApp.Controllers
             return View();
         }
 
+        public async Task<IActionResult> Logout()
+        {
+            HttpContext.Session.Clear();
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            return RedirectToAction("Index", "Home");
+        }
+
         [HttpPost]
         public async Task<IActionResult> Login(LoginRequest request)
         {

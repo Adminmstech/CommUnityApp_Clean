@@ -371,7 +371,7 @@ namespace CommUnityApp.Services
                     result.RedeemCode,
                     result.Status,
                     result.PlayedAt,
-
+                  
                     gameImage = BuildFullImageUrl(baseUrl, game?.GameImage),
                     offerText = section?.PrizeText ?? result.RewardValue,
                     sectionImage = BuildFullImageUrl(baseUrl, section?.SectionImage),
