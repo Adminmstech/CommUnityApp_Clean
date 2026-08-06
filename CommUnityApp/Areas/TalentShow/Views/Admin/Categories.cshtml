@@ -1,0 +1,139 @@
+@{
+    ViewData["Title"] = "Talent Show Categories";
+    Layout = "~/Areas/Admin/Views/shared/AdminLayout.cshtml";
+}
+
+<style>
+    .talent-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .talent-title {
+        color: #0f172a;
+        font-size: 24px;
+        font-weight: 800;
+        margin: 0;
+    }
+
+    .panel {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+        overflow: hidden;
+    }
+
+    .table {
+        margin: 0;
+    }
+
+    .status-pill {
+        border-radius: 999px;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 5px 10px;
+    }
+
+    .status-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    @@media (max-width: 768px) {
+        .talent-toolbar {
+            align-items: stretch;
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="talent-toolbar">
+    <div>
+        <h1 class="talent-title">Talent Show Categories</h1>
+        <div class="text-muted">Manage music, singing, preaching, and other talent buckets.</div>
+    </div>
+
+    <a href="/TalentShow/Admin/CategoryForm" class="btn btn-primary">
+        <i class="fa-solid fa-plus"></i>
+        Add Category
+    </a>
+</div>
+
+<div class="panel">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 90px;">Order</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th style="width: 130px;">Status</th>
+                    <th style="width: 110px;"></th>
+                </tr>
+            </thead>
+            <tbody id="categoryRows">
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">Loading categories...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", loadCategories);
+
+    async function loadCategories() {
+        const tbody = document.getElementById("categoryRows");
+
+        try {
+            const response = await fetch("/api/TalentShow/categories?includeInactive=true");
+            const categories = await response.json();
+
+            if (!Array.isArray(categories) || categories.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='5' class='text-center text-muted py-4'>No categories found</td></tr>";
+                return;
+            }
+
+            tbody.innerHTML = categories.map(category => `
+                <tr>
+                    <td>${category.displayOrder ?? 0}</td>
+                    <td class="fw-semibold">${escapeHtml(category.categoryName)}</td>
+                    <td class="text-muted">${escapeHtml(category.description ?? "")}</td>
+                    <td>
+                        <span class="status-pill ${category.isActive ? "status-active" : "status-inactive"}">
+                            ${category.isActive ? "Active" : "Inactive"}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <a class="btn btn-sm btn-outline-primary" href="/TalentShow/Admin/CategoryForm?id=${category.talentShowCategoryId}">
+                            <i class="fa-solid fa-pen"></i>
+                        </a>
+                    </td>
+                </tr>
+            `).join("");
+        }
+        catch {
+            tbody.innerHTML = "<tr><td colspan='5' class='text-center text-danger py-4'>Unable to load categories</td></tr>";
+        }
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+</script>

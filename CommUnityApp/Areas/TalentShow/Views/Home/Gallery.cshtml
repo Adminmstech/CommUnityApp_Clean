@@ -1,0 +1,392 @@
+@{
+    ViewData["Title"] = "Talent Show Gallery";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+}
+
+<style>
+    .gallery-shell {
+        max-width: 1180px;
+    }
+
+    .gallery-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: end;
+        gap: 18px;
+        margin-bottom: 22px;
+    }
+
+    .gallery-title {
+        color: #0f172a;
+        font-size: 30px;
+        font-weight: 900;
+        margin: 0;
+    }
+
+    .filter-bar {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        display: grid;
+        gap: 12px;
+        grid-template-columns: minmax(160px, 220px) minmax(160px, 220px) minmax(140px, 180px) minmax(130px, 160px) 1fr auto;
+        margin-bottom: 22px;
+        padding: 14px;
+    }
+
+    .video-grid {
+        display: grid;
+        gap: 18px;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+
+    .video-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 12px 26px rgba(15, 23, 42, .07);
+        overflow: hidden;
+    }
+
+    .video-frame {
+        aspect-ratio: 16 / 9;
+        background: #111827;
+        width: 100%;
+    }
+
+    .video-frame video {
+        display: block;
+        height: 100%;
+        object-fit: cover;
+        width: 100%;
+    }
+
+    .video-body {
+        padding: 16px;
+    }
+
+    .category-chip {
+        background: #e0f2fe;
+        border-radius: 999px;
+        color: #075985;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 800;
+        padding: 5px 10px;
+    }
+
+    .campaign-chip {
+        background: #fef3c7;
+        border-radius: 999px;
+        color: #92400e;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 800;
+        margin-right: 6px;
+        padding: 5px 10px;
+    }
+
+    .video-title {
+        color: #0f172a;
+        font-size: 18px;
+        font-weight: 800;
+        margin: 12px 0 4px;
+    }
+
+    .video-meta {
+        color: #64748b;
+        font-size: 13px;
+        min-height: 20px;
+    }
+
+    .score-row {
+        align-items: center;
+        border-top: 1px solid #e2e8f0;
+        display: flex;
+        justify-content: space-between;
+        margin-top: 14px;
+        padding-top: 14px;
+    }
+
+    .metric {
+        color: #334155;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .rating-buttons {
+        display: flex;
+        gap: 4px;
+    }
+
+    .rating-buttons button {
+        align-items: center;
+        border-radius: 6px;
+        display: inline-flex;
+        height: 32px;
+        justify-content: center;
+        padding: 0;
+        width: 32px;
+    }
+
+    @@media (max-width: 768px) {
+        .gallery-header,
+        .filter-bar {
+            align-items: stretch;
+            display: flex;
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="gallery-shell">
+    <div class="gallery-header">
+        <div>
+            <h1 class="gallery-title">Talent Show Gallery</h1>
+            <div class="text-muted">Live likes and ratings update as members vote.</div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <a href="/TalentShow/Home/Campaign" class="btn btn-outline-primary">Campaign Flow</a>
+            <a href="/TalentShow/Home/Upload" class="btn btn-primary">Upload Video</a>
+        </div>
+    </div>
+
+    <div class="filter-bar">
+        <select id="campaignFilter" class="form-select">
+            <option value="">All campaigns</option>
+        </select>
+        <select id="categoryFilter" class="form-select">
+            <option value="">All categories</option>
+        </select>
+        <select id="challengeFilter" class="form-select">
+            <option value="">All challenges</option>
+            <option value="1">Challenge 1</option>
+            <option value="2">Challenge 2</option>
+            <option value="3">Challenge 3</option>
+        </select>
+        <select id="ageGroupFilter" class="form-select">
+            <option value="">All ages</option>
+            <option value="Under 8">Under 8</option>
+            <option value="8-12">8-12</option>
+            <option value="13-17">13-17</option>
+            <option value="18+">18+</option>
+        </select>
+        <input id="searchText" type="search" class="form-control" placeholder="Search title, member, or description" />
+        <button id="searchBtn" class="btn btn-outline-primary" type="button">Search</button>
+    </div>
+
+    <div id="videoGrid" class="video-grid">
+        <div class="text-muted">Loading videos...</div>
+    </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.7/signalr.min.js"></script>
+<script>
+    const visitorKey = getOrCreateVisitorKey();
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        await loadCampaigns();
+        await loadCategories();
+        await loadVideos();
+        connectLiveUpdates();
+    });
+
+    document.getElementById("searchBtn").addEventListener("click", loadVideos);
+    document.getElementById("campaignFilter").addEventListener("change", loadVideos);
+    document.getElementById("categoryFilter").addEventListener("change", loadVideos);
+    document.getElementById("challengeFilter").addEventListener("change", loadVideos);
+    document.getElementById("ageGroupFilter").addEventListener("change", loadVideos);
+    document.getElementById("searchText").addEventListener("keydown", event => {
+        if (event.key === "Enter") loadVideos();
+    });
+
+    async function loadCampaigns() {
+        const select = document.getElementById("campaignFilter");
+
+        try {
+            const response = await fetch("/api/TalentShow/campaigns");
+            const campaigns = await response.json();
+            select.innerHTML = "<option value=''>All campaigns</option>" +
+                campaigns.map(campaign => `<option value="${campaign.talentShowCampaignId}">${escapeHtml(campaign.campaignName)}</option>`).join("");
+        }
+        catch {
+            select.innerHTML = "<option value=''>All campaigns</option>";
+        }
+    }
+
+    async function loadCategories() {
+        const select = document.getElementById("categoryFilter");
+
+        try {
+            const response = await fetch("/api/TalentShow/categories");
+            const categories = await response.json();
+            select.innerHTML = "<option value=''>All categories</option>" +
+                categories.map(category => `<option value="${category.talentShowCategoryId}">${escapeHtml(category.categoryName)}</option>`).join("");
+        }
+        catch {
+            select.innerHTML = "<option value=''>All categories</option>";
+        }
+    }
+
+    async function loadVideos() {
+        const grid = document.getElementById("videoGrid");
+        const params = new URLSearchParams({
+            approvedOnly: "true",
+            pageNumber: "1",
+            pageSize: "60"
+        });
+
+        const campaignId = document.getElementById("campaignFilter").value;
+        const categoryId = document.getElementById("categoryFilter").value;
+        const challengeNumber = document.getElementById("challengeFilter").value;
+        const ageGroup = document.getElementById("ageGroupFilter").value;
+        const searchText = document.getElementById("searchText").value.trim();
+
+        if (campaignId) params.append("talentShowCampaignId", campaignId);
+        if (categoryId) params.append("talentShowCategoryId", categoryId);
+        if (challengeNumber) params.append("challengeNumber", challengeNumber);
+        if (ageGroup) params.append("ageGroup", ageGroup);
+        if (searchText) params.append("searchText", searchText);
+
+        grid.innerHTML = "<div class='text-muted'>Loading videos...</div>";
+
+        try {
+            const response = await fetch(`/api/TalentShow/videos?${params.toString()}`);
+            const videos = await response.json();
+
+            if (!Array.isArray(videos) || videos.length === 0) {
+                grid.innerHTML = "<div class='text-muted'>No videos found</div>";
+                return;
+            }
+
+            grid.innerHTML = videos.map(renderVideoCard).join("");
+        }
+        catch {
+            grid.innerHTML = "<div class='text-danger'>Unable to load videos</div>";
+        }
+    }
+
+    function renderVideoCard(video) {
+        const id = video.talentShowVideoId;
+        const source = mediaUrl(video.videoPath);
+        const poster = video.thumbnailPath ? ` poster="${mediaUrl(video.thumbnailPath)}"` : "";
+
+        return `
+            <article class="video-card" id="video-${id}">
+                <div class="video-frame">
+                    <video controls preload="metadata"${poster}>
+                        <source src="${source}" />
+                    </video>
+                </div>
+                <div class="video-body">
+                    <span class="campaign-chip">${escapeHtml(video.campaignName ?? "Talent Show")}</span>
+                    <span class="category-chip">${escapeHtml(video.categoryName ?? "General")}</span>
+                    <span class="category-chip">${escapeHtml(video.ageGroup ?? "Age group")}</span>
+                    <h2 class="video-title">${escapeHtml(video.title)}</h2>
+                    <div class="video-meta">${escapeHtml(video.memberName ?? "Community member")} · Challenge ${video.challengeNumber ?? 1} · ${escapeHtml(video.challengeLevel ?? "Beginner")}</div>
+                    <p class="text-muted mt-2 mb-0">${escapeHtml(video.description ?? "")}</p>
+                    ${video.judgeFeedback ? `<p class="small mt-2 mb-0"><strong>Judge feedback:</strong> ${escapeHtml(video.judgeFeedback)}</p>` : ""}
+
+                    <div class="score-row">
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="likeVideo(${id})">
+                            Like <span data-like-count="${id}">${video.likeCount ?? 0}</span>
+                        </button>
+                        <div class="metric">
+                            <span data-average-rating="${id}">${formatRating(video.averageRating)}</span>
+                            / 5
+                            <span class="text-muted">(<span data-rating-count="${id}">${video.ratingCount ?? 0}</span>)</span>
+                        </div>
+                        <div class="metric">Judge ${Number(video.judgeScore || 0).toFixed(0)}</div>
+                    </div>
+
+                    <div class="rating-buttons mt-3" aria-label="Rate this video">
+                        ${[1, 2, 3, 4, 5].map(value => `
+                            <button type="button" class="btn btn-sm btn-outline-warning" title="${value} point rating" onclick="rateVideo(${id}, ${value})">
+                                &#9733;
+                            </button>
+                        `).join("")}
+                    </div>
+                </div>
+            </article>
+        `;
+    }
+
+    async function likeVideo(videoId) {
+        await saveReaction({ talentShowVideoId: videoId, visitorKey, isLike: true });
+    }
+
+    async function rateVideo(videoId, rating) {
+        await saveReaction({ talentShowVideoId: videoId, visitorKey, rating });
+    }
+
+    async function saveReaction(payload) {
+        const response = await fetch("/api/TalentShow/videos/reaction", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+        });
+
+        const result = await response.json();
+        if (result.summary) updateSummary(result.summary);
+    }
+
+    function connectLiveUpdates() {
+        if (!window.signalR) return;
+
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/talentShowHub")
+            .withAutomaticReconnect()
+            .build();
+
+        connection.on("talentShowVideoUpdated", updateSummary);
+        connection.on("talentShowVideoCreated", loadVideos);
+
+        connection.start()
+            .then(() => connection.invoke("JoinTalentShow"))
+            .catch(() => {});
+    }
+
+    function updateSummary(summary) {
+        const id = summary.talentShowVideoId;
+        setText(`[data-like-count="${id}"]`, summary.likeCount ?? 0);
+        setText(`[data-average-rating="${id}"]`, formatRating(summary.averageRating));
+        setText(`[data-rating-count="${id}"]`, summary.ratingCount ?? 0);
+    }
+
+    function setText(selector, value) {
+        const element = document.querySelector(selector);
+        if (element) element.textContent = value;
+    }
+
+    function mediaUrl(path) {
+        if (!path) return "";
+        if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("/")) return path;
+        return `/${path}`;
+    }
+
+    function formatRating(value) {
+        return Number(value || 0).toFixed(1);
+    }
+
+    function getOrCreateVisitorKey() {
+        const key = "talentShowVisitorKey";
+        let value = localStorage.getItem(key);
+
+        if (!value) {
+            value = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`;
+            localStorage.setItem(key, value);
+        }
+
+        return value;
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+</script>

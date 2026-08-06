@@ -1,0 +1,272 @@
+@{
+    ViewData["Title"] = "Upload Talent Video";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+    var memberId = Context.Session.GetString("MemberId")
+        ?? Context.Session.GetString("UserId")
+        ?? Context.Session.GetString("CommunityId")
+        ?? "";
+    var memberName = Context.Session.GetString("MemberName")
+        ?? Context.Session.GetString("CommunityName")
+        ?? "";
+}
+
+<style>
+    .upload-wrap {
+        max-width: 920px;
+    }
+
+    .upload-panel {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, .08);
+        padding: 26px;
+    }
+
+    .upload-title {
+        color: #111827;
+        font-size: 26px;
+        font-weight: 900;
+        margin: 0;
+    }
+
+    .hint {
+        color: #64748b;
+        font-size: 13px;
+    }
+</style>
+
+<div class="upload-wrap">
+    <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="upload-title">Upload Talent Video</h1>
+            <div class="hint">Choose a category, add details, and submit your performance.</div>
+        </div>
+        <a href="/TalentShow/Home/Gallery" class="btn btn-outline-primary">View Gallery</a>
+        <a href="/TalentShow/Home/Campaign" class="btn btn-outline-secondary">Campaign Flow</a>
+    </div>
+
+    <div class="upload-panel">
+        <div id="result"></div>
+
+        <form id="uploadForm">
+            <input type="hidden" id="memberId" value="@memberId" />
+
+            <div class="mb-3">
+                <label class="form-label">Campaign</label>
+                <select id="talentShowCampaignId" class="form-select" required>
+                    <option value="">Loading open campaigns...</option>
+                </select>
+                <div class="hint mt-1" id="campaignHint"></div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Category</label>
+                    <select id="talentShowCategoryId" class="form-select" required>
+                        <option value="">Select category</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Member Name</label>
+                    <input type="text" id="memberName" class="form-control" maxlength="150" value="@memberName" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Age Group</label>
+                    <select id="ageGroup" class="form-select" required>
+                        <option value="">Select age group</option>
+                        <option value="Under 8">Under 8</option>
+                        <option value="8-12">8-12</option>
+                        <option value="13-17">13-17</option>
+                        <option value="18+">18+</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Challenge</label>
+                    <select id="challengeNumber" class="form-select" required>
+                        <option value="1">Challenge 1 - Beginner</option>
+                        <option value="2">Challenge 2 - Intermediate</option>
+                        <option value="3">Challenge 3 - Advanced / Signature Performance</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Video Title</label>
+                <input type="text" id="title" class="form-control" maxlength="160" required />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea id="description" class="form-control" rows="4" maxlength="1000"></textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-7 mb-3">
+                    <label class="form-label">Video File</label>
+                    <input type="file" id="videoFile" class="form-control" accept="video/mp4,video/webm,video/quicktime,.m4v" required />
+                    <div class="hint mt-1">Allowed: mp4, webm, mov, m4v. Max size: 250 MB.</div>
+                </div>
+
+                <div class="col-md-5 mb-3">
+                    <label class="form-label">Thumbnail</label>
+                    <input type="file" id="thumbnailFile" class="form-control" accept="image/jpeg,image/png,image/webp" />
+                    <div class="hint mt-1">Optional image up to 5 MB.</div>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success">
+                Submit Video
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        await loadCampaigns();
+        await loadCategories();
+        applyQueryDefaults();
+    });
+
+    document.getElementById("uploadForm").addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const resultBox = document.getElementById("result");
+        const campaignId = Number(document.getElementById("talentShowCampaignId").value || 0);
+        const videoFile = document.getElementById("videoFile").files[0];
+        const thumbnailFile = document.getElementById("thumbnailFile").files[0];
+
+        if (campaignId <= 0) {
+            resultBox.innerHTML = "<div class='alert alert-warning'>No active campaign is open for uploads.</div>";
+            return;
+        }
+
+        if (!videoFile) {
+            resultBox.innerHTML = "<div class='alert alert-danger'>Video file is required</div>";
+            return;
+        }
+
+        resultBox.innerHTML = "<div class='alert alert-info'>Uploading video...</div>";
+
+        try {
+            const payload = {
+                talentShowCampaignId: campaignId,
+                talentShowCategoryId: Number(document.getElementById("talentShowCategoryId").value),
+                challengeNumber: Number(document.getElementById("challengeNumber").value || 1),
+                ageGroup: document.getElementById("ageGroup").value,
+                memberName: document.getElementById("memberName").value.trim(),
+                title: document.getElementById("title").value.trim(),
+                description: document.getElementById("description").value.trim(),
+                videoBase64: await toRawBase64(videoFile),
+                videoFileName: videoFile.name
+            };
+
+            const memberId = document.getElementById("memberId").value;
+            if (memberId) payload.memberId = Number(memberId);
+
+            if (thumbnailFile) {
+                payload.thumbnailBase64 = await toRawBase64(thumbnailFile);
+                payload.thumbnailFileName = thumbnailFile.name;
+            }
+
+            const response = await fetch("/api/TalentShow/videos/upload-base64", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+
+            if (result.resultId > 0) {
+                resultBox.innerHTML = `<div class="alert alert-success">${escapeHtml(result.resultMessage)}</div>`;
+                document.getElementById("uploadForm").reset();
+            }
+            else {
+                resultBox.innerHTML = `<div class="alert alert-danger">${escapeHtml(result.resultMessage ?? "Unable to upload video")}</div>`;
+            }
+        }
+        catch {
+            resultBox.innerHTML = "<div class='alert alert-danger'>Unable to upload video</div>";
+        }
+    });
+
+    async function loadCampaigns() {
+        const select = document.getElementById("talentShowCampaignId");
+        const hint = document.getElementById("campaignHint");
+
+        try {
+            const response = await fetch("/api/TalentShow/campaigns?uploadOpenOnly=true");
+            const campaigns = await response.json();
+
+            if (!Array.isArray(campaigns) || campaigns.length === 0) {
+                select.innerHTML = "<option value=''>No open campaigns</option>";
+                hint.textContent = "Upload is closed until admin opens a campaign.";
+                document.querySelector("#uploadForm button[type='submit']").disabled = true;
+                return;
+            }
+
+            select.innerHTML = "<option value=''>Select campaign</option>" +
+                campaigns.map(campaign => `<option value="${campaign.talentShowCampaignId}">${escapeHtml(campaign.campaignName)}</option>`).join("");
+
+            const queryCampaignId = new URLSearchParams(window.location.search).get("campaignId");
+            if (queryCampaignId) select.value = queryCampaignId;
+        }
+        catch {
+            select.innerHTML = "<option value=''>Unable to load campaigns</option>";
+        }
+    }
+
+    function toRawBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const value = String(reader.result || "");
+                const commaIndex = value.indexOf(",");
+                resolve(commaIndex >= 0 ? value.substring(commaIndex + 1) : value);
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    }
+
+    async function loadCategories() {
+        const select = document.getElementById("talentShowCategoryId");
+
+        try {
+            const response = await fetch("/api/TalentShow/categories");
+            const categories = await response.json();
+
+            select.innerHTML = "<option value=''>Select category</option>" +
+                categories.map(category => `<option value="${category.talentShowCategoryId}">${escapeHtml(category.categoryName)}</option>`).join("");
+
+            const queryCategoryId = new URLSearchParams(window.location.search).get("categoryId");
+            if (queryCategoryId) select.value = queryCategoryId;
+        }
+        catch {
+            select.innerHTML = "<option value=''>Unable to load categories</option>";
+        }
+    }
+
+    function applyQueryDefaults() {
+        const params = new URLSearchParams(window.location.search);
+        const ageGroup = params.get("ageGroup");
+        const challengeNumber = params.get("challengeNumber");
+
+        if (ageGroup) document.getElementById("ageGroup").value = ageGroup;
+        if (challengeNumber) document.getElementById("challengeNumber").value = challengeNumber;
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+</script>

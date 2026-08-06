@@ -1,0 +1,366 @@
+@{
+    ViewData["Title"] = "Talent Campaign";
+    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+    var talentShowCampaignId = ViewBag.TalentShowCampaignId ?? 0;
+    var memberId = Context.Session.GetString("MemberId")
+        ?? Context.Session.GetString("UserId")
+        ?? Context.Session.GetString("CommunityId")
+        ?? "";
+    var memberName = Context.Session.GetString("MemberName")
+        ?? Context.Session.GetString("CommunityName")
+        ?? "";
+}
+
+<style>
+    .campaign-shell {
+        max-width: 1100px;
+    }
+
+    .campaign-panel,
+    .flow-panel {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+    }
+
+    .campaign-panel {
+        padding: 24px;
+    }
+
+    .campaign-title {
+        color: #0f172a;
+        font-size: 28px;
+        font-weight: 900;
+        margin: 0;
+    }
+
+    .flow-list {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        padding: 18px;
+    }
+
+    .flow-step {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        min-height: 112px;
+        padding: 14px;
+    }
+
+    .step-number {
+        align-items: center;
+        background: #0f766e;
+        border-radius: 999px;
+        color: #fff;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 800;
+        height: 26px;
+        justify-content: center;
+        margin-bottom: 10px;
+        width: 26px;
+    }
+
+    .challenge-grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .challenge-card {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 16px;
+    }
+
+    .challenge-card.locked {
+        background: #f8fafc;
+        color: #64748b;
+    }
+
+    .status-pill {
+        border-radius: 999px;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 800;
+        padding: 5px 10px;
+    }
+
+    .status-open {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-wait {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-locked {
+        background: #e2e8f0;
+        color: #475569;
+    }
+
+    @@media (max-width: 900px) {
+        .flow-list,
+        .challenge-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="campaign-shell">
+    <div class="d-flex justify-content-between align-items-start gap-3 mb-4">
+        <div>
+            <h1 class="campaign-title">Talent Campaign</h1>
+            <div class="text-muted">Register once, complete three weekly challenges, and build a ranked talent portfolio.</div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="/TalentShow/Home/Gallery" class="btn btn-outline-primary">Gallery</a>
+            <a href="/TalentShow/Home/Rankings" class="btn btn-outline-secondary">Rankings</a>
+        </div>
+    </div>
+
+    <div id="result"></div>
+
+    <div class="campaign-panel mb-4">
+        <form id="registrationForm">
+            <input type="hidden" id="initialCampaignId" value="@talentShowCampaignId" />
+            <input type="hidden" id="memberId" value="@memberId" />
+
+            <div class="row">
+                <div class="col-lg-5 mb-3">
+                    <label class="form-label">Campaign</label>
+                    <select id="talentShowCampaignId" class="form-select" required>
+                        <option value="">Loading campaigns...</option>
+                    </select>
+                </div>
+                <div class="col-lg-4 mb-3">
+                    <label class="form-label">Category</label>
+                    <select id="talentShowCategoryId" class="form-select" required>
+                        <option value="">Loading categories...</option>
+                    </select>
+                </div>
+                <div class="col-lg-3 mb-3">
+                    <label class="form-label">Age Group</label>
+                    <select id="ageGroup" class="form-select" required>
+                        <option value="">Select age group</option>
+                        <option value="Under 8">Under 8</option>
+                        <option value="8-12">8-12</option>
+                        <option value="13-17">13-17</option>
+                        <option value="18+">18+</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Member Name</label>
+                <input type="text" id="memberName" class="form-control" maxlength="150" value="@memberName" />
+            </div>
+
+            <div class="row">
+                <div class="col-lg-6 mb-3">
+                    <label class="form-label">Campaign Guidelines</label>
+                    <div id="guidelines" class="border rounded p-3 text-muted">Select a campaign to view guidelines.</div>
+                </div>
+                <div class="col-lg-6 mb-3">
+                    <label class="form-label">Terms & Conditions</label>
+                    <div id="terms" class="border rounded p-3 text-muted">Select a campaign to view terms.</div>
+                </div>
+            </div>
+
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="acceptedTerms" />
+                <label class="form-check-label" for="acceptedTerms">I accept the Talent Campaign terms and conditions.</label>
+            </div>
+
+            <button class="btn btn-success" type="submit">Register for Campaign</button>
+        </form>
+    </div>
+
+    <div class="flow-panel mb-4">
+        <div class="flow-list">
+            <div class="flow-step"><span class="step-number">1</span><div class="fw-semibold">Browse Details</div><div class="text-muted small">Review campaign window and judging rules.</div></div>
+            <div class="flow-step"><span class="step-number">2</span><div class="fw-semibold">Choose Category</div><div class="text-muted small">Stay in the same category for the month.</div></div>
+            <div class="flow-step"><span class="step-number">3</span><div class="fw-semibold">Challenge 1</div><div class="text-muted small">Beginner level unlocks after registration.</div></div>
+            <div class="flow-step"><span class="step-number">4</span><div class="fw-semibold">Community Rating</div><div class="text-muted small">One rating per member shapes viewer score.</div></div>
+            <div class="flow-step"><span class="step-number">5</span><div class="fw-semibold">Judge Feedback</div><div class="text-muted small">Judges add assessment and suggestions.</div></div>
+            <div class="flow-step"><span class="step-number">6</span><div class="fw-semibold">Final Ranking</div><div class="text-muted small">Judge, viewer, engagement, and consistency scores are combined.</div></div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 fw-bold mb-0">Challenge Portfolio</h2>
+        <a id="uploadLink" href="/TalentShow/Home/Upload" class="btn btn-primary">Upload Next Challenge</a>
+    </div>
+
+    <div id="challengeGrid" class="challenge-grid">
+        <div class="text-muted">Select a campaign to view challenge status.</div>
+    </div>
+</div>
+
+<script>
+    const memberIdValue = document.getElementById("memberId").value;
+
+    document.addEventListener("DOMContentLoaded", async () => {
+        await loadCampaigns();
+        await loadCategories();
+        await loadRegistrationStatus();
+    });
+
+    document.getElementById("talentShowCampaignId").addEventListener("change", () => {
+        updateCampaignCopy();
+        loadRegistrationStatus();
+    });
+    document.getElementById("registrationForm").addEventListener("submit", registerForCampaign);
+
+    async function loadCampaigns() {
+        const select = document.getElementById("talentShowCampaignId");
+        const initialCampaignId = Number(document.getElementById("initialCampaignId").value || 0);
+
+        try {
+            const response = await fetch("/api/TalentShow/campaigns");
+            const campaigns = await response.json();
+            select.innerHTML = "<option value=''>Select campaign</option>" +
+                campaigns.map(campaign => `<option value="${campaign.talentShowCampaignId}">${escapeHtml(campaign.campaignName)}</option>`).join("");
+
+            if (initialCampaignId) select.value = String(initialCampaignId);
+            if (!select.value && campaigns.length > 0) select.value = String(campaigns[0].talentShowCampaignId);
+            updateCampaignCopy(campaigns);
+        }
+        catch {
+            select.innerHTML = "<option value=''>Unable to load campaigns</option>";
+        }
+    }
+
+    async function loadCategories() {
+        const select = document.getElementById("talentShowCategoryId");
+
+        try {
+            const response = await fetch("/api/TalentShow/categories");
+            const categories = await response.json();
+            select.innerHTML = "<option value=''>Select category</option>" +
+                categories.map(category => `<option value="${category.talentShowCategoryId}">${escapeHtml(category.categoryName)}</option>`).join("");
+        }
+        catch {
+            select.innerHTML = "<option value=''>Unable to load categories</option>";
+        }
+    }
+
+    async function updateCampaignCopy(campaigns) {
+        const campaignId = Number(document.getElementById("talentShowCampaignId").value || 0);
+        let campaign = (campaigns || []).find(item => Number(item.talentShowCampaignId) === campaignId);
+
+        if (!campaign && campaignId) {
+            const response = await fetch(`/api/TalentShow/campaigns/${campaignId}`);
+            if (response.ok) campaign = await response.json();
+        }
+
+        document.getElementById("guidelines").textContent = campaign?.guidelines || "Upload one talent performance per challenge in the selected category.";
+        document.getElementById("terms").textContent = campaign?.termsAndConditions || "Community ratings, judge assessment, and engagement can be used for final ranking.";
+    }
+
+    async function registerForCampaign(event) {
+        event.preventDefault();
+        const resultBox = document.getElementById("result");
+        const payload = {
+            talentShowCampaignId: Number(document.getElementById("talentShowCampaignId").value || 0),
+            talentShowCategoryId: Number(document.getElementById("talentShowCategoryId").value || 0),
+            memberName: document.getElementById("memberName").value.trim(),
+            ageGroup: document.getElementById("ageGroup").value,
+            acceptedTerms: document.getElementById("acceptedTerms").checked
+        };
+
+        if (memberIdValue) payload.memberId = Number(memberIdValue);
+
+        try {
+            const response = await fetch("/api/TalentShow/registrations/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+
+            resultBox.innerHTML = result.resultId !== 0
+                ? `<div class="alert alert-success">${escapeHtml(result.resultMessage)}</div>`
+                : `<div class="alert alert-danger">${escapeHtml(result.resultMessage ?? "Unable to register")}</div>`;
+
+            if (result.resultId !== 0) await loadRegistrationStatus();
+        }
+        catch {
+            resultBox.innerHTML = "<div class='alert alert-danger'>Unable to register for campaign.</div>";
+        }
+    }
+
+    async function loadRegistrationStatus() {
+        const campaignId = Number(document.getElementById("talentShowCampaignId").value || 0);
+        if (!campaignId) return;
+
+        const params = new URLSearchParams({ talentShowCampaignId: String(campaignId) });
+        if (memberIdValue) params.append("memberId", memberIdValue);
+
+        try {
+            const response = await fetch(`/api/TalentShow/registrations/status?${params.toString()}`);
+            if (!response.ok) {
+                renderEmptyChallenges();
+                return;
+            }
+
+            const status = await response.json();
+            document.getElementById("talentShowCategoryId").value = status.talentShowCategoryId;
+            document.getElementById("ageGroup").value = status.ageGroup;
+            renderChallenges(status);
+        }
+        catch {
+            renderEmptyChallenges();
+        }
+    }
+
+    function renderEmptyChallenges() {
+        document.getElementById("challengeGrid").innerHTML = [1, 2, 3].map(number => `
+            <article class="challenge-card ${number === 1 ? "" : "locked"}">
+                <span class="status-pill ${number === 1 ? "status-open" : "status-locked"}">${number === 1 ? "Register to unlock" : "Locked"}</span>
+                <h3 class="h6 fw-bold mt-3">Challenge ${number}</h3>
+                <div class="text-muted small">${challengeLevel(number)}</div>
+            </article>
+        `).join("");
+    }
+
+    function renderChallenges(status) {
+        const current = status.challenges.find(item => item.isUnlocked && !item.isUploaded) || status.challenges[status.challenges.length - 1];
+        document.getElementById("uploadLink").href = `/TalentShow/Home/Upload?campaignId=${status.talentShowCampaignId}&categoryId=${status.talentShowCategoryId}&ageGroup=${encodeURIComponent(status.ageGroup)}&challengeNumber=${current.challengeNumber}`;
+        document.getElementById("challengeGrid").innerHTML = status.challenges.map(challenge => {
+            const stateClass = challenge.isUploaded ? "status-open" : challenge.isUnlocked ? "status-wait" : "status-locked";
+            const stateText = challenge.isUploaded ? "Uploaded" : challenge.isUnlocked ? "Unlocked" : "Locked";
+            return `
+                <article class="challenge-card ${challenge.isUnlocked ? "" : "locked"}">
+                    <span class="status-pill ${stateClass}">${stateText}</span>
+                    <h3 class="h6 fw-bold mt-3">Challenge ${challenge.challengeNumber}</h3>
+                    <div class="text-muted small">${escapeHtml(challenge.challengeLevel)}</div>
+                    <div class="mt-3 fw-semibold">${escapeHtml(challenge.title ?? "Awaiting upload")}</div>
+                    <div class="text-muted small">Rating ${Number(challenge.averageRating || 0).toFixed(1)} / 5 (${challenge.ratingCount || 0})</div>
+                    <div class="text-muted small">Judge score ${Number(challenge.judgeScore || 0).toFixed(0)}</div>
+                    ${challenge.judgeFeedback ? `<div class="small mt-2">${escapeHtml(challenge.judgeFeedback)}</div>` : ""}
+                </article>
+            `;
+        }).join("");
+    }
+
+    function challengeLevel(number) {
+        if (number === 1) return "Beginner";
+        if (number === 2) return "Intermediate";
+        return "Advanced / Signature Performance";
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+</script>

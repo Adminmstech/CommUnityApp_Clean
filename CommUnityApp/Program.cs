@@ -4,6 +4,7 @@ using CommUnityApp.ApplicationCore.BAL;
 using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.InfrastructureLayer.Repositories;
 using CommUnityApp.InfrastructureLayer.Services;
+using CommUnityApp.Hubs;
 using CommUnityApp.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
@@ -121,6 +122,7 @@ builder.Services.AddTransient<ICampaignRepository, CampignRepository>();
 builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
 builder.Services.AddTransient<ISmartQuizRepository, SmartQuizRepository>();
 builder.Services.AddTransient<ITextQuizRepository,TextQuizRepository>();
+builder.Services.AddTransient<ITalentShowRepository, TalentShowRepository>();
 builder.Services.AddTransient<ISpinGameRepository>(provider =>
 {
     var configuration = provider.GetRequiredService<IConfiguration>();
@@ -214,5 +216,6 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}"
 );
 app.MapHub<AuctionHub>("/auctionHub");
+app.MapHub<TalentShowHub>("/talentShowHub");
 
 app.Run();

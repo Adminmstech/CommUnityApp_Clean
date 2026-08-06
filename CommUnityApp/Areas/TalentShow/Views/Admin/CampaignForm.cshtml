@@ -1,0 +1,221 @@
+@{
+    ViewData["Title"] = "Talent Show Campaign";
+    Layout = "~/Areas/Admin/Views/shared/AdminLayout.cshtml";
+    var talentShowCampaignId = ViewBag.TalentShowCampaignId ?? 0;
+}
+
+<style>
+    .form-shell {
+        max-width: 900px;
+    }
+
+    .form-panel {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+        padding: 24px;
+    }
+
+    .form-title {
+        color: #0f172a;
+        font-size: 24px;
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+</style>
+
+<div class="form-shell">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="form-title" id="pageHeading">Add Campaign</h1>
+            <div class="text-muted">Set the event and upload window for members.</div>
+        </div>
+
+        <a href="/TalentShow/Admin/Campaigns" class="btn btn-outline-secondary">
+            <i class="fa-solid fa-arrow-left"></i>
+            Back
+        </a>
+    </div>
+
+    <div class="form-panel">
+        <div id="result"></div>
+
+        <form id="campaignForm">
+            <input type="hidden" id="talentShowCampaignId" value="@talentShowCampaignId" />
+
+            <div class="row">
+                <div class="col-md-7 mb-3">
+                    <label class="form-label">Campaign Name</label>
+                    <input type="text" id="campaignName" class="form-control" maxlength="150" placeholder="Christmas Talent Fest" required />
+                </div>
+
+                <div class="col-md-5 mb-3">
+                    <label class="form-label">Event Name</label>
+                    <input type="text" id="eventName" class="form-control" maxlength="150" placeholder="Christmas / New Year" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Description</label>
+                <textarea id="description" class="form-control" rows="4" maxlength="1000"></textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Duration Days</label>
+                    <input type="number" id="durationDays" class="form-control" min="1" value="30" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Challenges</label>
+                    <input type="number" id="challengeCount" class="form-control" min="1" max="3" value="3" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">Days Per Challenge</label>
+                    <input type="number" id="daysPerChallenge" class="form-control" min="1" value="7" />
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Campaign Guidelines</label>
+                <textarea id="guidelines" class="form-control" rows="4" maxlength="2000" placeholder="One performance per week in the selected category."></textarea>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Terms & Conditions</label>
+                <textarea id="termsAndConditions" class="form-control" rows="4" maxlength="2000" placeholder="Ratings, comments, judge scores, and engagement may be used for final assessment."></textarea>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Upload Start Date</label>
+                    <input type="datetime-local" id="uploadStartDate" class="form-control" required />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Upload End Date</label>
+                    <input type="datetime-local" id="uploadEndDate" class="form-control" required />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Display Order</label>
+                    <input type="number" id="displayOrder" class="form-control" min="0" value="0" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Status</label>
+                    <select id="isActive" class="form-select">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-success">
+                <i class="fa-solid fa-floppy-disk"></i>
+                Save Campaign
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const campaignId = Number(document.getElementById("talentShowCampaignId").value || 0);
+
+    document.addEventListener("DOMContentLoaded", () => {
+        if (campaignId > 0) {
+            document.getElementById("pageHeading").textContent = "Edit Campaign";
+            loadCampaign(campaignId);
+        }
+        else {
+            const now = new Date();
+            const nextWeek = new Date(now.getTime() + (7 * 24 * 60 * 60 * 1000));
+            document.getElementById("uploadStartDate").value = toDateTimeLocal(now);
+            document.getElementById("uploadEndDate").value = toDateTimeLocal(nextWeek);
+        }
+    });
+
+    document.getElementById("campaignForm").addEventListener("submit", async event => {
+        event.preventDefault();
+
+        const resultBox = document.getElementById("result");
+        const startValue = document.getElementById("uploadStartDate").value;
+        const endValue = document.getElementById("uploadEndDate").value;
+
+        const payload = {
+            talentShowCampaignId: campaignId,
+            campaignName: document.getElementById("campaignName").value.trim(),
+            eventName: document.getElementById("eventName").value.trim(),
+            description: document.getElementById("description").value.trim(),
+            guidelines: document.getElementById("guidelines").value.trim(),
+            termsAndConditions: document.getElementById("termsAndConditions").value.trim(),
+            durationDays: Number(document.getElementById("durationDays").value || 30),
+            challengeCount: Number(document.getElementById("challengeCount").value || 3),
+            daysPerChallenge: Number(document.getElementById("daysPerChallenge").value || 7),
+            uploadStartDate: new Date(startValue).toISOString(),
+            uploadEndDate: new Date(endValue).toISOString(),
+            displayOrder: Number(document.getElementById("displayOrder").value || 0),
+            isActive: document.getElementById("isActive").value === "true"
+        };
+
+        if (new Date(payload.uploadEndDate) <= new Date(payload.uploadStartDate)) {
+            resultBox.innerHTML = "<div class='alert alert-danger'>Upload end date must be after start date.</div>";
+            return;
+        }
+
+        try {
+            const response = await fetch("/api/TalentShow/campaigns/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+            const result = await response.json();
+
+            if (result.resultId > 0) {
+                resultBox.innerHTML = `<div class="alert alert-success">${escapeHtml(result.resultMessage)}</div>`;
+                window.setTimeout(() => window.location.href = "/TalentShow/Admin/Campaigns", 700);
+            }
+            else {
+                resultBox.innerHTML = `<div class="alert alert-danger">${escapeHtml(result.resultMessage ?? "Unable to save campaign")}</div>`;
+            }
+        }
+        catch {
+            resultBox.innerHTML = "<div class='alert alert-danger'>Unable to save campaign</div>";
+        }
+    });
+
+    async function loadCampaign(id) {
+        const response = await fetch(`/api/TalentShow/campaigns/${id}`);
+        if (!response.ok) return;
+
+        const campaign = await response.json();
+        document.getElementById("campaignName").value = campaign.campaignName ?? "";
+        document.getElementById("eventName").value = campaign.eventName ?? "";
+        document.getElementById("description").value = campaign.description ?? "";
+        document.getElementById("guidelines").value = campaign.guidelines ?? "";
+        document.getElementById("termsAndConditions").value = campaign.termsAndConditions ?? "";
+        document.getElementById("durationDays").value = campaign.durationDays ?? 30;
+        document.getElementById("challengeCount").value = campaign.challengeCount ?? 3;
+        document.getElementById("daysPerChallenge").value = campaign.daysPerChallenge ?? 7;
+        document.getElementById("uploadStartDate").value = toDateTimeLocal(new Date(campaign.uploadStartDate));
+        document.getElementById("uploadEndDate").value = toDateTimeLocal(new Date(campaign.uploadEndDate));
+        document.getElementById("displayOrder").value = campaign.displayOrder ?? 0;
+        document.getElementById("isActive").value = campaign.isActive ? "true" : "false";
+    }
+
+    function toDateTimeLocal(date) {
+        const offsetDate = new Date(date.getTime() - (date.getTimezoneOffset() * 60000));
+        return offsetDate.toISOString().slice(0, 16);
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+</script>
