@@ -1,0 +1,353 @@
+@{
+    var memberName = Context.Session.GetString("MemberName")
+        ?? Context.Session.GetString("CommunityName")
+        ?? Context.Session.GetString("UserName")
+        ?? "Member";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    string ActiveLink(string action)
+    {
+        return string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Talent Show</title>
+
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+    <style>
+        :root {
+            --talent-sidebar: #172033;
+            --talent-sidebar-hover: #253049;
+            --talent-active: #0f766e;
+            --talent-primary: #0f766e;
+            --talent-primary-dark: #115e59;
+            --talent-bg: #f6f8fb;
+            --talent-surface: #ffffff;
+            --talent-border: #dbe3ea;
+            --talent-text: #111827;
+            --talent-muted: #64748b;
+        }
+
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+            background: var(--talent-bg);
+            color: var(--talent-text);
+            font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        }
+
+        .layout {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            flex-shrink: 0;
+            overflow-y: auto;
+            padding: 20px 16px;
+            background: var(--talent-sidebar);
+            border-right: 1px solid rgba(255, 255, 255, .08);
+            color: #e5edf6;
+            transition: all .25s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 18px;
+            padding: 4px 8px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, .12);
+            font-size: 20px;
+            font-weight: 900;
+        }
+
+        .brand i {
+            color: #f59e0b;
+            font-size: 24px;
+        }
+
+        .nav {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .nav a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-height: 42px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #d7e0ec;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .nav a:hover,
+        .nav a.active {
+            background: var(--talent-sidebar-hover);
+            color: #fff;
+        }
+
+        .nav a.active {
+            background: var(--talent-active);
+        }
+
+        .nav i {
+            width: 20px;
+            flex-shrink: 0;
+            color: #8fd6cc;
+            font-size: 17px;
+            text-align: center;
+        }
+
+        .main {
+            display: flex;
+            flex: 1;
+            min-width: 0;
+            flex-direction: column;
+            background: var(--talent-bg);
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 68px;
+            flex-shrink: 0;
+            padding: 0 28px;
+            background: var(--talent-surface);
+            border-bottom: 1px solid var(--talent-border);
+        }
+
+        .top-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .menu-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border: 1px solid #d5e4e1;
+            border-radius: 8px;
+            background: #eef4f3;
+            color: var(--talent-primary-dark);
+            cursor: pointer;
+        }
+
+        .page-title {
+            color: var(--talent-text);
+            font-size: 20px;
+            font-weight: 900;
+            line-height: 1.2;
+        }
+
+        .profile-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 40px;
+            padding: 8px 12px;
+            border: 1px solid #fed7aa;
+            border-radius: 8px;
+            background: #fff7ed;
+            color: #9a3412;
+            font-size: 14px;
+            font-weight: 800;
+        }
+
+        .content {
+            flex: 1;
+            min-width: 0;
+            overflow-y: auto;
+            padding: 28px;
+        }
+
+        .content .container,
+        .content .container-fluid {
+            max-width: 100%;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .btn,
+        .form-control,
+        .form-select {
+            border-radius: 8px;
+        }
+
+        .btn-primary,
+        .btn-success {
+            background-color: var(--talent-primary) !important;
+            border-color: var(--talent-primary) !important;
+        }
+
+        .btn-primary:hover,
+        .btn-success:hover {
+            background-color: var(--talent-primary-dark) !important;
+            border-color: var(--talent-primary-dark) !important;
+        }
+
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--talent-border);
+            border-radius: 8px;
+        }
+
+        .footer {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 48px;
+            flex-shrink: 0;
+            background: var(--talent-surface);
+            border-top: 1px solid var(--talent-border);
+            color: var(--talent-muted);
+            font-size: 13px;
+        }
+
+        @@media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -260px;
+                height: 100vh;
+                z-index: 1100;
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .sidebar.collapsed {
+                width: 260px;
+                padding: 20px 16px;
+            }
+
+            .mobile-overlay {
+                display: none;
+                position: fixed;
+                inset: 0;
+                z-index: 1000;
+                background: rgba(15, 23, 42, .55);
+            }
+
+            .mobile-overlay.show {
+                display: block;
+            }
+
+            .topbar {
+                padding: 0 16px;
+            }
+
+            .content {
+                padding: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <div class="layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="brand">
+                <i class="bi bi-stars"></i>
+                <span>Talent Show</span>
+            </div>
+
+            <nav class="nav">
+                <a class="@ActiveLink("Campaign")" href="/TalentShow/Home/Campaign">
+                    <i class="bi bi-clipboard-check"></i>
+                    Campaign Flow
+                </a>
+                <a class="@ActiveLink("Upload")" href="/TalentShow/Home/Upload">
+                    <i class="bi bi-cloud-arrow-up"></i>
+                    Upload Video
+                </a>
+                <a class="@ActiveLink("Gallery")" href="/TalentShow/Home/Gallery">
+                    <i class="bi bi-play-btn"></i>
+                    Gallery
+                </a>
+                <a class="@ActiveLink("Rankings")" href="/TalentShow/Home/Rankings">
+                    <i class="bi bi-trophy"></i>
+                    Rankings
+                </a>
+                <a href="/Community/Home/Index">
+                    <i class="bi bi-arrow-left-circle"></i>
+                    Community
+                </a>
+            </nav>
+        </aside>
+
+        <div class="main">
+            <header class="topbar">
+                <div class="top-left">
+                    <button class="menu-btn" type="button" onclick="toggleSidebar()">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <span class="page-title">@ViewData["Title"]</span>
+                </div>
+
+                <div class="profile-chip">
+                    <i class="bi bi-person-circle"></i>
+                    @memberName
+                </div>
+            </header>
+
+            <main class="content">
+                @RenderBody()
+            </main>
+
+            <footer class="footer">
+                &copy; 2026 CommUnity Talent Show. All rights reserved.
+            </footer>
+        </div>
+    </div>
+
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("overlay");
+
+        function toggleSidebar() {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.toggle("open");
+                overlay.classList.toggle("show");
+            } else {
+                sidebar.classList.toggle("collapsed");
+            }
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove("open");
+            overlay.classList.remove("show");
+        }
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

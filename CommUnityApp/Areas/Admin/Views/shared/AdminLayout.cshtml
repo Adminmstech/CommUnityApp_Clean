@@ -1,6 +1,17 @@
 ﻿@{
     var adminName = Context.Session.GetString("AdminName") ?? "Super Admin";
     var adminInitial = adminName.Substring(0, 1).ToUpper();
+    var currentArea = ViewContext.RouteData.Values["area"]?.ToString();
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+    string ActiveLink(string area, string controller, string action)
+    {
+        return string.Equals(currentArea, area, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase)
+                ? "active"
+                : "";
+    }
 }
 
 <!DOCTYPE html>
@@ -484,12 +495,24 @@
                     <i class="fa-solid fa-sitemap"></i> Manage Organisations
                 </a>
 
-                <div class="nav-section-title">Organisation</div>
+                <div class="nav-section-title">Community Support</div>
                 <a href="@Url.Action("AddCharityItem", "Admin", new { area = "Admin" })">
                     <i class="fa-solid fa-hand-holding-heart"></i> Add Charity Item
                 </a>
                 <a href="@Url.Action("CharityItems", "Admin", new { area = "Admin" })">
                     <i class="fa-solid fa-box-open"></i> Charity Items
+                </a>
+                <a class="@ActiveLink("Admin", "Admin", "CharityList")" href="@Url.Action("CharityList", "Admin", new { area = "Admin" })">
+                    <i class="fa-solid fa-hand-holding-heart"></i> Charity List
+                </a>
+                <a class="@ActiveLink("Admin", "Admin", "ItemRequestList")" href="@Url.Action("ItemRequestList", "Admin", new { area = "Admin" })">
+                    <i class="fa-solid fa-clipboard-list"></i> Item Requests
+                </a>
+                <a class="@ActiveLink("Admin", "Admin", "DeliveryReport")" href="@Url.Action("DeliveryReport", "Admin", new { area = "Admin" })">
+                    <i class="fa-solid fa-truck"></i> Delivery Report
+                </a>
+                <a class="@ActiveLink("Admin", "Admin", "CareConnectList")" href="@Url.Action("CareConnectList", "Admin", new { area = "Admin" })">
+                    <i class="fa-solid fa-heart-pulse"></i> CareConnect Requests
                 </a>
 
                 <div class="nav-section-title">Users</div>
@@ -543,26 +566,26 @@
                     <i class="fa-solid fa-concierge-bell"></i> Add Service
                 </a>
 
-                <div class="nav-section-title">Talent Show</div>
-                <a href="@Url.Action("Campaigns", "Admin", new { area = "TalentShow" })">
+                <div class="nav-section-title">Talent Show Admin</div>
+                <a class="@ActiveLink("TalentShow", "Admin", "Campaigns")" href="@Url.Action("Campaigns", "Admin", new { area = "TalentShow" })">
                     <i class="fa-solid fa-calendar-days"></i> Campaigns
                 </a>
-                <a href="@Url.Action("CampaignForm", "Admin", new { area = "TalentShow" })">
+                <a class="@ActiveLink("TalentShow", "Admin", "CampaignForm")" href="@Url.Action("CampaignForm", "Admin", new { area = "TalentShow" })">
                     <i class="fa-solid fa-calendar-plus"></i> Add Campaign
                 </a>
-                <a href="@Url.Action("Categories", "Admin", new { area = "TalentShow" })">
+                <a class="@ActiveLink("TalentShow", "Admin", "Categories")" href="@Url.Action("Categories", "Admin", new { area = "TalentShow" })">
                     <i class="fa-solid fa-list"></i> Categories
                 </a>
-                <a href="@Url.Action("CategoryForm", "Admin", new { area = "TalentShow" })">
+                <a class="@ActiveLink("TalentShow", "Admin", "CategoryForm")" href="@Url.Action("CategoryForm", "Admin", new { area = "TalentShow" })">
                     <i class="fa-solid fa-folder-plus"></i> Add Category
                 </a>
-                <a href="@Url.Action("AddVideo", "Admin", new { area = "TalentShow" })">
+                <a class="@ActiveLink("TalentShow", "Admin", "AddVideo")" href="@Url.Action("AddVideo", "Admin", new { area = "TalentShow" })">
                     <i class="fa-solid fa-video"></i> Add Video
                 </a>
-                <a href="@Url.Action("Videos", "Admin", new { area = "TalentShow" })">
+                <a class="@ActiveLink("TalentShow", "Admin", "Videos")" href="@Url.Action("Videos", "Admin", new { area = "TalentShow" })">
                     <i class="fa-solid fa-photo-film"></i> Video List
                 </a>
-                <a href="@Url.Action("Rankings", "Admin", new { area = "TalentShow" })">
+                <a class="@ActiveLink("TalentShow", "Admin", "Rankings")" href="@Url.Action("Rankings", "Admin", new { area = "TalentShow" })">
                     <i class="fa-solid fa-ranking-star"></i> Rankings
                 </a>
 

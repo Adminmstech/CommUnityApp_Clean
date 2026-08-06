@@ -205,5 +205,25 @@ namespace CommUnityApp.Areas.Admin.Controllers
         {
             return View(new AddUpdateBrandGameRequest());
         }
+
+        public IActionResult ItemRequestList()
+        {
+            return View();
+        }
+
+        public IActionResult DeliveryReport()
+        {
+            return View();
+        }
+
+        public IActionResult CharityList()
+        {
+            return View();
+        }
+
+        public IActionResult CareConnectList()
+        {
+            return View();
+        }
     }
 }
