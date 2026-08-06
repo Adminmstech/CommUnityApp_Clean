@@ -1,5 +1,7 @@
 ﻿using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CommUnityApp.Areas.Community.Controllers
@@ -67,6 +69,16 @@ namespace CommUnityApp.Areas.Community.Controllers
         public IActionResult CommunityLogin()
         {
             return View();
+        }
+
+        public async Task<IActionResult> Logout()
+        {
+            HttpContext.Session.Clear();
+            Response.Cookies.Delete("CommunityId");
+            Response.Cookies.Delete("CommunityName");
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            return RedirectToAction("Index", "Home", new { area = "" });
         }
 
         [HttpPost]
