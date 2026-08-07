@@ -413,7 +413,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             if (!isRedeemable)
             {
                 redeemCode = null;
-                qrCodePath = null;
+                qrCodePath = null; 
             }
             //const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             //var random = new Random();
