@@ -209,46 +209,190 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
         public async Task<List<BusinessPostEntity>> GetTopFiveBusinessPosts()
         {
-            using var connection =
-                new SqlConnection(
-                    _configuration.GetConnectionString("DefaultConnection"));
+            using var connection = Connection;
 
-            var result =
-                await connection.QueryAsync<BusinessPostEntity>(
-                    "sp_GetTopFiveBusinessPosts",
-                    commandType: CommandType.StoredProcedure);
+            const string sql = @"
+SELECT TOP (5)
+    bp.PostId,
+    bp.BusinessId,
+    '' AS BusinessName,
+    bp.Title,
+    bp.Message,
+    bp.ImagePath,
+    bp.CreatedBy,
+    bp.CreatedDate,
+    bp.IsActive
+FROM dbo.BusinessPosts bp
+WHERE bp.IsActive = 1
+ORDER BY bp.CreatedDate DESC, bp.PostId DESC;";
+
+            var result = await connection.QueryAsync<BusinessPostEntity>(sql);
 
             return result.ToList();
         }
 
         public async Task<BusinessPostDetailsEntity> GetBusinessPostDetails(long postId)
         {
-            using var connection = new SqlConnection(
-                _configuration.GetConnectionString("DefaultConnection"));
+            using var connection = Connection;
 
             return await connection.QueryFirstOrDefaultAsync<BusinessPostDetailsEntity>(
-                "sp_GetBusinessPostDetails",
+                @"
+SELECT
+    bp.PostId,
+    bp.BusinessId,
+    '' AS BusinessName,
+    '' AS Logo,
+    bp.Title,
+    bp.Message,
+    bp.ImagePath,
+    bp.CreatedBy,
+    bp.CreatedDate,
+    bp.IsActive
+FROM dbo.BusinessPosts bp
+WHERE bp.PostId = @PostId;",
                 new
                 {
                     PostId = postId
-                },
-                commandType: CommandType.StoredProcedure);
+                });
         }
 
         public async Task<List<BusinessPostListEntity>> GetAllBusinessPosts(long businessId)
         {
-            using var connection = new SqlConnection(
-                _configuration.GetConnectionString("DefaultConnection"));
+            using var connection = Connection;
 
             var result = await connection.QueryAsync<BusinessPostListEntity>(
-                "sp_GetAllBusinessPosts",
+                @"
+SELECT
+    bp.PostId,
+    bp.BusinessId,
+    '' AS BusinessName,
+    '' AS Logo,
+    bp.Title,
+    bp.Message,
+    bp.ImagePath,
+    bp.CreatedBy,
+    bp.CreatedDate,
+    bp.IsActive
+FROM dbo.BusinessPosts bp
+WHERE bp.BusinessId = @BusinessId
+ORDER BY bp.CreatedDate DESC, bp.PostId DESC;",
                 new
                 {
                     BusinessId = businessId
-                },
-                commandType: CommandType.StoredProcedure);
+                });
 
             return result.ToList();
+        }
+
+        public async Task<BaseResponse> AddUpdateBusinessPost(BusinessPostSaveRequest request)
+        {
+            using var connection = Connection;
+
+            const string sql = @"
+DECLARE @NormalizedTitle NVARCHAR(200) = LTRIM(RTRIM(@Title));
+DECLARE @NormalizedMessage NVARCHAR(MAX) = LTRIM(RTRIM(@Message));
+
+IF ISNULL(@BusinessId, 0) <= 0
+BEGIN
+    SELECT 0 AS ResultId, 'Business is required.' AS ResultMessage;
+    RETURN;
+END;
+
+IF NULLIF(@NormalizedTitle, '') IS NULL
+BEGIN
+    SELECT 0 AS ResultId, 'Post title is required.' AS ResultMessage;
+    RETURN;
+END;
+
+IF NULLIF(@NormalizedMessage, '') IS NULL
+BEGIN
+    SELECT 0 AS ResultId, 'Post message is required.' AS ResultMessage;
+    RETURN;
+END;
+
+IF EXISTS (
+    SELECT 1
+    FROM dbo.BusinessPosts
+    WHERE BusinessId = @BusinessId
+      AND LTRIM(RTRIM(Title)) = @NormalizedTitle
+      AND PostId <> ISNULL(@PostId, 0)
+)
+BEGIN
+    SELECT 0 AS ResultId, 'A business post with this title already exists.' AS ResultMessage;
+    RETURN;
+END;
+
+IF ISNULL(@PostId, 0) > 0
+BEGIN
+    UPDATE dbo.BusinessPosts
+    SET Title = @NormalizedTitle,
+        Message = @NormalizedMessage,
+        ImagePath = COALESCE(NULLIF(@ImagePath, ''), ImagePath),
+        IsActive = @IsActive
+    WHERE PostId = @PostId
+      AND BusinessId = @BusinessId;
+
+    IF @@ROWCOUNT = 0
+        SELECT 0 AS ResultId, 'Business post not found.' AS ResultMessage;
+    ELSE
+        SELECT CAST(@PostId AS INT) AS ResultId, 'Business post updated successfully.' AS ResultMessage;
+
+    RETURN;
+END;
+
+INSERT INTO dbo.BusinessPosts
+(
+    BusinessId,
+    Title,
+    Message,
+    ImagePath,
+    CreatedBy,
+    CreatedDate,
+    IsActive
+)
+VALUES
+(
+    @BusinessId,
+    @NormalizedTitle,
+    @NormalizedMessage,
+    NULLIF(@ImagePath, ''),
+    @CreatedBy,
+    GETDATE(),
+    @IsActive
+);
+
+SELECT CAST(SCOPE_IDENTITY() AS INT) AS ResultId, 'Business post saved successfully.' AS ResultMessage;";
+
+            return await connection.QueryFirstOrDefaultAsync<BaseResponse>(sql, request)
+                ?? new BaseResponse
+                {
+                    ResultId = 0,
+                    ResultMessage = "Business post was not saved."
+                };
+        }
+
+        public async Task<BaseResponse> DeleteBusinessPost(long postId, long businessId)
+        {
+            using var connection = Connection;
+
+            const string sql = @"
+UPDATE dbo.BusinessPosts
+SET IsActive = 0
+WHERE PostId = @PostId
+  AND BusinessId = @BusinessId;
+
+SELECT CASE WHEN @@ROWCOUNT > 0 THEN CAST(@PostId AS INT) ELSE 0 END AS ResultId,
+       CASE WHEN @@ROWCOUNT > 0 THEN 'Business post deleted successfully.' ELSE 'Business post not found.' END AS ResultMessage;";
+
+            return await connection.QueryFirstOrDefaultAsync<BaseResponse>(sql, new
+            {
+                PostId = postId,
+                BusinessId = businessId
+            }) ?? new BaseResponse
+            {
+                ResultId = 0,
+                ResultMessage = "Business post was not deleted."
+            };
         }
 
 

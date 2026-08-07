@@ -17,6 +17,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<BusinessPostEntity>> GetTopFiveBusinessPosts();
         Task<BusinessPostDetailsEntity> GetBusinessPostDetails(long postId);
         Task<List<BusinessPostListEntity>> GetAllBusinessPosts(long businessId);
+        Task<BaseResponse> AddUpdateBusinessPost(BusinessPostSaveRequest request);
+        Task<BaseResponse> DeleteBusinessPost(long postId, long businessId);
 
         Task<AppBusinessLoginResponse> BusinessLogin(AppBusinessLoginRequest request);
         Task<List<BusinessPromotionRedemptionModel>> GetBusinessPromotionRedemptions(long businessId);
