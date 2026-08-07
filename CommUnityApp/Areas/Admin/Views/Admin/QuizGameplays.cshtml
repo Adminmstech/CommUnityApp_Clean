@@ -66,6 +66,31 @@
         height: 140px;
     }
 
+    .results-toolbar {
+        display: grid;
+        grid-template-columns: minmax(220px, 360px) auto 1fr;
+        gap: 12px;
+        align-items: end;
+    }
+
+    .pager-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        align-items: center;
+        padding-top: 12px;
+    }
+
+    .result-thumb {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        cursor: pointer;
+    }
+
     @@media (max-width: 992px) {
         .ranking-toolbar {
             grid-template-columns: 1fr 1fr;
@@ -74,6 +99,10 @@
 
     @@media (max-width: 576px) {
         .ranking-toolbar {
+            grid-template-columns: 1fr;
+        }
+
+        .results-toolbar {
             grid-template-columns: 1fr;
         }
     }
@@ -169,16 +198,159 @@
             </div>
         </div>
     </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <h4 class="mb-0">
+                    <i class="fa-solid fa-rotate me-2"></i>
+                    Spin Game Results
+                </h4>
+                <span class="badge bg-info" id="spinTotalBadge">0 Results</span>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="results-toolbar mb-3">
+                <div>
+                    <label class="form-label fw-bold">Search</label>
+                    <input type="text" id="spinSearch" class="form-control" placeholder="Name / mobile / game" />
+                </div>
+
+                <button class="btn btn-primary" type="button" onclick="searchSpinResults()">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i>
+                    Search
+                </button>
+
+                <div></div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Mobile</th>
+                            <th>Game</th>
+                            <th>Section</th>
+                            <th>Points</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="spinTableBody">
+                        <tr>
+                            <td colspan="7" class="text-center text-muted loading-row">
+                                Loading spin game results...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pager-row">
+                <div id="spinRowInfo" class="text-muted small"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-primary" type="button" onclick="prevSpinResults()">Prev</button>
+                    <span id="spinPageNo">1</span>
+                    <button class="btn btn-sm btn-primary" type="button" onclick="nextSpinResults()">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <h4 class="mb-0">
+                    <i class="fa-solid fa-gift me-2"></i>
+                    Brand Game Results
+                </h4>
+                <span class="badge bg-info" id="brandTotalBadge">0 Results</span>
+            </div>
+        </div>
+
+        <div class="card-body">
+            <div class="results-toolbar mb-3">
+                <div>
+                    <label class="form-label fw-bold">Search</label>
+                    <input type="text" id="brandSearch" class="form-control" placeholder="Name / mobile / game" />
+                </div>
+
+                <button class="btn btn-primary" type="button" onclick="searchBrandResults()">
+                    <i class="fa-solid fa-magnifying-glass me-1"></i>
+                    Search
+                </button>
+
+                <div></div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-bordered table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Name</th>
+                            <th>Mobile</th>
+                            <th>Game</th>
+                            <th>Attempts</th>
+                            <th>Prize</th>
+                            <th>Prize Image</th>
+                            <th>Winner</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="brandTableBody">
+                        <tr>
+                            <td colspan="10" class="text-center text-muted loading-row">
+                                Loading brand game results...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="pager-row">
+                <div id="brandRowInfo" class="text-muted small"></div>
+                <div class="d-flex align-items-center gap-2">
+                    <button class="btn btn-sm btn-primary" type="button" onclick="prevBrandResults()">Prev</button>
+                    <span id="brandPageNo">1</span>
+                    <button class="btn btn-sm btn-primary" type="button" onclick="nextBrandResults()">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 @section Scripts {
     <script>
+        let spinPage = 1;
+        let brandPage = 1;
+        const gameResultPageSize = 5;
+        let spinTotal = 0;
+        let brandTotal = 0;
+
         $(document).ready(function () {
             loadRankings();
+            loadSpinResults();
+            loadBrandResults();
 
             $("#quizId").on("keydown", function (e) {
                 if (e.key === "Enter") {
                     loadRankings();
+                }
+            });
+
+            $("#spinSearch").on("keydown", function (e) {
+                if (e.key === "Enter") {
+                    searchSpinResults();
+                }
+            });
+
+            $("#brandSearch").on("keydown", function (e) {
+                if (e.key === "Enter") {
+                    searchBrandResults();
                 }
             });
         });
@@ -325,6 +497,252 @@
                 </tr>`);
         }
 
+        function searchSpinResults() {
+            spinPage = 1;
+            loadSpinResults();
+        }
+
+        function loadSpinResults() {
+            $("#spinTableBody").html(`
+                <tr>
+                    <td colspan="7" class="text-center text-muted loading-row">
+                        Loading spin game results...
+                    </td>
+                </tr>`);
+
+            $.ajax({
+                url: "/api/GameResults/GetSpinGameResults?page=" + spinPage
+                    + "&size=" + gameResultPageSize
+                    + "&search=" + encodeURIComponent($("#spinSearch").val() || ""),
+                type: "GET",
+                success: function (res) {
+                    const data = responseList(res);
+                    spinTotal = Number(res.totalCount || res.TotalCount || 0);
+                    bindSpinResults(data);
+                },
+                error: function (xhr) {
+                    const message = xhr.responseJSON?.resultMessage ||
+                        xhr.responseJSON?.ResultMessage ||
+                        "Unable to load spin game results.";
+
+                    $("#spinTableBody").html(`
+                        <tr>
+                            <td colspan="7" class="text-center text-danger loading-row">
+                                ${escapeHtml(message)}
+                            </td>
+                        </tr>`);
+                }
+            });
+        }
+
+        function bindSpinResults(data) {
+            $("#spinTotalBadge").text(spinTotal + " Results");
+
+            if (!data || data.length === 0) {
+                $("#spinTableBody").html(`
+                    <tr>
+                        <td colspan="7" class="text-center text-muted loading-row">
+                            No spin game results found.
+                        </td>
+                    </tr>`);
+
+                updatePager("spin", 0);
+                return;
+            }
+
+            let html = "";
+
+            $.each(data, function (i, item) {
+                html += `
+                    <tr>
+                        <td>${((spinPage - 1) * gameResultPageSize) + i + 1}</td>
+                        <td>${escapeHtml(field(item, "fullName", "FullName"))}</td>
+                        <td>${escapeHtml(field(item, "mobile", "Mobile"))}</td>
+                        <td>${escapeHtml(field(item, "gameName", "GameName"))}</td>
+                        <td>${escapeHtml(field(item, "selectedSectionId", "SelectedSectionId"))}</td>
+                        <td>${escapeHtml(field(item, "pointsAwarded", "PointsAwarded"))}</td>
+                        <td>${formatDate(field(item, "spinDate", "SpinDate"))}</td>
+                    </tr>`;
+            });
+
+            $("#spinTableBody").html(html);
+            updatePager("spin", spinTotal);
+        }
+
+        function nextSpinResults() {
+            if ((spinPage * gameResultPageSize) < spinTotal) {
+                spinPage++;
+                loadSpinResults();
+            }
+        }
+
+        function prevSpinResults() {
+            if (spinPage > 1) {
+                spinPage--;
+                loadSpinResults();
+            }
+        }
+
+        function searchBrandResults() {
+            brandPage = 1;
+            loadBrandResults();
+        }
+
+        function loadBrandResults() {
+            $("#brandTableBody").html(`
+                <tr>
+                    <td colspan="10" class="text-center text-muted loading-row">
+                        Loading brand game results...
+                    </td>
+                </tr>`);
+
+            $.ajax({
+                url: "/api/GameResults/GetBrandGamePlayMembers?page=" + brandPage
+                    + "&size=" + gameResultPageSize
+                    + "&search=" + encodeURIComponent($("#brandSearch").val() || ""),
+                type: "GET",
+                success: function (res) {
+                    const data = responseList(res);
+                    brandTotal = Number(res.totalCount || res.TotalCount || 0);
+                    bindBrandResults(data);
+                },
+                error: function (xhr) {
+                    const message = xhr.responseJSON?.resultMessage ||
+                        xhr.responseJSON?.ResultMessage ||
+                        "Unable to load brand game results.";
+
+                    $("#brandTableBody").html(`
+                        <tr>
+                            <td colspan="10" class="text-center text-danger loading-row">
+                                ${escapeHtml(message)}
+                            </td>
+                        </tr>`);
+                }
+            });
+        }
+
+        function bindBrandResults(data) {
+            $("#brandTotalBadge").text(brandTotal + " Results");
+
+            if (!data || data.length === 0) {
+                $("#brandTableBody").html(`
+                    <tr>
+                        <td colspan="10" class="text-center text-muted loading-row">
+                            No brand game results found.
+                        </td>
+                    </tr>`);
+
+                updatePager("brand", 0);
+                return;
+            }
+
+            let html = "";
+
+            $.each(data, function (i, item) {
+                const isWinner = Boolean(field(item, "isWinner", "IsWinner"));
+                const prizeImage = field(item, "prizeImage", "PrizeImage");
+                const status = field(item, "status", "Status") || "Pending";
+
+                html += `
+                    <tr>
+                        <td>${((brandPage - 1) * gameResultPageSize) + i + 1}</td>
+                        <td>${escapeHtml(field(item, "fullName", "FullName") || "-")}</td>
+                        <td>${escapeHtml(field(item, "mobile", "Mobile") || "-")}</td>
+                        <td>${escapeHtml(field(item, "brandGameTitle", "BrandGameTitle") || "-")}</td>
+                        <td>${escapeHtml(field(item, "attemptNumber", "AttemptNumber") || 0)}</td>
+                        <td>${escapeHtml(field(item, "prizeType", "PrizeType") || "-")}</td>
+                        <td>${brandPrizeImage(prizeImage)}</td>
+                        <td>${isWinner ? "Yes" : "No"}</td>
+                        <td>${statusBadge(status)}</td>
+                        <td>${formatDate(field(item, "playedAt", "PlayedAt"))}</td>
+                    </tr>`;
+            });
+
+            $("#brandTableBody").html(html);
+            updatePager("brand", brandTotal);
+        }
+
+        function nextBrandResults() {
+            if ((brandPage * gameResultPageSize) < brandTotal) {
+                brandPage++;
+                loadBrandResults();
+            }
+        }
+
+        function prevBrandResults() {
+            if (brandPage > 1) {
+                brandPage--;
+                loadBrandResults();
+            }
+        }
+
+        function updatePager(type, total) {
+            const page = type === "spin" ? spinPage : brandPage;
+            const start = total > 0 ? ((page - 1) * gameResultPageSize) + 1 : 0;
+            const end = Math.min(page * gameResultPageSize, total);
+
+            $("#" + type + "PageNo").text(page);
+            $("#" + type + "RowInfo").text("Showing " + start + " to " + end + " of " + total);
+        }
+
+        function brandPrizeImage(path) {
+            if (!path) {
+                return "-";
+            }
+
+            const url = imageUrl(path);
+
+            return `<img src="${escapeHtml(url)}" class="result-thumb" onclick="window.open('${escapeJs(url)}','_blank')" />`;
+        }
+
+        function imageUrl(path) {
+            if (!path) {
+                return "";
+            }
+
+            const normalized = String(path).replace("~/", "").replace(/\\/g, "/");
+
+            if (normalized.startsWith("http://") || normalized.startsWith("https://") || normalized.startsWith("/")) {
+                return normalized;
+            }
+
+            return "/" + normalized;
+        }
+
+        function statusBadge(status) {
+            const value = String(status || "Pending");
+            const lower = value.toLowerCase();
+
+            if (lower === "pending") {
+                return '<span class="badge bg-warning">Pending</span>';
+            }
+
+            if (lower === "won") {
+                return '<span class="badge bg-success">Won</span>';
+            }
+
+            if (lower === "assigned") {
+                return '<span class="badge bg-info">Assigned</span>';
+            }
+
+            if (lower === "delivered") {
+                return '<span class="badge bg-primary">Delivered</span>';
+            }
+
+            return '<span class="badge bg-secondary">' + escapeHtml(value) + '</span>';
+        }
+
+        function responseList(response) {
+            if (Array.isArray(response)) return response;
+            if (Array.isArray(response?.data)) return response.data;
+            if (Array.isArray(response?.Data)) return response.Data;
+            return [];
+        }
+
+        function field(item, camelName, pascalName) {
+            return item?.[camelName] ?? item?.[pascalName] ?? "";
+        }
+
         function formatDate(value) {
             if (!value) {
                 return "";
@@ -353,6 +771,12 @@
                 .replace(/>/g, "&gt;")
                 .replace(/"/g, "&quot;")
                 .replace(/'/g, "&#039;");
+        }
+
+        function escapeJs(value) {
+            return String(value ?? "")
+                .replace(/\\/g, "\\\\")
+                .replace(/'/g, "\\'");
         }
     </script>
 }

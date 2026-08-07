@@ -1,0 +1,166 @@
+@{
+    ViewData["Title"] = "Talent Show Campaigns";
+    Layout = "~/Areas/Admin/Views/shared/AdminLayout.cshtml";
+}
+
+<style>
+    .talent-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .talent-title {
+        color: #0f172a;
+        font-size: 24px;
+        font-weight: 800;
+        margin: 0;
+    }
+
+    .panel {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+        overflow: hidden;
+    }
+
+    .table {
+        margin: 0;
+    }
+
+    .status-pill {
+        border-radius: 999px;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 5px 10px;
+    }
+
+    .status-open {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-closed {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-upcoming {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    @@media (max-width: 768px) {
+        .talent-toolbar {
+            align-items: stretch;
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="talent-toolbar">
+    <div>
+        <h1 class="talent-title">Talent Show Campaigns</h1>
+        <div class="text-muted">Maintain event windows such as Christmas and New Year.</div>
+    </div>
+
+    <a href="/TalentShow/Admin/CampaignForm" class="btn btn-primary">
+        <i class="fa-solid fa-calendar-plus"></i>
+        Add Campaign
+    </a>
+</div>
+
+<div class="panel">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 80px;">Order</th>
+                    <th>Campaign</th>
+                    <th style="width: 160px;">Event</th>
+                    <th style="width: 180px;">Upload Start</th>
+                    <th style="width: 180px;">Upload End</th>
+                    <th style="width: 120px;">Window</th>
+                    <th style="width: 100px;"></th>
+                </tr>
+            </thead>
+            <tbody id="campaignRows">
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">Loading campaigns...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", loadCampaigns);
+
+    async function loadCampaigns() {
+        const tbody = document.getElementById("campaignRows");
+
+        try {
+            const response = await fetch("/api/TalentShow/campaigns?includeInactive=true");
+            const campaigns = await response.json();
+
+            if (!Array.isArray(campaigns) || campaigns.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='7' class='text-center text-muted py-4'>No campaigns found</td></tr>";
+                return;
+            }
+
+            tbody.innerHTML = campaigns.map(campaign => {
+                const state = campaignState(campaign);
+                return `
+                    <tr>
+                        <td>${campaign.displayOrder ?? 0}</td>
+                        <td>
+                            <div class="fw-semibold">${escapeHtml(campaign.campaignName)}</div>
+                            <div class="text-muted small">${escapeHtml(campaign.description ?? "")}</div>
+                        </td>
+                        <td>${escapeHtml(campaign.eventName ?? "")}</td>
+                        <td>${formatDate(campaign.uploadStartDate)}</td>
+                        <td>${formatDate(campaign.uploadEndDate)}</td>
+                        <td><span class="status-pill ${state.className}">${state.text}</span></td>
+                        <td class="text-end">
+                            <a class="btn btn-sm btn-outline-primary" href="/TalentShow/Admin/CampaignForm?id=${campaign.talentShowCampaignId}">
+                                <i class="fa-solid fa-pen"></i>
+                            </a>
+                        </td>
+                    </tr>
+                `;
+            }).join("");
+        }
+        catch {
+            tbody.innerHTML = "<tr><td colspan='7' class='text-center text-danger py-4'>Unable to load campaigns</td></tr>";
+        }
+    }
+
+    function campaignState(campaign) {
+        if (!campaign.isActive) return { text: "Inactive", className: "status-closed" };
+        if (campaign.isUploadOpen) return { text: "Open", className: "status-open" };
+
+        const now = new Date();
+        const start = new Date(campaign.uploadStartDate);
+        return now < start
+            ? { text: "Upcoming", className: "status-upcoming" }
+            : { text: "Closed", className: "status-closed" };
+    }
+
+    function formatDate(value) {
+        if (!value) return "";
+        return new Date(value).toLocaleString();
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+</script>

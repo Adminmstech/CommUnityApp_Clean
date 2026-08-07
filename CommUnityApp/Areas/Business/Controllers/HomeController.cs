@@ -187,6 +187,7 @@ namespace CommUnityApp.Areas.Business.Controllers
             }
 
             ViewBag.BusinessId = businessId;
+            ViewBag.ServiceId = Request.Query["serviceId"].ToString();
 
             return View();
         }

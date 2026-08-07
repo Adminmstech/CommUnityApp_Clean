@@ -48,7 +48,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                         model.Description,
                         model.GameImage,
                         model.CreatedByAdminId,
-                        model.IsActive
+                        model.IsActive,
+                        model.BusinessLocation
                     };
                 }
                 else
@@ -62,6 +63,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                         model.GameImage,
                         ConfigId = model.ConfigId, // Use existing ConfigId during update
                         model.CreatedByAdminId,
+                        model.BusinessLocation,
                         model.IsActive
                     };
                 }

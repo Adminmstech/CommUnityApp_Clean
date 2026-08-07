@@ -1,0 +1,345 @@
+@{
+    ViewData["Title"] = "Talent Show Videos";
+    Layout = "~/Areas/Admin/Views/shared/AdminLayout.cshtml";
+}
+
+<style>
+    .talent-toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .talent-title {
+        color: #0f172a;
+        font-size: 24px;
+        font-weight: 800;
+        margin: 0;
+    }
+
+    .filter-panel,
+    .video-list-panel {
+        background: #fff;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, .06);
+    }
+
+    .filter-panel {
+        display: grid;
+        gap: 12px;
+        grid-template-columns: minmax(170px, 230px) minmax(170px, 230px) minmax(140px, 170px) minmax(130px, 160px) 1fr auto;
+        margin-bottom: 18px;
+        padding: 14px;
+    }
+
+    .video-thumb {
+        background: #111827;
+        border-radius: 6px;
+        height: 54px;
+        object-fit: cover;
+        width: 96px;
+    }
+
+    .status-pill {
+        border-radius: 999px;
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 5px 10px;
+    }
+
+    .status-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-inactive {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-declined {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .table {
+        margin: 0;
+    }
+
+    @@media (max-width: 768px) {
+        .talent-toolbar,
+        .filter-panel {
+            align-items: stretch;
+            display: flex;
+            flex-direction: column;
+        }
+    }
+</style>
+
+<div class="talent-toolbar">
+    <div>
+        <h1 class="talent-title">Talent Show Videos</h1>
+        <div class="text-muted">Review uploaded performances and scores.</div>
+    </div>
+
+    <a href="/TalentShow/Admin/AddVideo" class="btn btn-primary">
+        <i class="fa-solid fa-video"></i>
+        Add Video
+    </a>
+</div>
+
+<div class="filter-panel">
+    <select id="campaignFilter" class="form-select">
+        <option value="">All campaigns</option>
+    </select>
+    <select id="categoryFilter" class="form-select">
+        <option value="">All categories</option>
+    </select>
+    <select id="challengeFilter" class="form-select">
+        <option value="">All challenges</option>
+        <option value="1">Challenge 1</option>
+        <option value="2">Challenge 2</option>
+        <option value="3">Challenge 3</option>
+    </select>
+    <select id="ageGroupFilter" class="form-select">
+        <option value="">All ages</option>
+        <option value="Under 8">Under 8</option>
+        <option value="8-12">8-12</option>
+        <option value="13-17">13-17</option>
+        <option value="18+">18+</option>
+    </select>
+    <input id="searchText" type="search" class="form-control" placeholder="Search title, member, or description" />
+    <button id="searchBtn" class="btn btn-outline-primary" type="button">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        Search
+    </button>
+</div>
+
+<div id="result"></div>
+
+<div class="video-list-panel">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 120px;">Preview</th>
+                    <th>Video</th>
+                    <th style="width: 170px;">Campaign</th>
+                    <th style="width: 150px;">Category</th>
+                    <th style="width: 130px;">Challenge</th>
+                    <th style="width: 100px;">Age</th>
+                    <th style="width: 120px;">Likes</th>
+                    <th style="width: 120px;">Rating</th>
+                    <th style="width: 120px;">Judge</th>
+                    <th style="width: 130px;">Status</th>
+                    <th style="width: 170px;"></th>
+                </tr>
+            </thead>
+            <tbody id="videoRows">
+                <tr>
+                    <td colspan="11" class="text-center text-muted py-4">Loading videos...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        await loadCampaigns();
+        await loadCategories();
+        await loadVideos();
+    });
+
+    document.getElementById("searchBtn").addEventListener("click", loadVideos);
+    document.getElementById("campaignFilter").addEventListener("change", loadVideos);
+    document.getElementById("categoryFilter").addEventListener("change", loadVideos);
+    document.getElementById("challengeFilter").addEventListener("change", loadVideos);
+    document.getElementById("ageGroupFilter").addEventListener("change", loadVideos);
+    document.getElementById("searchText").addEventListener("keydown", event => {
+        if (event.key === "Enter") loadVideos();
+    });
+
+    async function loadCampaigns() {
+        const select = document.getElementById("campaignFilter");
+
+        try {
+            const response = await fetch("/api/TalentShow/campaigns?includeInactive=true");
+            const campaigns = await response.json();
+
+            select.innerHTML = "<option value=''>All campaigns</option>" +
+                campaigns.map(campaign => `<option value="${campaign.talentShowCampaignId}">${escapeHtml(campaign.campaignName)}</option>`).join("");
+        }
+        catch {
+            select.innerHTML = "<option value=''>All campaigns</option>";
+        }
+    }
+
+    async function loadCategories() {
+        const select = document.getElementById("categoryFilter");
+
+        try {
+            const response = await fetch("/api/TalentShow/categories?includeInactive=true");
+            const categories = await response.json();
+
+            select.innerHTML = "<option value=''>All categories</option>" +
+                categories.map(category => `<option value="${category.talentShowCategoryId}">${escapeHtml(category.categoryName)}</option>`).join("");
+        }
+        catch {
+            select.innerHTML = "<option value=''>All categories</option>";
+        }
+    }
+
+    async function loadVideos() {
+        const tbody = document.getElementById("videoRows");
+        const params = new URLSearchParams({
+            approvedOnly: "false",
+            pageNumber: "1",
+            pageSize: "100"
+        });
+
+        const campaignId = document.getElementById("campaignFilter").value;
+        const categoryId = document.getElementById("categoryFilter").value;
+        const challengeNumber = document.getElementById("challengeFilter").value;
+        const ageGroup = document.getElementById("ageGroupFilter").value;
+        const searchText = document.getElementById("searchText").value.trim();
+
+        if (campaignId) params.append("talentShowCampaignId", campaignId);
+        if (categoryId) params.append("talentShowCategoryId", categoryId);
+        if (challengeNumber) params.append("challengeNumber", challengeNumber);
+        if (ageGroup) params.append("ageGroup", ageGroup);
+        if (searchText) params.append("searchText", searchText);
+
+        tbody.innerHTML = "<tr><td colspan='11' class='text-center text-muted py-4'>Loading videos...</td></tr>";
+
+        try {
+            const response = await fetch(`/api/TalentShow/videos?${params.toString()}`);
+            const videos = await response.json();
+
+            if (!Array.isArray(videos) || videos.length === 0) {
+                tbody.innerHTML = "<tr><td colspan='11' class='text-center text-muted py-4'>No videos found</td></tr>";
+                return;
+            }
+
+            tbody.innerHTML = videos.map(renderVideoRow).join("");
+        }
+        catch {
+            tbody.innerHTML = "<tr><td colspan='11' class='text-center text-danger py-4'>Unable to load videos</td></tr>";
+        }
+    }
+
+    function renderVideoRow(video) {
+        const source = mediaUrl(video.videoPath);
+        const approvalStatus = video.approvalStatus || (video.isApproved ? "Approved" : "Pending");
+        const statusClass = !video.isActive
+            ? "status-inactive"
+            : approvalStatus === "Approved"
+                ? "status-active"
+                : approvalStatus === "Declined"
+                    ? "status-declined"
+                    : "status-pending";
+        const statusText = !video.isActive ? "Inactive" : approvalStatus;
+        const approvalButton = video.isApproved
+            ? `<button class="btn btn-sm btn-danger" type="button" onclick="setApproval(${video.talentShowVideoId}, false)">Decline</button>`
+            : `<button class="btn btn-sm btn-success" type="button" onclick="reviewVideo(${video.talentShowVideoId})">Assess</button>`;
+
+        return `
+            <tr>
+                <td>
+                    <video class="video-thumb" preload="metadata" muted>
+                        <source src="${source}" />
+                    </video>
+                </td>
+                <td>
+                    <div class="fw-semibold">${escapeHtml(video.title)}</div>
+                    <div class="text-muted small">${escapeHtml(video.memberName ?? "Community member")}</div>
+                    <div class="text-muted small">${escapeHtml(video.description ?? "")}</div>
+                    ${video.judgeFeedback ? `<div class="text-muted small"><strong>Feedback:</strong> ${escapeHtml(video.judgeFeedback)}</div>` : ""}
+                </td>
+                <td>${escapeHtml(video.campaignName ?? "Talent Show")}</td>
+                <td>${escapeHtml(video.categoryName ?? "General")}</td>
+                <td>${video.challengeNumber ?? 1} - ${escapeHtml(video.challengeLevel ?? "Beginner")}</td>
+                <td>${escapeHtml(video.ageGroup ?? "")}</td>
+                <td>${video.likeCount ?? 0}</td>
+                <td>${formatRating(video.averageRating)} / 5 (${video.ratingCount ?? 0})</td>
+                <td>${Number(video.judgeScore || 0).toFixed(0)}</td>
+                <td><span class="status-pill ${statusClass}">${statusText}</span></td>
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary mb-1" href="${source}" target="_blank" rel="noopener">
+                        <i class="fa-solid fa-up-right-from-square"></i>
+                    </a>
+                    ${approvalButton}
+                </td>
+            </tr>
+        `;
+    }
+
+    async function reviewVideo(videoId) {
+        const scoreValue = window.prompt("Judge score (0-100)", "80");
+        if (scoreValue === null) return;
+
+        const score = Number(scoreValue);
+        if (!Number.isFinite(score) || score < 0 || score > 100) {
+            document.getElementById("result").innerHTML = "<div class='alert alert-danger'>Judge score must be between 0 and 100.</div>";
+            return;
+        }
+
+        const feedback = window.prompt("Judge feedback", "") || "";
+        const suggestions = window.prompt("Judge suggestions", "") || "";
+
+        await setApproval(videoId, true, score, feedback, suggestions);
+    }
+
+    async function setApproval(videoId, isApproved, judgeScore, judgeFeedback, judgeSuggestions) {
+        const resultBox = document.getElementById("result");
+        resultBox.innerHTML = "";
+
+        try {
+            const response = await fetch("/api/TalentShow/videos/approval", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ talentShowVideoId: videoId, isApproved, judgeScore, judgeFeedback, judgeSuggestions })
+            });
+            const result = await response.json();
+
+            if (result.resultId !== 0) {
+                resultBox.innerHTML = `<div class="alert alert-success">${escapeHtml(result.resultMessage)}</div>`;
+                await loadVideos();
+            }
+            else {
+                resultBox.innerHTML = `<div class="alert alert-danger">${escapeHtml(result.resultMessage ?? "Unable to update approval")}</div>`;
+            }
+        }
+        catch {
+            resultBox.innerHTML = "<div class='alert alert-danger'>Unable to update approval</div>";
+        }
+    }
+
+    function mediaUrl(path) {
+        if (!path) return "";
+        if (path.startsWith("http://") || path.startsWith("https://") || path.startsWith("/")) return path;
+        return `/${path}`;
+    }
+
+    function formatRating(value) {
+        return Number(value || 0).toFixed(1);
+    }
+
+    function escapeHtml(value) {
+        return String(value)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+    }
+</script>

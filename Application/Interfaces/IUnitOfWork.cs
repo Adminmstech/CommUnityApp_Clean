@@ -22,5 +22,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         IJobRepository Job { get; }
         ISmartQuizRepository SmartQuiz { get; }
         ITextQuizRepository TextQuiz { get; }
+        ITalentShowRepository TalentShow { get; }
     }
 }
