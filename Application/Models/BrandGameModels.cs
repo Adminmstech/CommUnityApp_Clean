@@ -62,7 +62,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public long? GroupId { get; set; }
         public long? QRlinkedId { get; set; }
         public int? IsArchive { get; set; }
-        public string BusinessLocation { get; set; }
+        
     }
     public class GetGameDetails
     {
