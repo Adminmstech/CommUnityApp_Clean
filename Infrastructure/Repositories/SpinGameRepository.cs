@@ -4,6 +4,7 @@ using CommUnityApp.Domain.Entities;
 using Dapper;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
+using QRCoder;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -377,7 +378,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 ResultMessage = result > 0 ? "Spin game soft-deleted." : "Not found."
             };
         }
-        public async Task<PlaySpinResponse> PlaySpinGameAsync(PlaySpinRequest request)
+        public async Task<PlaySpinResponse> PlaySpinGameAsync(PlaySpinRequest request,string redeemCode,string qrCodePath)
         {
             using var con = Connection;
 
@@ -399,15 +400,28 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "No sections configured for this game." };
 
             // Validate and select the section provided in the request
-            var selectedSection = sections.FirstOrDefault(s => s.SectionId == request.SectionId);
-            if (selectedSection == null)
+            var selectedSection = sections.FirstOrDefault(s => s.SectionId == request.SectionId); 
+            if (selectedSection == null) 
             {
                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "Invalid section or section does not belong to this game." };
             }
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            var random = new Random();
-            var redeemCode = new string(Enumerable.Repeat(chars, 6)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
+
+            // Do not allow redeem code / QR for "Better Luck Next Time"
+            bool isRedeemable =!string.Equals( selectedSection.PrizeText,"Better Luck Next Time",StringComparison.OrdinalIgnoreCase)&&
+            !string.Equals(selectedSection.PrizeText,"Try Again :(",StringComparison.OrdinalIgnoreCase);
+
+            if (!isRedeemable)
+            {
+                redeemCode = null;
+                qrCodePath = null; 
+            }
+            //const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+            //var random = new Random();
+            //var redeemCode = new string(Enumerable.Repeat(chars, 6)
+            //    .Select(s => s[random.Next(s.Length)]).ToArray());
+
+            //var qrCodePath = GenerateSpinGameQRCode(redeemCode);
+
             // Insert into GameSpin (using the entity name as table name, common in this project schema e.g., SpinGame, SpinSection)
             var gameSpin = new CommUnityApp.Domain.Entities.GameSpin
             {
@@ -416,12 +430,13 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 SelectedSectionId = selectedSection.SectionId,
                 PointsAwarded = selectedSection.Points,
                 PromotionId = selectedSection.PromotionId,
-                redeemCode = redeemCode
+                redeemCode = redeemCode,
+                QRCodePath = qrCodePath
             };
 
             var insertQuery = @"
-                INSERT INTO GameSpins (UserId, SpinDate, SelectedSectionId, PointsAwarded, PromotionId,RedeemCode)
-                VALUES (@UserId, @SpinDate, @SelectedSectionId, @PointsAwarded, @PromotionId,@redeemCode);
+                INSERT INTO GameSpins (UserId, SpinDate, SelectedSectionId, PointsAwarded, PromotionId,RedeemCode,QRCodePath)
+                VALUES (@UserId, @SpinDate, @SelectedSectionId, @PointsAwarded, @PromotionId,@redeemCode,@QRCodePath);
                 SELECT CAST(SCOPE_IDENTITY() as int);";
 
             try
@@ -429,17 +444,19 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 var spinId = await _dapper.QueryFirstOrDefaultAsync<int>(con, insertQuery, gameSpin);
                 gameSpin.SpinId = spinId;
 
-                return new PlaySpinResponse
+                return new PlaySpinResponse 
                 {
                     ResultId = 1,
                     ResultMessage = "Spin played successfully.",
                     SelectedSection = selectedSection,
                     CoinsEarned = game.RewardCoins,
-                    GameResultId = spinId,
+                    GameResultId = spinId, 
                     GameId = request.GameId,
                     SectionId = selectedSection.SectionId,
                     RewardValue = selectedSection.PrizeText,
                     RedeemCode = redeemCode,
+                    QRCodePath = qrCodePath,
+                    BusinessLocation = game.BusinessLocation,
                     Status = "Success",
                     PlayedAt = gameSpin.SpinDate
                 };
@@ -461,6 +478,11 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     gs.SelectedSectionId, 
                     gs.PointsAwarded, 
                     gs.PromotionId,
+                    gs.RedeemCode,
+
+                    gs.QRCodePath,
+
+                    sg.BusinessLocation,
                     sg.GameId,
                     sg.GameName,
                     ss.PrizeText
@@ -502,7 +524,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 },
                 commandType: CommandType.StoredProcedure);
         }
-
+        
 
     }
 }
