@@ -398,7 +398,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "No sections configured for this game." };
 
             // Validate and select the section provided in the request
-            var selectedSection = sections.FirstOrDefault(s => s.SectionId == request.SectionId);
+            var selectedSection = sections.FirstOrDefault(s => s.SectionId == request.SectionId); 
             if (selectedSection == null)
             {
                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "Invalid section or section does not belong to this game." };
