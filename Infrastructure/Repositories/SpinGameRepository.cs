@@ -405,11 +405,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             }
 
             // Do not allow redeem code / QR for "Better Luck Next Time"
-            bool isRedeemable =
-                !string.Equals(
-                    selectedSection.PrizeText,
-                    "Better Luck Next Time",
-                    StringComparison.OrdinalIgnoreCase);
+            bool isRedeemable =!string.Equals( selectedSection.PrizeText,"Better Luck Next Time",StringComparison.OrdinalIgnoreCase)&&
+            !string.Equals(selectedSection.PrizeText,"Try Again :(",StringComparison.OrdinalIgnoreCase);
 
             if (!isRedeemable)
             {
@@ -451,7 +448,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     ResultMessage = "Spin played successfully.",
                     SelectedSection = selectedSection,
                     CoinsEarned = game.RewardCoins,
-                    GameResultId = spinId,
+                    GameResultId = spinId, 
                     GameId = request.GameId,
                     SectionId = selectedSection.SectionId,
                     RewardValue = selectedSection.PrizeText,
