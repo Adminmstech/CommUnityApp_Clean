@@ -11,7 +11,6 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string GameName { get; set; } = string.Empty;
         public string? Description { get; set; }
-        public string? BusinessLocation { get; set; }
         public string? GameImage { get; set; }
         public int ConfigId { get; set; }
         public bool IsActive { get; set; }
@@ -38,6 +37,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public int? Points { get; set; }
         public int? PromotionId { get; set; }
         public string? Color { get; set; } 
+        public string? BusinessLocation { get; set; }
         public string? PrizeText { get; set; } 
         public string? SectionImage { get; set; }       // saved relative path, e.g. "/images/spingames/sections/xxx.jpg"
         public IFormFile? SectionImageFile { get; set; } // the uploaded file, not persisted directly 
