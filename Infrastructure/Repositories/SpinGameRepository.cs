@@ -442,7 +442,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 var spinId = await _dapper.QueryFirstOrDefaultAsync<int>(con, insertQuery, gameSpin);
                 gameSpin.SpinId = spinId;
 
-                return new PlaySpinResponse
+                return new PlaySpinResponse 
                 {
                     ResultId = 1,
                     ResultMessage = "Spin played successfully.",
