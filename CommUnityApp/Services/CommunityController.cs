@@ -239,10 +239,11 @@ namespace CommUnityApp.Services
         public async Task<IActionResult> GetCharityItemRequestsList(long? communityId)
         {
             long cid = 0;
+            bool hasExplicitCommunityId = communityId.HasValue;
 
-            if (communityId != null)
+            if (hasExplicitCommunityId)
             {
-                cid = communityId.Value;
+                cid = communityId.GetValueOrDefault();
             }
             else
             {
@@ -250,9 +251,12 @@ namespace CommUnityApp.Services
 
                 if (!string.IsNullOrEmpty(sessionValue))
                     cid = Convert.ToInt64(sessionValue);
+                else if (Request.Cookies.TryGetValue("CommunityId", out var cookieValue)
+                    && long.TryParse(cookieValue, out var cookieCommunityId))
+                    cid = cookieCommunityId;
             }
 
-            if (cid == 0)
+            if (cid == 0 && !hasExplicitCommunityId)
                 return Unauthorized("Session expired");
 
             var data = await _communityRepository.GetCharityItemRequestsList(cid);

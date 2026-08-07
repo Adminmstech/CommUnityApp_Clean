@@ -51,8 +51,7 @@
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
+@section Scripts {
 <script>
     var allData = [];
     var pageSize = 10;
@@ -64,12 +63,15 @@
 
     function loadRequests() {
         $.ajax({
-            url: '/api/Community/GetCharityItemRequestsList',
+            url: '/api/Community/GetCharityItemRequestsList?communityId=0',
             type: 'GET',
             success: function (res) {
                 allData = res || [];
                 currentPage = 1;
                 renderTable();
+            },
+            error: function (xhr) {
+                $("#tblRequests tbody").html("<tr><td colspan='8' class='text-center text-danger'>Unable to load requests</td></tr>");
             }
         });
     }
@@ -147,3 +149,4 @@
         html2pdf().set(opt).from(element).save();
     }
 </script>
+}

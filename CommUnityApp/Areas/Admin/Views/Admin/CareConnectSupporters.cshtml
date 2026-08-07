@@ -1,0 +1,221 @@
+@{
+    ViewData["Title"] = "Care Connect Supporters";
+    Layout = "~/Areas/Admin/Views/shared/AdminLayout.cshtml";
+}
+
+<div class="container-fluid">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fa-solid fa-handshake-angle me-2"></i> Care Connect Supporters
+            </h4>
+            <span class="badge bg-light text-dark" id="volunteerCount">0 volunteers</span>
+        </div>
+
+        <div class="card-body">
+            <div class="row g-3 mb-3">
+                <div class="col-md-8">
+                    <input type="text"
+                           id="searchBox"
+                           class="form-control"
+                           placeholder="Search by volunteer, item, user, request status, or delivery status" />
+                </div>
+                <div class="col-md-4">
+                    <select id="deliveryFilter" class="form-select">
+                        <option value="all">All delivery statuses</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="accepted">Accepted</option>
+                        <option value="pending">Pending</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Volunteer</th>
+                            <th>Assigned Requests</th>
+                            <th>Latest Item</th>
+                            <th>Requested User</th>
+                            <th>Request Status</th>
+                            <th>Delivery Status</th>
+                            <th>Latest Date</th>
+                        </tr>
+                    </thead>
+                    <tbody id="volunteerTableBody">
+                        <tr>
+                            <td colspan="7" class="text-center py-4">Loading volunteers...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let allVolunteerRows = [];
+
+        $(document).ready(function () {
+            loadVolunteers();
+            $("#searchBox, #deliveryFilter").on("keyup change", applyFilters);
+        });
+
+        function loadVolunteers() {
+            $.ajax({
+                url: "/api/Community/GetCharityItemRequestsList?communityId=0",
+                type: "GET",
+                success: function (response) {
+                    allVolunteerRows = buildVolunteerRows(response || []);
+                    applyFilters();
+                },
+                error: function () {
+                    $("#volunteerCount").text("0 volunteers");
+                    $("#volunteerTableBody").html(`
+                        <tr>
+                            <td colspan="7" class="text-center text-danger py-4">
+                                Failed to load volunteers.
+                            </td>
+                        </tr>
+                    `);
+                }
+            });
+        }
+
+        function buildVolunteerRows(requests) {
+            const grouped = {};
+
+            requests.forEach(request => {
+                const volunteerName = (request.volunteerName || "").trim();
+
+                if (!volunteerName || volunteerName === "-") {
+                    return;
+                }
+
+                const key = volunteerName.toLowerCase();
+                const requestDate = request.createdDate ? new Date(request.createdDate) : null;
+
+                if (!grouped[key]) {
+                    grouped[key] = {
+                        volunteerName: volunteerName,
+                        assignedCount: 0,
+                        latestRequest: request,
+                        latestDate: requestDate
+                    };
+                }
+
+                grouped[key].assignedCount += 1;
+
+                if (requestDate && (!grouped[key].latestDate || requestDate > grouped[key].latestDate)) {
+                    grouped[key].latestRequest = request;
+                    grouped[key].latestDate = requestDate;
+                }
+            });
+
+            return Object.values(grouped);
+        }
+
+        function applyFilters() {
+            const search = ($("#searchBox").val() || "").toLowerCase();
+            const deliveryFilter = $("#deliveryFilter").val();
+
+            const filtered = allVolunteerRows.filter(row => {
+                const latest = row.latestRequest || {};
+                const deliveryStatus = (latest.deliveryStatus || "").toLowerCase();
+                const searchable = [
+                    row.volunteerName,
+                    latest.itemName,
+                    latest.itemCode,
+                    latest.requestedUserName,
+                    latest.status,
+                    latest.deliveryStatus
+                ].join(" ").toLowerCase();
+
+                const matchesSearch = searchable.includes(search);
+                const matchesDelivery =
+                    deliveryFilter === "all" ||
+                    deliveryStatus.includes(deliveryFilter);
+
+                return matchesSearch && matchesDelivery;
+            });
+
+            renderVolunteers(filtered);
+        }
+
+        function renderVolunteers(rows) {
+            const tbody = $("#volunteerTableBody");
+            $("#volunteerCount").text(allVolunteerRows.length + " volunteer" + (allVolunteerRows.length === 1 ? "" : "s"));
+
+            if (!rows || rows.length === 0) {
+                tbody.html(`
+                    <tr>
+                        <td colspan="7" class="text-center py-4">No volunteers found.</td>
+                    </tr>
+                `);
+                return;
+            }
+
+            const html = rows.map(row => {
+                const latest = row.latestRequest || {};
+
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(row.volunteerName)}</strong></td>
+                        <td>${row.assignedCount}</td>
+                        <td>
+                            <strong>${escapeHtml(latest.itemName || "-")}</strong>
+                            <div class="text-muted small">${escapeHtml(latest.itemCode || "")}</div>
+                        </td>
+                        <td>${escapeHtml(latest.requestedUserName || "-")}</td>
+                        <td>${buildBadge(latest.status || "-", "bg-info text-dark")}</td>
+                        <td>${buildBadge(latest.deliveryStatus || "-", getDeliveryBadgeClass(latest.deliveryStatus))}</td>
+                        <td>${formatDate(latest.createdDate)}</td>
+                    </tr>
+                `;
+            }).join("");
+
+            tbody.html(html);
+        }
+
+        function buildBadge(value, className) {
+            return "<span class='badge " + className + "'>" + escapeHtml(value || "-") + "</span>";
+        }
+
+        function getDeliveryBadgeClass(value) {
+            const deliveryStatus = (value || "").toLowerCase();
+
+            if (deliveryStatus.includes("delivered") || deliveryStatus.includes("complete")) {
+                return "bg-success";
+            }
+
+            if (deliveryStatus.includes("accepted")) {
+                return "bg-primary";
+            }
+
+            if (deliveryStatus.includes("pending")) {
+                return "bg-warning text-dark";
+            }
+
+            return "bg-secondary";
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) {
+                return "-";
+            }
+
+            return new Date(dateString).toLocaleDateString();
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+}

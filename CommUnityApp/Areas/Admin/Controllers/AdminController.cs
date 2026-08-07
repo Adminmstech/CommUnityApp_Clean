@@ -225,5 +225,10 @@ namespace CommUnityApp.Areas.Admin.Controllers
         {
             return View();
         }
+
+        public IActionResult CareConnectSupporters()
+        {
+            return View();
+        }
     }
 }
