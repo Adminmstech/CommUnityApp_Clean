@@ -611,6 +611,9 @@ namespace CommUnityApp.Services
                 var rewardsTask =
                     _unitOfWork.Rewards.GetCoins(userId);
 
+                var dailyStreakDetailsTask =
+                    _unitOfWork.Rewards.GetDailyStreakDetails(userId);
+
                 var postedEventsTask =
                     _unitOfWork.Events.GetTopFivePostedEventsByUser(userId);
 
@@ -629,6 +632,7 @@ namespace CommUnityApp.Services
                 await Task.WhenAll(
                     auctionsTask,
                     rewardsTask,
+                    dailyStreakDetailsTask,
                     postedEventsTask,
                     communityPostsTask,
                     messageBoardTask,
@@ -638,6 +642,8 @@ namespace CommUnityApp.Services
                 var auctions = await auctionsTask;
 
                 var rewards = await rewardsTask;
+
+                var dailyStreakDetails = await dailyStreakDetailsTask;
 
                 var postedEvents = await postedEventsTask;
 
@@ -674,6 +680,24 @@ namespace CommUnityApp.Services
                     Data = new DashboardData
                     {
                         Rewards = rewards,
+                        DailyStreak = dailyStreakDetails == null
+                            ? null
+                            : new DailyStreakResponse
+                            {
+                                Success = dailyStreakDetails.Success,
+                                AlreadyClaimed = dailyStreakDetails.AlreadyClaimed,
+                                CurrentStreak = dailyStreakDetails.CurrentStreak,
+                                LastClaimDate = dailyStreakDetails.LastClaimDate,
+                                CoinsEarned = dailyStreakDetails.AlreadyClaimed
+                                    ? dailyStreakDetails.DailyRewardCoins
+                                    : 0,
+                                NextRewardCoins = dailyStreakDetails.DailyRewardCoins,
+                                NextStreakDay = dailyStreakDetails.CurrentStreak >= dailyStreakDetails.TotalStreakDays
+                                    ? 1
+                                    : dailyStreakDetails.CurrentStreak + 1,
+                                Message = dailyStreakDetails.Message
+                            },
+                        DailyStreakDetails = dailyStreakDetails,
 
                         Auctions = auctions ?? new List<AuctionListModel>(),
 
