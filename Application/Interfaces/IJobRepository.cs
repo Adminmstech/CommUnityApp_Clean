@@ -21,5 +21,16 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<IEnumerable<ApplicationHistoryModel>> GetApplicationHistory(long applicationId);
 
         Task UpdateResumePath(long applicationId, string resumePath);
+
+        Task<BaseResponse> BusinessPostJob(BusinessJobPostModel model);
+
+        Task<(int TotalRecords, IEnumerable<BusinessJobPostListModel> Jobs)> GetBusinessJobPosts(int businessId,int pageNumber,int pageSize);
+        Task<BaseResponse> DeleteBusinessJobPost(int jobId,int businessId);
+        Task<(int TotalRecords, IEnumerable<JobApplicantModel> Applicants)>GetBusinessJobApplicants(int jobId,int businessId,int pageNumber,int pageSize);
+        Task<JobApplicantModel?> GetBusinessJobApplicantDetails(int applicationId,int jobId,int businessId);
+
+        Task<UserJobListResponse> GetAllJobPostsForUsers(int pageNumber,int pageSize,string search);
+
+        Task<JobApplicationsReceivedResponse> GetJobApplicationsReceivedByUser(Guid userId, int pageNumber, int pageSize);
     }
 }

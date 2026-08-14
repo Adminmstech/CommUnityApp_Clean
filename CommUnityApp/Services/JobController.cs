@@ -192,7 +192,7 @@ namespace CommUnityApp.Services
         }
 
 
-        [HttpGet("GetJobsByUser")]
+        [HttpGet("GetPostedJobsByUser")]
         public async Task<IActionResult> GetJobsByUser(Guid userId)
         {
             var data = await _jobsRepository.GetJobsByUser(userId);
@@ -228,15 +228,15 @@ namespace CommUnityApp.Services
                 ResultId = 1,
                 ResultMessage = "Success",
                 Data = data
-            });
-        }
+            }); 
+        } 
 
         [HttpGet("GetApplicationsByJob")]
         public async Task<IActionResult> GetApplicationsByJob(long jobId)
         {
             var data = await _jobsRepository.GetApplicationsByJob(jobId);
 
-            return Ok(new { ResultId = 1, Data = data });
+            return Ok(new { ResultId = 1, Data = data }); 
         }
 
         [HttpPost("UpdateApplicationStatus")]
@@ -267,6 +267,331 @@ namespace CommUnityApp.Services
                 ResultMessage = "Success",
                 Data = data
             });
+        }
+        [HttpPost("BusinessPostJob")]
+        public async Task<IActionResult> BusinessPostJob([FromBody] BusinessJobPostModel model)
+        {
+            try
+            {
+                var jobId = await _jobsRepository.BusinessPostJob(model);
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = model.JobId == 0
+                        ? "Job posted successfully."
+                        : "Job updated successfully.",
+                    JobId = jobId
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+        [HttpGet("GetBusinessJobPosts")]
+        public async Task<IActionResult> GetBusinessJobPosts(int pageNumber = 1,int pageSize = 10)
+        {
+            try
+            {
+                var businessIdString =
+                    HttpContext.Session.GetString("BusinessId");
+
+                if (!int.TryParse(businessIdString, out int businessId))
+                {
+                    return Unauthorized(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Business session expired."
+                    });
+                }
+
+                var result = await _jobsRepository.GetBusinessJobPosts(
+                    businessId,
+                    pageNumber,
+                    pageSize);
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Jobs retrieved successfully.",
+                    TotalRecords = result.TotalRecords,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    TotalPages = (int)Math.Ceiling(
+                        (double)result.TotalRecords / pageSize),
+                    Data = result.Jobs
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+
+
+        [HttpDelete("DeleteBusinessJobPost/{jobId:int}")]
+        public async Task<IActionResult> DeleteBusinessJobPost(int jobId)
+        {
+            try
+            {
+                var businessIdString =
+                    HttpContext.Session.GetString("BusinessId");
+
+                if (!int.TryParse(businessIdString, out int businessId))
+                {
+                    return Unauthorized(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Business session expired."
+                    });
+                }
+
+                var result = await _jobsRepository.DeleteBusinessJobPost(
+                    jobId,
+                    businessId);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("GetBusinessJobApplicants")]
+        public async Task<IActionResult> GetBusinessJobApplicants(int jobId,int pageNumber = 1,int pageSize = 10)
+        {
+            try
+            {
+                var businessIdString =
+                    HttpContext.Session.GetString("BusinessId");
+
+                if (!int.TryParse(
+                        businessIdString,
+                        out int businessId))
+                {
+                    return Unauthorized(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Business session expired."
+                    });
+                }
+
+                var result =
+                    await _jobsRepository.GetBusinessJobApplicants(
+                        jobId,
+                        businessId,
+                        pageNumber,
+                        pageSize);
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage =
+                        "Applicants retrieved successfully.",
+
+                    TotalRecords =
+                        result.TotalRecords,
+
+                    PageNumber =
+                        pageNumber,
+
+                    PageSize =
+                        pageSize,
+
+                    TotalPages =
+                        (int)Math.Ceiling(
+                            (double)result.TotalRecords /
+                            pageSize),
+
+                    Data =
+                        result.Applicants
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("GetBusinessJobApplicantDetails")]
+        public async Task<IActionResult> GetBusinessJobApplicantDetails(int jobId,int applicationId)
+        {
+            try
+            {
+                var businessIdString =
+                    HttpContext.Session.GetString("BusinessId");
+
+                if (!int.TryParse(
+                        businessIdString,
+                        out int businessId))
+                {
+                    return Unauthorized(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Business session expired."
+                    });
+                }
+
+                var applicant =
+                    await _jobsRepository.GetBusinessJobApplicantDetails(
+                        applicationId,
+                        jobId,
+                        businessId);
+
+                if (applicant == null)
+                {
+                    return NotFound(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Applicant not found."
+                    });
+                }
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage =
+                        "Applicant details retrieved successfully.",
+                    Data = applicant
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+
+
+        [HttpGet("GetAllJobPosts")]
+        public async Task<IActionResult> GetAllJobPosts( int pageNumber = 1, int pageSize = 10, string search = null)
+        {
+            try
+            {
+                var result =
+                    await _jobsRepository.GetAllJobPostsForUsers(
+                        pageNumber,
+                        pageSize,
+                        search);
+
+                return Ok(new
+                {
+                    ResultId = 1,
+
+                    ResultMessage =
+                        "Jobs retrieved successfully.",
+
+                    TotalRecords =
+                        result.TotalRecords,
+
+                    PageNumber =
+                        result.PageNumber,
+
+                    PageSize =
+                        result.PageSize,
+
+                    TotalPages =
+                        result.TotalPages,
+
+                    Data =
+                        result.Data
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("GetJobApplicationsReceived")]
+        public async Task<IActionResult> GetJobApplicationsReceived(Guid userId,int pageNumber = 1,int pageSize = 10)
+        {
+            try
+            {
+                if (userId == Guid.Empty)
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Valid UserId is required."
+                    });
+                }
+
+
+                if (pageNumber < 1)
+                    pageNumber = 1;
+
+
+                if (pageSize < 1)
+                    pageSize = 10;
+
+
+                var result =
+                    await _jobsRepository
+                        .GetJobApplicationsReceivedByUser(
+                            userId,
+                            pageNumber,
+                            pageSize);
+
+
+                return Ok(new
+                {
+                    ResultId = 1,
+
+                    ResultMessage =
+                        result.TotalRecords > 0
+                            ? "Job applications retrieved successfully."
+                            : "No job applications found.",
+
+                    TotalRecords =
+                        result.TotalRecords,
+
+                    PageNumber =
+                        result.PageNumber,
+
+                    PageSize =
+                        result.PageSize,
+
+                    TotalPages =
+                        result.TotalPages,
+
+                    Data =
+                        result.Data
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message
+                });
+            }
         }
     }
 }

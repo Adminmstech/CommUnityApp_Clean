@@ -1,0 +1,601 @@
+﻿@{
+    ViewData["Title"] = "Job Applicants";
+    Layout = "_BusinessLayout";
+
+    var jobId = Convert.ToInt32(ViewBag.JobId);
+}
+
+<div class="container-fluid">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+            <h3 class="mb-1">Job Applicants</h3>
+
+            <p class="text-muted mb-0">
+                Applicants who applied for this job
+            </p>
+        </div>
+
+        <a href="/Business/Home/BusinessJobList"
+           class="btn btn-secondary">
+
+            <i class="fa fa-arrow-left"></i>
+            Back to Jobs
+
+        </a>
+
+    </div>
+
+
+    <!-- Job Applicants Card -->
+
+    <div class="card">
+
+        <div class="card-body">
+
+            <!-- Loading -->
+
+            <div id="loading"
+                 class="text-center py-4">
+
+                <div class="spinner-border"></div>
+
+                <p class="mt-2">
+                    Loading applicants...
+                </p>
+
+            </div>
+
+
+            <!-- No Applicants -->
+
+            <div id="noApplicants"
+                 class="text-center py-5"
+                 style="display:none;">
+
+                <div class="mb-3">
+                    <i class="fa fa-users fa-3x text-muted"></i>
+                </div>
+
+                <h5>No Applicants</h5>
+
+                <p class="text-muted">
+                    No one has applied for this job yet.
+                </p>
+
+            </div>
+
+
+            <!-- Applicant Table -->
+
+            <div id="applicantTableContainer"
+                 class="table-responsive"
+                 style="display:none;">
+
+                <table class="table table-bordered table-hover align-middle">
+
+                    <thead>
+
+                        <tr>
+
+                            <th>#</th>
+
+                            <th>Applicant</th>
+
+                            <th>Email</th>
+
+                            <th>Phone</th>
+
+                            <th>Experience</th>
+
+                            <th>Current Company</th>
+
+                            <th>Current Role</th>
+
+                            <th>Skills</th>
+
+                            <th>Status</th>
+
+                            <th>Applied Date</th>
+
+                            <th>Action</th>
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="applicantTableBody">
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- Pagination -->
+
+            <div id="paginationContainer"
+                 class="d-flex justify-content-between align-items-center mt-3"
+                 style="display:none;">
+
+                <div>
+
+                    <span id="paginationInfo"
+                          class="text-muted">
+                    </span>
+
+                </div>
+
+                <div>
+
+                    <ul id="pagination"
+                        class="pagination mb-0">
+                    </ul>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        const jobId = @jobId;
+
+        let currentPage = 1;
+
+        const pageSize = 10;
+
+
+        $(document).ready(function () {
+
+            GetApplicants(1);
+
+        });
+
+
+  
+
+        function GetApplicants(pageNumber) {
+
+            currentPage = pageNumber;
+
+            $("#loading").show();
+
+            $("#noApplicants").hide();
+
+            $("#applicantTableContainer").hide();
+
+            $("#paginationContainer").hide();
+
+
+            $.ajax({
+
+                url: "/api/Job/GetBusinessJobApplicants"
+                    + "?jobId=" + jobId
+                    + "&pageNumber=" + pageNumber
+                    + "&pageSize=" + pageSize,
+
+                type: "GET",
+
+                success: function (response) {
+
+                    console.log(
+                        "Applicants Response:",
+                        response
+                    );
+
+
+                    $("#loading").hide();
+
+
+                    if (
+                        !response ||
+                        response.resultId !== 1 ||
+                        !response.data ||
+                        response.data.length === 0
+                    ) {
+
+                        $("#noApplicants").show();
+
+                        return;
+                    }
+
+
+                    $("#applicantTableContainer")
+                        .show();
+
+
+                    RenderApplicants(
+                        response.data
+                    );
+
+
+                    RenderPagination(
+                        response.totalRecords,
+                        response.pageNumber,
+                        response.pageSize,
+                        response.totalPages
+                    );
+
+                },
+
+
+                error: function (xhr) {
+
+                    $("#loading").hide();
+
+
+                    console.log(
+                        "Applicant API Error:",
+                        xhr.status,
+                        xhr.responseText
+                    );
+
+
+                    Swal.fire({
+
+                        icon: "error",
+
+                        title: "Error",
+
+                        text:
+                            "Unable to load applicants."
+
+                    });
+
+                }
+
+            });
+
+        }
+
+
+        function RenderApplicants(applicants) {
+
+            let html = "";
+
+
+            $.each(
+                applicants,
+                function (index, item) {
+
+                    const rowNumber =
+                        ((currentPage - 1)
+                            * pageSize)
+                        + index + 1;
+
+
+                    let statusClass =
+                        "bg-secondary";
+
+
+                    if (item.status === "Applied")
+                        statusClass = "bg-primary";
+
+                    if (item.status === "Shortlisted")
+                        statusClass = "bg-success";
+
+                    if (item.status === "Rejected")
+                        statusClass = "bg-danger";
+
+
+                    html += `
+
+                            <tr>
+
+                                <td>
+                                    ${rowNumber}
+                                </td>
+
+
+                                <td>
+
+                                    <strong>
+                                        ${escapeHtml(
+                        item.fullName
+                    )}
+                                    </strong>
+
+                                </td>
+
+
+                                <td>
+                                    ${escapeHtml(
+                        item.email
+                    )}
+                                </td>
+
+
+                                <td>
+                                    ${escapeHtml(
+                        item.phone
+                    )}
+                                </td>
+
+
+                                <td>
+                                    ${escapeHtml(
+                        item.totalExperience
+                    )}
+                                </td>
+
+
+                                <td>
+                                    ${escapeHtml(
+                        item.currentCompany
+                    )}
+                                </td>
+
+
+                                <td>
+                                    ${escapeHtml(
+                        item.currentRole
+                    )}
+                                </td>
+
+
+                                <td>
+
+                                    <span title="${escapeHtml(
+                        item.skills
+                    )}">
+
+                                        ${escapeHtml(
+                        item.skills
+                    )}
+
+                                    </span>
+
+                                </td>
+
+
+                                <td>
+
+                                    <span class="badge ${statusClass}">
+
+                                        ${escapeHtml(
+                        item.status
+                    )}
+
+                                    </span>
+
+                                </td>
+
+
+                                <td>
+                                    ${formatDateTime(
+                        item.appliedDate
+                    )}
+                                </td>
+
+
+                                <td>
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-primary"
+                                            onclick="ViewApplicant(
+                                                ${item.applicationId}
+                                            )">
+
+                                        <i class="fa fa-eye"></i>
+                                        View
+
+                                    </button>
+
+                                </td>
+
+                            </tr>
+
+                        `;
+
+                }
+            );
+
+
+            $("#applicantTableBody")
+                .html(html);
+
+        }
+
+
+        function ViewApplicant(applicationId) {
+
+            window.location.href =
+                "/Business/Home/JobApplicantDetails"
+                + "?jobId="
+                + jobId
+                + "&applicationId="
+                + applicationId;
+
+        }
+
+
+        function RenderPagination(
+            totalRecords,
+            pageNumber,
+            pageSize,
+            totalPages) {
+
+
+            if (totalPages <= 1) {
+
+                $("#paginationContainer")
+                    .hide();
+
+                return;
+
+            }
+
+
+            $("#paginationContainer")
+                .show();
+
+
+            const startRecord =
+                ((pageNumber - 1)
+                    * pageSize) + 1;
+
+
+            const endRecord =
+                Math.min(
+                    pageNumber * pageSize,
+                    totalRecords
+                );
+
+
+            $("#paginationInfo").text(
+
+                "Showing "
+                + startRecord
+                + " - "
+                + endRecord
+                + " of "
+                + totalRecords
+
+            );
+
+
+            let html = "";
+
+
+            // Previous
+
+            html += `
+
+                    <li class="page-item
+                        ${pageNumber === 1
+                    ? "disabled"
+                    : ""}">
+
+                        <a class="page-link"
+                           href="javascript:void(0)"
+                           onclick="GetApplicants(
+                               ${pageNumber - 1}
+                           )">
+
+                            Previous
+
+                        </a>
+
+                    </li>
+
+                `;
+
+
+
+            let startPage =
+                Math.max(
+                    1,
+                    pageNumber - 2
+                );
+
+
+            let endPage =
+                Math.min(
+                    totalPages,
+                    pageNumber + 2
+                );
+
+
+            for (
+                let i = startPage;
+                i <= endPage;
+                i++
+            ) {
+
+                html += `
+
+                        <li class="page-item
+                            ${i === pageNumber
+                        ? "active"
+                        : ""}">
+
+                            <a class="page-link"
+                               href="javascript:void(0)"
+                               onclick="GetApplicants(${i})">
+
+                                ${i}
+
+                            </a>
+
+                        </li>
+
+                    `;
+
+            }
+
+
+            // Next
+
+            html += `
+
+                    <li class="page-item
+                        ${pageNumber === totalPages
+                    ? "disabled"
+                    : ""}">
+
+                        <a class="page-link"
+                           href="javascript:void(0)"
+                           onclick="GetApplicants(
+                               ${pageNumber + 1}
+                           )">
+
+                            Next
+
+                        </a>
+
+                    </li>
+
+                `;
+
+
+            $("#pagination")
+                .html(html);
+
+        }
+
+
+
+        function formatDateTime(value) {
+
+            if (!value)
+                return "";
+
+            const date =
+                new Date(value);
+
+            if (isNaN(date))
+                return value;
+
+            return date.toLocaleString();
+
+        }
+
+
+        function escapeHtml(value) {
+
+            if (
+                value === null ||
+                value === undefined
+            )
+                return "";
+
+            return $("<div>")
+                .text(value)
+                .html();
+
+        }
+
+    </script>
+
+}

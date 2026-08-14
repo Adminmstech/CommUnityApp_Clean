@@ -1,0 +1,254 @@
+﻿@model CommUnityApp.ApplicationCore.Models.BusinessJobPostModel
+@{
+    ViewData["Title"] = "Post Job";
+    var businessId = Context.Session.GetString("BusinessId");
+    Layout = "_BusinessLayout";
+}
+<div class="card">
+    <div class="card-header">
+        <h4 id="pageTitle">Post Job</h4>
+    </div>
+
+    <div class="card-body">
+
+        <input type="hidden" id="JobId" value="0" />
+        <input type="hidden" id="BusinessId" value="@ViewBag.BusinessId" />
+        <input type="hidden" id="GroupId" value="@ViewBag.GroupId" />
+        <input type="hidden" id="PostedBy" value="@ViewBag.PostedBy" />
+
+        <div class="row">
+
+            <div class="col-md-6 mb-3">
+                <label>Job Title</label>
+                <input type="text" id="JobTitle" class="form-control" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Job Type</label>
+                <select id="JobType" class="form-control">
+                    <option value="">Select</option>
+                    <option>FullTime</option>
+                    <option>PartTime</option>
+                    <option>Contract</option>
+                    <option>Casual</option>
+                </select>
+            </div>
+
+            <div class="col-md-12 mb-3">
+                <label>Description</label>
+                <textarea id="Description" class="form-control" rows="5"></textarea>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Experience</label>
+                <input type="text" id="Experience" class="form-control" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Location</label>
+                <input type="text" id="Location" class="form-control" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Salary Min</label>
+                <input type="number" id="SalaryMin" class="form-control" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Salary Max</label>
+                <input type="number" id="SalaryMax" class="form-control" />
+            </div>
+
+            <div class="col-md-12 mb-3">
+                <label>Skills</label>
+                <textarea id="Skills" class="form-control"></textarea>
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Email</label>
+                <input type="email" id="ContactEmail" class="form-control" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Phone</label>
+                <input type="text" id="ContactPhone" class="form-control" />
+            </div>
+
+            <div class="col-md-6 mb-3">
+                <label>Last Date To Apply</label>
+                <input type="date" id="LastDateToApply" class="form-control" />
+            </div>
+
+            <div class="col-md-6 mt-4">
+                <label>
+                    <input type="checkbox" id="IsRemote" />
+                    Remote Job
+                </label>
+            </div>
+
+            <div class="col-md-12 mt-3">
+                <button type="button"
+                        id="btnSave"
+                        class="btn btn-success"
+                        onclick="SaveJob();">
+                    Post Job
+                </button>
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+            <script>
+    function SaveJob() {
+
+        var model = {
+
+            jobId: parseInt($("#JobId").val()) || 0,
+
+            businessId: parseInt($("#BusinessId").val()),
+
+            groupId: parseInt($("#GroupId").val()),
+
+            postedBy: $("#PostedBy").val(),
+
+            companyName: "",
+
+            jobTitle: $("#JobTitle").val(),
+
+            description: $("#Description").val(),
+
+            jobType: $("#JobType").val(),
+
+            experience: $("#Experience").val(),
+
+            salaryMin: parseFloat($("#SalaryMin").val()) || 0,
+
+            salaryMax: parseFloat($("#SalaryMax").val()) || 0,
+
+            location: $("#Location").val(),
+
+            isRemote: $("#IsRemote").is(":checked"),
+
+            skills: $("#Skills").val(),
+
+            contactEmail: $("#ContactEmail").val(),
+
+            contactPhone: $("#ContactPhone").val(),
+
+            lastDateToApply: $("#LastDateToApply").val()
+        };
+
+        console.log(model);
+
+        $.ajax({
+
+            url: "https://localhost:7176/api/Job/BusinessPostJob",
+
+            type: "POST",
+
+            contentType: "application/json",
+
+            data: JSON.stringify(model),
+
+            success: function (res) {
+
+                Swal.fire({
+
+                    icon: "success",
+
+                    title: res.resultMessage
+
+                });
+
+                ClearForm();
+            },
+
+            error: function (xhr) {
+
+                console.log(xhr.responseText);
+
+                Swal.fire({
+
+                    icon: "error",
+
+                    title: xhr.responseText
+
+                });
+
+            }
+
+        });
+
+    }
+
+    function ClearForm() {
+
+        $("#JobId").val(0);
+
+        $("#JobTitle").val("");
+
+        $("#Description").val("");
+
+        $("#JobType").val("");
+
+        $("#Experience").val("");
+
+        $("#SalaryMin").val("");
+
+        $("#SalaryMax").val("");
+
+        $("#Location").val("");
+
+        $("#Skills").val("");
+
+        $("#ContactEmail").val("");
+
+        $("#ContactPhone").val("");
+
+        $("#LastDateToApply").val("");
+
+        $("#IsRemote").prop("checked", false);
+
+        $("#btnSave").text("Post Job");
+
+        $("#pageTitle").text("Post Job");
+    }
+
+    function EditJob(job) {
+
+        $("#JobId").val(job.jobId);
+
+        $("#JobTitle").val(job.jobTitle);
+
+        $("#Description").val(job.description);
+
+        $("#JobType").val(job.jobType);
+
+        $("#Experience").val(job.experience);
+
+        $("#SalaryMin").val(job.salaryMin);
+
+        $("#SalaryMax").val(job.salaryMax);
+
+        $("#Location").val(job.location);
+
+        $("#Skills").val(job.skills);
+
+        $("#ContactEmail").val(job.contactEmail);
+
+        $("#ContactPhone").val(job.contactPhone);
+
+        $("#LastDateToApply").val(job.lastDateToApply.substring(0, 10));
+
+        $("#IsRemote").prop("checked", job.isRemote);
+
+        $("#btnSave").text("Update Job");
+
+        $("#pageTitle").text("Update Job");
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+            </script>
