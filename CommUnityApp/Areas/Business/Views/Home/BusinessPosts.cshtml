@@ -1,0 +1,288 @@
+@{
+    ViewData["Title"] = "Business Updates";
+    Layout = "_BusinessLayout";
+    var businessId = ViewBag.BusinessId;
+}
+
+<div class="container-fluid">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
+        <div>
+            <h3 class="mb-1">
+                <i class="fa-solid fa-newspaper me-2"></i>
+                Business Updates
+            </h3>
+            <div class="text-muted">Manage news, offers, and announcements shown to members.</div>
+        </div>
+        <button class="btn btn-primary" type="button" onclick="resetPostForm()">
+            <i class="fa-solid fa-plus me-2"></i>
+            New Update
+        </button>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-5">
+            <div class="card business-form-card">
+                <div class="card-header" id="formTitle">Add Business Update</div>
+                <div class="card-body">
+                    <input type="hidden" id="postId" value="0" />
+                    <input type="hidden" id="imagePath" value="" />
+
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input id="title" class="form-control" maxlength="200" placeholder="e.g. Weekend Family Thali Boxes" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Message</label>
+                        <textarea id="message" class="form-control" rows="6" placeholder="Write the update customers will see."></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Image</label>
+                        <input id="postImage" type="file" accept="image/*" class="form-control" />
+                    </div>
+
+                    <div class="mb-3">
+                        <img id="previewImage" class="img-thumbnail" style="max-height:180px;display:none;" alt="Business update image preview" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <select id="isActive" class="form-select">
+                            <option value="true">Active</option>
+                            <option value="false">Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="business-form-actions">
+                        <button class="btn btn-primary" type="button" onclick="savePost()">
+                            <i class="fa-solid fa-floppy-disk me-2"></i>
+                            Save Update
+                        </button>
+                        <button class="btn btn-secondary" type="button" onclick="resetPostForm()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center">
+                    <span>Current Updates</span>
+                    <button class="btn btn-sm btn-outline-primary" type="button" onclick="loadPosts()">
+                        <i class="fa-solid fa-rotate"></i>
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width:84px">Image</th>
+                                    <th>Update</th>
+                                    <th>Created</th>
+                                    <th>Status</th>
+                                    <th style="width:150px">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="postsTable">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted p-4">Loading updates...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const businessId = Number("@businessId");
+        let selectedImageBase64 = "";
+        let posts = [];
+
+        document.getElementById("postImage").addEventListener("change", function () {
+            const file = this.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function (event) {
+                selectedImageBase64 = event.target.result;
+                document.getElementById("previewImage").src = selectedImageBase64;
+                document.getElementById("previewImage").style.display = "block";
+            };
+            reader.readAsDataURL(file);
+        });
+
+        async function loadPosts() {
+            const table = document.getElementById("postsTable");
+            table.innerHTML = window.businessUi.empty(5, "Loading updates...");
+
+            try {
+                const response = await fetch(`/api/Business/GetAllBusinessPosts?businessId=${businessId}`);
+                const result = await response.json();
+                posts = window.businessUi.list(result);
+
+                if (!posts.length) {
+                    table.innerHTML = window.businessUi.empty(5, "No business updates found.");
+                    return;
+                }
+
+                table.innerHTML = posts.map(post => {
+                    const image = post.imagePath || post.ImagePath || "";
+                    const postId = post.postId ?? post.PostId;
+                    const title = post.title ?? post.Title ?? "";
+                    const message = post.message ?? post.Message ?? "";
+                    const createdDate = post.createdDate ?? post.CreatedDate;
+                    const isActive = post.isActive ?? post.IsActive;
+
+                    return `
+                        <tr>
+                            <td>
+                                ${image
+                                    ? `<img src="${window.businessUi.escape(image)}" class="img-thumbnail" style="width:58px;height:58px;object-fit:cover;" alt="">`
+                                    : `<div class="bg-light border rounded d-flex align-items-center justify-content-center" style="width:58px;height:58px;"><i class="fa-solid fa-image text-muted"></i></div>`}
+                            </td>
+                            <td class="text-wrap">
+                                <div class="cell-strong">${window.businessUi.escape(title)}</div>
+                                <div class="cell-muted">${window.businessUi.escape(message)}</div>
+                            </td>
+                            <td>${window.businessUi.date(createdDate, true)}</td>
+                            <td>
+                                <span class="badge ${isActive ? "bg-success" : "bg-secondary"}">
+                                    ${isActive ? "Active" : "Inactive"}
+                                </span>
+                            </td>
+                            <td class="cell-actions">
+                                <button class="btn btn-sm btn-outline-primary" type="button" onclick="editPost(${postId})">
+                                    <i class="fa-solid fa-pen"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" type="button" onclick="deletePost(${postId})">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>`;
+                }).join("");
+            } catch (error) {
+                console.error(error);
+                table.innerHTML = window.businessUi.error(5, "Failed to load business updates.");
+            }
+        }
+
+        function editPost(postId) {
+            const post = posts.find(item => Number(item.postId ?? item.PostId) === Number(postId));
+            if (!post) return;
+
+            document.getElementById("formTitle").textContent = "Edit Business Update";
+            document.getElementById("postId").value = post.postId ?? post.PostId;
+            document.getElementById("title").value = post.title ?? post.Title ?? "";
+            document.getElementById("message").value = post.message ?? post.Message ?? "";
+            document.getElementById("imagePath").value = post.imagePath ?? post.ImagePath ?? "";
+            document.getElementById("isActive").value = String(post.isActive ?? post.IsActive ?? true);
+            selectedImageBase64 = "";
+            document.getElementById("postImage").value = "";
+
+            const image = post.imagePath ?? post.ImagePath;
+            if (image) {
+                document.getElementById("previewImage").src = image;
+                document.getElementById("previewImage").style.display = "block";
+            } else {
+                document.getElementById("previewImage").style.display = "none";
+            }
+        }
+
+        async function savePost() {
+            const title = document.getElementById("title").value.trim();
+            const message = document.getElementById("message").value.trim();
+
+            if (!title) {
+                Swal.fire({ icon: "warning", title: "Validation", text: "Please enter a title." });
+                return;
+            }
+
+            if (!message) {
+                Swal.fire({ icon: "warning", title: "Validation", text: "Please enter a message." });
+                return;
+            }
+
+            const payload = {
+                postId: Number(document.getElementById("postId").value || 0),
+                businessId,
+                title,
+                message,
+                imagePath: document.getElementById("imagePath").value,
+                imageBase64: selectedImageBase64,
+                isActive: document.getElementById("isActive").value === "true"
+            };
+
+            try {
+                const response = await fetch("/api/Business/AddUpdateBusinessPost", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (!response.ok || !result.status) {
+                    Swal.fire({ icon: "warning", title: "Not Saved", text: result.resultMessage || result.ResultMessage || "Business update was not saved." });
+                    return;
+                }
+
+                Swal.fire({ icon: "success", title: "Saved", text: result.resultMessage || result.ResultMessage || "Business update saved successfully." });
+                resetPostForm();
+                await loadPosts();
+            } catch (error) {
+                console.error(error);
+                Swal.fire({ icon: "error", title: "Error", text: "Failed to save business update." });
+            }
+        }
+
+        async function deletePost(postId) {
+            const confirmation = await Swal.fire({
+                icon: "warning",
+                title: "Delete Update",
+                text: "This will hide the update from customers.",
+                showCancelButton: true,
+                confirmButtonText: "Delete"
+            });
+
+            if (!confirmation.isConfirmed) return;
+
+            try {
+                const response = await fetch(`/api/Business/DeleteBusinessPost?postId=${postId}&businessId=${businessId}`, {
+                    method: "DELETE"
+                });
+                const result = await response.json();
+
+                if (!response.ok || !result.status) {
+                    Swal.fire({ icon: "warning", title: "Not Deleted", text: result.resultMessage || result.ResultMessage || "Business update was not deleted." });
+                    return;
+                }
+
+                Swal.fire({ icon: "success", title: "Deleted", text: result.resultMessage || result.ResultMessage || "Business update deleted successfully." });
+                resetPostForm();
+                await loadPosts();
+            } catch (error) {
+                console.error(error);
+                Swal.fire({ icon: "error", title: "Error", text: "Failed to delete business update." });
+            }
+        }
+
+        function resetPostForm() {
+            document.getElementById("formTitle").textContent = "Add Business Update";
+            document.getElementById("postId").value = "0";
+            document.getElementById("title").value = "";
+            document.getElementById("message").value = "";
+            document.getElementById("imagePath").value = "";
+            document.getElementById("postImage").value = "";
+            document.getElementById("isActive").value = "true";
+            document.getElementById("previewImage").style.display = "none";
+            selectedImageBase64 = "";
+        }
+
+        loadPosts();
+    </script>
+}

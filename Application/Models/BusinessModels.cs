@@ -288,6 +288,43 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public bool IsActive { get; set; }
     }
+
+    public class BusinessPostSaveRequest
+    {
+        public long PostId { get; set; }
+
+        public long BusinessId { get; set; }
+
+        public string Title { get; set; }
+
+        public string Message { get; set; }
+
+        public string ImagePath { get; set; }
+
+        public Guid? CreatedBy { get; set; }
+
+        public bool IsActive { get; set; } = true;
+    }
+
+    public class BusinessPostUploadRequest
+    {
+        public long PostId { get; set; }
+
+        public long BusinessId { get; set; }
+
+        public string Title { get; set; }
+
+        public string Message { get; set; }
+
+        public string? ImagePath { get; set; }
+
+        public string? ImageBase64 { get; set; }
+
+        public Guid? CreatedBy { get; set; }
+
+        public bool IsActive { get; set; } = true;
+    }
+
     public class AppBusinessLoginRequest
     {
         public string Email { get; set; }

@@ -66,7 +66,7 @@ namespace CommUnityApp.ApplicationCore.BAL
                 catch (Exception ex)
                 {
                     result.FailureCount++;
-                    result.Errors.Add(ex.Message);
+                    result.Errors.Add(GetFullErrorMessage(ex));
                 }
             }
 
@@ -133,6 +133,18 @@ namespace CommUnityApp.ApplicationCore.BAL
                 var key = match.Groups[1].Value.Trim();
                 return values.TryGetValue(key, out var value) ? value : match.Value;
             });
+        }
+
+        private static string GetFullErrorMessage(Exception exception)
+        {
+            var messages = new List<string>();
+            for (var current = exception; current != null; current = current.InnerException)
+            {
+                if (!string.IsNullOrWhiteSpace(current.Message))
+                    messages.Add(current.Message);
+            }
+
+            return string.Join(" | ", messages.Distinct());
         }
     }
 

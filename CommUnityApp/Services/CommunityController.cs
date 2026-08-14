@@ -239,10 +239,11 @@ namespace CommUnityApp.Services
         public async Task<IActionResult> GetCharityItemRequestsList(long? communityId)
         {
             long cid = 0;
+            bool hasExplicitCommunityId = communityId.HasValue;
 
-            if (communityId != null)
+            if (hasExplicitCommunityId)
             {
-                cid = communityId.Value;
+                cid = communityId.GetValueOrDefault();
             }
             else
             {
@@ -250,9 +251,12 @@ namespace CommUnityApp.Services
 
                 if (!string.IsNullOrEmpty(sessionValue))
                     cid = Convert.ToInt64(sessionValue);
+                else if (Request.Cookies.TryGetValue("CommunityId", out var cookieValue)
+                    && long.TryParse(cookieValue, out var cookieCommunityId))
+                    cid = cookieCommunityId;
             }
 
-            if (cid == 0)
+            if (cid == 0 && !hasExplicitCommunityId)
                 return Unauthorized("Session expired");
 
             var data = await _communityRepository.GetCharityItemRequestsList(cid);
@@ -607,6 +611,9 @@ namespace CommUnityApp.Services
                 var rewardsTask =
                     _unitOfWork.Rewards.GetCoins(userId);
 
+                var dailyStreakDetailsTask =
+                    _unitOfWork.Rewards.GetDailyStreakDetails(userId);
+
                 var postedEventsTask =
                     _unitOfWork.Events.GetTopFivePostedEventsByUser(userId);
 
@@ -625,6 +632,7 @@ namespace CommUnityApp.Services
                 await Task.WhenAll(
                     auctionsTask,
                     rewardsTask,
+                    dailyStreakDetailsTask,
                     postedEventsTask,
                     communityPostsTask,
                     messageBoardTask,
@@ -634,6 +642,8 @@ namespace CommUnityApp.Services
                 var auctions = await auctionsTask;
 
                 var rewards = await rewardsTask;
+
+                var dailyStreakDetails = await dailyStreakDetailsTask;
 
                 var postedEvents = await postedEventsTask;
 
@@ -670,6 +680,24 @@ namespace CommUnityApp.Services
                     Data = new DashboardData
                     {
                         Rewards = rewards,
+                        DailyStreak = dailyStreakDetails == null
+                            ? null
+                            : new DailyStreakResponse
+                            {
+                                Success = dailyStreakDetails.Success,
+                                AlreadyClaimed = dailyStreakDetails.AlreadyClaimed,
+                                CurrentStreak = dailyStreakDetails.CurrentStreak,
+                                LastClaimDate = dailyStreakDetails.LastClaimDate,
+                                CoinsEarned = dailyStreakDetails.AlreadyClaimed
+                                    ? dailyStreakDetails.DailyRewardCoins
+                                    : 0,
+                                NextRewardCoins = dailyStreakDetails.DailyRewardCoins,
+                                NextStreakDay = dailyStreakDetails.CurrentStreak >= dailyStreakDetails.TotalStreakDays
+                                    ? 1
+                                    : dailyStreakDetails.CurrentStreak + 1,
+                                Message = dailyStreakDetails.Message
+                            },
+                        DailyStreakDetails = dailyStreakDetails,
 
                         Auctions = auctions ?? new List<AuctionListModel>(),
 
