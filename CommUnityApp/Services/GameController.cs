@@ -483,8 +483,118 @@ namespace CommUnityApp.Services
             return Ok(new { resultId = 1, resultMessage = $"{allPrizes.Count} prizes found.", prizes = allPrizes });
         }
 
+        //[HttpPost("GetBrandGameDetails")]
+        //public async Task<IActionResult> GetBrandGameDetails([FromBody] GetGameDetails request)
+        //{
+        //    if (request == null || request.GameId <= 0)
+        //    {
+        //        return BadRequest(new
+        //        {
+        //            resultId = 0,
+        //            resultMessage = "Valid gameId is required."
+        //        });
+        //    }
+
+        //    if (request.UserId == Guid.Empty)
+        //    {
+        //        return BadRequest(new
+        //        {
+        //            resultId = 0,
+        //            resultMessage = "Valid memberId is required."
+        //        });
+        //    }
+
+        //    var game = await _brandGameRepository.GetBrandGameByIdAsync(request.GameId);
+
+        //    if (game == null)
+        //    {
+        //        return NotFound(new
+        //        {
+        //            resultId = 0,
+        //            resultMessage = "Game not found."
+        //        });
+        //    }
+
+        //    var baseUrl = (_configuration["ApiSettings:BaseUrl"] ?? "").TrimEnd('/');
+
+        //    return Ok(new
+        //    {
+        //        resultId = 1,
+        //        resultMessage = "Game details retrieved successfully.",
+
+        //        gameId = game.BrandGameID,
+
+        //        gameName = game.BrandGameName,
+
+        //        gameTitle = game.BrandGameTitle,
+
+        //        description = game.BrandGameDesc,
+
+        //        conditionsApply = game.ConditionsApply,
+
+        //        destinationUrl = game.DestinationUrl,
+
+        //        onceIn = game.OnceIn,
+
+        //        isReleased = game.IsReleased,
+
+        //        panelCount = game.PanelCount,
+
+        //        panelOpeningLimit = game.PanelOpeningLimit,
+
+        //        chanceCount = game.ChanceCount,
+
+        //        pointsAwarded = game.PointsAwarded,
+
+        //        expiryText = game.ExpiryText,
+
+        //        permitNumber = game.PermitNumber,
+
+        //        classNumber = game.ClassNumber,
+
+        //        formColor = game.FormColor,
+
+        //        textColor = game.TextColor,
+
+        //        promotionalCode = game.PromotionalCode,
+
+        //        startDate = game.DateStart,
+
+        //        endDate = game.DateEnd,
+
+        //        gameImage = BuildFullImageUrl(baseUrl, game.BrandGameImage),
+
+        //        primaryPrizeImage = BuildFullImageUrl(baseUrl, game.PrimaryPrizeImage),
+
+        //        secondaryPrizeImage = BuildFullImageUrl(baseUrl, game.SecondaryPrizeImage),
+
+        //        consolationPrizeImage = BuildFullImageUrl(baseUrl, game.ConsolationPrizeImage),
+
+        //        unsuccessfulImage = BuildFullImageUrl(baseUrl, game.UnSuccessfulImage),
+
+        //        primaryOfferText = game.PrimaryOfferText,
+
+        //        secondaryOfferText = game.OfferText,
+
+        //        primaryWinMessage = game.PrimaryWinMessage,
+
+        //        secondaryWinMessage = game.SecondaryWinMessage,
+
+        //        consolationMessage = game.ConsolationMessage,
+
+        //        prizeBalance = new
+        //        {
+        //            primary = game.PrimaryPrizeBalCount,
+        //            secondary = game.SecondaryPrizeBalCount,
+        //            consolation = game.ConsolationPrizeBalCount
+        //        }
+        //    });
+        //}
+
+
         [HttpPost("GetBrandGameDetails")]
-        public async Task<IActionResult> GetBrandGameDetails([FromBody] GetGameDetails request)
+        public async Task<IActionResult> GetBrandGameDetails(
+    [FromBody] GetGameDetails request)
         {
             if (request == null || request.GameId <= 0)
             {
@@ -504,7 +614,8 @@ namespace CommUnityApp.Services
                 });
             }
 
-            var game = await _brandGameRepository.GetBrandGameByIdAsync(request.GameId);
+            var game = await _brandGameRepository
+                .GetBrandGameByIdAsync(request.GameId);
 
             if (game == null)
             {
@@ -515,7 +626,30 @@ namespace CommUnityApp.Services
                 });
             }
 
-            var baseUrl = (_configuration["ApiSettings:BaseUrl"] ?? "").TrimEnd('/');
+            var baseUrl =
+                (_configuration["ApiSettings:BaseUrl"] ?? "")
+                .TrimEnd('/');
+
+            // Only used for displaying the scratch card.
+            // This DOES NOT assign a prize.
+            var prizeImages = new List<string>();
+
+            if (!string.IsNullOrWhiteSpace(game.PrimaryPrizeImage))
+                prizeImages.Add(game.PrimaryPrizeImage);
+
+            if (!string.IsNullOrWhiteSpace(game.SecondaryPrizeImage))
+                prizeImages.Add(game.SecondaryPrizeImage);
+
+            if (!string.IsNullOrWhiteSpace(game.ConsolationPrizeImage))
+                prizeImages.Add(game.ConsolationPrizeImage);
+
+            string? scratchImage = null;
+
+            if (prizeImages.Count > 0)
+            {
+                scratchImage =
+                    prizeImages[Random.Shared.Next(prizeImages.Count)];
+            }
 
             return Ok(new
             {
@@ -523,74 +657,34 @@ namespace CommUnityApp.Services
                 resultMessage = "Game details retrieved successfully.",
 
                 gameId = game.BrandGameID,
-
                 gameName = game.BrandGameName,
-
                 gameTitle = game.BrandGameTitle,
-
                 description = game.BrandGameDesc,
-
                 conditionsApply = game.ConditionsApply,
 
-                destinationUrl = game.DestinationUrl,
-
                 onceIn = game.OnceIn,
-
                 isReleased = game.IsReleased,
 
                 panelCount = game.PanelCount,
-
                 panelOpeningLimit = game.PanelOpeningLimit,
-
                 chanceCount = game.ChanceCount,
 
                 pointsAwarded = game.PointsAwarded,
 
                 expiryText = game.ExpiryText,
 
-                permitNumber = game.PermitNumber,
-
-                classNumber = game.ClassNumber,
-
-                formColor = game.FormColor,
-
-                textColor = game.TextColor,
-
-                promotionalCode = game.PromotionalCode,
-
                 startDate = game.DateStart,
-
                 endDate = game.DateEnd,
 
-                gameImage = BuildFullImageUrl(baseUrl, game.BrandGameImage),
+                gameImage = BuildFullImageUrl(
+                    baseUrl,
+                    game.BrandGameImage),
 
-                primaryPrizeImage = BuildFullImageUrl(baseUrl, game.PrimaryPrizeImage),
-
-                secondaryPrizeImage = BuildFullImageUrl(baseUrl, game.SecondaryPrizeImage),
-
-                consolationPrizeImage = BuildFullImageUrl(baseUrl, game.ConsolationPrizeImage),
-
-                unsuccessfulImage = BuildFullImageUrl(baseUrl, game.UnSuccessfulImage),
-
-                primaryOfferText = game.PrimaryOfferText,
-
-                secondaryOfferText = game.OfferText,
-
-                primaryWinMessage = game.PrimaryWinMessage,
-
-                secondaryWinMessage = game.SecondaryWinMessage,
-
-                consolationMessage = game.ConsolationMessage,
-
-                prizeBalance = new
-                {
-                    primary = game.PrimaryPrizeBalCount,
-                    secondary = game.SecondaryPrizeBalCount,
-                    consolation = game.ConsolationPrizeBalCount
-                }
+                scratchImage = BuildFullImageUrl(
+                    baseUrl,
+                    scratchImage)
             });
         }
-
 
         [HttpPost("SubmitBrandGame")]
         public async Task<IActionResult> SubmitBrandGame([FromBody] PlayGameRequest request)

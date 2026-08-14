@@ -297,5 +297,40 @@ namespace CommUnityApp.Areas.Business.Controllers
 
             return View();
         }
+
+        public IActionResult BusinessPostJob() 
+        {
+            var businessId = HttpContext.Session.GetString("BusinessId");
+
+            if (string.IsNullOrEmpty(businessId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            ViewBag.BusinessId = businessId;
+
+            return View();
+        }
+
+        public IActionResult BusinessJobList()
+        {
+            return View();
+        }
+
+        public IActionResult JobApplicants(int jobId)
+        {
+            ViewBag.JobId = jobId;
+
+            return View();
+        }
+        public IActionResult JobApplicantDetails(
+      int jobId,
+      int applicationId)
+        {
+            ViewBag.JobId = jobId;
+            ViewBag.ApplicationId = applicationId;
+
+            return View();
+        }
     }
 }
