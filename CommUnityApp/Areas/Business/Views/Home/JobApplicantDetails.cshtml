@@ -1,0 +1,831 @@
+﻿@{
+    ViewData["Title"] = "Applicant Details";
+    Layout = "_BusinessLayout";
+
+    var jobId = ViewBag.JobId;
+    var applicationId = ViewBag.ApplicationId;
+}
+
+<div class="container-fluid">
+
+    <!-- Header -->
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+
+        <div>
+
+            <h3 class="mb-1">
+                Applicant Details
+            </h3>
+
+            <p class="text-muted mb-0">
+                View complete applicant information
+            </p>
+
+        </div>
+
+
+        <button type="button"
+                class="btn btn-secondary"
+                onclick="GoBack()">
+
+            <i class="fa fa-arrow-left"></i>
+
+            Back to Applicants
+
+        </button>
+
+    </div>
+
+
+    <!-- Loading -->
+
+    <div id="loading"
+         class="text-center py-5">
+
+        <div class="spinner-border"></div>
+
+        <p class="mt-2">
+            Loading applicant details...
+        </p>
+
+    </div>
+
+
+    <!-- Details -->
+
+    <div id="detailsContainer"
+         style="display:none;">
+
+
+        <!-- Personal Information -->
+
+        <div class="card mb-4">
+
+            <div class="card-header">
+
+                <h5 class="mb-0">
+                    Personal Information
+                </h5>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Full Name
+                        </label>
+
+                        <div id="fullName">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Email
+                        </label>
+
+                        <div id="email">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Phone
+                        </label>
+
+                        <div id="phone">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Date of Birth
+                        </label>
+
+                        <div id="dateOfBirth">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Age
+                        </label>
+
+                        <div id="age">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Gender
+                        </label>
+
+                        <div id="gender">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Current Location
+                        </label>
+
+                        <div id="currentLocation">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Preferred Location
+                        </label>
+
+                        <div id="preferredLocation">
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Professional Information -->
+
+        <div class="card mb-4">
+
+            <div class="card-header">
+
+                <h5 class="mb-0">
+                    Professional Information
+                </h5>
+
+            </div>
+
+
+            <div class="card-body">
+
+                <div class="row">
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Total Experience
+                        </label>
+
+                        <div id="totalExperience">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Current Company
+                        </label>
+
+                        <div id="currentCompany">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Current Role
+                        </label>
+
+                        <div id="currentRole">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Qualification
+                        </label>
+
+                        <div id="qualification">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            University
+                        </label>
+
+                        <div id="university">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Skills
+                        </label>
+
+                        <div id="skills">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Current Salary
+                        </label>
+
+                        <div id="currentSalary">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Expected Salary
+                        </label>
+
+                        <div id="expectedSalary">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Notice Period
+                        </label>
+
+                        <div id="noticePeriod">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Application Status
+                        </label>
+
+                        <div id="status">
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-6 mb-3">
+
+                        <label class="fw-bold">
+                            Applied Date
+                        </label>
+
+                        <div id="appliedDate">
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+
+        <div class="card mb-4">
+
+            <div class="card-header">
+
+                <h5 class="mb-0">
+                    Skills
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div id="skillsDetails">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Cover Letter -->
+
+        <div class="card mb-4">
+
+            <div class="card-header">
+
+                <h5 class="mb-0">
+                    Cover Letter
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <div id="coverLetter"
+                     style="white-space:pre-wrap;">
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- Resume -->
+
+        <div class="card mb-4">
+
+            <div class="card-header">
+
+                <h5 class="mb-0">
+                    Resume
+                </h5>
+
+            </div>
+
+            <div class="card-body">
+
+                <a id="resumeLink"
+                   href="#"
+                   target="_blank"
+                   class="btn btn-primary"
+                   style="display:none;">
+
+                    <i class="fa fa-file-pdf"></i>
+
+                    View Resume
+
+                </a>
+
+
+                <span id="noResume"
+                      class="text-muted"
+                      style="display:none;">
+
+                    Resume not available.
+
+                </span>
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+</div>
+
+
+@section Scripts {
+
+    <script>
+
+        const jobId =
+        @jobId;
+
+        const applicationId =
+        @applicationId;
+
+
+        $(document).ready(function () {
+
+            GetApplicantDetails();
+
+        });
+
+
+    
+
+        function GetApplicantDetails() {
+
+            $("#loading").show();
+
+            $("#detailsContainer").hide();
+
+
+            $.ajax({
+
+             
+                    url:
+                "/api/Job/GetBusinessJobApplicantDetails"
+            + "?jobId=" + jobId
+                    + "&applicationId=" + applicationId,
+                type: "GET",
+
+                success: function (response) {
+
+                    console.log(
+                        "Applicant Details:",
+                        response
+                    );
+
+
+                    $("#loading").hide();
+
+
+                    if (
+                        !response ||
+                        response.resultId !== 1 ||
+                        !response.data
+                    ) {
+
+                        Swal.fire({
+
+                            icon: "error",
+
+                            title: "Applicant Not Found",
+
+                            text:
+                                response.resultMessage
+                                ||
+                                "Unable to find applicant."
+
+                        });
+
+                        return;
+
+                    }
+
+
+                    const item =
+                        response.data;
+
+
+                    // Personal
+
+                    $("#fullName")
+                        .text(
+                            item.fullName || "-"
+                        );
+
+
+                    $("#email")
+                        .text(
+                            item.email || "-"
+                        );
+
+
+                    $("#phone")
+                        .text(
+                            item.phone || "-"
+                        );
+
+
+                    $("#dateOfBirth")
+                        .text(
+                            formatDate(
+                                item.dateOfBirth
+                            )
+                            || "-"
+                        );
+
+
+                    $("#age")
+                        .text(
+                            item.age || "-"
+                        );
+
+
+                    $("#gender")
+                        .text(
+                            item.gender || "-"
+                        );
+
+
+                    $("#currentLocation")
+                        .text(
+                            item.currentLocation
+                            || "-"
+                        );
+
+
+                    $("#preferredLocation")
+                        .text(
+                            item.preferredLocation
+                            || "-"
+                        );
+
+
+
+                    $("#totalExperience")
+                        .text(
+                            item.totalExperience
+                            || "-"
+                        );
+
+
+                    $("#currentCompany")
+                        .text(
+                            item.currentCompany
+                            || "-"
+                        );
+
+
+                    $("#currentRole")
+                        .text(
+                            item.currentRole
+                            || "-"
+                        );
+
+
+                    $("#qualification")
+                        .text(
+                            item.qualification
+                            || "-"
+                        );
+
+
+                    $("#university")
+                        .text(
+                            item.university
+                            || "-"
+                        );
+
+
+                    $("#skills")
+                        .text(
+                            item.skills
+                            || "-"
+                        );
+
+
+                    $("#currentSalary")
+                        .text(
+                            formatSalary(
+                                item.currentSalary
+                            )
+                            || "-"
+                        );
+
+
+                    $("#expectedSalary")
+                        .text(
+                            formatSalary(
+                                item.expectedSalary
+                            )
+                            || "-"
+                        );
+
+
+                    $("#noticePeriod")
+                        .text(
+                            item.noticePeriod
+                            || "-"
+                        );
+
+
+                    $("#appliedDate")
+                        .text(
+                            formatDateTime(
+                                item.appliedDate
+                            )
+                            || "-"
+                        );
+
+
+
+                    let statusClass =
+                        "badge bg-secondary";
+
+
+                    if (item.status === "Applied")
+                        statusClass =
+                            "badge bg-primary";
+
+
+                    if (item.status === "Shortlisted")
+                        statusClass =
+                            "badge bg-success";
+
+
+                    if (item.status === "Rejected")
+                        statusClass =
+                            "badge bg-danger";
+
+
+                    $("#status")
+                        .html(
+                            `<span class="${statusClass}">
+                                    ${escapeHtml(
+                                item.status || "-"
+                            )}
+                                 </span>`
+                        );
+
+
+
+                    $("#skillsDetails")
+                        .text(
+                            item.skills
+                            || "No skills provided."
+                        );
+
+
+
+                    $("#coverLetter")
+                        .text(
+                            item.coverLetter
+                            || "No cover letter provided."
+                        );
+
+
+
+                    if (item.resumePath) {
+
+                        $("#resumeLink")
+                            .attr(
+                                "href",
+                                item.resumePath
+                            )
+                            .show();
+
+                        $("#noResume")
+                            .hide();
+
+                    }
+                    else {
+
+                        $("#resumeLink")
+                            .hide();
+
+                        $("#noResume")
+                            .show();
+
+                    }
+
+
+                    $("#detailsContainer")
+                        .show();
+
+                },
+
+
+                error: function (xhr) {
+
+                    $("#loading").hide();
+
+
+                    console.log(
+                        "Applicant Details Error:",
+                        xhr.responseText
+                    );
+
+
+                    let message =
+                        "Unable to load applicant details.";
+
+
+                    try {
+
+                        const response =
+                            JSON.parse(
+                                xhr.responseText
+                            );
+
+                        if (response.resultMessage) {
+
+                            message =
+                                response.resultMessage;
+
+                        }
+
+                    }
+                    catch (e) {
+                    }
+
+
+                    Swal.fire({
+
+                        icon: "error",
+
+                        title: "Error",
+
+                        text: message
+
+                    });
+
+                }
+
+            });
+
+        }
+
+
+        function GoBack() {
+
+            window.location.href =
+                "/Business/Home/JobApplicants?jobId="
+                + jobId;
+
+        }
+
+
+
+        function formatDate(value) {
+
+            if (!value)
+                return "";
+
+            const date =
+                new Date(value);
+
+            if (isNaN(date))
+                return value;
+
+            return date.toLocaleDateString();
+
+        }
+
+
+        function formatDateTime(value) {
+
+            if (!value)
+                return "";
+
+            const date =
+                new Date(value);
+
+            if (isNaN(date))
+                return value;
+
+            return date.toLocaleString();
+
+        }
+
+
+        function formatSalary(value) {
+
+            if (
+                value === null ||
+                value === undefined
+            )
+                return "";
+
+            return Number(value)
+                .toLocaleString();
+
+        }
+
+
+        function escapeHtml(value) {
+
+            if (
+                value === null ||
+                value === undefined
+            )
+                return "";
+
+            return $("<div>")
+                .text(value)
+                .html();
+
+        }
+
+    </script>
+
+}
