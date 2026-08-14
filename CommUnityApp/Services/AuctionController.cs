@@ -423,36 +423,116 @@ namespace CommUnityApp.Services
         }
 
         [HttpPost("PlaceBid")]
-        public async Task<IActionResult> PlaceBid(PlaceBidRequest entity)
+        public async Task<IActionResult> PlaceBid(
+     [FromBody] PlaceBidRequest entity)
         {
-            var result = await _unitOfWork.Auction.PlaceBid(entity);
-
-            if (result.ResultId == 1)
+            if (entity == null)
             {
-                // Send latest bid info
-                await _hubContext.Clients
-                    .Group($"Auction_{entity.AuctionId}")
-                    .SendAsync("ReceiveBid", new
-                    {
-                        userName = result.UserName,
-                        bidAmount = entity.BidAmount
-                    });
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = "Invalid bid request."
+                });
+            }
 
-                // Send updated recent bids list
+            if (entity.AuctionId <= 0)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = "AuctionId is required."
+                });
+            }
+
+            if (entity.BidAmount <= 0)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = "Bid amount must be greater than zero."
+                });
+            }
+
+            try
+            {
+                var result = await _unitOfWork.Auction.PlaceBid(entity);
+
+                if (result == null)
+                {
+                    return StatusCode(500, new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Unable to process the bid."
+                    });
+                }
+
+                if (result.ResultId != 1)
+                    return Ok(result);
+
+                string auctionGroup = $"Auction_{entity.AuctionId}";
+
                 var recentBids = await _unitOfWork.Auction
                     .GetRecentBids(entity.AuctionId);
 
+                var highestBid = recentBids?
+                    .OrderByDescending(x => x.BidAmount)
+                    .FirstOrDefault();
+
+                decimal currentBidAmount =
+                    highestBid?.BidAmount ?? entity.BidAmount;
+
+                // Update users viewing this particular auction
                 await _hubContext.Clients
-                    .Group($"Auction_{entity.AuctionId}")
-                    .SendAsync(
-                        "RecentBidsUpdated",
-                        recentBids);
+                    .Group(auctionGroup)
+                    .SendAsync("ReceiveBid", new
+                    {
+                        auctionId = entity.AuctionId,
+                        userName = result.UserName,
+                        bidAmount = entity.BidAmount,
+                        currentBidAmount
+                    });
 
-                Console.WriteLine(
-                    $"SignalR broadcast sent to Auction_{entity.AuctionId}");
+                await _hubContext.Clients
+                    .Group(auctionGroup)
+                    .SendAsync("RecentBidsUpdated", new
+                    {
+                        auctionId = entity.AuctionId,
+                        bids = recentBids
+                    });
+
+                /*
+                 * Notify Auction Hub users to refresh the live-auction API.
+                 * Clients.All is used because your supplied controller does not
+                 * confirm that Auction Hub users join an "AuctionHub" group.
+                 */
+                await _hubContext.Clients.All
+                    .SendAsync("AuctionHubUpdated", new
+                    {
+                        auctionId = entity.AuctionId,
+                        currentBidAmount,
+                        refreshRequired = true
+                    });
+
+                _logger.LogInformation(
+                    "Bid broadcast completed. AuctionId: {AuctionId}, Amount: {Amount}",
+                    entity.AuctionId,
+                    currentBidAmount);
+
+                return Ok(result);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error placing bid. AuctionId: {AuctionId}",
+                    entity.AuctionId);
 
-            return Ok(result);
+                return StatusCode(500, new
+                {
+                    ResultId = 0,
+                    ResultMessage = "An error occurred while placing the bid."
+                });
+            }
         }
 
         [HttpGet("GetRecentBids")]
@@ -739,46 +819,109 @@ namespace CommUnityApp.Services
         }
 
         [HttpGet("Get_LiveAuctions")]
-        public async Task<IActionResult> GetLiveAuctions(Guid? UserId=null)
+        public async Task<IActionResult> GetLiveAuctions(Guid? UserId = null)
         {
-            _logger.LogInformation($"UserId Received: {UserId}");
-            var auctions = await _unitOfWork.Auction.GetLiveAuctions(UserId);
-
-            var combinedAuctions = new List<AuctionWithImagesModel>();
-
-            foreach (var auction in auctions)
+            try
             {
-                var images = await _unitOfWork.Auction.GetAuctionImages(auction.AuctionId);
+                _logger.LogInformation(
+                    "Get_LiveAuctions called. UserId: {UserId}",
+                    UserId);
 
-                var auctionResponse = new AuctionWithImagesModel
+                var auctions = await _unitOfWork.Auction
+                    .GetLiveAuctions(UserId);
+
+                if (auctions == null || !auctions.Any())
                 {
-                    AuctionId = auction.AuctionId,
-                    BusinessId = auction.BusinessId,
-                    UserId = auction.UserId,
-                    User = auction.User,
-                    ItemTypeId = auction.ItemTypeId,
-                    ItemTitle = auction.ItemTitle,
-                    ItemDescription = auction.ItemDescription,
-                    ItemCondition = auction.ItemCondition,
-                    PriceIncrement = auction.PriceIncrement,
-                    ReservePrice = auction.ReservePrice,
-                    MinDeposite = auction.MinDeposite,
-                    StartTime = auction.StartTime,
-                    EndTime = auction.EndTime,
-                    ItemLocation = auction.ItemLocation,
-                    DeleveryMethodId = auction.DeleveryMethodId,
-                    AuctionStatus = auction.AuctionStatus,
-                    CreatedBy = auction.CreatedBy,
-                    IsRegistered = auction.IsRegistered,
-                    RegistrationRequired=auction.RegistrationRequired,
-                    CreatedAt = auction.CreatedAt,
-                    Images = images
-                };
+                    return Ok(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "No live auctions found.",
+                        Auctions = Array.Empty<object>()
+                    });
+                }
 
-                combinedAuctions.Add(auctionResponse);
+                var combinedAuctions = new List<object>();
+
+                foreach (var auction in auctions)
+                {
+                    var images = await _unitOfWork.Auction
+                        .GetAuctionImages(auction.AuctionId);
+
+                    /*
+                     * Always get bids using the current AuctionId.
+                     * This prevents the previous auction's bid from being reused.
+                     */
+                    var recentBids = await _unitOfWork.Auction
+                        .GetRecentBids(auction.AuctionId);
+
+                    var highestBid = recentBids?
+                        .OrderByDescending(x => x.BidAmount)
+                        .FirstOrDefault();
+
+                    /*
+                     * If the auction has no bids, show its starting price.
+                     *
+                     * Here ReservePrice is treated as the starting price.
+                     * If you have a separate StartingBidAmount field,
+                     * use that field instead.
+                     */
+                    decimal currentBidAmount = highestBid?.BidAmount ?? auction.ReservePrice?? 0m;
+
+                    combinedAuctions.Add(new
+                    {
+                        auction.AuctionId,
+                        auction.BusinessId,
+                        auction.UserId,
+                        auction.User,
+                        auction.ItemTypeId,
+                        auction.ItemTitle,
+                        auction.ItemDescription,
+                        auction.ItemCondition,
+                        auction.PriceIncrement,
+                        auction.ReservePrice,
+
+                        // Use this value on the frontend
+                        StartingBidAmount = auction.ReservePrice,
+                        CurrentBidAmount = currentBidAmount,
+
+                        auction.MinDeposite,
+                        auction.StartTime,
+                        auction.EndTime,
+                        auction.ItemLocation,
+                        auction.DeleveryMethodId,
+                        auction.AuctionStatus,
+                        auction.CreatedBy,
+                        auction.IsRegistered,
+                        auction.RegistrationRequired,
+                        auction.CreatedAt,
+
+                        LastBidUserName = highestBid?.UserName,
+                        TotalBids = recentBids?.Count ?? 0,
+                        RecentBids = recentBids ?? new(),
+                        Images = images
+                    });
+                }
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Live auctions retrieved successfully.",
+                    Auctions = combinedAuctions
+                });
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(
+                    ex,
+                    "Error while retrieving live auctions.");
 
-            return Ok(combinedAuctions);
+                return StatusCode(500, new
+                {
+                    ResultId = 0,
+                    ResultMessage = "Unable to retrieve live auctions.",
+                    Auctions = Array.Empty<object>()
+                });
+            }
         }
 
         [HttpGet("Get_AdminAuctionDetails")]

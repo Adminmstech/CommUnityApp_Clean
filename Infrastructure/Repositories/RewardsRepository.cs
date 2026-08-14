@@ -219,13 +219,28 @@ LEFT JOIN dbo.UserDailyStreak uds ON uds.UserId = u.UserId;";
             await connection.OpenAsync();
 
             return await connection.QueryFirstOrDefaultAsync<ReferralCodeResponse>(
-                "Generate_ReferralCode",
+                "GetOrCreate_UserReferralCode",
                 new
                 {
-                    request.ReferrerUserId,
-                    request.ReferralType,
-                    request.ReferenceId,
-                    request.BusinessId
+                    UserId = request.ReferrerUserId
+                },
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+        public async Task<ReferralCodeResponse?> GetMyReferralCode(Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            return await connection.QueryFirstOrDefaultAsync<ReferralCodeResponse>(
+                "GetOrCreate_UserReferralCode",
+                new
+                {
+                    UserId = userId
                 },
                 commandType: CommandType.StoredProcedure
             );
@@ -240,11 +255,29 @@ LEFT JOIN dbo.UserDailyStreak uds ON uds.UserId = u.UserId;";
             await connection.OpenAsync();
 
             return await connection.QueryFirstOrDefaultAsync<ApplyReferralCodeResponse>(
-                "Apply_ReferralCode",
+                "Apply_UserReferralCode",
                 new
                 {
                     request.ReferralCode,
                     request.UsedByUserId
+                },
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+        public async Task<ReferAndEarnSummaryResponse?> GetReferAndEarnSummary(Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            return await connection.QueryFirstOrDefaultAsync<ReferAndEarnSummaryResponse>(
+                "Get_UserReferAndEarnSummary",
+                new
+                {
+                    UserId = userId
                 },
                 commandType: CommandType.StoredProcedure
             );

@@ -95,6 +95,25 @@ namespace CommUnityApp.ApplicationCore.Models
         public int? BusinessId { get; set; }
     }
 
+    public class ReferAndEarnSummaryResponse
+    {
+        public int ResultId { get; set; }
+
+        public string ResultMessage { get; set; } = string.Empty;
+
+        public bool Status { get; set; }
+
+        public Guid UserId { get; set; }
+
+        public string? ReferralCode { get; set; }
+
+        public int ReferralCoins { get; set; }
+
+        public int TotalReferrals { get; set; }
+
+        public int TotalReferralCoinsEarned { get; set; }
+    }
+
     public class ApplyReferralCodeRequest
     {
         public string ReferralCode { get; set; } = string.Empty;

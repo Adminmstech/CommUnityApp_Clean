@@ -175,6 +175,46 @@ namespace CommUnityApp.Services
 
                 var result = await _unitOfWork.Rewards.GenerateReferralCode(request);
 
+                if (result == null)
+                    return NotFound(new { ResultId = 0, ResultMessage = "User not found." });
+
+                if (result.ResultId <= 0)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("GetMyReferralCode")]
+        public async Task<IActionResult> GetMyReferralCode(Guid userId)
+        {
+            try
+            {
+                if (userId == Guid.Empty)
+                {
+                    return BadRequest(new BaseResponse
+                    {
+                        ResultId = 0,
+                        ResultMessage = "UserId is required."
+                    });
+                }
+
+                var result = await _unitOfWork.Rewards.GetMyReferralCode(userId);
+
+                if (result == null)
+                    return NotFound(new { ResultId = 0, ResultMessage = "User not found." });
+
+                if (result.ResultId <= 0)
+                    return BadRequest(result);
+
                 return Ok(result);
             }
             catch (Exception ex)
@@ -214,6 +254,40 @@ namespace CommUnityApp.Services
 
                 if (result == null)
                     return NotFound(new { ResultId = 0, ResultMessage = "Referral code not found." });
+
+                if (!result.Status)
+                    return BadRequest(result);
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new BaseResponse
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("GetReferAndEarnSummary")]
+        public async Task<IActionResult> GetReferAndEarnSummary(Guid userId)
+        {
+            try
+            {
+                if (userId == Guid.Empty)
+                {
+                    return BadRequest(new BaseResponse
+                    {
+                        ResultId = 0,
+                        ResultMessage = "UserId is required."
+                    });
+                }
+
+                var result = await _unitOfWork.Rewards.GetReferAndEarnSummary(userId);
+
+                if (result == null)
+                    return NotFound(new { ResultId = 0, ResultMessage = "User not found." });
 
                 if (!result.Status)
                     return BadRequest(result);

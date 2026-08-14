@@ -24,7 +24,11 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<ReferralCodeResponse?> GenerateReferralCode(GenerateReferralCodeRequest request);
 
+        Task<ReferralCodeResponse?> GetMyReferralCode(Guid userId);
+
         Task<ApplyReferralCodeResponse?> ApplyReferralCode(ApplyReferralCodeRequest request);
+
+        Task<ReferAndEarnSummaryResponse?> GetReferAndEarnSummary(Guid userId);
 
         Task<List<ShareRewardHistoryModel>> GetShareRewards(int businessId);
         Task<List<ShareRewardModel>> GetUserShareRewards(Guid userId);

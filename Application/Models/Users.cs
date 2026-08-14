@@ -39,6 +39,14 @@
 
         public bool IsActive { get; set; } = true;
 
+        public string? ReferralCode { get; set; }
+
+        public Guid? ReferredByUserId { get; set; }
+
+        public DateTime? ReferralAppliedAt { get; set; }
+
+        public int? ReferralRewardCoins { get; set; }
+
         
     }
 
@@ -77,6 +85,14 @@
         public string AgeRange { get; set; }
 
         public bool IsActive { get; set; } = true;
+
+        public string? ReferralCode { get; set; }
+
+        public Guid? ReferredByUserId { get; set; }
+
+        public DateTime? ReferralAppliedAt { get; set; }
+
+        public int? ReferralRewardCoins { get; set; }
     }
 
     public class RegisterRequest
@@ -244,6 +260,14 @@
         public string? DeviceType { get; set; }
 
         public bool IsActive { get; set; }
+
+        public string? ReferralCode { get; set; }
+
+        public Guid? ReferredByUserId { get; set; }
+
+        public DateTime? ReferralAppliedAt { get; set; }
+
+        public int? ReferralRewardCoins { get; set; }
     }
 
     public class SendCommunicationRequest
