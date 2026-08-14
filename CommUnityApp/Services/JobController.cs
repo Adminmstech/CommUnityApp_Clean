@@ -228,7 +228,7 @@ namespace CommUnityApp.Services
                 ResultId = 1,
                 ResultMessage = "Success",
                 Data = data
-            });
+            }); 
         } 
 
         [HttpGet("GetApplicationsByJob")]
