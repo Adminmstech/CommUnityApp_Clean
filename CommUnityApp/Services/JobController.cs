@@ -484,7 +484,7 @@ namespace CommUnityApp.Services
         }
 
 
-        [HttpGet("GetAllJobPosts")]
+        [HttpGet("GetAllJobPosts")] 
         public async Task<IActionResult> GetAllJobPosts( int pageNumber = 1, int pageSize = 10, string search = null)
         {
             try
