@@ -192,6 +192,17 @@ namespace CommUnityApp.Areas.Business.Controllers
             return View();
         }
 
+        public IActionResult BusinessPosts()
+        {
+            var redirect = RequireBusinessSession();
+            if (redirect != null)
+            {
+                return redirect;
+            }
+
+            return View();
+        }
+
         public IActionResult GetBusinessService()
         {
             var businessId = HttpContext.Session.GetString("BusinessId");

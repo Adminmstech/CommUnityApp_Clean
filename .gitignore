@@ -364,3 +364,7 @@ FodyWeavers.xsd
 /CommUnityApp/wwwroot/Images/brandgames
 *.sql
 /CommUnityApp/wwwroot/Images/spingames
+
+# Firebase service account credentials
+firebase-service-account.json
+*-firebase-adminsdk-*.json

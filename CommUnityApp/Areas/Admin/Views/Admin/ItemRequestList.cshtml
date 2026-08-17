@@ -1,0 +1,158 @@
+@{
+    ViewData["Title"] = "Charity Item Requests";
+    Layout = "~/Areas/Admin/Views/shared/AdminLayout.cshtml";
+}
+
+<link rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.8/css/jquery.dataTables.min.css" />
+
+<div class="container-fluid">
+    <div class="card shadow-sm border-0">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">
+                <i class="fa-solid fa-clipboard-list me-2"></i> Charity Item Requests
+            </h4>
+            <span class="badge bg-light text-dark" id="requestCount">0 requests</span>
+        </div>
+
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered table-striped align-middle w-100" id="tblRequests">
+                    <thead class="table-dark">
+                        <tr>
+                            <th style="width:60px;">#</th>
+                            <th>Item</th>
+                            <th>Item Code</th>
+                            <th>Requested User</th>
+                            <th>Description</th>
+                            <th>Mobile</th>
+                            <th>Qty</th>
+                            <th>Status</th>
+                            <th>Volunteer</th>
+                            <th>Delivery</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="11" class="text-center py-4">Loading requests...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.8/js/jquery.dataTables.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            loadRequests();
+        });
+
+        function loadRequests() {
+            $.ajax({
+                url: "/api/Community/GetCharityItemRequestsList?communityId=0",
+                type: "GET",
+                success: function (res) {
+                    renderTable(res || []);
+                },
+                error: function () {
+                    destroyDataTable();
+                    $("#requestCount").text("0 requests");
+                    $("#tblRequests tbody").html("<tr><td colspan='11' class='text-center text-danger py-4'>Unable to load requests</td></tr>");
+                }
+            });
+        }
+
+        function renderTable(data) {
+            destroyDataTable();
+
+            $("#requestCount").text(data.length + " request" + (data.length === 1 ? "" : "s"));
+
+            if (data.length === 0) {
+                $("#tblRequests tbody").html("<tr><td colspan='11' class='text-center py-4'>No records found</td></tr>");
+                return;
+            }
+
+            var html = "";
+
+            $.each(data, function (i, item) {
+                html += "<tr>";
+                html += "<td>" + (i + 1) + "</td>";
+                html += "<td>" + escapeHtml(item.itemName || "-") + "</td>";
+                html += "<td>" + escapeHtml(item.itemCode || "-") + "</td>";
+                html += "<td>" + escapeHtml(item.requestedUserName || "-") + "</td>";
+                html += "<td>" + escapeHtml(item.description || "-") + "</td>";
+                html += "<td>" + escapeHtml(item.mobile || "-") + "</td>";
+                html += "<td>" + escapeHtml(item.requestedQuantity || "0") + "</td>";
+                html += "<td>" + buildBadge(item.status, "bg-info text-dark") + "</td>";
+                html += "<td>" + escapeHtml(item.volunteerName || "-") + "</td>";
+                html += "<td>" + buildBadge(item.deliveryStatus || "-", getDeliveryBadgeClass(item.deliveryStatus)) + "</td>";
+                html += "<td>" + formatDate(item.createdDate) + "</td>";
+                html += "</tr>";
+            });
+
+            $("#tblRequests tbody").html(html);
+            initializeDataTable();
+        }
+
+        function initializeDataTable() {
+            if (!$.fn.DataTable) {
+                return;
+            }
+
+            $("#tblRequests").DataTable({
+                pageLength: 10,
+                searching: true,
+                ordering: true,
+                info: true,
+                autoWidth: false,
+                responsive: true
+            });
+        }
+
+        function destroyDataTable() {
+            if ($.fn.DataTable && $.fn.DataTable.isDataTable("#tblRequests")) {
+                $("#tblRequests").DataTable().destroy();
+            }
+        }
+
+        function buildBadge(value, className) {
+            return "<span class='badge " + className + "'>" + escapeHtml(value || "-") + "</span>";
+        }
+
+        function getDeliveryBadgeClass(value) {
+            var deliveryStatus = (value || "").toLowerCase();
+
+            if (deliveryStatus.includes("delivered") || deliveryStatus.includes("complete")) {
+                return "bg-success";
+            }
+
+            if (deliveryStatus.includes("pending")) {
+                return "bg-warning text-dark";
+            }
+
+            return "bg-secondary";
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) {
+                return "-";
+            }
+
+            return new Date(dateString).toLocaleDateString();
+        }
+
+        function escapeHtml(value) {
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
+}

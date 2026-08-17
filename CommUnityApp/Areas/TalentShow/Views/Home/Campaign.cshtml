@@ -1,6 +1,6 @@
 @{
     ViewData["Title"] = "Talent Campaign";
-    Layout = "~/Areas/Community/Views/Shared/_CommunityLayout.cshtml";
+    Layout = "~/Areas/TalentShow/Views/Shared/_TalentShowLayout.cshtml";
     var talentShowCampaignId = ViewBag.TalentShowCampaignId ?? 0;
     var memberId = Context.Session.GetString("MemberId")
         ?? Context.Session.GetString("UserId")

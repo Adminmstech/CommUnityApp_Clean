@@ -101,6 +101,8 @@ namespace CommUnityApp.ApplicationCore.Models
     public class DashboardData
     {
             public Rewards? Rewards { get; set; }
+            public DailyStreakResponse? DailyStreak { get; set; }
+            public DailyStreakDetailsResponse? DailyStreakDetails { get; set; }
             public List<AuctionListModel> Auctions { get; set; }
 
             public List<UserPostedEventModel> PostedEvents { get; set; }

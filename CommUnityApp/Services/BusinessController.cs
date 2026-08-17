@@ -12,6 +12,16 @@ namespace CommUnityApp.Services
     [ApiController]
     public class BusinessController : ControllerBase
     {
+        private static readonly HashSet<string> AllowedBusinessPostImageExtensions = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ".jpg",
+            ".jpeg",
+            ".png",
+            ".webp"
+        };
+
+        private const int MaxBusinessPostImageBytes = 5 * 1024 * 1024;
+
         private readonly ILogger<BusinessController> _logger;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _config;
@@ -126,6 +136,55 @@ namespace CommUnityApp.Services
             }
         }
 
+        private async Task<string> SaveBusinessPostImageAsync(string imageBase64)
+        {
+            var extension = ResolveBusinessPostImageExtension(imageBase64);
+            var base64Value = imageBase64.Contains(",")
+                ? imageBase64.Split(',')[1]
+                : imageBase64;
+
+            if (!TryConvertFromBase64(base64Value, out var fileBytes))
+                throw new InvalidOperationException("Invalid post image format.");
+
+            if (fileBytes.Length > MaxBusinessPostImageBytes)
+                throw new InvalidOperationException("Post image size exceeds 5MB limit.");
+
+            var directoryPath = Path.Combine("wwwroot", "Uploads", "BusinessPosts");
+            Directory.CreateDirectory(directoryPath);
+
+            var fileName = $"{Guid.NewGuid():N}{extension}";
+            var localFilePath = Path.Combine(directoryPath, fileName);
+
+            await System.IO.File.WriteAllBytesAsync(localFilePath, fileBytes);
+
+            return $"/Uploads/BusinessPosts/{fileName}";
+        }
+
+        private static string ResolveBusinessPostImageExtension(string imageBase64)
+        {
+            var extension = ".jpg";
+
+            if (imageBase64.StartsWith("data:", StringComparison.OrdinalIgnoreCase))
+            {
+                var semicolonIndex = imageBase64.IndexOf(';');
+                var mimeType = semicolonIndex > 5 ? imageBase64[5..semicolonIndex].ToLowerInvariant() : string.Empty;
+
+                extension = mimeType switch
+                {
+                    "image/jpeg" => ".jpg",
+                    "image/jpg" => ".jpg",
+                    "image/png" => ".png",
+                    "image/webp" => ".webp",
+                    _ => extension
+                };
+            }
+
+            if (!AllowedBusinessPostImageExtensions.Contains(extension))
+                throw new InvalidOperationException("Invalid post image format.");
+
+            return extension;
+        }
+
 
 
         [HttpGet("Get_Businesses")]
@@ -230,6 +289,90 @@ namespace CommUnityApp.Services
                 Status = true,
                 Data = data
             });
+        }
+
+        [HttpPost("AddUpdateBusinessPost")]
+        public async Task<IActionResult> AddUpdateBusinessPost([FromBody] BusinessPostUploadRequest request)
+        {
+            try
+            {
+                if (request == null)
+                    return BadRequest(new { ResultId = 0, ResultMessage = "Invalid request.", Status = false });
+
+                if (request.BusinessId <= 0)
+                    return BadRequest(new { ResultId = 0, ResultMessage = "Business is required.", Status = false });
+
+                if (string.IsNullOrWhiteSpace(request.Title))
+                    return BadRequest(new { ResultId = 0, ResultMessage = "Post title is required.", Status = false });
+
+                if (string.IsNullOrWhiteSpace(request.Message))
+                    return BadRequest(new { ResultId = 0, ResultMessage = "Post message is required.", Status = false });
+
+                var imagePath = request.ImagePath;
+
+                if (!string.IsNullOrWhiteSpace(request.ImageBase64))
+                    imagePath = await SaveBusinessPostImageAsync(request.ImageBase64);
+
+                var result = await _unitOfWork.Business.AddUpdateBusinessPost(new BusinessPostSaveRequest
+                {
+                    PostId = request.PostId,
+                    BusinessId = request.BusinessId,
+                    Title = request.Title.Trim(),
+                    Message = request.Message.Trim(),
+                    ImagePath = imagePath ?? string.Empty,
+                    CreatedBy = request.CreatedBy,
+                    IsActive = request.IsActive
+                });
+
+                return Ok(new
+                {
+                    result.ResultId,
+                    result.ResultMessage,
+                    Status = result.ResultId > 0,
+                    ImagePath = imagePath
+                });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { ResultId = 0, ResultMessage = ex.Message, Status = false });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
+        }
+
+        [HttpDelete("DeleteBusinessPost")]
+        public async Task<IActionResult> DeleteBusinessPost(long postId, long businessId)
+        {
+            try
+            {
+                if (postId <= 0 || businessId <= 0)
+                    return BadRequest(new { ResultId = 0, ResultMessage = "Invalid PostId or BusinessId.", Status = false });
+
+                var result = await _unitOfWork.Business.DeleteBusinessPost(postId, businessId);
+
+                return Ok(new
+                {
+                    result.ResultId,
+                    result.ResultMessage,
+                    Status = result.ResultId > 0
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = -1,
+                    ResultMessage = ex.Message,
+                    Status = false
+                });
+            }
         }
 
 

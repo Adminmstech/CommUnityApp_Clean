@@ -40,6 +40,86 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return result;
         }
 
+        public async Task<DailyStreakResponse?> ClaimDailyStreak(Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+            parameters.Add("@UserId", userId, DbType.Guid);
+
+            var result = await connection.QueryFirstOrDefaultAsync<DailyStreakResponse>(
+                "dbo.Claim_UserDailyStreak",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result;
+        }
+
+        public async Task<DailyStreakDetailsResponse?> GetDailyStreakDetails(Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            const string sql = @"
+DECLARE @Today DATE =
+    CONVERT
+    (
+        DATE,
+        SYSUTCDATETIME()
+            AT TIME ZONE 'UTC'
+            AT TIME ZONE 'India Standard Time'
+    );
+
+DECLARE @TotalStreakDays INT = 15;
+DECLARE @DailyRewardCoins INT = 5;
+DECLARE @MilestoneRewardCoins INT = 30;
+
+SELECT
+    CAST(1 AS BIT) AS Success,
+    CAST(CASE WHEN uds.LastClaimDate = @Today THEN 1 ELSE 0 END AS BIT) AS AlreadyClaimed,
+    CASE
+        WHEN uds.UserId IS NULL THEN 0
+        WHEN uds.LastClaimDate IS NULL THEN 0
+        WHEN uds.LastClaimDate = @Today THEN ISNULL(uds.CurrentStreak, 0)
+        WHEN DATEDIFF(DAY, uds.LastClaimDate, @Today) = 1 THEN ISNULL(uds.CurrentStreak, 0)
+        ELSE 0
+    END AS CurrentStreak,
+    @TotalStreakDays AS TotalStreakDays,
+    @DailyRewardCoins AS DailyRewardCoins,
+    @MilestoneRewardCoins AS MilestoneRewardCoins,
+    @TotalStreakDays - 
+        CASE
+            WHEN uds.UserId IS NULL THEN 0
+            WHEN uds.LastClaimDate IS NULL THEN 0
+            WHEN uds.LastClaimDate = @Today THEN ISNULL(uds.CurrentStreak, 0)
+            WHEN DATEDIFF(DAY, uds.LastClaimDate, @Today) = 1 THEN ISNULL(uds.CurrentStreak, 0)
+            ELSE 0
+        END AS DaysToMilestoneReward,
+    uds.LastClaimDate,
+    @Today AS Today,
+    CASE
+        WHEN uds.LastClaimDate = @Today
+            THEN CONCAT('You earned ', @DailyRewardCoins, ' IC for today!')
+        ELSE CONCAT('Earn ', @DailyRewardCoins, ' IC for today!')
+    END AS Message
+FROM (SELECT @UserId AS UserId) u
+LEFT JOIN dbo.UserDailyStreak uds ON uds.UserId = u.UserId;";
+
+            return await connection.QueryFirstOrDefaultAsync<DailyStreakDetailsResponse>(
+                sql,
+                new
+                {
+                    UserId = userId
+                }
+            );
+        }
+
         public async Task<BaseResponse> SaveShareRewardConfig(SaveShareRewardConfigRequest request)
         {
             using var connection = new SqlConnection(
@@ -84,6 +164,90 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 );
 
             return result;
+        }
+
+        public async Task<BaseResponse> SaveReferAndEarnConfig(ReferAndEarnConfigRequest request)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            var result = await connection.QueryFirstOrDefaultAsync<BaseResponse>(
+                "Save_ReferAndEarnConfig",
+                new
+                {
+                    request.BusinessId,
+                    request.ReferralCoins,
+                    request.IsActive
+                },
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result ?? new BaseResponse
+            {
+                ResultId = 0,
+                ResultMessage = "Configuration was not saved."
+            };
+        }
+
+        public async Task<ShareRewardConfigModel?> GetReferAndEarnConfig(int? businessId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            return await connection.QueryFirstOrDefaultAsync<ShareRewardConfigModel>(
+                "Get_ReferAndEarnConfig",
+                new
+                {
+                    BusinessId = businessId
+                },
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+        public async Task<ReferralCodeResponse?> GenerateReferralCode(GenerateReferralCodeRequest request)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            return await connection.QueryFirstOrDefaultAsync<ReferralCodeResponse>(
+                "Generate_ReferralCode",
+                new
+                {
+                    request.ReferrerUserId,
+                    request.ReferralType,
+                    request.ReferenceId,
+                    request.BusinessId
+                },
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+        public async Task<ApplyReferralCodeResponse?> ApplyReferralCode(ApplyReferralCodeRequest request)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")
+            );
+
+            await connection.OpenAsync();
+
+            return await connection.QueryFirstOrDefaultAsync<ApplyReferralCodeResponse>(
+                "Apply_ReferralCode",
+                new
+                {
+                    request.ReferralCode,
+                    request.UsedByUserId
+                },
+                commandType: CommandType.StoredProcedure
+            );
         }
 
         public async Task<BaseResponse> RewardShare(ShareRewardRequest request)
