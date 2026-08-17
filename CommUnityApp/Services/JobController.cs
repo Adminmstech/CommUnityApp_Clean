@@ -488,7 +488,7 @@ namespace CommUnityApp.Services
         public async Task<IActionResult> GetAllJobPosts( int pageNumber = 1, int pageSize = 10, string search = null)
         {
             try
-            {
+            { 
                 var result =
                     await _jobsRepository.GetAllJobPostsForUsers(
                         pageNumber,
