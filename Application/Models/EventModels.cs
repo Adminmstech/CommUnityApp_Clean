@@ -18,7 +18,7 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string ContactName { get; set; }
         public string ContactEmail { get; set; }
-        public string ContactPhone { get; set; }
+        public string ContactPhone { get; set; } 
 
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
