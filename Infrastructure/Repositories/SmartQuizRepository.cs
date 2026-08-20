@@ -291,7 +291,6 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-
         public async Task<SaveResult> SaveSmartQuiz(SaveSmartQuizModel model)
         {
             using var connection = new SqlConnection(
@@ -303,6 +302,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             try
             {
+               
+
                 var quiz = await connection.QueryFirstAsync<SaveResult>(
                     "SP_SaveSmartQuiz",
                     new
@@ -329,31 +330,41 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
                 long quizId = quiz.StatusCode;
 
-                string folder = Path.Combine(
-     Directory.GetCurrentDirectory(),
-     "wwwroot",
-     "SmartQuizAnswers",
-     quizId.ToString());
 
-                if (!Directory.Exists(folder))
-                    Directory.CreateDirectory(folder);
+                string quizFolder = Path.Combine(
+                    Directory.GetCurrentDirectory(),
+                    "wwwroot",
+                    "Uploads",
+                    "SmartQuiz",
+                    quizId.ToString());
 
-                // Save banner image
+                if (!Directory.Exists(quizFolder))
+                    Directory.CreateDirectory(quizFolder);
+
+
                 string bannerImage = model.SmartQuizImageFileName ?? "";
 
                 if (!string.IsNullOrWhiteSpace(model.SmartQuizImage))
                 {
-                    bannerImage = Guid.NewGuid().ToString() +
-                                  Path.GetExtension(model.SmartQuizImageFileName);
+                    string extension =
+                        Path.GetExtension(model.SmartQuizImageFileName);
+
+                    if (string.IsNullOrWhiteSpace(extension))
+                        extension = ".jpg";
+
+                    bannerImage = Guid.NewGuid().ToString() + extension;
+
+                    string bannerPhysicalPath =
+                        Path.Combine(quizFolder, bannerImage);
 
                     SaveBase64Image(
                         model.SmartQuizImage,
-                        Path.Combine(folder, bannerImage));
+                        bannerPhysicalPath);
 
                     await connection.ExecuteAsync(
                         @"UPDATE SmartQuiz
-                  SET SmartQuizImage=@Image
-                  WHERE QuizId=@QuizId",
+                  SET SmartQuizImage = @Image
+                  WHERE QuizId = @QuizId",
                         new
                         {
                             Image = bannerImage,
@@ -361,6 +372,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                         },
                         transaction);
                 }
+
+
+             
 
                 foreach (var question in model.Questions)
                 {
@@ -382,32 +396,65 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
                     long correctAnswerId = 0;
 
+
+                    string answerFolder = Path.Combine(
+                        Directory.GetCurrentDirectory(),
+                        "wwwroot",
+                        "Uploads",
+                        "SmartQuizAnswers",
+                        quizId.ToString(),
+                        question.QuestionNum.ToString());
+
+                    if (!Directory.Exists(answerFolder))
+                        Directory.CreateDirectory(answerFolder);
+
+
                     foreach (var answer in question.Answers)
                     {
-                        string answerImage = answer.AnswerImageFileName ?? "";
+                        string answerImage =
+                            answer.AnswerImageFileName ?? "";
+
 
                         if (!string.IsNullOrWhiteSpace(answer.AnswerImage))
                         {
-                            answerImage = Guid.NewGuid().ToString() +
-                                          Path.GetExtension(answer.AnswerImageFileName);
+                            string extension =
+                                Path.GetExtension(answer.AnswerImageFileName);
+
+                            if (string.IsNullOrWhiteSpace(extension))
+                                extension = ".jpg";
+
+                            answerImage =
+                                Guid.NewGuid().ToString() + extension;
+
+
+                            string answerPhysicalPath =
+                                Path.Combine(answerFolder, answerImage);
+
 
                             SaveBase64Image(
                                 answer.AnswerImage,
-                                Path.Combine(folder, answerImage));
+                                answerPhysicalPath);
                         }
 
-                        var answerResult = await connection.QueryFirstAsync<SaveResult>(
-                            "SP_SaveSmartQuizAnswer",
-                            new
-                            {
-                                answer.SmartQuizAnswerId,
-                                QuizId = quizId,
-                                QuestionNumber = question.QuestionNum,
-                                answer.AnswerNumber,
-                                AnswerImage = answerImage
-                            },
-                            transaction,
-                            commandType: CommandType.StoredProcedure);
+
+                
+
+                        var answerResult =
+                            await connection.QueryFirstAsync<SaveResult>(
+                                "SP_SaveSmartQuizAnswer",
+                                new
+                                {
+                                    answer.SmartQuizAnswerId,
+                                    QuizId = quizId,
+                                    QuestionNumber = question.QuestionNum,
+                                    answer.AnswerNumber,
+                                    AnswerImage = answerImage
+                                },
+                                transaction,
+                                commandType: CommandType.StoredProcedure);
+
+
+                   
 
                         if (answer.AnswerNumber == question.CorrectAnswerId)
                         {
@@ -415,10 +462,13 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                         }
                     }
 
+
+              
+
                     await connection.ExecuteAsync(
                         @"UPDATE SmartQuizQuestions
-                  SET CorrectAnswerId=@CorrectAnswerId
-                  WHERE SmartQuizQuestionId=@SmartQuizQuestionId",
+                  SET CorrectAnswerId = @CorrectAnswerId
+                  WHERE SmartQuizQuestionId = @SmartQuizQuestionId",
                         new
                         {
                             CorrectAnswerId = correctAnswerId,
@@ -426,6 +476,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                         },
                         transaction);
                 }
+
+
 
                 transaction.Commit();
 
