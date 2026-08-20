@@ -428,6 +428,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public Guid UserId { get; set; }
 
         public int CommunityId { get; set; }
+        public int Action { get; set; }
     }
 
     public class GetUserCommunitiesRequest

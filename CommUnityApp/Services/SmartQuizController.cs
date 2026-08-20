@@ -342,29 +342,40 @@ namespace CommUnityApp.Services
         {
             try
             {
+
                 var submitResult =
                     await _smartQuizRepository
                         .InsertSmartQuizCustomerAllAnswers(request);
-                // Get quiz details
-                var smartQuiz =
-                    await _smartQuizRepository.GetSmartQuizById(
-                        request.QuizId,
-                        request.UserId);
 
-                // Add reward coins
-                if (smartQuiz != null &&
-                    smartQuiz.SmartQuizDetails.RewardCoins > 0)
+
+                int correctAnswerCount =
+                    submitResult?.CorrectAnswerCount ?? 0;
+
+                int coinsPerCorrectAnswer = 2;
+
+                int coinsEarned =
+                    correctAnswerCount * coinsPerCorrectAnswer;
+
+
+
+                if (coinsEarned > 0)
                 {
                     await _smartQuizRepository.AddSmartQuizRewardCoinsAsync(
                         request.UserId,
-                        smartQuiz.SmartQuizDetails.RewardCoins,
+                        coinsEarned,
                         request.QuizId);
                 }
+
+
+
                 var quiz =
                     await _smartQuizRepository
                         .GetSmartQuizStatusByCustomer(
                             request.QuizId,
                             request.UserId);
+
+
+          
 
                 var results =
                     await _smartQuizRepository
@@ -372,11 +383,15 @@ namespace CommUnityApp.Services
                             request.QuizId,
                             request.UserId);
 
+
                 string statusMessage =
                     "You missed the quiz. Better luck next time.";
 
+
                 var self =
-                    results.FirstOrDefault(x => x.IsSelf);
+                    results.FirstOrDefault(
+                        x => x.UserId == request.UserId);
+
 
                 if (self != null)
                 {
@@ -388,22 +403,34 @@ namespace CommUnityApp.Services
                         statusMessage +=
                             " Game is still running. Your rank may change.";
                     }
-
-                    // Optional
-                    // Send Email
-                    // await _emailService.SendQuizCompletionEmail(...);
                 }
+
 
                 return Ok(new
                 {
                     ResultId = 1,
-                    ResultMessage = "Quiz submitted successfully.",
+
+                    ResultMessage =
+                        "Quiz submitted successfully.",
+
                     Status = true,
+
                     Data = new
                     {
                         StatusMessage = statusMessage,
-                        CoinsEarned = smartQuiz?.SmartQuizDetails?.RewardCoins ?? 0,
+
+                        CorrectAnswers = correctAnswerCount,
+
+                        AnsweredCount =
+                            submitResult?.AnsweredCount ?? 0,
+
+                        CoinsPerCorrectAnswer =
+                            coinsPerCorrectAnswer,
+
+                        CoinsEarned = coinsEarned,
+
                         QuizResult = submitResult,
+
                         Results = results
                     }
                 });
@@ -418,7 +445,6 @@ namespace CommUnityApp.Services
                 });
             }
         }
-
         [HttpGet("GetSmartQuizResultsByUserId")]
         public async Task<IActionResult> GetSmartQuizResultsByUserId(Guid userId)
         {

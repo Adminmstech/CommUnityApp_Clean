@@ -120,7 +120,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             };
         }
 
-        public async Task<TextQuizResultEntity> InsertUserTextQuizAnswers(UserTextQuizAnswers model)
+        public async Task<TextQuizResultEntity> InsertUserTextQuizAnswers(
+     UserTextQuizAnswers model)
         {
             using var connection = Connection;
 
@@ -128,31 +129,42 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             var parameters = new DynamicParameters();
 
-            parameters.Add("@Answers",
-                table.AsTableValuedParameter("dbo.CustAnswersDataTbl"));
+            parameters.Add(
+                "@Answers",
+                table.AsTableValuedParameter("dbo.CustAnswersDatatbl"));
 
             parameters.Add("@QuizId", model.QuizId);
             parameters.Add("@UserId", model.UserId);
             parameters.Add("@Duration", model.Duration);
-            parameters.Add("@CorrectAnsweredCount", model.CorrectAnsweredCount);
-            parameters.Add("@AnsweredCount", model.AnsweredCount);
 
-            var result = await connection.QueryFirstOrDefaultAsync<TextQuizResultEntity>(
-                "InsertUserTextQuizAllAnswers",
-                parameters,
-                commandType: CommandType.StoredProcedure);
+            parameters.Add(
+                "@CorrectAnsweredCount",
+                model.CorrectAnsweredCount);
+
+            parameters.Add(
+                "@AnsweredCount",
+                model.AnsweredCount);
+
+            var result =
+                await connection.QueryFirstOrDefaultAsync<TextQuizResultEntity>(
+                    "InsertUserTextQuizAllAnswers",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+
             if (result != null)
             {
-                var wallet = await connection.QueryFirstOrDefaultAsync<TextQuizResultEntity>(
-                    "SP_AddTextQuizCoins",
-                    new
-                    {
-                        model.UserId,
-                        model.QuizId,
-                        result.QuizResultId,
-                        result.CorrectAnswerCount
-                    },
-                    commandType: CommandType.StoredProcedure);
+                var wallet =
+                    await connection.QueryFirstOrDefaultAsync<TextQuizResultEntity>(
+                        "SP_AddTextQuizCoins",
+                        new
+                        {
+                            model.UserId,
+                            model.QuizId,
+                            result.QuizResultId,
+                            result.CorrectAnswerCount
+                        },
+                        commandType: CommandType.StoredProcedure);
 
                 if (wallet != null)
                 {
@@ -160,6 +172,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     result.WalletBalance = wallet.WalletBalance;
                 }
             }
+
             return result ?? new TextQuizResultEntity();
         }
 

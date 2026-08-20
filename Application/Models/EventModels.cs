@@ -18,15 +18,20 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string ContactName { get; set; }
         public string ContactEmail { get; set; }
-        public string ContactPhone { get; set; }
+        public string ContactPhone { get; set; } 
 
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
 
         public int IsFundRaising { get; set; }
-        public IFormFile? EventImage { get; set; }
+        public IFormFile? EventImage { get; set; } 
     }
-
+    public class JoinCommunityResponse 
+    {
+        public int ResultId { get; set; }
+        public string ResultMessage { get; set; }
+        public bool IsMember { get; set; }
+    }  
     public class BaseResponse
     {
         public int ResultId { get; set; }
@@ -277,7 +282,10 @@ namespace CommUnityApp.ApplicationCore.Models
     public class EventDetailsModel
     {
         public int EventId { get; set; }
+        public string CommunityName { get; set; }
+        public string CommunityLogo { get; set; }
         public string EventName { get; set; }
+      
         public string EventImage { get; set; }
         public string Description { get; set; }
         public string ContactName { get; set; }
@@ -338,6 +346,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public Guid UserId { get; set; }
 
         public int CommunityId { get; set; }
+        public string CommunityName { get; set; }
+        public string CommunityLogo { get; set; }
 
         public DateTime PostedDate { get; set; }
 

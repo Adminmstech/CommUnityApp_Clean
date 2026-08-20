@@ -163,6 +163,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public int TotalRecords { get; set; }
 
         public long Rank { get; set; }
+        public bool IsFinished { get; set; }
 
         public bool IsSelf { get; set; }
 

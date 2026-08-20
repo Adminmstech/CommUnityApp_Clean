@@ -573,7 +573,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         }
 
 
-        public async Task<BaseResponse> UpdateUserCommunityAsync(UpdateUserCommunityRequest entity)
+        public async Task<JoinCommunityResponse> UpdateUserCommunityAsync(UpdateUserCommunityRequest entity)
         {
             using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection")
@@ -585,8 +585,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             parameters.Add("@UserId", entity.UserId);
             parameters.Add("@CommunityId", entity.CommunityId);
-
-            var result = await connection.QueryAsync<BaseResponse>(
+            parameters.Add("@Action", entity.Action);
+            var result = await connection.QueryAsync<JoinCommunityResponse>(
                 "Update_UserCommunityMembership",
                 parameters,
                 commandType: CommandType.StoredProcedure
