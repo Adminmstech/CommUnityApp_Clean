@@ -286,6 +286,8 @@
                                     <th>Image *</th>
                                     <th>Prize Text *</th>
                                     <th>Color</th>
+                                    <th>Probability (%)</th>
+                                    <th>Calculated Range</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -314,6 +316,15 @@
                                                 <span class="section-field-error prize-error"></span>
                                             </td>
                                             <td><input type="color" name="Sections[@i].Color" class="form-control color-input" value="@(string.IsNullOrWhiteSpace(section1.Color) ? defaultSectionColors[i % defaultSectionColors.Length] : section1.Color)" /></td>
+                                            <td>
+                                                <input type="number" name="Sections[@i].Probability" class="form-control probability-input" min="0" max="100" value="@section1.Probability" oninput="calculateRanges()" />
+                                                <span class="section-field-error prob-error text-danger d-block small"></span>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-secondary-subtle text-dark px-3 py-2 range-display">N/A</span>
+                                                <input type="hidden" name="Sections[@i].WinRangeMin" value="@section1.WinRangeMin" class="win-range-min-input" />
+                                                <input type="hidden" name="Sections[@i].WinRangeMax" value="@section1.WinRangeMax" class="win-range-max-input" />
+                                            </td>
                                             <td>
                                                 <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteSection(this)">
                                                     <i class="fa-solid fa-trash"></i>
@@ -394,13 +405,22 @@
                     </td>
                     <td><input type="color" name="Sections[${idx}].Color" class="form-control color-input" value="${defaultColor}" /></td>
                     <td>
+                        <input type="number" name="Sections[${idx}].Probability" class="form-control probability-input" min="0" max="100" value="0" oninput="calculateRanges()" />
+                        <span class="section-field-error prob-error text-danger d-block small"></span>
+                    </td>
+                    <td>
+                        <span class="badge bg-secondary-subtle text-dark px-3 py-2 range-display">N/A</span>
+                        <input type="hidden" name="Sections[${idx}].WinRangeMin" value="" class="win-range-min-input" />
+                        <input type="hidden" name="Sections[${idx}].WinRangeMax" value="" class="win-range-max-input" />
+                    </td>
+                    <td>
                         <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteSection(this)">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </td>
                 </tr>`;
             tbody.insertAdjacentHTML('beforeend', row);
-            // Revalidate sections after add
+            calculateRanges();
             validateSections();
         }
 
@@ -408,6 +428,7 @@
             if (confirm('Delete this section?')) {
                 btn.closest('tr').remove();
                 reindexSections();
+                calculateRanges();
                 validateSections();
             }
         }
@@ -427,13 +448,41 @@
                 row.querySelector('.section-img-input').name = `Sections[${index}].SectionImageFile`;
                 row.querySelector('.text-input').name = `Sections[${index}].PrizeText`;
                 row.querySelector('.color-input').name = `Sections[${index}].Color`;
+                row.querySelector('.probability-input').name = `Sections[${index}].Probability`;
+                row.querySelector('.win-range-min-input').name = `Sections[${index}].WinRangeMin`;
+                row.querySelector('.win-range-max-input').name = `Sections[${index}].WinRangeMax`;
             });
             sectionCounter = rows.length;
+        }
+
+        function calculateRanges() {
+            const rows = document.querySelectorAll('#sectionsBody tr');
+            let currentMin = 1;
+            rows.forEach(row => {
+                const probInput = row.querySelector('.probability-input');
+                const rangeDisplay = row.querySelector('.range-display');
+                const minInput = row.querySelector('.win-range-min-input');
+                const maxInput = row.querySelector('.win-range-max-input');
+                
+                const prob = parseInt(probInput.value) || 0;
+                if (prob > 0) {
+                    const currentMax = currentMin + prob - 1;
+                    rangeDisplay.textContent = `${currentMin}–${currentMax}`;
+                    minInput.value = currentMin;
+                    maxInput.value = currentMax;
+                    currentMin = currentMax + 1;
+                } else {
+                    rangeDisplay.textContent = 'N/A';
+                    minInput.value = '';
+                    maxInput.value = '';
+                }
+            });
         }
 
         function validateSections() {
             const rows = document.querySelectorAll('#sectionsBody tr');
             let valid = rows.length >= 4;
+            let totalProbability = 0;
 
             rows.forEach(row => {
                 let rowValid = true;
@@ -461,6 +510,18 @@
                     imgError.textContent = '';
                 }
 
+                // Probability validation
+                const probInput = row.querySelector('.probability-input');
+                const probError = row.querySelector('.prob-error');
+                const prob = parseInt(probInput.value) || 0;
+                if (prob < 0 || prob > 100) {
+                    rowValid = false;
+                    probError.textContent = 'Must be 0-100.';
+                } else {
+                    probError.textContent = '';
+                    totalProbability += prob;
+                }
+
                 if (!rowValid) {
                     valid = false;
                     row.classList.add('table-danger');
@@ -470,7 +531,12 @@
             });
 
             const errorDiv = document.getElementById('sectionsError');
-            if (!valid) {
+            if (totalProbability !== 100) {
+                valid = false;
+                errorDiv.textContent = `The sum of all section probabilities must equal exactly 100%. Current sum: ${totalProbability}%.`;
+                errorDiv.style.display = 'block';
+            } else if (!valid) {
+                errorDiv.textContent = 'Please fix section errors and ensure at least 4 sections, each with a prize text and image.';
                 errorDiv.style.display = 'block';
             } else {
                 errorDiv.style.display = 'none';
@@ -655,8 +721,9 @@
                 }
             }
 
-            // Initial sections validation
+            // Initial sections calculation & validation
             if (document.getElementById('sectionsBody').children.length > 0) {
+                calculateRanges();
                 validateSections();
             }
         });

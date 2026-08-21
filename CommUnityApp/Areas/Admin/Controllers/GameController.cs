@@ -1,4 +1,4 @@
-﻿using CommUnityApp.ApplicationCore.Interfaces;
+using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -313,6 +313,33 @@ namespace CommUnityApp.Areas.Admin.Controllers
         {
             return templateType.ToLower() switch
             {
+                "scratchwin" => new AddUpdateBrandGameRequest
+                {
+                    BusinessId = 0,
+                    BrandGameName = $"Scratch & Win Rewards - {businessName}",
+                    BrandGameTitle = "Scratch & Win Exciting Rewards!",
+                    BrandGameDesc = "Scratch the card to reveal your reward! Win Free Coffee, Burgers, Mystery Gifts, or IndoCoins!",
+                    ConditionsApply = "Terms and conditions apply. One play per customer per day. Must be 18+.",
+                    DateStart = DateTime.Now,
+                    DateEnd = DateTime.Now.AddMonths(3),
+                    PanelCount = 3,
+                    PanelOpeningLimit = 1,
+                    ChanceCount = 3,
+                    DestinationUrl = "",
+                    Status = 0,
+                    GameClassificationID = 1,
+                    PrimaryOfferText = "Jackpot - 200 IndoCoins",
+                    OfferText = "25 IndoCoins",
+                    PrimaryWinMessage = "Congratulations! You won the Jackpot of 200 IndoCoins!",
+                    SecondaryWinMessage = "Great job! You won 25 IndoCoins!",
+                    ConsolationMessage = "Almost There! Earned 5 IC",
+                    PointsAwarded = 5,
+                    FormColor = "#F6AA31",
+                    TextColor = "#FFFFFF",
+                    PrimaryPrizeCount = 10,
+                    SecondaryPrizeCount = 200,
+                    ConsolationPrizeCount = 400
+                },
                 "holiday" => new AddUpdateBrandGameRequest
                 {
                     BusinessId = 0,

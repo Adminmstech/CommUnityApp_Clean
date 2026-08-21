@@ -1,4 +1,4 @@
-﻿@model CommUnityApp.ApplicationCore.Models.AddUpdateBrandGameRequest
+@model CommUnityApp.ApplicationCore.Models.AddUpdateBrandGameRequest
 @{
     var isEditMode = Model.BrandGameID > 0;
     ViewData["Title"] = isEditMode ? "Edit Brand Game" : "Create Brand Game";
@@ -406,6 +406,30 @@
                                     <span class="badge bg-primary-subtle text-primary">5 Primary</span>
                                     <span class="badge bg-info-subtle text-info">20 Secondary</span>
                                     <span class="badge bg-secondary-subtle text-secondary">100 Consolation</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Scratch & Win Rewards Template -->
+                    <div class="col-md-6">
+                        <div class="template-card card h-100 border-2 rounded-4 cursor-pointer" data-template="scratchwin" style="cursor: pointer;">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="template-icon bg-success bg-opacity-10 rounded-3 p-2 me-3">
+                                        <i class="fa-solid fa-gem text-success fa-lg"></i>
+                                    </div>
+                                    <div>
+                                        <h6 class="fw-700 mb-0">Scratch & Win Rewards</h6>
+                                        <small class="text-muted">8 tiers & probabilities</small>
+                                    </div>
+                                </div>
+                                <p class="small text-muted mb-2">Coffee, Burgers, Mystery Gifts, and IndoCoins (5-200 IC).</p>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <span class="badge bg-success-subtle text-success">Coffee 15%</span>
+                                    <span class="badge bg-success-subtle text-success">Burger 8%</span>
+                                    <span class="badge bg-success-subtle text-success">IndoCoins 72%</span>
+                                    <span class="badge bg-success-subtle text-success">Mystery 5%</span>
                                 </div>
                             </div>
                         </div>

@@ -383,5 +383,96 @@ namespace CommUnityApp.UnitTests
             _mockTransaction.Verify(t => t.Commit(), Times.Never);
             _mockTransaction.Verify(t => t.Rollback(), Times.Once);
         }
+
+        [Fact]
+        public async Task PlaySpinGameAsync_RangeCalculatedSelect_Success()
+        {
+            // Arrange
+            var request = new PlaySpinRequest
+            {
+                GameId = 1,
+                UserId = Guid.NewGuid(),
+                SectionId = 999 // server should override this
+            };
+
+            var gameDto = new SpinGameDto
+            {
+                GameId = 1,
+                GameName = "Test Game",
+                IsActive = true,
+                ConfigId = 10,
+                RewardCoins = 50
+            };
+
+            var configDto = new SpinGameConfigRequest
+            {
+                ConfigId = 10,
+                IsActive = true,
+                GameStartDate = DateTime.Now.AddDays(-1),
+                GameEndDate = DateTime.Now.AddDays(1)
+            };
+
+            var sections = new List<SpinSectionRequest>
+            {
+                new SpinSectionRequest { SectionId = 101, GameId = 1, SectionNumber = 1, PrizeText = "Free Coffee", Probability = 5, WinRangeMin = 1, WinRangeMax = 5 },
+                new SpinSectionRequest { SectionId = 102, GameId = 1, SectionNumber = 2, PrizeText = "10% Off", Probability = 95, WinRangeMin = 6, WinRangeMax = 100 }
+            };
+
+            _mockDapper
+                .Setup(d => d.QueryFirstOrDefaultAsync<SpinGameDto>(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("SELECT * FROM SpinGame WHERE GameId = @GameId")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync(gameDto);
+
+            _mockDapper
+                .Setup(d => d.QueryFirstOrDefaultAsync<SpinGameConfigRequest>(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("SELECT ConfigId, MaxSpinsPerDay, NumberOfSections, GameStartDate, GameEndDate, IsActive FROM SpinGameConfiguration")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync(configDto);
+
+            _mockDapper
+                .Setup(d => d.QueryAsync<SpinSectionRequest>(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("FROM SpinSection WHERE GameId = @GameId")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync(sections);
+
+            _mockDapper
+                .Setup(d => d.QueryFirstOrDefaultAsync<int>(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("INSERT INTO GameSpins")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync(1);
+
+            // Act
+            var result = await _repository.PlaySpinGameAsync(request, "XYZ123", "/qr.png");
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(1, result.ResultId);
+            Assert.Contains(result.SectionId, new[] { 101, 102 });
+            if (result.SectionId == 101)
+            {
+                Assert.Equal("Free Coffee", result.RewardValue);
+            }
+            else
+            {
+                Assert.Equal("10% Off", result.RewardValue);
+            }
+        }
     }
 }

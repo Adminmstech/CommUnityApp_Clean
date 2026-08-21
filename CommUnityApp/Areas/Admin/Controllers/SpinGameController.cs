@@ -1,4 +1,4 @@
-﻿using CommUnityApp.ApplicationCore.Interfaces;
+using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using Microsoft.AspNetCore.Mvc;
 
@@ -111,6 +111,13 @@ namespace CommUnityApp.Areas.Admin.Controllers
             if (model.Sections == null || model.Sections.Count < 4)
             {
                 ViewBag.Error = "At least 4 wheel sections are required.";
+                return View(model);
+            }
+
+            var sumProbability = model.Sections.Sum(s => s.Probability);
+            if (sumProbability != 100)
+            {
+                ViewBag.Error = $"The sum of all section probabilities must equal exactly 100%. Currently it is {sumProbability}%.";
                 return View(model);
             }
 

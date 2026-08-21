@@ -169,6 +169,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                 sectionModel.SectionImage,
                                 sectionModel.PrizeText,
                                 sectionModel.Color,
+                                sectionModel.Probability,
+                                sectionModel.WinRangeMin,
+                                sectionModel.WinRangeMax
                                 //IsActive = true
                             };
                         }
@@ -182,6 +185,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                 sectionModel.SectionImage,
                                 sectionModel.PrizeText,
                                 sectionModel.Color,
+                                sectionModel.Probability,
+                                sectionModel.WinRangeMin,
+                                sectionModel.WinRangeMax,
                                 IsActive = true
                             };
                         }
@@ -228,7 +234,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             using var con = Connection;
             return await _dapper.QueryAsync<SpinSectionRequest>(
                 con,
-                @"SELECT SectionId, GameId, SectionNumber, Points, PromotionId, PrizeText, Color, SectionImage 
+                @"SELECT SectionId, GameId, SectionNumber, Points, PromotionId, PrizeText, Color, SectionImage, Probability, WinRangeMin, WinRangeMax 
                   FROM SpinSection WHERE GameId = @GameId ORDER BY SectionNumber",
                 new { GameId = gameId }
             );
@@ -239,7 +245,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             using var con = Connection;
             return await _dapper.QueryFirstOrDefaultAsync<SpinSectionRequest>(
                 con,
-                @"SELECT SectionId, GameId, SectionNumber, Points, PromotionId, PrizeText, Color, SectionImage
+                @"SELECT SectionId, GameId, SectionNumber, Points, PromotionId, PrizeText, Color, SectionImage, Probability, WinRangeMin, WinRangeMax
                   FROM SpinSection WHERE SectionId = @SectionId",
                 new { SectionId = sectionId }
             );
@@ -395,12 +401,28 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             }
 
             // Fetch sections
-            var sections = await GetSectionsByGameIdAsync(request.GameId);
-            if (sections == null || !sections.Any())
+            var sectionsList = (await GetSectionsByGameIdAsync(request.GameId)).ToList();
+            if (sectionsList == null || !sectionsList.Any())
                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "No sections configured for this game." };
 
-            // Validate and select the section provided in the request
-            var selectedSection = sections.FirstOrDefault(s => s.SectionId == request.SectionId); 
+            SpinSectionRequest? selectedSection = null;
+
+            // Auto-calculate range-based play logic on the server side
+            var totalProbability = sectionsList.Sum(s => s.Probability);
+            var hasConfiguredRanges = sectionsList.All(s => s.WinRangeMin.HasValue && s.WinRangeMax.HasValue);
+            if (totalProbability == 100 && hasConfiguredRanges)
+            {
+                var random = new Random();
+                int roll = random.Next(1, 101); // 1 to 100
+                selectedSection = sectionsList.FirstOrDefault(s => roll >= s.WinRangeMin.Value && roll <= s.WinRangeMax.Value);
+            }
+
+            // Fallback for legacy games or partial configurations
+            if (selectedSection == null)
+            {
+                selectedSection = sectionsList.FirstOrDefault(s => s.SectionId == request.SectionId);
+            }
+
             if (selectedSection == null) 
             {
                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "Invalid section or section does not belong to this game." };

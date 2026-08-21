@@ -41,6 +41,9 @@ namespace CommUnityApp.ApplicationCore.Models
         public string? PrizeText { get; set; } 
         public string? SectionImage { get; set; }       // saved relative path, e.g. "/images/spingames/sections/xxx.jpg"
         public IFormFile? SectionImageFile { get; set; } // the uploaded file, not persisted directly 
+        public int Probability { get; set; }
+        public int? WinRangeMin { get; set; }
+        public int? WinRangeMax { get; set; }
     }
 
     public class AddUpdateSpinGameRequest
