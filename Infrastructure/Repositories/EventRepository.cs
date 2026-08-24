@@ -2,6 +2,7 @@ using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using CommUnityApp.Domain.Entities;
 using Dapper;
+using Microsoft.AspNet.SignalR.Infrastructure;
 using Microsoft.AspNetCore.Http; 
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
@@ -227,7 +228,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 parameters.Add("@EventId", request.EventId);
                 parameters.Add("@NoOfTickets", request.NoOfTickets);
                 parameters.Add("@UseWallet", request.UseWallet);
-
+                parameters.Add("@ShareToken",request.ShareToken,DbType.Guid);
                 var result = await con.QueryFirstOrDefaultAsync<BookingResponse>(
                     "SP_BookEvent",
                     parameters,
@@ -1019,5 +1020,80 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return result.ToList();
         }
+
+        public async Task<dynamic?> CreateEventShare(
+        CreateEventShareRequest request)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+            var parameters = new DynamicParameters();
+
+            parameters.Add(
+                "@EventId",
+                request.EventId,
+                DbType.Int32
+            );
+
+            parameters.Add(
+                "@SharedByUserId",
+                request.UserId,
+                DbType.Guid
+            );
+
+            return await connection.QueryFirstOrDefaultAsync<dynamic>(
+                "dbo.SP_CreateEventShare",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+
+        public async Task<dynamic?> RegisterEventShareReceiver(RegisterEventShareReceiverRequest request)
+        {
+
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+            var parameters = new DynamicParameters();
+
+            parameters.Add(
+                "@ShareToken",
+                request.ShareToken,
+                DbType.Guid
+            );
+
+            parameters.Add(
+                "@UserId",
+                request.UserId,
+                DbType.Guid
+            );
+
+            return await connection.QueryFirstOrDefaultAsync<dynamic>(
+                "dbo.SP_RegisterEventShareReceiver",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
+        public async Task<dynamic?> GetEventShare(
+        Guid shareToken)
+        {
+
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+            var parameters = new DynamicParameters();
+
+            parameters.Add(
+                "@ShareToken",
+                shareToken,
+            DbType.Guid
+            );
+
+            return await connection.QueryFirstOrDefaultAsync<dynamic>(
+                "dbo.SP_GetEventShare",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+
     }
 }

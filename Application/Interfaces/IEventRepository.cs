@@ -57,5 +57,10 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<UserPostedEventModel>> GetTopFivePostedEventsByUser(Guid userId);
         Task<List<EventTicketBookingModel>> GetEventTicketBookings(int eventId);
 
+        Task<dynamic?> CreateEventShare(CreateEventShareRequest request);
+
+        Task<dynamic?> GetEventShare(Guid shareToken);
+        Task<dynamic?> RegisterEventShareReceiver(RegisterEventShareReceiverRequest request);
+
     }
 }

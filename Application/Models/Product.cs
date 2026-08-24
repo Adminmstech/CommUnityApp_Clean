@@ -519,7 +519,7 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string PromotionUrl { get; set; }
 
-        public string PromotionToken { get; set; }
+        public Guid? PromotionToken { get; set; }
 
         public DateTime? StartDate { get; set; }
 
@@ -775,4 +775,18 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public string ShareUrl { get; set; }
     }
+
+    public class GeneratePromotionShareRequest
+    {
+        public int PromotionId { get; set; }
+
+        public Guid UserId { get; set; }
+    }
+    public class RegisterPromotionShareReceiverRequest
+    {
+        public Guid ShareToken { get; set; }
+
+        public Guid UserId { get; set; }
+    }
+   
 }

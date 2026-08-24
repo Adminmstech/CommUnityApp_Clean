@@ -798,7 +798,7 @@ namespace CommUnityApp.Services
         }
 
         [HttpPost("GetPromotionRedemptionSummary")]
-        public async Task<IActionResult>GetPromotionRedemptionSummary([FromBody] PromotionRedemptionRequest request)
+        public async Task<IActionResult> GetPromotionRedemptionSummary([FromBody] PromotionRedemptionRequest request)
         {
             var data = await _unitOfWork.Product
                 .GetPromotionRedemptionSummary(
@@ -923,7 +923,7 @@ namespace CommUnityApp.Services
             }
         }
         [HttpGet("GetMyPromotionRedemptions")]
-        public async Task<IActionResult>GetMyPromotionRedemptions(Guid userId)
+        public async Task<IActionResult> GetMyPromotionRedemptions(Guid userId)
         {
             var data = await _unitOfWork.Product
                 .GetMyPromotionRedemptions(
@@ -940,7 +940,7 @@ namespace CommUnityApp.Services
 
 
         [HttpPost("VerifyPromotionRedemption")]
-        public async Task<IActionResult>VerifyPromotionRedemption([FromBody] VerifyPromotionRequest request)
+        public async Task<IActionResult> VerifyPromotionRedemption([FromBody] VerifyPromotionRequest request)
         {
             var data = await _unitOfWork.Product
                 .VerifyPromotionRedemption(
@@ -992,31 +992,176 @@ namespace CommUnityApp.Services
         }
 
 
-        [HttpPost("GeneratePromotionShareLink")]
-        public async Task<IActionResult> GeneratePromotionShareLink(int PromotionId, Guid UserId)
-        {
-            var result =
-                await _unitOfWork.Product.GeneratePromotionShareLink(PromotionId,UserId);
+        //[HttpPost("GeneratePromotionShareLink")]
+        //public async Task<IActionResult> GeneratePromotionShareLink(int PromotionId, Guid UserId)
+        //{
+        //    var result =
+        //        await _unitOfWork.Product.GeneratePromotionShareLink(PromotionId, UserId);
 
-            return Ok(result);
+        //    return Ok(result);
+        //}
+
+        //[HttpGet("GetPromotionByShareToken")]
+        //public async Task<IActionResult> GetPromotionByShareToken(Guid shareToken)
+        //{
+        //    var result = await _unitOfWork.Product
+        //        .GetPromotionByShareToken(shareToken);
+
+        //    if (result == null)
+        //    {
+        //        return NotFound(new
+        //        {
+        //            Success = false,
+        //            Message = "Invalid share link."
+        //        });
+        //    }
+
+        //    return Ok(result);
+        //}
+
+        [HttpPost("GeneratePromotionShareLink")]
+        public async Task<IActionResult> GeneratePromotionShareLink([FromBody] GeneratePromotionShareRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Invalid request."
+                });
+            }
+
+            if (request.PromotionId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid PromotionId is required."
+                });
+            }
+
+            if (request.UserId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid UserId is required."
+                });
+            }
+
+            var result =
+                await _unitOfWork.Product.GeneratePromotionShareLink(
+                    request.PromotionId,
+                    request.UserId);
+
+            if (result == null)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Unable to generate promotion share link."
+                });
+            }
+
+            return Ok(new
+            {
+                resultId = 1,
+                resultMessage = "Promotion share link created successfully.",
+                shareId = result.ShareId,
+                promotionId = result.PromotionId,
+                shareToken = result.ShareToken,
+                shareUrl = result.ShareUrl
+            });
         }
 
+
         [HttpGet("GetPromotionByShareToken")]
-        public async Task<IActionResult> GetPromotionByShareToken(Guid shareToken)
+        public async Task<IActionResult> GetPromotionByShareToken([FromQuery] Guid shareToken)
         {
-            var result = await _unitOfWork.Product
-                .GetPromotionByShareToken(shareToken);
+            if (shareToken == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid share token is required."
+                });
+            }
+
+            var result =
+                await _unitOfWork.Product
+                    .GetPromotionByShareToken(shareToken);
 
             if (result == null)
             {
                 return NotFound(new
                 {
-                    Success = false,
-                    Message = "Invalid share link."
+                    resultId = 0,
+                    resultMessage = "Invalid share link."
                 });
             }
 
-            return Ok(result);
+            return Ok(new
+            {
+                resultId = 1,
+                resultMessage = "Promotion retrieved successfully.",
+                data = result
+            });
+        }
+        [HttpPost("RegisterPromotionShareReceiver")]
+        public async Task<IActionResult> RegisterPromotionShareReceiver([FromBody] RegisterPromotionShareReceiverRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Invalid request."
+                });
+            }
+
+            if (request.ShareToken == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid ShareToken is required."
+                });
+            }
+
+            if (request.UserId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid UserId is required."
+                });
+            }
+
+            var result =
+                await _unitOfWork.Product
+                    .RegisterPromotionShareReceiver(
+                        request.ShareToken,
+                        request.UserId);
+
+            if (result == null || result.ResultId == 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage =
+                        result?.ResultMessage ??
+                        "Unable to register promotion referral."
+                });
+            }
+
+            return Ok(new
+            {
+                resultId = 1,
+                resultMessage = "Promotion referral registered successfully.",
+                shareId = result.ShareId,
+                promotionId = result.PromotionId,
+                userId = request.UserId
+            });
         }
     }
 }

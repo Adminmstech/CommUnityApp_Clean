@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using System.Drawing.Imaging;
 using static Org.BouncyCastle.Math.EC.ECCurve;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Data;
 
 namespace CommUnityApp.Services
 {
@@ -742,6 +743,219 @@ namespace CommUnityApp.Services
                 Data = data
             });
         }
+
+
+
+ 
+            [HttpPost("CreateEventShare")]
+            public async Task<IActionResult> CreateEventShare([FromBody] CreateEventShareRequest request)
+            {
+                if (request == null)
+                {
+                    return BadRequest(new
+                    {
+                        resultId = 0,
+                        resultMessage = "Invalid request."
+                    });
+                }
+
+                if (request.EventId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        resultId = 0,
+                        resultMessage = "Valid EventId is required."
+                    });
+                }
+
+                if (request.UserId == Guid.Empty)
+                {
+                    return BadRequest(new
+                    {
+                        resultId = 0,
+                        resultMessage = "Valid UserId is required."
+                    });
+                }
+
+                try
+                {
+                    var result =
+                        await _repository.CreateEventShare(request);
+
+                    if (result == null ||
+                        result.ResultId == 0)
+                    {
+                        return BadRequest(new
+                        {
+                            resultId = 0,
+                            resultMessage =
+                                result?.ResultMessage ??
+                                "Unable to create event share."
+                        });
+                    }
+
+                    string shareUrl =
+                        $"https://indocommunity.com/share/event/{request.EventId}?ref={result.ShareToken}";
+
+                    return Ok(new
+                    {
+                        resultId = 1,
+
+                        resultMessage =
+                            "Event share link created successfully.",
+
+                        shareId = result.ShareId,
+
+                        shareToken = result.ShareToken,
+
+                        eventId = result.EventId,
+
+                        shareUrl = shareUrl
+                    });
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, new
+                    {
+                        resultId = 0,
+                        resultMessage =
+                            "An error occurred while creating event share.",
+                        error = ex.Message
+                    });
+                }
+            }
+        [HttpPost("RegisterEventShareReceiver")]
+        public async Task<IActionResult> RegisterEventShareReceiver(
+    [FromBody] RegisterEventShareReceiverRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Invalid request."
+                });
+            }
+
+            if (request.ShareToken == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid ShareToken is required."
+                });
+            }
+
+            if (request.UserId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid UserId is required."
+                });
+            }
+
+            try
+            {
+                var result =
+                    await _repository.RegisterEventShareReceiver(request);
+
+                if (result == null || result.ResultId == 0)
+                {
+                    return BadRequest(new
+                    {
+                        resultId = 0,
+                        resultMessage =
+                            result?.ResultMessage ??
+                            "Unable to register event share receiver."
+                    });
+                }
+
+                return Ok(new
+                {
+                    resultId = 1,
+                    resultMessage =
+                        result.ResultMessage ??
+                        "Event share receiver registered successfully.",
+
+                    shareId = result.ShareId,
+                    eventId = result.EventId,
+                    userId = request.UserId
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    resultId = 0,
+                    resultMessage =
+                        "An error occurred while registering event share receiver.",
+                    error = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("GetEventByShareToken")] 
+        public async Task<IActionResult> GetEventByShareToken([FromQuery] Guid shareToken)
+        {
+            if (shareToken == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Invalid share token."
+                });
+            } 
+
+            try
+            {
+                var share =
+                    await _repository.GetEventShare(shareToken);
+
+                if (share == null)
+                {
+                    return NotFound(new
+                    {
+                        resultId = 0,
+                        resultMessage =
+                            "Event share link is invalid or expired."
+                    });
+                }
+
+                return Ok(new
+                {
+                    resultId = 1,
+                    resultMessage =
+                        "Event share details retrieved successfully.",
+
+                    shareId = share.ShareId,
+                    shareToken = share.ShareToken,
+
+                    eventId = share.EventId,
+
+                    eventName = share.EventName,
+                    eventImage = share.EventImage,
+                    description = share.Description,
+                    location = share.Location,
+
+                    startDate = share.StartDate,
+                    endDate = share.EndDate,
+
+                    friendRewardCoins = share.FriendRewardCoins
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    resultId = 0,
+                    resultMessage =
+                        "Unable to load shared event.",
+                    error = ex.Message
+                });
+            }
+        }
+
     }
     }
 

@@ -46,6 +46,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<ProductPromotionModel> GetPromotionById(int promotionId);
         Task<PromotionShareLinkModel> GeneratePromotionShareLink(int promotionId,Guid userId);
         Task<PromotionDetailsModel> GetPromotionByShareToken(Guid shareToken);
+
+        Task<dynamic?> RegisterPromotionShareReceiver(Guid shareToken, Guid userId);
     }
 }
 
