@@ -892,7 +892,7 @@ namespace CommUnityApp.Services
                         "An error occurred while registering event share receiver.",
                     error = ex.Message
                 });
-            }
+            } 
         }
 
         [HttpGet("GetEventByShareToken")] 
