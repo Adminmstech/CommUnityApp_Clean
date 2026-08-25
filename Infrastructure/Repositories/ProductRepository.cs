@@ -584,7 +584,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         }
 
 
-        public async Task<PromotionShareLinkModel> GeneratePromotionShareLink(int promotionId,Guid userId)
+        public async Task<PromotionShareLinkModel?> GeneratePromotionShareLink(int promotionId,Guid userId)
         {
             using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection"));
@@ -621,6 +621,29 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
+        public async Task<dynamic?> RegisterPromotionShareReceiver(Guid shareToken,Guid userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
 
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add(
+                "@ShareToken",
+                shareToken,
+                DbType.Guid);
+
+            parameters.Add(
+                "@UserId",
+                userId,
+                DbType.Guid);
+
+            return await connection.QueryFirstOrDefaultAsync<dynamic>(
+                "dbo.Register_PromotionShareReceiver",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+        }
     }
 }

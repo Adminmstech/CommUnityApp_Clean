@@ -122,6 +122,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public int EventId { get; set; }
         public int NoOfTickets { get; set; }
         public bool UseWallet { get; set; }
+        public Guid? ShareToken { get; set; }
+
     }
 
     public class BookingResponse
@@ -384,7 +386,9 @@ namespace CommUnityApp.ApplicationCore.Models
         public string TransactionId { get; set; }
         public bool UseWallet { get; set; }
         public string PaymentMethod { get; set; }
-         public List<BookTicketItem> Tickets { get; set; }
+        public Guid? ShareToken { get; set; }
+
+        public List<BookTicketItem> Tickets { get; set; }
 }
 
 public class BookTicketItem
@@ -580,5 +584,45 @@ public class BookTicketItem
         public DateTime BookingDate { get; set; }
 
         public string TransactionId { get; set; }
+    }
+
+    public class CreateEventShareRequest
+    {
+        public int EventId { get; set; }
+
+        public Guid UserId { get; set; }
+    }
+
+
+    public class AddBookEvent
+    {
+        public Guid UserId { get; set; }
+
+        public int EventId { get; set; }
+
+        public bool UseWallet { get; set; }
+
+        public string PaymentMethod { get; set; }
+
+        public string TransactionId { get; set; }
+
+        public Guid? ShareToken { get; set; }
+
+        public List<EventTicketRequest> Tickets { get; set; }
+    }
+
+
+    public class EventTicketRequest
+    {
+        public int TicketTypeId { get; set; }
+
+        public int Quantity { get; set; }
+    }
+
+    public class RegisterEventShareReceiverRequest
+    {
+        public Guid ShareToken { get; set; }
+
+        public Guid UserId { get; set; }
     }
 }
