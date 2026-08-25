@@ -99,7 +99,10 @@ namespace CommUnityApp.Areas.Admin.Controllers
         {
             //var businessIdStr = HttpContext.Session.GetString("BusinessId");
             //if (string.IsNullOrEmpty(businessIdStr)) return RedirectToAction("Login", "Account");
-            model.BusinessId = int.Parse("0");
+            if (model.GameId == 0)
+            {
+                model.BusinessId = 0;
+            }
 
             if (string.IsNullOrWhiteSpace(model.GameName))
             {
