@@ -1,0 +1,107 @@
+{
+	"info": {
+		"_postman_id": "8f8e1261-0428-4ef8-a28a-165b4c1ea7c1",
+		"name": "CommUnityApp - Scratch & Win Game",
+		"description": "Collection containing the separated gameplay endpoints for revealing and redeeming prizes in the Scratch & Win game.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. Reveal Prize (SubmitBrandGame)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"gameId\": 1,\n    \"userId\": \"d290f1ee-6c54-4b01-90e6-d701748f0851\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/Game/SubmitBrandGame",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"Game",
+						"SubmitBrandGame"
+					]
+				},
+				"description": "Calls the backend to execute a secure probability roll and reveal the won prize category. Returns a signed verificationToken."
+			},
+			"response": []
+		},
+		{
+			"name": "2. Claim / Redeem Prize (RedeemPrize)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"gameId\": 1,\n    \"userId\": \"d290f1ee-6c54-4b01-90e6-d701748f0851\",\n    \"prizeType\": \"PrimaryPrize\",\n    \"attemptNumber\": 1,\n    \"verificationToken\": \"<Paste verificationToken from SubmitBrandGame response>\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/api/Game/RedeemPrize",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"Game",
+						"RedeemPrize"
+					]
+				},
+				"description": "Verifies the signed token, decrements stock for physical prizes, writes the gameplay to history, adds coins to the user's wallet, and generates QR/Redeem codes only for physical prizes."
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://localhost:7085",
+			"type": "string"
+		}
+	]
+}

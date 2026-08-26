@@ -377,6 +377,8 @@ namespace CommUnityApp.Services
                     result.GameResultId,
                     result.GameId,
                     result.SectionId,
+                    sectionNumber = section?.SectionNumber ?? 0,
+                    sectionIndex = (section != null) ? (section.SectionNumber - 1) : -1,
                     result.RewardValue,
                     result.RedeemCode,
                     result.Status,
@@ -396,6 +398,8 @@ namespace CommUnityApp.Services
                     {
                         gameId = result.GameId,
                         sectionId = result.SectionId,
+                        sectionNumber = section?.SectionNumber ?? 0,
+                        sectionIndex = (section != null) ? (section.SectionNumber - 1) : -1,
                         offerText = section?.PrizeText ?? result.RewardValue,
                         redeemCode = result.RedeemCode,
                         redeemQrCode = BuildFullImageUrl(baseUrl, result.QRCodePath),

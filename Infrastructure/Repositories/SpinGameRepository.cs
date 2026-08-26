@@ -428,9 +428,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "Invalid section or section does not belong to this game." };
             }
 
-            // Do not allow redeem code / QR for "Better Luck Next Time"
-            bool isRedeemable =!string.Equals( selectedSection.PrizeText,"Better Luck Next Time",StringComparison.OrdinalIgnoreCase)&&
-            !string.Equals(selectedSection.PrizeText,"Try Again :(",StringComparison.OrdinalIgnoreCase);
+            // Do not allow redeem code / QR for "Better Luck Next Time", "Try Again :(", or if the section rewards coins (Points > 0)
+            bool isRedeemable = !string.Equals(selectedSection.PrizeText, "Better Luck Next Time", StringComparison.OrdinalIgnoreCase) &&
+                                !string.Equals(selectedSection.PrizeText, "Try Again :(", StringComparison.OrdinalIgnoreCase) &&
+                                !(selectedSection.Points.GetValueOrDefault() > 0);
 
             if (!isRedeemable)
             {
