@@ -16,6 +16,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BaseResponse> DeleteBrandGameAsync(int brandGameId);
 
         Task AddRewardCoinsAsync(Guid userId, int coins, int gameId);
-
+        Task<int> GetTotalPlaysCountAsync(int gameId);
     }
 }

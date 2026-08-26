@@ -241,5 +241,11 @@ VALUES
                 commandType: CommandType.StoredProcedure);
         }
 
+        public async Task<int> GetTotalPlaysCountAsync(int gameId)
+        {
+            const string sql = "SELECT COUNT(*) FROM BrandGamePlayHistory WHERE BrandGameID = @GameId";
+            using var con = Connection;
+            return await con.ExecuteScalarAsync<int>(sql, new { GameId = gameId });
+        }
     }
 }

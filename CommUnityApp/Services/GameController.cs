@@ -731,165 +731,18 @@ namespace CommUnityApp.Services
             var baseUrl = (_configuration["ApiSettings:BaseUrl"] ?? "").TrimEnd('/');
 
             var onceIn = game.OnceIn.GetValueOrDefault(1);
-
             if (onceIn <= 0)
                 onceIn = 1;
 
             var isReleased = game.IsReleased.GetValueOrDefault(0) == 1;
 
-            var attemptNumber = request.AttemptNumber.GetValueOrDefault(0);
+            // Monitor and update isWinningAttempt every gameplay by counting existing plays
+            int totalPlays = await _brandGameRepository.GetTotalPlaysCountAsync(game.BrandGameID);
+            var attemptNumber = totalPlays + 1;
 
-            var isWinningAttempt = attemptNumber > 0
-                ? attemptNumber % onceIn == 0
-                : Random.Shared.Next(1, onceIn + 1) == 1;
+            var isWinningAttempt = attemptNumber % onceIn == 0;
 
-            // Probability-based Scratch & Win logic (GameClassificationID == 1)
-            if (game.GameClassificationID == 1)
-            {
-                // Roll a number 1-100 to determine reward based on probability
-                int roll = Random.Shared.Next(1, 101); // 1 to 100
-                string swFinalPrizeType;
-                string swPrizeLabel;
-                string swPrizeMessage;
-                string swPrizeImage;
-                int coinsEarned = 0;
-                bool swIsWinner;
-
-                // Probability brackets:
-                // 1-15 (15%): Free Coffee (Store prize)
-                // 16-23 (8%): Free Burger (Store prize)
-                // 24-28 (5%): Mystery Gift (Store prize)
-                // 29 (1%): 200 IndoCoins (Jackpot)
-                // 30-32 (3%): 100 IndoCoins (Rare)
-                // 33-40 (8%): 50 IndoCoins (Medium)
-                // 41-60 (20%): 25 IndoCoins (Frequent)
-                // 61-100 (40%): Almost There (Consolation, 5 IC)
-
-                if (roll <= 15)
-                {
-                    swFinalPrizeType = "FreeCoffee";
-                    swPrizeLabel = "☕ Free Coffee";
-                    swPrizeMessage = "Congratulations! You won a Free Coffee!";
-                    swPrizeImage = "Images/brandgames/rewards/free_coffee.png";
-                    coinsEarned = 0;
-                    swIsWinner = true;
-                }
-                else if (roll <= 23)
-                {
-                    swFinalPrizeType = "FreeBurger";
-                    swPrizeLabel = "🍔 Free Burger";
-                    swPrizeMessage = "Congratulations! You won a Free Burger!";
-                    swPrizeImage = "Images/brandgames/rewards/free_burger.png";
-                    coinsEarned = 0;
-                    swIsWinner = true;
-                }
-                else if (roll <= 28)
-                {
-                    swFinalPrizeType = "MysteryGift";
-                    swPrizeLabel = "🎁 Mystery Gift";
-                    swPrizeMessage = "Congratulations! You won a Mystery Gift!";
-                    swPrizeImage = "Images/brandgames/rewards/mystery_gift.png";
-                    coinsEarned = 0;
-                    swIsWinner = true;
-                }
-                else if (roll <= 29)
-                {
-                    swFinalPrizeType = "200IndoCoins";
-                    swPrizeLabel = "🪙 200 IndoCoins";
-                    swPrizeMessage = "Jackpot! You won 200 IndoCoins!";
-                    swPrizeImage = "Images/brandgames/rewards/200_indocoins.png";
-                    coinsEarned = 200;
-                    swIsWinner = true;
-                }
-                else if (roll <= 32)
-                {
-                    swFinalPrizeType = "100IndoCoins";
-                    swPrizeLabel = "🪙 100 IndoCoins";
-                    swPrizeMessage = "Awesome! You won 100 IndoCoins!";
-                    swPrizeImage = "Images/brandgames/rewards/100_indocoins.png";
-                    coinsEarned = 100;
-                    swIsWinner = true;
-                }
-                else if (roll <= 40)
-                {
-                    swFinalPrizeType = "50IndoCoins";
-                    swPrizeLabel = "🪙 50 IndoCoins";
-                    swPrizeMessage = "Great! You won 50 IndoCoins!";
-                    swPrizeImage = "Images/brandgames/rewards/50_indocoins.png";
-                    coinsEarned = 50;
-                    swIsWinner = true;
-                }
-                else if (roll <= 60)
-                {
-                    swFinalPrizeType = "25IndoCoins";
-                    swPrizeLabel = "🪙 25 IndoCoins";
-                    swPrizeMessage = "Nice! You won 25 IndoCoins!";
-                    swPrizeImage = "Images/brandgames/rewards/25_indocoins.png";
-                    coinsEarned = 25;
-                    swIsWinner = true;
-                }
-                else
-                {
-                    swFinalPrizeType = "AlmostThere";
-                    swPrizeLabel = "😮 Almost There";
-                    swPrizeMessage = "Almost There! Earned 5 IC";
-                    swPrizeImage = "Images/brandgames/rewards/almost_there.png";
-                    coinsEarned = 5;
-                    swIsWinner = false;
-                }
-
-                string? swRedeemCode = null;
-                string? swQrCodePath = null;
-
-                if (swIsWinner)
-                {
-                    swRedeemCode = GenerateRedeemCode();
-                    swQrCodePath = GenerateQRCode(swRedeemCode);
-                }
-
-                await _brandGameRepository.TryConsumePrizeAsync(game.BrandGameID, "ConsolationPrize");
-
-                await _brandGameRepository.TrackGameplayAsync(
-                    game.BrandGameID,
-                    request.UserId,
-                    swFinalPrizeType,
-                    swIsWinner,
-                    attemptNumber > 0 ? attemptNumber : null,
-                    swRedeemCode,
-                    swQrCodePath);
-
-                if (coinsEarned > 0)
-                {
-                    await _brandGameRepository.AddRewardCoinsAsync(
-                        request.UserId,
-                        coinsEarned,
-                        game.BrandGameID);
-                }
-
-                return Ok(new
-                {
-                    resultId = 1,
-                    resultMessage = "Game played successfully.",
-                    gameId = game.BrandGameID,
-                    memberId = request.UserId,
-                    isWinner = swIsWinner,
-                    prizeType = swFinalPrizeType,
-                    prizeLabel = swPrizeLabel,
-                    prizeMessage = swPrizeMessage,
-                    prizeImage = BuildFullImageUrl(baseUrl, swPrizeImage),
-                    coinsEarned = coinsEarned,
-                    redeemCode = swRedeemCode,
-                    redeemQrCode = BuildFullImageUrl(baseUrl, swQrCodePath),
-                    businessLocation = game.BusinessLocation,
-                    prizeBalances = new
-                    {
-                        primary = game.PrimaryPrizeBalCount.GetValueOrDefault(),
-                        secondary = game.SecondaryPrizeBalCount.GetValueOrDefault(),
-                        consolation = game.ConsolationPrizeBalCount.GetValueOrDefault()
-                    }
-                });
-            }
-
+            // Retrieve balance counts to check availability of 1st, 2nd, 3rd prizes
             var primaryBalance = game.PrimaryPrizeBalCount.GetValueOrDefault() > 0
                 ? game.PrimaryPrizeBalCount.GetValueOrDefault()
                 : game.PrimaryPrizeCount.GetValueOrDefault();
@@ -898,143 +751,175 @@ namespace CommUnityApp.Services
                 ? game.SecondaryPrizeBalCount.GetValueOrDefault()
                 : game.SecondaryPrizeCount.GetValueOrDefault();
 
-            string finalPrizeType = "ConsolationPrize";
-            string prizeLabel = game.OfferText;
-            string prizeMessage = game.ConsolationMessage;
+            var consolationBalance = game.ConsolationPrizeBalCount.GetValueOrDefault() > 0
+                ? game.ConsolationPrizeBalCount.GetValueOrDefault()
+                : game.ConsolationPrizeCount.GetValueOrDefault();
 
-            string prizeImage = game.ConsolationPrizeImage ?? game.UnSuccessfulImage ?? game.BrandGameImage;
-            string? redeemCode = null;
-            string? qrCodePath = null;
-            if (isReleased && isWinningAttempt)
+            // Default fallback is "Almost There" (Consolation, 5 IC)
+            string swFinalPrizeType = "AlmostThere";
+            string swPrizeLabel = "😮 Almost There";
+            string swPrizeMessage = "Almost There! Earned 5 IC";
+            string swPrizeImage = "Images/brandgames/rewards/almost_there.png";
+            int coinsEarned = 5;
+            bool swIsWinner = false;
+
+            // Roll a number 1-100 to determine reward based on probability
+            int roll = Random.Shared.Next(1, 101); // 1 to 100
+
+            // Probability brackets:
+            // 1-15 (15%): 1st Prize (PrimaryPrize)
+            // 16-23 (8%): 2nd Prize (SecondaryPrize)
+            // 24-28 (5%): 3rd Prize (ConsolationPrize)
+            // 29 (1%): 200 IndoCoins (Jackpot)
+            // 30-32 (3%): 100 IndoCoins (Rare)
+            // 33-40 (8%): 50 IndoCoins (Medium)
+            // 41-60 (20%): 25 IndoCoins (Frequent)
+            // 61-100 (40%): Almost There (Consolation, 5 IC)
+
+            if (roll <= 15)
             {
-                if (primaryBalance > 0)
+                // 1st Prize
+                if (isReleased && isWinningAttempt && primaryBalance > 0)
                 {
-                    finalPrizeType = "PrimaryPrize";
-                    prizeLabel = game.PrimaryOfferText;
-                    prizeMessage = game.PrimaryWinMessage;
-                    prizeImage = game.PrimaryPrizeImage ?? game.BrandGameImage;
-                }
-                else if (secondaryBalance > 0)
-                {
-                    finalPrizeType = "SecondaryPrize";
-                    prizeLabel = game.OfferText;
-                    prizeMessage = game.SecondaryWinMessage;
-                    prizeImage = game.SecondaryPrizeImage ?? game.BrandGameImage;
-                }
-            }
-
-            var consumeResult = await _brandGameRepository.TryConsumePrizeAsync(
-                game.BrandGameID,
-                finalPrizeType);
-
-            if (!consumeResult.IsConsumed && finalPrizeType != "ConsolationPrize")
-            {
-                finalPrizeType = "ConsolationPrize";
-
-                prizeLabel = game.OfferText;
-                prizeMessage = game.ConsolationMessage;
-                prizeImage = game.ConsolationPrizeImage ?? game.UnSuccessfulImage ?? game.BrandGameImage;
-
-                consumeResult = await _brandGameRepository.TryConsumePrizeAsync(
-                    game.BrandGameID,
-                    finalPrizeType);
-            }
-
-            if (!consumeResult.IsConsumed)
-            {
-                await _brandGameRepository.TrackGameplayAsync(
-                game.BrandGameID,
-                request.UserId,
-                "NoPrize",
-                false,
-                attemptNumber > 0 ? attemptNumber : null,
-                null,
-                null);
-
-                return Ok(new
-                {
-                    resultId = 0,
-                    resultMessage = "No prize balance available.",
-
-                    gameId = game.BrandGameID,
-                    memberId = request.UserId,
-
-                    isWinner = false,
-
-                    prizeType = "NoPrize",
-
-                    prizeLabel = "",
-
-                    prizeMessage = "Prize stock is over.",
-
-                    prizeImage = BuildFullImageUrl(
-                        baseUrl,
-                        game.UnSuccessfulImage ?? game.BrandGameImage),
-
-                    coinsEarned = 0,
-
-                    prizeBalances = new
+                    var consumeResult = await _brandGameRepository.TryConsumePrizeAsync(game.BrandGameID, "PrimaryPrize");
+                    if (consumeResult.IsConsumed)
                     {
-                        primary = consumeResult.PrimaryPrizeBalCount,
-                        secondary = consumeResult.SecondaryPrizeBalCount,
-                        consolation = consumeResult.ConsolationPrizeBalCount
+                        swFinalPrizeType = "PrimaryPrize";
+                        swPrizeLabel = game.PrimaryOfferText ?? "1st Prize";
+                        swPrizeMessage = game.PrimaryWinMessage ?? "You won the 1st Prize!";
+                        swPrizeImage = game.PrimaryPrizeImage ?? game.BrandGameImage;
+                        coinsEarned = 0;
+                        swIsWinner = true;
                     }
-                });
+                }
+            }
+            else if (roll <= 23)
+            {
+                // 2nd Prize
+                if (isReleased && isWinningAttempt && secondaryBalance > 0)
+                {
+                    var consumeResult = await _brandGameRepository.TryConsumePrizeAsync(game.BrandGameID, "SecondaryPrize");
+                    if (consumeResult.IsConsumed)
+                    {
+                        swFinalPrizeType = "SecondaryPrize";
+                        swPrizeLabel = game.OfferText ?? "2nd Prize";
+                        swPrizeMessage = game.SecondaryWinMessage ?? "You won the 2nd Prize!";
+                        swPrizeImage = game.SecondaryPrizeImage ?? game.BrandGameImage;
+                        coinsEarned = 0;
+                        swIsWinner = true;
+                    }
+                }
+            }
+            else if (roll <= 28)
+            {
+                // 3rd Prize
+                if (isReleased && isWinningAttempt && consolationBalance > 0)
+                {
+                    var consumeResult = await _brandGameRepository.TryConsumePrizeAsync(game.BrandGameID, "ConsolationPrize");
+                    if (consumeResult.IsConsumed)
+                    {
+                        swFinalPrizeType = "ConsolationPrize";
+                        swPrizeLabel = game.OfferText ?? "3rd Prize";
+                        swPrizeMessage = game.ConsolationMessage ?? "You won the 3rd Prize!";
+                        swPrizeImage = game.ConsolationPrizeImage ?? game.UnSuccessfulImage ?? game.BrandGameImage;
+                        coinsEarned = 0;
+                        swIsWinner = true;
+                    }
+                }
+            }
+            else if (roll <= 29)
+            {
+                swFinalPrizeType = "200IndoCoins";
+                swPrizeLabel = "🪙 200 IndoCoins";
+                swPrizeMessage = "Jackpot! You won 200 IndoCoins!";
+                swPrizeImage = "Images/brandgames/rewards/200_indocoins.png";
+                coinsEarned = 200;
+                swIsWinner = true;
+            }
+            else if (roll <= 32)
+            {
+                swFinalPrizeType = "100IndoCoins";
+                swPrizeLabel = "🪙 100 IndoCoins";
+                swPrizeMessage = "Awesome! You won 100 IndoCoins!";
+                swPrizeImage = "Images/brandgames/rewards/100_indocoins.png";
+                coinsEarned = 100;
+                swIsWinner = true;
+            }
+            else if (roll <= 40)
+            {
+                swFinalPrizeType = "50IndoCoins";
+                swPrizeLabel = "🪙 50 IndoCoins";
+                swPrizeMessage = "Great! You won 50 IndoCoins!";
+                swPrizeImage = "Images/brandgames/rewards/50_indocoins.png";
+                coinsEarned = 50;
+                swIsWinner = true;
+            }
+            else if (roll <= 60)
+            {
+                swFinalPrizeType = "25IndoCoins";
+                swPrizeLabel = "🪙 25 IndoCoins";
+                swPrizeMessage = "Nice! You won 25 IndoCoins!";
+                swPrizeImage = "Images/brandgames/rewards/25_indocoins.png";
+                coinsEarned = 25;
+                swIsWinner = true;
             }
 
-            bool isWinner = finalPrizeType != "ConsolationPrize";
+            string? swRedeemCode = null;
+            string? swQrCodePath = null;
 
-            if (isWinner)
+            if (swIsWinner)
             {
-                redeemCode = GenerateRedeemCode();
-                qrCodePath = GenerateQRCode(redeemCode);
+                swRedeemCode = GenerateRedeemCode();
+                swQrCodePath = GenerateQRCode(swRedeemCode);
+            }
+
+            // Always track this play in history and increment general entries counter
+            if (swFinalPrizeType == "AlmostThere")
+            {
+                // Increment entries count for tracking
+                await _brandGameRepository.TryConsumePrizeAsync(game.BrandGameID, "ConsolationPrize");
             }
 
             await _brandGameRepository.TrackGameplayAsync(
                 game.BrandGameID,
                 request.UserId,
-                finalPrizeType,
-                isWinner,
-                attemptNumber > 0 ? attemptNumber : null,
-                redeemCode,
-                qrCodePath);
+                swFinalPrizeType,
+                swIsWinner,
+                attemptNumber,
+                swRedeemCode,
+                swQrCodePath);
 
-            await _brandGameRepository.AddRewardCoinsAsync(
-                request.UserId,
-                game.PointsAwarded.GetValueOrDefault(),
-                game.BrandGameID);
+            if (coinsEarned > 0)
+            {
+                await _brandGameRepository.AddRewardCoinsAsync(
+                    request.UserId,
+                    coinsEarned,
+                    game.BrandGameID);
+            }
+
+            // Retrieve fresh balance counts to return to client
+            var freshGame = await _brandGameRepository.GetBrandGameByIdAsync(game.BrandGameID);
 
             return Ok(new
             {
                 resultId = 1,
                 resultMessage = "Game played successfully.",
-
                 gameId = game.BrandGameID,
                 memberId = request.UserId,
-
-                isWinner,
-
-                prizeType = finalPrizeType,
-
-                prizeLabel,
-
-                prizeMessage,
-
-                prizeImage = BuildFullImageUrl(baseUrl, prizeImage),
-
-                coinsEarned = game.PointsAwarded.GetValueOrDefault(),
-
-                redeemCode = redeemCode,
-
-                redeemQrCode = BuildFullImageUrl(baseUrl, qrCodePath),
-
+                isWinner = swIsWinner,
+                prizeType = swFinalPrizeType,
+                prizeLabel = swPrizeLabel,
+                prizeMessage = swPrizeMessage,
+                prizeImage = BuildFullImageUrl(baseUrl, swPrizeImage),
+                coinsEarned = coinsEarned,
+                redeemCode = swRedeemCode,
+                redeemQrCode = BuildFullImageUrl(baseUrl, swQrCodePath),
                 businessLocation = game.BusinessLocation,
-
                 prizeBalances = new
                 {
-                    primary = consumeResult.PrimaryPrizeBalCount,
-                    secondary = consumeResult.SecondaryPrizeBalCount,
-                    consolation = consumeResult.ConsolationPrizeBalCount
+                    primary = freshGame?.PrimaryPrizeBalCount.GetValueOrDefault() ?? 0,
+                    secondary = freshGame?.SecondaryPrizeBalCount.GetValueOrDefault() ?? 0,
+                    consolation = freshGame?.ConsolationPrizeBalCount.GetValueOrDefault() ?? 0
                 }
             });
         }
