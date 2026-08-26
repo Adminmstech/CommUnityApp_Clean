@@ -312,14 +312,14 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
                 return result;
             }
-        }
+        } 
         public async Task<EventCheckoutSummaryResponse> GetEventCheckoutSummaryAsync(EventCheckoutSummaryRequest model)
         {
             using var con =
                 new SqlConnection(
                     _configuration.GetConnectionString("DefaultConnection"));
 
-            DynamicParameters parameters =
+            DynamicParameters parameters = 
                 new DynamicParameters();
 
             parameters.Add("@UserId", model.UserId);
