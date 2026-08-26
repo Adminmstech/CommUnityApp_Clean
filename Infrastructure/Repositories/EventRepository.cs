@@ -312,7 +312,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
                 return result;
             }
-        }
+        } 
         public async Task<EventCheckoutSummaryResponse> GetEventCheckoutSummaryAsync(EventCheckoutSummaryRequest model)
         {
             using var con =
