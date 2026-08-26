@@ -77,24 +77,32 @@ item.ServiceImagePath =
                 commandType: CommandType.StoredProcedure);
         }
 
-       
+
 
         public async Task SendMessage(SendMessageModel model)
         {
-            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            await con.OpenAsync();
+
+            var dbName = await con.ExecuteScalarAsync<string>(
+                "SELECT DB_NAME()"
+            );
+
+            Console.WriteLine("API DATABASE: " + dbName);
 
             await con.QueryAsync(
-                "sp_CareConnectServiceSendMessage",
-               new
-               {
-                   ChatThreadId = model.ChatThreadId,
-                   SenderId = model.SenderId,
-                   Message = model.Message
-               },
-        commandType: CommandType.StoredProcedure
-               );
+                "dbo.sp_CareConnectServiceSendMessage",
+                new
+                {
+                    ChatThreadId = model.ChatThreadId,
+                    SenderId = model.SenderId,
+                    Message = model.Message
+                },
+                commandType: CommandType.StoredProcedure
+            );
         }
-
         public async Task<dynamic> ConnectSupporter(ConnectSupporterModel model)
         {
             using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));

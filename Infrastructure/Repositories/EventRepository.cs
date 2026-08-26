@@ -319,7 +319,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 new SqlConnection(
                     _configuration.GetConnectionString("DefaultConnection"));
 
-            DynamicParameters parameters =
+            DynamicParameters parameters = 
                 new DynamicParameters();
 
             parameters.Add("@UserId", model.UserId);

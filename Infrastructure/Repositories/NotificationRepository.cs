@@ -214,7 +214,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                             CommentId = c.CommentId,                          
                             FullName = c.FullName,
                             CommentText = c.CommentText,
-                            UserId = c.UserId.ToString()
+                            UserId = c.UserId.ToString(),
+                            CreatedDate = c.CreatedDate
+
                         }).ToList();
 
                         post.CommentsCount = post.Comments.Count;
