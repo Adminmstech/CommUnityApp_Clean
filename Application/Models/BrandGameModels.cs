@@ -75,6 +75,14 @@ namespace CommUnityApp.ApplicationCore.Models
         public Guid UserId { get; set; }
         public int? AttemptNumber { get; set; }
     }
+    public class RedeemPrizeRequest
+    {
+        public int GameId { get; set; }
+        public Guid UserId { get; set; }
+        public string PrizeType { get; set; }
+        public int AttemptNumber { get; set; }
+        public string VerificationToken { get; set; }
+    }
     public class AddUpdateBrandGameRequest
     {
         public string BusinessLocation { get; set; }
