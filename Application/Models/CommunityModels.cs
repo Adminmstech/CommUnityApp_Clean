@@ -100,21 +100,21 @@ namespace CommUnityApp.ApplicationCore.Models
     }
     public class DashboardData
     {
-            public Rewards? Rewards { get; set; }
-            public DailyStreakResponse? DailyStreak { get; set; }
-            public DailyStreakDetailsResponse? DailyStreakDetails { get; set; }
-            public List<AuctionListModel> Auctions { get; set; }
+        public Rewards? Rewards { get; set; }
+        public DailyStreakResponse? DailyStreak { get; set; }
+        public DailyStreakDetailsResponse? DailyStreakDetails { get; set; }
+        public List<AuctionListModel> Auctions { get; set; }
 
-            public List<UserPostedEventModel> PostedEvents { get; set; }
+        public List<UserPostedEventModel> PostedEvents { get; set; }
 
-            public List<CommunityPostModel> CommunityPosts { get; set; }
+        public List<CommunityPostModel> CommunityPosts { get; set; }
 
-            public List<PostResponse> MessageBoardPosts { get; set; }
+        public List<PostResponse> MessageBoardPosts { get; set; }
 
-            public List<TopProductPromotionEntity> TopProductPromotions { get; set; }
-            public List<BusinessPostEntity> BusinessPosts { get; set; }
+        public List<TopProductPromotionEntity> TopProductPromotions { get; set; }
+        public List<BusinessPostEntity> BusinessPosts { get; set; }
     }
-        public class UpdateStatusRequest
+    public class UpdateStatusRequest
     {
         public int CharityItemId { get; set; }
         public Guid UserId { get; set; }
@@ -193,7 +193,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public int CharityItemId { get; set; }
         public Guid RequestedByUserId { get; set; }
         public int RequestedQuantity { get; set; }
-        public string Description { get; set; } 
+        public string Description { get; set; }
     }
 
     public class RequestedUserModel
@@ -261,7 +261,7 @@ namespace CommUnityApp.ApplicationCore.Models
     }
     public class MyRequestedItemsModel
     {
-        public int RequestId { get; set; }  
+        public int RequestId { get; set; }
         public int CharityItemId { get; set; }
         public string ItemName { get; set; }
         public string ItemCategory { get; set; }
@@ -293,7 +293,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string VolunteerName { get; set; }
         public string VolunteerMobile { get; set; }
     }
-   
+
     public class ItemCategoryModel
     {
         public int CategoryId { get; set; }
@@ -449,7 +449,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string Address { get; set; }
         public int CommunityCategoryId { get; set; }
     }
-   
+
 
     public class RequestCharityItemResponseModel
     {
@@ -529,5 +529,123 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public List<string> Images { get; set; } = new();
     }
+    public class CommunityWallet
+    {
+        public int CommunityWalletId { get; set; }
 
+        public int CommunityId { get; set; }
+
+        public int AvailableCoins { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public DateTime? UpdatedAt { get; set; }
+    }
+
+    public class CommunityWalletTransaction
+    {
+        public int Id { get; set; }
+
+        public int CommunityWalletId { get; set; }
+
+        public string TransactionType { get; set; }
+
+        public int Coins { get; set; }
+
+        public string ReferenceType { get; set; }
+
+        public int? ReferenceId { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public string Notes { get; set; }
+    }
+
+    public class CommunityWalletResult
+    {
+        public int CommunityWalletId { get; set; }
+
+        public int CommunityId { get; set; }
+
+        public int AvailableCoins { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public DateTime? UpdatedAt { get; set; }
+    }
+    public class CommunityWalletTransactionResult
+    {
+        public int Id { get; set; }
+
+        public int CommunityWalletId { get; set; }
+
+        public string TransactionType { get; set; }
+
+        public int Coins { get; set; }
+
+        public string ReferenceType { get; set; }
+
+        public int? ReferenceId { get; set; }
+
+        public DateTime CreatedAt { get; set; }
+
+        public string Notes { get; set; }
+    }
+
+    public class CommunityRewardsDashboardResult
+    {
+        public int TotalAllocatedCoins { get; set; }
+
+        public int TotalRewardCoinsSpent { get; set; }
+
+        public int TotalUsersRewarded { get; set; }
+    }
+
+    public class CommunityShareRewardHistoryResult
+    {
+        public string UserName { get; set; }
+
+        public string PromotionName { get; set; }
+
+        public string ProductName { get; set; }
+
+        public string SharePlatform { get; set; }
+
+        public int RewardCoins { get; set; }
+
+        public DateTime SharedAt { get; set; }
+    }
+
+    public class CommunityDetailsEntity
+    {
+        public int CommunityId { get; set; }
+
+        public string CommunityName { get; set; }
+
+        public string Logo { get; set; }
+
+        public string Description { get; set; }
+
+        public string ContactName { get; set; }
+
+        public string ContactEmail { get; set; }
+
+        public string ContactPhone { get; set; }
+
+        public string Website { get; set; }
+
+        public string Address { get; set; }
+
+        public string OtherInfo { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public DateTime CreatedDate { get; set; }
+
+        public string UserName { get; set; }
+
+        public int? CommunityCategoryId { get; set; }
+
+        public bool IsMeIn { get; set; }
+    }
 }

@@ -956,6 +956,13 @@ namespace CommUnityApp.Services
             }
         }
 
+
+        [HttpGet("GetCommunityEventsById")]
+        public async Task<IActionResult> GetCommunityEventsAsync(int communityId)
+        {
+            var events = await _repository.GetCommunityEventsAsync(communityId);
+            return Ok(events);
+        }
     }
     }
 

@@ -666,6 +666,9 @@ namespace CommUnityApp.ApplicationCore.Models
     public class PromotionRedemptionModel
     {
         public long RedemptionId { get; set; }
+        public string BusinessName { get; set; }
+        public string BusinessLogo { get; set; }
+
 
         public string RedemptionCode { get; set; }
 

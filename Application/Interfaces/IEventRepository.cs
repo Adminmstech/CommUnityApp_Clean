@@ -61,6 +61,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<dynamic?> GetEventShare(Guid shareToken);
         Task<dynamic?> RegisterEventShareReceiver(RegisterEventShareReceiverRequest request);
-
+        Task<List<CommunityEventListDto>> GetCommunityEventsAsync(int communityId);
     }
 }
