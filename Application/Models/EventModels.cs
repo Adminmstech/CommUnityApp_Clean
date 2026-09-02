@@ -625,4 +625,20 @@ public class BookTicketItem
 
         public Guid UserId { get; set; }
     }
+
+    public class CommunityEventListDto
+    {
+        public long EventId { get; set; }
+        public string EventName { get; set; }
+        public string CategoryName { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public string Location { get; set; }
+        public string EventImage { get; set; }
+        public int IsPosted { get; set; }
+        public string QRCodeImage { get; set; }
+
+        public int IsFundRaising { get; set; }
+    }
+
 }

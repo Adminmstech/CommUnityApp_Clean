@@ -56,7 +56,15 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<int> AddCharityItemImage(int charityItemId, string imagePath);
         Task<DeleteCharityItemResult> DeleteCharityItem(long charityItemId);
         Task<List<UserCommunityCharityItemModel>> GetCharityItemsByUserCommunities(Guid userId);
+       Task<CommunityWalletResult> GetCommunityWallet(int communityId);
 
+        Task<List<CommunityWalletTransactionResult>> GetCommunityWalletTransactions(int communityId);
+
+        Task<CommunityRewardsDashboardResult> GetCommunityRewardsDashboard(int communityId);
+
+        Task<List<CommunityShareRewardHistoryResult>> GetCommunityShareRewardHistory(int communityId);
+
+        Task<CommunityDetailsEntity> GetCommunityDetails(int communityId,Guid? userId);
     }
 
 }

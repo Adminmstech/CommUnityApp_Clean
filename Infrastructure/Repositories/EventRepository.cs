@@ -1094,6 +1094,16 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             );
         }
 
+        public async Task<List<CommunityEventListDto>> GetCommunityEventsAsync(int communityId)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
 
+            return (await con.QueryAsync<CommunityEventListDto>(
+                "Get_CommunityEvents",
+                new { CommunityId = communityId },
+                commandType: CommandType.StoredProcedure
+            )).ToList();
+        }
     }
 }

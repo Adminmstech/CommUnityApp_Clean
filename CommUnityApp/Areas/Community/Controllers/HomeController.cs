@@ -158,7 +158,19 @@ namespace CommUnityApp.Areas.Community.Controllers
 
             return Json(json);
         }
+        public IActionResult CommunityCoinManagement()
+        {
+            var communityId = HttpContext.Session.GetString("CommunityId");
 
+            if (string.IsNullOrEmpty(communityId))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            ViewBag.CommunityId = communityId;
+
+            return View();
+        }
 
     }
 }

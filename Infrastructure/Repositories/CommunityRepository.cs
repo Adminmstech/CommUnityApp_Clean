@@ -789,6 +789,99 @@ CommunityPostModel model)
 
             return charityItems;
         }
+
+        public async Task<CommunityWalletResult> GetCommunityWallet(int communityId)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await con.QueryFirstOrDefaultAsync<CommunityWalletResult>(
+                "SP_GetCommunityWallet",
+                new
+                {
+                    CommunityId = communityId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result;
+        }
+
+        public async Task<List<CommunityWalletTransactionResult>> GetCommunityWalletTransactions(
+     int communityId)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await con.QueryAsync<CommunityWalletTransactionResult>(
+                "SP_GetCommunityWalletTransactions",
+                new
+                {
+                    CommunityId = communityId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+        public async Task<CommunityRewardsDashboardResult> GetCommunityRewardsDashboard(
+    int communityId)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await con.QueryFirstOrDefaultAsync<CommunityRewardsDashboardResult>(
+                "SP_GetCommunityRewardsDashboard",
+                new
+                {
+                    CommunityId = communityId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result;
+        }
+
+        public async Task<List<CommunityShareRewardHistoryResult>> GetCommunityShareRewardHistory(
+    int communityId)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await con.QueryAsync<CommunityShareRewardHistoryResult>(
+                "SP_GetCommunityShareRewardHistory",
+                new
+                {
+                    CommunityId = communityId
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+        public async Task<CommunityDetailsEntity> GetCommunityDetails(int communityId,Guid? userId)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            await connection.OpenAsync();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add(
+                "@CommunityId",
+                communityId,
+                DbType.Int32);
+
+            parameters.Add(
+                "@UserId",
+                userId,
+                DbType.Guid);
+
+            var result = await connection.QueryFirstOrDefaultAsync<CommunityDetailsEntity>(
+                "Get_CommunityDetails",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return result;
+        }
     }
 }
 

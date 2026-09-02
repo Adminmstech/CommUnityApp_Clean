@@ -1349,6 +1349,88 @@ namespace CommUnityApp.Services
                 });
             }
         }
+
+
+        [HttpGet("GetCommunityWallet")]
+        public async Task<IActionResult> GetCommunityWallet(int communityId)
+        {
+            if (communityId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid communityId is required."
+                });
+            }
+
+            var result = await _communityRepository.GetCommunityWallet(communityId);
+
+            return Ok(result);
+        }
+
+        [HttpGet("GetCommunityWalletTransactions")]
+        public async Task<IActionResult> GetCommunityWalletTransactions(int communityId)
+        {
+            if (communityId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid communityId is required."
+                });
+            }
+
+            var result =
+                await _communityRepository.GetCommunityWalletTransactions(communityId);
+
+            return Ok(result);
+        }
+
+        [HttpGet("GetCommunityDetails")]
+        public async Task<IActionResult> GetCommunityDetails(int communityId,Guid? userId = null)
+        {
+            try
+            {
+                if (communityId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Valid communityId is required.",
+                        Data = (object)null
+                    });
+                }
+
+                var data = await _unitOfWork.Community
+                    .GetCommunityDetails(communityId, userId);
+
+                if (data == null)
+                {
+                    return NotFound(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Community not found.",
+                        Data = (object)null
+                    });
+                }
+
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Success",
+                    Data = data
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message,
+                    Data = (object)null
+                });
+            }
+        }
     }
 
 
