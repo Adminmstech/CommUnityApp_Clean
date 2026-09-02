@@ -663,7 +663,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string QRCodeImage { get; set; }
     }
 
-    public class PromotionRedemptionModel
+    public class PromotionRedemptionModel 
     {
         public long RedemptionId { get; set; }
         public string BusinessName { get; set; }
