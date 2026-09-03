@@ -211,437 +211,645 @@
 
 </div>
 
-
 @section Scripts {
 
     <script>
 
-        // Community ID supplied by the Controller/ViewBag
+        // =========================================================
+        // COMMUNITY ID
+        // =========================================================
+
         const communityId = '@ViewBag.CommunityId';
 
+        console.log("Community ID:", communityId);
 
-        // -----------------------------------------
-        // Document Ready
-        // -----------------------------------------
 
-        $(document).ready(function () {
+        // =========================================================
+        // PAGE LOAD
+        // =========================================================
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            console.log("Community Coin Management page loaded.");
+
+            if (!communityId || communityId === "0") {
+                console.error("CommunityId is missing.");
+                return;
+            }
 
             loadWallet();
-
             loadDashboard();
-
-            loadRewardConfig();
-
             loadTransactions();
-
             loadRewardHistory();
 
         });
 
 
-        // -----------------------------------------
-        // Number Formatting
-        // -----------------------------------------
+        // =========================================================
+        // NUMBER FORMAT
+        // =========================================================
 
         function numberText(value) {
 
-            return Number(value || 0).toLocaleString();
+            if (value === null || value === undefined || value === "") {
+                return "0";
+            }
+
+            return Number(value).toLocaleString();
 
         }
 
 
-        // -----------------------------------------
-        // Load Community Wallet
-        // -----------------------------------------
+        // =========================================================
+        // GET API DATA
+        // =========================================================
 
-        function loadWallet() {
+        async function getApi(url) {
 
-            $.get(
-                '/api/Community/GetCommunityWallet?communityId=' +
-                encodeURIComponent(communityId)
-            )
+            console.log("Calling API:", url);
 
-                .done(function (response) {
-
-                    const wallet =
-                        response.data ||
-                        response.Data ||
-                        response;
-
-                    $('#availableCoins')
-                        .text(numberText(wallet?.availableCoins));
-
-                })
-
-                .fail(function () {
-
-                    $('#availableCoins').text("0");
-
-                });
-
-        }
-
-
-        // -----------------------------------------
-        // Load Community Dashboard
-        // -----------------------------------------
-
-        function loadDashboard() {
-
-            $.get(
-                '/api/Community/GetCommunityRewardsDashboard?communityId=' +
-                encodeURIComponent(communityId)
-            )
-
-                .done(function (response) {
-
-                    $('#allocatedCoins')
-                        .text(numberText(
-                            response.totalAllocatedCoins
-                        ));
-
-                    $('#spentCoins')
-                        .text(numberText(
-                            response.totalRewardCoinsSpent
-                        ));
-
-                    $('#usersRewarded')
-                        .text(numberText(
-                            response.totalUsersRewarded
-                        ));
-
-                })
-
-                .fail(function () {
-
-                    $('#allocatedCoins').text("0");
-
-                    $('#spentCoins').text("0");
-
-                    $('#usersRewarded').text("0");
-
-                });
-
-        }
-
-
-        // -----------------------------------------
-        // Load Reward Configuration
-        // -----------------------------------------
-
-        function loadRewardConfig() {
-
-            $.get(
-                '/api/Rewards/GetCommunityShareRewardConfig?communityId=' +
-                encodeURIComponent(communityId)
-            )
-
-                .done(function (response) {
-
-                    $('#promotionCoins')
-                        .val(response.promotionShareCoins || 0);
-
-                    $('#productCoins')
-                        .val(response.productShareCoins || 0);
-
-                    $('#referralCoins')
-                        .val(response.referralCoins || 0);
-
-                })
-
-                .fail(function () {
-
-                    $('#promotionCoins').val(0);
-
-                    $('#productCoins').val(0);
-
-                    $('#referralCoins').val(0);
-
-                });
-
-        }
-
-
-        // -----------------------------------------
-        // Save Reward Configuration
-        // -----------------------------------------
-
-        $('#btnSaveConfig').click(function () {
-
-            const model = {
-
-                communityId: parseInt(communityId),
-
-                promotionShareCoins:
-                    parseInt(
-                        $('#promotionCoins').val()
-                    ) || 0,
-
-                productShareCoins:
-                    parseInt(
-                        $('#productCoins').val()
-                    ) || 0,
-
-                referralCoins:
-                    parseInt(
-                        $('#referralCoins').val()
-                    ) || 0
-
-            };
-
-
-            $.ajax({
-
-                url: '/api/Rewards/SaveCommunityShareRewardConfig',
-
-                type: 'POST',
-
-                contentType: 'application/json',
-
-                data: JSON.stringify(model),
-
-                success: function (response) {
-
-                    Swal.fire(
-                        "Saved",
-                        response.resultMessage ||
-                        "Configuration saved.",
-                        "success"
-                    );
-
-                },
-
-                error: function () {
-
-                    Swal.fire(
-                        "Error",
-                        "Failed to save configuration.",
-                        "error"
-                    );
-
+            const response = await fetch(url, {
+                method: "GET",
+                headers: {
+                    "Content-Type": "application/json"
                 }
-
             });
 
-        });
+            console.log("API Status:", response.status);
+
+            if (!response.ok) {
+                throw new Error(
+                    "API request failed. Status: " + response.status
+                );
+            }
+
+            const data = await response.json();
+
+            console.log("API Response:", data);
+
+            return data;
+
+        }
 
 
-        // -----------------------------------------
-        // Load Wallet Transactions
-        // -----------------------------------------
+        // =========================================================
+        // LOAD COMMUNITY WALLET
+        // =========================================================
 
-        function loadTransactions() {
+        async function loadWallet() {
 
-            $.get(
-                '/api/Community/GetCommunityWalletTransactions?communityId=' +
-                encodeURIComponent(communityId)
-            )
+            try {
 
-                .done(function (response) {
+                const url =
+                    '/api/Community/GetCommunityWallet?communityId=' +
+                    encodeURIComponent(communityId);
 
-                    const data =
-                        businessUi.list(response);
+                const response = await getApi(url);
+
+                console.log("Wallet Response:", response);
 
 
-                    if (!data.length) {
+                // Handle different API response structures
+                const wallet =
+                    response?.data ??
+                    response?.Data ??
+                    response?.result ??
+                    response?.Result ??
+                    response;
 
-                        $('#walletTransactionsBody')
-                            .html(
-                                businessUi.empty(
-                                    6,
-                                    "No transactions found."
-                                )
-                            );
 
-                        return;
+                console.log("Wallet Object:", wallet);
 
+
+                const availableCoins =
+                    wallet?.availableCoins ??
+                    wallet?.AvailableCoins ??
+                    0;
+
+
+                document.getElementById("availableCoins").innerText =
+                    numberText(availableCoins);
+
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Error loading community wallet:",
+                    error
+                );
+
+                document.getElementById("availableCoins").innerText = "0";
+
+            }
+
+        }
+
+
+        // =========================================================
+        // LOAD COMMUNITY DASHBOARD
+        // =========================================================
+
+        async function loadDashboard() {
+
+            try {
+
+                const url =
+                    '/api/Community/GetCommunityRewardsDashboard?communityId=' +
+                    encodeURIComponent(communityId);
+
+                const response = await getApi(url);
+
+                console.log("FULL DASHBOARD RESPONSE:", response);
+
+
+                // Handle all possible API response structures
+                let dashboard = response;
+
+                // { data: {...} }
+                if (response?.data) {
+                    dashboard = response.data;
+                }
+
+                // { Data: {...} }
+                else if (response?.Data) {
+                    dashboard = response.Data;
+                }
+
+                // { result: {...} }
+                else if (response?.result) {
+                    dashboard = response.result;
+                }
+
+                // { Result: {...} }
+                else if (response?.Result) {
+                    dashboard = response.Result;
+                }
+
+
+                // If API returns [{...}]
+                if (Array.isArray(dashboard)) {
+                    dashboard = dashboard.length > 0
+                        ? dashboard[0]
+                        : {};
+                }
+
+
+                console.log("DASHBOARD DATA:", dashboard);
+
+
+                // =====================================================
+                // GET VALUES
+                // =====================================================
+
+                const allocatedCoins =
+                    dashboard?.totalAllocatedCoins ??
+                    dashboard?.TotalAllocatedCoins ??
+                    0;
+
+
+                const spentCoins =
+                    dashboard?.totalRewardCoinsSpent ??
+                    dashboard?.TotalRewardCoinsSpent ??
+                    0;
+
+
+                const usersRewarded =
+                    dashboard?.totalUsersRewarded ??
+                    dashboard?.TotalUsersRewarded ??
+                    0;
+
+
+                console.log(
+                    "Allocated Coins:",
+                    allocatedCoins
+                );
+
+                console.log(
+                    "Spent Coins:",
+                    spentCoins
+                );
+
+                console.log(
+                    "Users Rewarded:",
+                    usersRewarded
+                );
+
+
+                // =====================================================
+                // DISPLAY
+                // =====================================================
+
+                document.getElementById("allocatedCoins").innerText =
+                    numberText(allocatedCoins);
+
+
+                document.getElementById("spentCoins").innerText =
+                    numberText(spentCoins);
+
+
+                document.getElementById("usersRewarded").innerText =
+                    numberText(usersRewarded);
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Error loading community dashboard:",
+                    error
+                );
+
+
+                document.getElementById("allocatedCoins").innerText = "0";
+
+                document.getElementById("spentCoins").innerText = "0";
+
+                document.getElementById("usersRewarded").innerText = "0";
+
+            }
+
+        }
+
+
+        // =========================================================
+        // LOAD WALLET TRANSACTIONS
+        // =========================================================
+
+        async function loadTransactions() {
+
+            try {
+
+                const url =
+                    '/api/Community/GetCommunityWalletTransactions?communityId=' +
+                    encodeURIComponent(communityId);
+
+
+                const response = await getApi(url);
+
+                console.log(
+                    "Transactions Response:",
+                    response
+                );
+
+
+                let data =
+                    response?.data ??
+                    response?.Data ??
+                    response?.result ??
+                    response?.Result ??
+                    response;
+
+
+                /*
+                    If API returns:
+                    {
+                        data: [...]
                     }
 
+                    OR
 
-                    const rows = data.map(item => `
+                    {
+                        result: [...]
+                    }
 
+                    OR directly:
+                    [...]
+                */
+
+                if (!Array.isArray(data)) {
+                    data = [];
+                }
+
+
+                const tbody =
+                    document.getElementById(
+                        "walletTransactionsBody"
+                    );
+
+
+                if (data.length === 0) {
+
+                    tbody.innerHTML = `
+                            <tr>
+                                <td colspan="6"
+                                    class="text-center p-4">
+                                    No transactions found.
+                                </td>
+                            </tr>
+                        `;
+
+                    return;
+                }
+
+
+                let rows = "";
+
+
+                data.forEach(function (item) {
+
+                    const createdAt =
+                        item?.createdAt ??
+                        item?.CreatedAt ??
+                        null;
+
+
+                    const transactionType =
+                        item?.transactionType ??
+                        item?.TransactionType ??
+                        "-";
+
+
+                    const coins =
+                        item?.coins ??
+                        item?.Coins ??
+                        0;
+
+
+                    const referenceType =
+                        item?.referenceType ??
+                        item?.ReferenceType ??
+                        "-";
+
+
+                    const referenceId =
+                        item?.referenceId ??
+                        item?.ReferenceId ??
+                        "-";
+
+
+                    const notes =
+                        item?.notes ??
+                        item?.Notes ??
+                        "-";
+
+
+                    rows += `
                             <tr>
 
                                 <td>
-                                    ${businessUi.date(
-                        item.createdAt,
-                        true
-                    )}
+                                    ${formatDate(createdAt)}
                                 </td>
 
                                 <td>
-
                                     <span class="badge bg-secondary">
-
-                                        ${businessUi.escape(
-                        item.transactionType || "-"
-                    )}
-
+                                        ${escapeHtml(transactionType)}
                                     </span>
-
                                 </td>
 
                                 <td class="cell-money">
-
-                                    ${numberText(item.coins)}
-
+                                    ${numberText(coins)}
                                 </td>
 
                                 <td>
-
-                                    ${businessUi.escape(
-                        item.referenceType || "-"
-                    )}
-
+                                    ${escapeHtml(referenceType)}
                                 </td>
 
                                 <td>
-
-                                    ${item.referenceId || "-"}
-
+                                    ${referenceId}
                                 </td>
 
                                 <td class="text-wrap">
-
-                                    ${businessUi.escape(
-                        item.notes || "-"
-                    )}
-
+                                    ${escapeHtml(notes)}
                                 </td>
 
                             </tr>
-
-                        `).join("");
-
-
-                    $('#walletTransactionsBody')
-                        .html(rows);
-
-                })
-
-                .fail(function () {
-
-                    $('#walletTransactionsBody')
-                        .html(
-                            businessUi.error(
-                                6,
-                                "Failed to load transactions."
-                            )
-                        );
+                        `;
 
                 });
+
+
+                tbody.innerHTML = rows;
+                 
+            }
+            catch (error) {
+
+                console.error(
+                    "Error loading wallet transactions:",
+                    error
+                );
+
+
+                document.getElementById(
+                    "walletTransactionsBody"
+                ).innerHTML = `
+                        <tr>
+                            <td colspan="6"
+                                class="text-center text-danger p-4">
+                                Failed to load transactions.
+                            </td>
+                        </tr>
+                    `;
+
+            }
 
         }
 
 
-        // -----------------------------------------
-        // Load Share Reward History
-        // -----------------------------------------
+        // =========================================================
+        // LOAD SHARE REWARD HISTORY
+        // =========================================================
 
-        function loadRewardHistory() {
+        async function loadRewardHistory() {
 
-            $.get(
-                '/api/Community/GetCommunityShareRewardHistory?communityId=' +
-                encodeURIComponent(communityId)
-            )
+            try {
 
-                .done(function (response) {
-
-                    const data =
-                        businessUi.list(response);
+                const url =
+                    '/api/Community/GetCommunityShareRewardHistory?communityId=' +
+                    encodeURIComponent(communityId);
 
 
-                    if (!data.length) {
+                const response = await getApi(url);
 
-                        $('#rewardHistoryBody')
-                            .html(
-                                businessUi.empty(
-                                    6,
-                                    "No reward history found."
-                                )
-                            );
-
-                        return;
-
-                    }
+                console.log(
+                    "Reward History Response:",
+                    response
+                );
 
 
-                    const rows = data.map(item => `
+                let data =
+                    response?.data ??
+                    response?.Data ??
+                    response?.result ??
+                    response?.Result ??
+                    response;
 
+
+                if (!Array.isArray(data)) {
+                    data = [];
+                }
+
+
+                const tbody =
+                    document.getElementById(
+                        "rewardHistoryBody"
+                    );
+
+
+                if (data.length === 0) {
+
+                    tbody.innerHTML = `
+                            <tr>
+                                <td colspan="6"
+                                    class="text-center p-4">
+                                    No reward history found.
+                                </td>
+                            </tr>
+                        `;
+
+                    return;
+                }
+
+
+                let rows = "";
+
+
+                data.forEach(function (item) {
+
+                    const userName =
+                        item?.userName ??
+                        item?.UserName ??
+                        "-";
+
+
+                    const promotionName =
+                        item?.promotionName ??
+                        item?.PromotionName ??
+                        "-";
+
+
+                    const productName =
+                        item?.productName ??
+                        item?.ProductName ??
+                        "-";
+
+
+                    const sharePlatform =
+                        item?.sharePlatform ??
+                        item?.SharePlatform ??
+                        "-";
+
+
+                    const rewardCoins =
+                        item?.rewardCoins ??
+                        item?.RewardCoins ??
+                        0;
+
+
+                    const sharedAt =
+                        item?.sharedAt ??
+                        item?.SharedAt ??
+                        null;
+
+
+                    rows += `
                             <tr>
 
                                 <td class="cell-strong">
-
-                                    ${businessUi.escape(
-                        item.userName || "-"
-                    )}
-
+                                    ${escapeHtml(userName)}
                                 </td>
 
                                 <td>
-
-                                    ${businessUi.escape(
-                        item.promotionName || "-"
-                    )}
-
+                                    ${escapeHtml(promotionName)}
                                 </td>
 
                                 <td>
-
-                                    ${businessUi.escape(
-                        item.productName || "-"
-                    )}
-
+                                    ${escapeHtml(productName)}
                                 </td>
 
                                 <td>
-
-                                    ${businessUi.escape(
-                        item.sharePlatform || "-"
-                    )}
-
+                                    ${escapeHtml(sharePlatform)}
                                 </td>
 
                                 <td class="cell-money">
-
-                                    ${numberText(
-                        item.rewardCoins
-                    )}
-
+                                    ${numberText(rewardCoins)}
                                 </td>
 
                                 <td>
-
-                                    ${businessUi.date(
-                        item.sharedAt,
-                        true
-                    )}
-
+                                    ${formatDate(sharedAt)}
                                 </td>
 
                             </tr>
-
-                        `).join("");
-
-
-                    $('#rewardHistoryBody')
-                        .html(rows);
-
-                })
-
-                .fail(function () {
-
-                    $('#rewardHistoryBody')
-                        .html(
-                            businessUi.error(
-                                6,
-                                "Failed to load reward history."
-                            )
-                        );
+                        `;
 
                 });
+
+
+                tbody.innerHTML = rows;
+
+            }
+            catch (error) {
+
+                console.error(
+                    "Error loading reward history:",
+                    error
+                );
+
+
+                document.getElementById(
+                    "rewardHistoryBody"
+                ).innerHTML = `
+                        <tr>
+                            <td colspan="6"
+                                class="text-center text-danger p-4">
+                                Failed to load reward history.
+                            </td>
+                        </tr>
+                    `;
+
+            }
+
+        }
+
+
+        // =========================================================
+        // DATE FORMAT
+        // =========================================================
+
+        function formatDate(value) {
+
+            if (!value) {
+                return "-";
+            }
+
+            try {
+
+                const date = new Date(value);
+
+                if (isNaN(date.getTime())) {
+                    return value;
+                }
+
+                return date.toLocaleString();
+
+            }
+            catch {
+
+                return value;
+
+            }
+
+        }
+
+
+        // =========================================================
+        // HTML ESCAPE
+        // =========================================================
+
+        function escapeHtml(value) {
+
+            if (value === null || value === undefined) {
+                return "";
+            }
+
+            return String(value)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
 
         }
 
     </script>
+
 }
