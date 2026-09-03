@@ -327,6 +327,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public int PostId { get; set; }
 
         public int CommunityId { get; set; }
+        public string? CommunityName { get; set; }
+        public string? CommunityLogo { get; set; }
 
         public string? Title { get; set; }
 
