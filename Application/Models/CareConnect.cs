@@ -172,6 +172,37 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public DateTime CreatedDate { get; set; }
     }
+
+    public class CompleteCareConnectRequest
+    {
+        public int RequestId { get; set; }
+        public Guid SupporterId { get; set; }
+    }
+
+    public class CompleteCareConnectResponse
+    {
+        public int ResultId { get; set; }
+        public string ResultMessage { get; set; }
+        public int RequestId { get; set; }
+        public Guid SupporterId { get; set; }
+        public int RewardCoins { get; set; }
+        public bool IsRewardCredited { get; set; }
+    }
+    public class SelectCareConnectSupporterRequest
+    {
+        public int RequestId { get; set; }
+        public Guid SupporterId { get; set; }
+    }
+
+    public class SelectCareConnectSupporterResponse
+    {
+        public int ResultId { get; set; }
+        public string ResultMessage { get; set; }
+        public int RequestId { get; set; }
+        public Guid SupporterId { get; set; }
+    }
+
+
 }
 
 

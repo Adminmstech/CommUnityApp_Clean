@@ -60,6 +60,22 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     commandType: CommandType.StoredProcedure);
             }
         }
+
+        public async Task<UpdateVolunteerRequestStatusResponse> UpdateVolunteerRequestStatus(int requestId, string status)
+        {
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+
+            var result = await con.QueryFirstOrDefaultAsync<UpdateVolunteerRequestStatusResponse>(
+                "sp_UpdateVolunteerRequestStatus",
+                new
+                {
+                    RequestId = requestId,
+                    Status = status
+                },
+                commandType: CommandType.StoredProcedure);
+
+            return result;
+        }
     }
 }
 

@@ -47,4 +47,21 @@ namespace CommUnityApp.ApplicationCore.Models
         public string Email { get; set; }
         public string Password { get; set; }
     }
+
+    public class UpdateVolunteerRequestStatusRequest
+    {
+        public int RequestId { get; set; }
+        public string Status { get; set; }
+    }
+
+    public class UpdateVolunteerRequestStatusResponse
+    {
+        public int ResultId { get; set; }
+        public string ResultMessage { get; set; }
+        public int RequestId { get; set; }
+        public string Status { get; set; }
+        public bool IsDelivered { get; set; }
+        public bool IsRewardCredited { get; set; }
+        public int RewardCoins { get; set; }
+    }
 }

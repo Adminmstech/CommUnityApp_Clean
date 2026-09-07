@@ -30,5 +30,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<CareConnectChatListModel>> GetSentRequests(Guid userId);
 
         Task<List<CareConnectChatListModel>> GetReceivedRequests(Guid supporterId);
+
+        Task<CompleteCareConnectResponse?> CompleteCareConnectService(int requestId, Guid supporterId);
+        Task<SelectCareConnectSupporterResponse?> SelectCareConnectSupporter(int requestId,Guid supporterId);
     }
 }

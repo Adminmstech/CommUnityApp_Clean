@@ -2,6 +2,7 @@
 using CommUnityApp.ApplicationCore.Models;
 using CommUnityApp.InfrastructureLayer.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 
 namespace CommUnityApp.Services
 {
@@ -333,6 +334,133 @@ namespace CommUnityApp.Services
                 {
                     Status = 0,
                     Message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("UpdateCareConnectServiceStatus")]
+        public async Task<IActionResult> CompleteCareConnectService(
+    [FromBody] CompleteCareConnectRequest request)
+        {
+            if (request == null || request.RequestId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid requestId is required."
+                });
+            }
+
+            if (request.SupporterId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid supporterId is required."
+                });
+            }
+
+            try
+            {
+                var result = await _careConnectRepository.CompleteCareConnectService(
+                    request.RequestId,
+                    request.SupporterId);
+
+                if (result == null)
+                {
+                    return NotFound(new
+                    {
+                        resultId = 0,
+                        resultMessage = "Care Connect request not found."
+                    });
+                }
+
+                return Ok(new
+                {
+                    resultId = result.ResultId,
+                    resultMessage = result.ResultMessage,
+                    requestId = result.RequestId,
+                    supporterId = result.SupporterId,
+                    rewardCoins = result.RewardCoins,
+                    rewardCredited = result.IsRewardCredited
+                });
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    resultId = 0,
+                    resultMessage = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("SelectCareConnectSupporter")]
+        public async Task<IActionResult> SelectCareConnectSupporter([FromBody] SelectCareConnectSupporterRequest request)
+        {
+            if (request == null || request.RequestId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid requestId is required."
+                });
+            }
+             
+            if (request.SupporterId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid supporterId is required."
+                });
+            }
+
+            try
+            {
+                var result = await _careConnectRepository.SelectCareConnectSupporter(
+                    request.RequestId,
+                    request.SupporterId);
+
+                if (result == null)
+                {
+                    return NotFound(new
+                    {
+                        resultId = 0,
+                        resultMessage = "Unable to select supporter."
+                    });
+                }
+
+                return Ok(new
+                {
+                    resultId = result.ResultId,
+                    resultMessage = result.ResultMessage,
+                    requestId = result.RequestId,
+                    supporterId = result.SupporterId
+                });
+            }
+            catch (SqlException ex)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = ex.Message
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    resultId = 0,
+                    resultMessage = ex.Message
                 });
             }
         }
