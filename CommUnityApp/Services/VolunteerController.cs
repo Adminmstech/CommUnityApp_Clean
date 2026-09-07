@@ -58,5 +58,62 @@ namespace CommUnityApp.Services
             await _volunteerRepository.UpdateVolunteerRequestStatus(model);
             return Ok(new { message = "Status updated successfully" });
         }
+
+        [HttpPost("UpdateCharityDeliveryStatus")]
+        public async Task<IActionResult> UpdateStatus([FromBody] UpdateVolunteerRequestStatusRequest request)
+        {
+            if (request == null || request.RequestId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid requestId is required."
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Status))
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Status is required."
+                });
+            }
+
+            try
+            {
+                var result = await _volunteerRepository.UpdateVolunteerRequestStatus(
+                    request.RequestId,
+                    request.Status);
+
+                if (result == null)
+                {
+                    return NotFound(new
+                    {
+                        resultId = 0,
+                        resultMessage = "Charity request not found."
+                    });
+                }
+
+                return Ok(new
+                {
+                    resultId = result.ResultId,
+                    resultMessage = result.ResultMessage,
+                    requestId = result.RequestId,
+                    status = result.Status,
+                    isDelivered = result.IsDelivered,
+                    rewardCredited = result.IsRewardCredited,
+                    rewardCoins = result.RewardCoins
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    resultId = 0,
+                    resultMessage = ex.Message
+                });
+            }
+        }
     }
 }

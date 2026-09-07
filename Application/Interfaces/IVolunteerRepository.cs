@@ -13,5 +13,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<dynamic> VolunteerLogin(string email, string password);
         Task<List<VolunteerAssignedItemModel>> GetVolunteerAssignedRequests(Guid volunteerId);
         Task UpdateVolunteerRequestStatus(VolunteerStatusUpdateModel model);
+
+        Task<UpdateVolunteerRequestStatusResponse> UpdateVolunteerRequestStatus(int requestId, string status);
     }
 }

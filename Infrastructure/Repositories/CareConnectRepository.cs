@@ -322,6 +322,34 @@ item.ServiceImagePath =
 
             return result.ToList();
         }
+
+        public async Task<CompleteCareConnectResponse?> CompleteCareConnectService(int requestId,Guid supporterId)
+        {
+            using var con = new SqlConnection(
+                           _configuration.GetConnectionString("DefaultConnection"));
+            return await con.QueryFirstOrDefaultAsync<CompleteCareConnectResponse>(
+                "sp_UpdateCareConnectServiceStatus",
+                new
+                {
+                    RequestId = requestId,
+                    SupporterId = supporterId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<SelectCareConnectSupporterResponse?> SelectCareConnectSupporter(int requestId,Guid supporterId)
+        {
+
+            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            return await con.QueryFirstOrDefaultAsync<SelectCareConnectSupporterResponse>(
+                "sp_SelectCareConnectSupporter",
+                new
+                {
+                    RequestId = requestId,
+                    SupporterId = supporterId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
     }
 
 }
