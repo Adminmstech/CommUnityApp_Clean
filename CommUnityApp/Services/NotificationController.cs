@@ -244,5 +244,55 @@ namespace CommUnityApp.Services
                 Data = data
             });
         }
+
+        [HttpPost("EditMessageBoardPost")]
+        public async Task<IActionResult> EditPost([FromBody] EditPostRequest request)
+        {
+            try
+            {
+                var postId = await _notificationRepository
+                    .UpdatePostAsync(request);
+
+                return Ok(new
+                {
+                    Status = true,
+                    Message = "Post updated successfully",
+                    PostId = postId
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Status = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("MemberMessageBoardPosts")]
+        public async Task<IActionResult> GetMemberPosts(Guid userId)
+        {
+            try
+            {
+                var posts = await _notificationRepository
+                    .GetMemberPostsAsync(userId);
+
+                return Ok(new
+                {
+                    Status = true,
+                    Message = "Member posts retrieved successfully",
+                    Data = posts
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new
+                {
+                    Status = false,
+                    Message = ex.Message
+                });
+            }
+        }
     }
 }

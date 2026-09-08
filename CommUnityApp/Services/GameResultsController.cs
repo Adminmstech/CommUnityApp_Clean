@@ -78,7 +78,7 @@ namespace CommUnityApp.Services
         public async Task<IActionResult> AssignPrize([FromBody] AssignPrizeModel model)
         {
             var result = await _gameResultsRepository.AssignPrize(model);
-            return Ok(new { status = result });
+            return Ok(new { status = result }); 
         }
 
 

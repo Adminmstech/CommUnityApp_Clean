@@ -383,6 +383,156 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return posts;
         }
+
+        public async Task<int> UpdatePostAsync(EditPostRequest request)
+        {
+            using (var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
+            {
+                await connection.OpenAsync();
+
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        var parameters = new DynamicParameters();
+
+                        parameters.Add("@PostId", request.PostId);
+                        parameters.Add("@CommunityId", request.CommunityId);
+                        parameters.Add("@UserId", request.UserId);
+                        parameters.Add("@Category", request.Category);
+                        parameters.Add("@Type", request.Type);
+                        parameters.Add("@Priority", request.Priority);
+                        parameters.Add("@Title", request.Title);
+                        parameters.Add("@Description", request.Description);
+                        parameters.Add("@Location", request.Location);
+
+                        var postId = await connection.ExecuteScalarAsync<int>(
+                            "sp_EditCommunityMessageBoardPost",
+                            parameters,
+                            transaction,
+                            commandType: CommandType.StoredProcedure
+                        );
+
+                        if (postId == 0)
+                        {
+                            throw new Exception(
+                                "Post not found or you are not authorized to edit this post.");
+                        }
+
+                        // Existing image folder
+                        string rootPath = Path.Combine(
+                            Directory.GetCurrentDirectory(),
+                            "wwwroot"
+                        );
+
+                        string folderPath = Path.Combine(
+                            rootPath,
+                            "Uploads",
+                            "Posts",
+                            postId.ToString()
+                        );
+
+                        // Delete old images from DB
+                        await connection.ExecuteAsync(
+                            @"DELETE FROM CommunityMessageBoardPostImages
+                      WHERE PostId = @PostId",
+                            new { PostId = postId },
+                            transaction
+                        );
+
+                        // Delete old image files
+                        if (Directory.Exists(folderPath))
+                        {
+                            Directory.Delete(folderPath, true);
+                        }
+
+                        // Create folder again
+                        Directory.CreateDirectory(folderPath);
+
+                        // Save new images
+                        if (request.Images != null && request.Images.Count > 0)
+                        {
+                            foreach (var base64 in request.Images)
+                            {
+                                if (string.IsNullOrWhiteSpace(base64))
+                                    continue;
+
+                                var base64Data = base64.Contains(",")
+                                    ? base64.Split(',')[1]
+                                    : base64;
+
+                                byte[] imageBytes =
+                                    Convert.FromBase64String(base64Data);
+
+                                string fileName =
+                                    $"img_{Guid.NewGuid()}.jpg";
+
+                                string filePath =
+                                    Path.Combine(folderPath, fileName);
+
+                                await File.WriteAllBytesAsync(
+                                    filePath,
+                                    imageBytes
+                                );
+
+                                string dbPath =
+                                    $"/Uploads/Posts/{postId}/{fileName}";
+
+                                await connection.ExecuteAsync(
+                                    @"INSERT INTO CommunityMessageBoardPostImages
+                              (
+                                  PostId,
+                                  ImagePath
+                              )
+                              VALUES
+                              (
+                                  @PostId,
+                                  @ImagePath
+                              )",
+                                    new
+                                    {
+                                        PostId = postId,
+                                        ImagePath = dbPath
+                                    },
+                                    transaction
+                                );
+                            }
+                        }
+
+                        transaction.Commit();
+
+                        return postId;
+                    }
+                    catch
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
+                }
+            }
+        }
+
+        public async Task<IEnumerable<MemberPostResponse>> GetMemberPostsAsync(Guid userId)
+        {
+            using (var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection")))
+            {
+                await connection.OpenAsync();
+
+                var parameters = new DynamicParameters();
+
+                parameters.Add("@UserId", userId);
+
+                var result = await connection.QueryAsync<MemberPostResponse>(
+                    "sp_GetMemberMessageBoardPosts",
+                    parameters,
+                    commandType: CommandType.StoredProcedure
+                );
+
+                return result;
+            }
+        }
     }
     }
     

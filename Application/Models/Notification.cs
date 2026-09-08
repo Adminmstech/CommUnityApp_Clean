@@ -93,4 +93,46 @@ namespace CommUnityApp.ApplicationCore.Models
         public int SubCategoryId { get; set; }
         public string SubCategoryName { get; set; }
     }
+
+    public class EditPostRequest
+    {
+        public int PostId { get; set; }
+
+        public int CommunityId { get; set; }
+
+        public Guid UserId { get; set; }
+
+        public string Category { get; set; }
+
+        public string Type { get; set; }
+
+        public string Priority { get; set; }
+
+        public string Title { get; set; }
+
+        public string Description { get; set; }
+
+        public string Location { get; set; }
+
+        public List<string> Images { get; set; }
+    }
+
+    public class MemberPostResponse
+    {
+        public int PostId { get; set; }
+        public int CommunityId { get; set; }
+        public Guid UserId { get; set; }
+
+        public string Category { get; set; }
+        public string Type { get; set; }
+        public string Priority { get; set; }
+
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public string Location { get; set; }
+
+        public DateTime CreatedDate { get; set; }
+
+        public string Images { get; set; }
+    }
 }
