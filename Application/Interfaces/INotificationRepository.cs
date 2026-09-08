@@ -27,6 +27,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BaseResponse> DeleteComment(int commentId);
         Task<BaseResponse> DeletePost(int postId);
         Task<List<PostResponse>> GetTopFiveMessageBoardPosts(Guid userId);
-
+        Task<int> UpdatePostAsync(EditPostRequest request);
+        Task<IEnumerable<MemberPostResponse>> GetMemberPostsAsync(Guid userId);
     }
 }
