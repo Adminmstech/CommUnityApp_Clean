@@ -798,7 +798,7 @@ namespace CommUnityApp.Services
                         $"https://indocommunity.com/share/event/{request.EventId}?ref={result.ShareToken}";
 
                     return Ok(new
-                    {
+                    { 
                         resultId = 1,
 
                         resultMessage =
