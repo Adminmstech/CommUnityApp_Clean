@@ -794,7 +794,7 @@ namespace CommUnityApp.Services
                         });
                     }
 
-                    string shareUrl =
+                    string shareUrl = 
                         $"https://indocommunity.com/share/event/{request.EventId}?ref={result.ShareToken}";
 
                     return Ok(new
