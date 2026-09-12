@@ -407,20 +407,28 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             SpinSectionRequest? selectedSection = null;
 
-            // Auto-calculate range-based play logic on the server side
-            var totalProbability = sectionsList.Sum(s => s.Probability);
-            var hasConfiguredRanges = sectionsList.All(s => s.WinRangeMin.HasValue && s.WinRangeMax.HasValue);
-            if (totalProbability == 100 && hasConfiguredRanges)
-            {
-                var random = new Random();
-                int roll = random.Next(1, 101); // 1 to 100
-                selectedSection = sectionsList.FirstOrDefault(s => roll >= s.WinRangeMin.Value && roll <= s.WinRangeMax.Value);
-            }
-
-            // Fallback for legacy games or partial configurations
-            if (selectedSection == null)
+            // 1. If client provided a valid SectionId (the section the wheel animation landed on), strictly honor it!
+            if (request.SectionId > 0)
             {
                 selectedSection = sectionsList.FirstOrDefault(s => s.SectionId == request.SectionId);
+            }
+
+            // 2. If no valid section provided by client, calculate based on configured probability ranges
+            if (selectedSection == null)
+            {
+                var totalProbability = sectionsList.Sum(s => s.Probability);
+                var hasConfiguredRanges = sectionsList.All(s => s.WinRangeMin.HasValue && s.WinRangeMax.HasValue);
+                if (totalProbability == 100 && hasConfiguredRanges)
+                {
+                    int roll = Random.Shared.Next(1, 101); // 1 to 100
+                    selectedSection = sectionsList.FirstOrDefault(s => roll >= s.WinRangeMin.Value && roll <= s.WinRangeMax.Value);
+                }
+            }
+
+            // 3. Fallback to first section if still null
+            if (selectedSection == null)
+            {
+                selectedSection = sectionsList.FirstOrDefault();
             }
 
             if (selectedSection == null) 
@@ -428,10 +436,23 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "Invalid section or section does not belong to this game." };
             }
 
-            // Do not allow redeem code / QR for "Better Luck Next Time", "Try Again :(", or if the section rewards coins (Points > 0)
-            bool isRedeemable = !string.Equals(selectedSection.PrizeText, "Better Luck Next Time", StringComparison.OrdinalIgnoreCase) &&
-                                !string.Equals(selectedSection.PrizeText, "Try Again :(", StringComparison.OrdinalIgnoreCase) &&
-                                !(selectedSection.Points.GetValueOrDefault() > 0);
+            // Determine if section is a coin/point reward
+            bool isCoinReward = (selectedSection.Points.GetValueOrDefault() > 0) ||
+                                (!string.IsNullOrWhiteSpace(selectedSection.PrizeText) &&
+                                 (selectedSection.PrizeText.Contains("point", StringComparison.OrdinalIgnoreCase) ||
+                                  selectedSection.PrizeText.Contains("coin", StringComparison.OrdinalIgnoreCase) ||
+                                  selectedSection.PrizeText.Contains("ic", StringComparison.OrdinalIgnoreCase) ||
+                                  selectedSection.PrizeText.Contains("indocoin", StringComparison.OrdinalIgnoreCase)));
+
+            // Determine if section is a losing/non-prize section
+            bool isLosingSection = string.Equals(selectedSection.PrizeText, "Better Luck Next Time", StringComparison.OrdinalIgnoreCase) ||
+                                   string.Equals(selectedSection.PrizeText, "Try Again :(", StringComparison.OrdinalIgnoreCase) ||
+                                   string.Equals(selectedSection.PrizeText, "Spin Again", StringComparison.OrdinalIgnoreCase);
+
+            // Prize is redeemable ONLY for physical prizes or store vouchers (must not be coins and not be a losing section)
+            bool isRedeemable = !isCoinReward && !isLosingSection &&
+                                (selectedSection.PromotionId.GetValueOrDefault() > 0 ||
+                                 (!string.IsNullOrWhiteSpace(selectedSection.PrizeText) && !selectedSection.PrizeText.Equals("None", StringComparison.OrdinalIgnoreCase)));
 
             if (!isRedeemable)
             {

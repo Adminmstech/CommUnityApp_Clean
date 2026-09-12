@@ -1,4 +1,4 @@
-﻿using CommUnityApp.ApplicationCore.Interfaces;
+using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using CommUnityApp.InfrastructureLayer.Repositories;
 using Microsoft.AspNetCore.Http;
@@ -515,8 +515,20 @@ namespace CommUnityApp.Services
         }
 
         [HttpGet("GetUserWalletTransactions")]
+        [HttpGet("GetCoinsHistory")]
+        [HttpGet("GetWalletTransactions")]
+        [HttpGet("Get_MyCoinsHistory")]
         public async Task<IActionResult> GetUserWalletTransactions(Guid userId)
         {
+            if (userId == Guid.Empty)
+            {
+                return BadRequest(new BaseResponse
+                {
+                    ResultId = 0,
+                    ResultMessage = "Valid userId is required."
+                });
+            }
+
             var data = await _unitOfWork.User.GetUserWalletTransactions(userId);
 
             return Ok(new
@@ -524,7 +536,9 @@ namespace CommUnityApp.Services
                 ResultId = 1,
                 ResultMessage = "Success",
                 Status = true,
-                Data = data
+                Data = data,
+                transactions = data,
+                history = data
             });
         }
 

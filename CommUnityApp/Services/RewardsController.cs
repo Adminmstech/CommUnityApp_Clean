@@ -1,4 +1,4 @@
-﻿using CommUnityApp.ApplicationCore.Interfaces;
+using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +24,33 @@ namespace CommUnityApp.Services
         {
             var data = await _unitOfWork.Rewards.GetCoins(UserId);
             return Ok(data);
+        }
+
+        [HttpGet("GetUserWalletTransactions")]
+        [HttpGet("GetCoinsHistory")]
+        [HttpGet("Get_MyCoinsHistory")]
+        public async Task<IActionResult> GetUserWalletTransactions(Guid userId)
+        {
+            if (userId == Guid.Empty)
+            {
+                return BadRequest(new BaseResponse
+                {
+                    ResultId = 0,
+                    ResultMessage = "Valid userId is required."
+                });
+            }
+
+            var data = await _unitOfWork.User.GetUserWalletTransactions(userId);
+
+            return Ok(new
+            {
+                ResultId = 1,
+                ResultMessage = "Success",
+                Status = true,
+                Data = data,
+                transactions = data,
+                history = data
+            });
         }
 
         [HttpPost("ClaimDailyStreak")]

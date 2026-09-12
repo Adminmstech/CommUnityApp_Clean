@@ -1,4 +1,4 @@
-﻿using CommUnityApp.ApplicationCore.Interfaces;
+using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using CommUnityApp.InfrastructureLayer.Repositories;
 using Microsoft.AspNetCore.Mvc;
@@ -83,6 +83,10 @@ namespace CommUnityApp.Services
 
 
         [HttpGet("GetUserGameHistory")]
+        [HttpGet("GetMyPrizes")]
+        [HttpGet("GetUserPrizes")]
+        [HttpGet("/api/Game/GetMyPrizes")]
+        [HttpGet("/api/Game/GetUserGameHistory")]
         public async Task<IActionResult> GetUserGameHistory(Guid userId)
         {
             if (userId == Guid.Empty)
@@ -98,44 +102,50 @@ namespace CommUnityApp.Services
 
             var baseUrl = (_configuration["ApiSettings:BaseUrl"] ?? "").TrimEnd('/');
 
-            var result = history.Select(x => new
+            var result = history.Select(x =>
             {
-                x.GameResultId,
-                x.GameType,
-                x.GameId,
-                x.GameName,
-                x.GameTitle,
+                string category = !string.IsNullOrWhiteSpace(x.PrizeCategory)
+                    ? x.PrizeCategory
+                    : (x.RewardValue?.Contains("Voucher", StringComparison.OrdinalIgnoreCase) == true || x.RewardValue?.Contains("Off", StringComparison.OrdinalIgnoreCase) == true
+                        ? "Voucher"
+                        : (x.RewardValue?.Contains("Free", StringComparison.OrdinalIgnoreCase) == true ? "Freebie" : "Promo"));
 
-                GameImage = BuildFullImageUrl(baseUrl, x.GameImage),
+                string qrUrl = string.IsNullOrEmpty(x.QRCodePath)
+                    ? null
+                    : BuildFullImageUrl(baseUrl, x.QRCodePath);
 
-                PrizeImage = BuildFullImageUrl(baseUrl, x.PrizeImage),
+                return new
+                {
+                    x.GameResultId,
+                    x.GameType,
+                    x.GameId,
+                    x.GameName,
+                    x.GameTitle,
+                    prizeTitle = x.RewardValue,
+                    prizeCategory = category,
+                    isRedeemable = !string.IsNullOrEmpty(x.RedeemCode),
 
-                x.PlayedAt,
-                 
-                x.RewardValue, 
-
-                x.RedeemCode,
-
-                RedeemQRCode = string.IsNullOrEmpty(x.QRCodePath)
-    ? null
-    : BuildFullImageUrl(baseUrl, x.QRCodePath),
-
-                x.IsWinner,
-
-                x.PointsAwarded,
-
-                x.BusinessLocation,
-
-                x.SectionId,
-
-                SectionImage = BuildFullImageUrl(baseUrl, x.SectionImage)
-            });
+                    GameImage = BuildFullImageUrl(baseUrl, x.GameImage),
+                    PrizeImage = BuildFullImageUrl(baseUrl, x.PrizeImage),
+                    x.PlayedAt,
+                    x.RewardValue,
+                    x.RedeemCode,
+                    RedeemQRCode = qrUrl,
+                    redeemQrCode = qrUrl,
+                    x.IsWinner,
+                    x.PointsAwarded,
+                    x.BusinessLocation,
+                    x.SectionId,
+                    SectionImage = BuildFullImageUrl(baseUrl, x.SectionImage)
+                };
+            }).ToList();
 
             return Ok(new
             {
                 ResultId = 1,
                 ResultMessage = "Success",
-                Data = result
+                Data = result,
+                prizes = result
             });
         }
 

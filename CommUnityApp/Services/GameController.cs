@@ -337,19 +337,43 @@ namespace CommUnityApp.Services
                     ResultMessage = "Valid sectionId is required."
                 });
             }
-            var redeemCode = GenerateRedeemCode();
+            var requestedSection = await _spinGameRepository.GetSectionByIdAsync(request.SectionId);
 
-            var qrCodePath = GenerateSpinGameQRCode(redeemCode);
+            bool isCoinReward = (requestedSection != null && requestedSection.Points.GetValueOrDefault() > 0) ||
+                                (requestedSection != null && !string.IsNullOrWhiteSpace(requestedSection.PrizeText) &&
+                                 (requestedSection.PrizeText.Contains("point", StringComparison.OrdinalIgnoreCase) ||
+                                  requestedSection.PrizeText.Contains("coin", StringComparison.OrdinalIgnoreCase) ||
+                                  requestedSection.PrizeText.Contains("ic", StringComparison.OrdinalIgnoreCase) ||
+                                  requestedSection.PrizeText.Contains("indocoin", StringComparison.OrdinalIgnoreCase)));
+
+            bool isLosingSection = requestedSection != null &&
+                                   (string.Equals(requestedSection.PrizeText, "Better Luck Next Time", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(requestedSection.PrizeText, "Try Again :(", StringComparison.OrdinalIgnoreCase) ||
+                                    string.Equals(requestedSection.PrizeText, "Spin Again", StringComparison.OrdinalIgnoreCase));
+
+            bool isRedeemable = !isCoinReward && !isLosingSection &&
+                                (requestedSection != null && (requestedSection.PromotionId.GetValueOrDefault() > 0 ||
+                                 (!string.IsNullOrWhiteSpace(requestedSection.PrizeText) && !requestedSection.PrizeText.Equals("None", StringComparison.OrdinalIgnoreCase))));
+
+            string? redeemCode = null;
+            string? qrCodePath = null;
+
+            if (isRedeemable)
+            {
+                redeemCode = GenerateRedeemCode();
+                qrCodePath = GenerateSpinGameQRCode(redeemCode);
+            }
 
             var result = await _spinGameRepository.PlaySpinGameAsync(
                 request,
                 redeemCode,
                 qrCodePath);
+
             if (result.ResultId > 0)
             {
                 var baseUrl = (_configuration["ApiSettings:BaseUrl"] ?? string.Empty).TrimEnd('/');
                 var game = await _spinGameRepository.GetSpinGameByIdAsync(request.GameId);
-                var section = await _spinGameRepository.GetSectionByIdAsync(result.SectionId);
+                var section = await _spinGameRepository.GetSectionByIdAsync(result.SectionId) ?? requestedSection;
 
                 int totalCoinsAwarded = 0;
                 if (game != null && game.RewardCoins > 0)
@@ -369,6 +393,30 @@ namespace CommUnityApp.Services
                         request.GameId);
                 }
 
+                // Resolve relevant image for section (coins, losing, or voucher)
+                string? resolvedSectionImage = section?.SectionImage;
+                if (string.IsNullOrWhiteSpace(resolvedSectionImage))
+                {
+                    int pts = section?.Points.GetValueOrDefault() ?? 0;
+                    if (pts >= 200 || (section?.PrizeText?.Contains("200") ?? false))
+                        resolvedSectionImage = "Images/brandgames/rewards/200_indocoins.png";
+                    else if (pts >= 100 || (section?.PrizeText?.Contains("100") ?? false))
+                        resolvedSectionImage = "Images/brandgames/rewards/100_indocoins.png";
+                    else if (pts >= 50 || (section?.PrizeText?.Contains("50") ?? false))
+                        resolvedSectionImage = "Images/brandgames/rewards/50_indocoins.png";
+                    else if (pts >= 25 || (section?.PrizeText?.Contains("25") ?? false))
+                        resolvedSectionImage = "Images/brandgames/rewards/25_indocoins.png";
+                    else if (isCoinReward)
+                        resolvedSectionImage = "Images/brandgames/rewards/50_indocoins.png";
+                    else if (isLosingSection)
+                        resolvedSectionImage = "Images/brandgames/rewards/almost_there.png";
+                    else
+                        resolvedSectionImage = game?.GameImage ?? "Images/brandgames/rewards/mystery_gift.png";
+                }
+
+                string? effectiveRedeemCode = isRedeemable ? result.RedeemCode : null;
+                string? effectiveQrCodePath = isRedeemable ? result.QRCodePath : null;
+
                 // Backward compatible response + enriched fields for app/store redemption flows.
                 return Ok(new
                 {
@@ -380,17 +428,20 @@ namespace CommUnityApp.Services
                     sectionNumber = section?.SectionNumber ?? 0,
                     sectionIndex = (section != null) ? (section.SectionNumber - 1) : -1,
                     result.RewardValue,
-                    result.RedeemCode,
+                    redeemCode = effectiveRedeemCode,
                     result.Status,
                     result.PlayedAt,
+                    isCoinReward = isCoinReward,
+                    isRedeemable = isRedeemable,
+                    coinsEarned = totalCoinsAwarded,
                   
-                    gameImage = BuildFullImageUrl(baseUrl, game?.GameImage),
+                    gameImage = BuildFullImageUrl(baseUrl, game?.GameImage ?? resolvedSectionImage),
                     offerText = section?.PrizeText ?? result.RewardValue,
-                    sectionImage = BuildFullImageUrl(baseUrl, section?.SectionImage),
+                    sectionImage = BuildFullImageUrl(baseUrl, resolvedSectionImage),
 
-                    spinRedeemCode = result.RedeemCode,
+                    spinRedeemCode = effectiveRedeemCode,
 
-                    spinRedeemQrCode = BuildFullImageUrl(baseUrl, result.QRCodePath),
+                    spinRedeemQrCode = BuildFullImageUrl(baseUrl, effectiveQrCodePath),
 
                     businessLocation = result.BusinessLocation,
 
@@ -401,11 +452,14 @@ namespace CommUnityApp.Services
                         sectionNumber = section?.SectionNumber ?? 0,
                         sectionIndex = (section != null) ? (section.SectionNumber - 1) : -1,
                         offerText = section?.PrizeText ?? result.RewardValue,
-                        redeemCode = result.RedeemCode,
-                        redeemQrCode = BuildFullImageUrl(baseUrl, result.QRCodePath),
+                        redeemCode = effectiveRedeemCode,
+                        redeemQrCode = BuildFullImageUrl(baseUrl, effectiveQrCodePath),
                         businessLocation = result.BusinessLocation,
-                        gameImage = BuildFullImageUrl(baseUrl, game?.GameImage),
-                        sectionImage = BuildFullImageUrl(baseUrl, section?.SectionImage)
+                        gameImage = BuildFullImageUrl(baseUrl, game?.GameImage ?? resolvedSectionImage),
+                        sectionImage = BuildFullImageUrl(baseUrl, resolvedSectionImage),
+                        isCoinReward = isCoinReward,
+                        isRedeemable = isRedeemable,
+                        coinsEarned = totalCoinsAwarded
                     }
                 });
             }
@@ -644,26 +698,33 @@ namespace CommUnityApp.Services
                 (_configuration["ApiSettings:BaseUrl"] ?? "")
                 .TrimEnd('/');
 
-            // Only used for displaying the scratch card.
-            // This DOES NOT assign a prize.
+            // Provide fallback cascade for all prize images so they are never null or broken
+            const string defaultMysteryGift = "Images/brandgames/rewards/mystery_gift.png";
+            const string defaultCoinsImage = "Images/brandgames/rewards/50_indocoins.png";
+            const string defaultConsolation = "Images/brandgames/rewards/almost_there.png";
+
+            string primaryImage = !string.IsNullOrWhiteSpace(game.PrimaryPrizeImage)
+                ? game.PrimaryPrizeImage
+                : (!string.IsNullOrWhiteSpace(game.BrandGameImage) ? game.BrandGameImage : defaultMysteryGift);
+
+            string secondaryImage = !string.IsNullOrWhiteSpace(game.SecondaryPrizeImage)
+                ? game.SecondaryPrizeImage
+                : (!string.IsNullOrWhiteSpace(game.BrandGameImage) ? game.BrandGameImage : defaultCoinsImage);
+
+            string consolationImage = !string.IsNullOrWhiteSpace(game.ConsolationPrizeImage)
+                ? game.ConsolationPrizeImage
+                : (!string.IsNullOrWhiteSpace(game.UnSuccessfulImage) ? game.UnSuccessfulImage : (!string.IsNullOrWhiteSpace(game.BrandGameImage) ? game.BrandGameImage : defaultConsolation));
+
+            // Only used for displaying the scratch card inside image underneath the foil.
             var prizeImages = new List<string>();
+            if (!string.IsNullOrWhiteSpace(game.PrimaryPrizeImage)) prizeImages.Add(game.PrimaryPrizeImage);
+            if (!string.IsNullOrWhiteSpace(game.SecondaryPrizeImage)) prizeImages.Add(game.SecondaryPrizeImage);
+            if (!string.IsNullOrWhiteSpace(game.ConsolationPrizeImage)) prizeImages.Add(game.ConsolationPrizeImage);
+            if (!string.IsNullOrWhiteSpace(game.BrandGameImage)) prizeImages.Add(game.BrandGameImage);
 
-            if (!string.IsNullOrWhiteSpace(game.PrimaryPrizeImage))
-                prizeImages.Add(game.PrimaryPrizeImage);
-
-            if (!string.IsNullOrWhiteSpace(game.SecondaryPrizeImage))
-                prizeImages.Add(game.SecondaryPrizeImage);
-
-            if (!string.IsNullOrWhiteSpace(game.ConsolationPrizeImage))
-                prizeImages.Add(game.ConsolationPrizeImage);
-
-            string? scratchImage = null;
-
-            if (prizeImages.Count > 0)
-            {
-                scratchImage =
-                    prizeImages[Random.Shared.Next(prizeImages.Count)];
-            }
+            string scratchImage = prizeImages.Count > 0
+                ? prizeImages[Random.Shared.Next(prizeImages.Count)]
+                : primaryImage;
 
             return Ok(new
             {
@@ -675,6 +736,7 @@ namespace CommUnityApp.Services
                 gameTitle = game.BrandGameTitle,
                 description = game.BrandGameDesc,
                 conditionsApply = game.ConditionsApply,
+                destinationUrl = game.DestinationUrl,
 
                 onceIn = game.OnceIn,
                 isReleased = game.IsReleased,
@@ -684,19 +746,34 @@ namespace CommUnityApp.Services
                 chanceCount = game.ChanceCount,
 
                 pointsAwarded = game.PointsAwarded,
-
                 expiryText = game.ExpiryText,
 
                 startDate = game.DateStart,
                 endDate = game.DateEnd,
 
-                gameImage = BuildFullImageUrl(
-                    baseUrl,
-                    game.BrandGameImage),
+                // Comprehensive image mappings ensuring inside scratch image is always displayed
+                gameImage = BuildFullImageUrl(baseUrl, game.BrandGameImage ?? primaryImage),
+                scratchImage = BuildFullImageUrl(baseUrl, scratchImage),
+                insideImage = BuildFullImageUrl(baseUrl, scratchImage),
+                prizeImage = BuildFullImageUrl(baseUrl, primaryImage),
 
-                scratchImage = BuildFullImageUrl(
-                    baseUrl,
-                    scratchImage)
+                primaryPrizeImage = BuildFullImageUrl(baseUrl, primaryImage),
+                secondaryPrizeImage = BuildFullImageUrl(baseUrl, secondaryImage),
+                consolationPrizeImage = BuildFullImageUrl(baseUrl, consolationImage),
+                unsuccessfulImage = BuildFullImageUrl(baseUrl, consolationImage),
+
+                primaryOfferText = game.PrimaryOfferText ?? "1st Prize",
+                secondaryOfferText = game.OfferText ?? "2nd Prize",
+                primaryWinMessage = game.PrimaryWinMessage,
+                secondaryWinMessage = game.SecondaryWinMessage,
+                consolationMessage = game.ConsolationMessage,
+                businessLocation = game.BusinessLocation,
+                prizeBalance = new
+                {
+                    primary = game.PrimaryPrizeBalCount.GetValueOrDefault(),
+                    secondary = game.SecondaryPrizeBalCount.GetValueOrDefault(),
+                    consolation = game.ConsolationPrizeBalCount.GetValueOrDefault()
+                }
             });
         }
 
@@ -786,7 +863,7 @@ namespace CommUnityApp.Services
                     swFinalPrizeType = "PrimaryPrize";
                     swPrizeLabel = game.PrimaryOfferText ?? "1st Prize";
                     swPrizeMessage = game.PrimaryWinMessage ?? "You won the 1st Prize!";
-                    swPrizeImage = game.PrimaryPrizeImage ?? game.BrandGameImage;
+                    swPrizeImage = game.PrimaryPrizeImage ?? game.BrandGameImage ?? "Images/brandgames/rewards/mystery_gift.png";
                 }
             }
             else if (roll <= 23)
@@ -797,7 +874,7 @@ namespace CommUnityApp.Services
                     swFinalPrizeType = "SecondaryPrize";
                     swPrizeLabel = game.OfferText ?? "2nd Prize";
                     swPrizeMessage = game.SecondaryWinMessage ?? "You won the 2nd Prize!";
-                    swPrizeImage = game.SecondaryPrizeImage ?? game.BrandGameImage;
+                    swPrizeImage = game.SecondaryPrizeImage ?? game.BrandGameImage ?? "Images/brandgames/rewards/50_indocoins.png";
                 }
             }
             else if (roll <= 28)
@@ -808,7 +885,7 @@ namespace CommUnityApp.Services
                     swFinalPrizeType = "ConsolationPrize";
                     swPrizeLabel = game.OfferText ?? "3rd Prize";
                     swPrizeMessage = game.ConsolationMessage ?? "You won the 3rd Prize!";
-                    swPrizeImage = game.ConsolationPrizeImage ?? game.UnSuccessfulImage ?? game.BrandGameImage;
+                    swPrizeImage = game.ConsolationPrizeImage ?? game.UnSuccessfulImage ?? game.BrandGameImage ?? "Images/brandgames/rewards/almost_there.png";
                 }
             }
             else if (roll <= 29)
@@ -909,7 +986,7 @@ namespace CommUnityApp.Services
                 {
                     swPrizeLabel = game.PrimaryOfferText ?? "1st Prize";
                     swPrizeMessage = game.PrimaryWinMessage ?? "You won the 1st Prize!";
-                    swPrizeImage = game.PrimaryPrizeImage ?? game.BrandGameImage;
+                    swPrizeImage = game.PrimaryPrizeImage ?? game.BrandGameImage ?? "Images/brandgames/rewards/mystery_gift.png";
                     swIsWinner = true;
                     // Generate redeem code and QR code only for physical prizes
                     swRedeemCode = GenerateRedeemCode();
@@ -928,7 +1005,7 @@ namespace CommUnityApp.Services
                 {
                     swPrizeLabel = game.OfferText ?? "2nd Prize";
                     swPrizeMessage = game.SecondaryWinMessage ?? "You won the 2nd Prize!";
-                    swPrizeImage = game.SecondaryPrizeImage ?? game.BrandGameImage;
+                    swPrizeImage = game.SecondaryPrizeImage ?? game.BrandGameImage ?? "Images/brandgames/rewards/50_indocoins.png";
                     swIsWinner = true;
                     // Generate redeem code and QR code only for physical prizes
                     swRedeemCode = GenerateRedeemCode();
@@ -946,7 +1023,7 @@ namespace CommUnityApp.Services
                 {
                     swPrizeLabel = game.OfferText ?? "3rd Prize";
                     swPrizeMessage = game.ConsolationMessage ?? "You won the 3rd Prize!";
-                    swPrizeImage = game.ConsolationPrizeImage ?? game.BrandGameImage;
+                    swPrizeImage = game.ConsolationPrizeImage ?? game.UnSuccessfulImage ?? game.BrandGameImage ?? "Images/brandgames/rewards/almost_there.png";
                     swIsWinner = true;
                     // Generate redeem code and QR code only for physical prizes
                     swRedeemCode = GenerateRedeemCode();

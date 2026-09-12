@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -83,5 +83,6 @@ namespace CommUnityApp.ApplicationCore.Models
         public int? SectionId { get; set; }
 
         public string SectionImage { get; set; }
+        public string? PrizeCategory { get; set; }
     }
 }
