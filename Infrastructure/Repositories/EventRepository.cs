@@ -55,7 +55,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     model.ContactPhone,
                     model.StartDate,
                     model.EndDate,
-                    model.IsFundRaising
+                    model.IsFundRaising,
+                    model.IsBookingNeeded,
+                    model.IsTicketingEnabled,
+                    model.IsPaidEvent
                 },
                 commandType: CommandType.StoredProcedure
             );
