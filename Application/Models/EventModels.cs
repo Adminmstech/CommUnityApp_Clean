@@ -24,6 +24,13 @@ namespace CommUnityApp.ApplicationCore.Models
         public DateTime EndDate { get; set; }
 
         public int IsFundRaising { get; set; }
+
+
+        public bool IsBookingNeeded { get; set; }
+
+        public bool IsTicketingEnabled { get; set; }
+
+        public bool IsPaidEvent { get; set; }
         public IFormFile? EventImage { get; set; } 
     }
     public class JoinCommunityResponse 
@@ -284,25 +291,57 @@ namespace CommUnityApp.ApplicationCore.Models
     public class EventDetailsModel
     {
         public int EventId { get; set; }
+
         public string CommunityName { get; set; }
+
         public string CommunityLogo { get; set; }
+
         public string EventName { get; set; }
-      
+
         public string EventImage { get; set; }
+
         public string Description { get; set; }
+
         public string ContactName { get; set; }
+
         public string ContactEmail { get; set; }
+
         public string ContactPhone { get; set; }
+
         public string Location { get; set; }
+
         public DateTime StartDate { get; set; }
+
         public DateTime EndDate { get; set; }
 
-        public int TotalTickets { get; set; }
-        public int SoldTickets { get; set; }
-        public string TicketStatus { get; set; }
-        public List<SponsorModel> Sponsors { get; set; } = new List<SponsorModel>();
-        //public List<EventTicketTypeResponse> TicketTypes { get; set; }
 
+        public bool IsBookingNeeded { get; set; }
+
+        public bool IsRegistrationRequired { get; set; }
+
+        public bool IsTicketingEnabled { get; set; }
+
+        public bool IsPaidEvent { get; set; }
+
+        public string BookingType { get; set; }
+
+
+        public int TotalSeats { get; set; }
+
+        public int SeatsBooked { get; set; }
+
+        public int AvailableSeats { get; set; }
+
+
+        public int TotalTickets { get; set; }
+
+        public int SoldTickets { get; set; }
+
+        public string TicketStatus { get; set; }
+
+
+        public List<SponsorModel> Sponsors { get; set; }
+            = new List<SponsorModel>();
     }
 
     public class SponsorModel
@@ -383,12 +422,12 @@ namespace CommUnityApp.ApplicationCore.Models
     {
         public Guid UserId { get; set; }
         public int EventId { get; set; }
-        public string TransactionId { get; set; }
+        public string? TransactionId { get; set; }
         public bool UseWallet { get; set; }
-        public string PaymentMethod { get; set; }
+        public string? PaymentMethod { get; set; }
         public Guid? ShareToken { get; set; }
 
-        public List<BookTicketItem> Tickets { get; set; }
+        public List<BookTicketItem>? Tickets { get; set; }
 }
 
 public class BookTicketItem
