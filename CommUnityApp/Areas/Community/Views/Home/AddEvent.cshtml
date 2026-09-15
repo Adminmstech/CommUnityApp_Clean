@@ -54,6 +54,56 @@
                 <label>Contact Phone</label>
                 <input type="text" id="ContactPhone" class="form-control" />
             </div>
+            <div class="row">
+
+                <div class="col-md-4 mb-3">
+                    <label for="IsBookingNeeded" class="form-label">
+                        Booking Required
+                    </label>
+
+                    <select id="IsBookingNeeded"
+                            name="IsBookingNeeded"
+                            class="form-control">
+
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+
+                    </select>
+                </div>
+
+
+                <div class="col-md-4 mb-3">
+                    <label for="IsTicketingEnabled" class="form-label">
+                        Ticketing Enabled
+                    </label>
+
+                    <select id="IsTicketingEnabled"
+                            name="IsTicketingEnabled"
+                            class="form-control">
+
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+
+                    </select>
+                </div>
+
+
+                <div class="col-md-4 mb-3">
+                    <label for="IsPaidEvent" class="form-label">
+                        Paid Event
+                    </label>
+
+                    <select id="IsPaidEvent"
+                            name="IsPaidEvent"
+                            class="form-control">
+
+                        <option value="false">No</option>
+                        <option value="true">Yes</option>
+
+                    </select>  
+                </div>
+
+            </div>
 
             <div class="col-md-6">
                 <label>Event Image</label>
@@ -104,6 +154,7 @@
     </div>
 </div>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
 <script>
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -123,6 +174,10 @@
             loadCategories();
             $("#qrPreview").hide();
 
+            // Default values for new event
+            $("#IsBookingNeeded").val("0");
+            $("#IsTicketingEnabled").val("0");
+            $("#IsPaidEvent").val("0");
         }
     });
 
@@ -155,12 +210,15 @@
             $("#EventId").val(res.eventId);
             $("#EventName").val(res.eventName);
 
-           
-                $("#CategoryId").val(res.categoryId);
-          
+            $("#CategoryId").val(res.categoryId);
 
-            $("#StartDate").val(res.startDate?.replace(" ", "T"));
-            $("#EndDate").val(res.endDate?.replace(" ", "T"));
+            $("#StartDate").val(
+                res.startDate?.replace(" ", "T")
+            );
+
+            $("#EndDate").val(
+                res.endDate?.replace(" ", "T")
+            );
 
             $("#Location").val(res.location);
             $("#Description").val(res.description);
@@ -169,11 +227,26 @@
             $("#ContactPhone").val(res.contactPhone);
             $("#IsFundRaising").val(res.isFundRaising);
 
+
+            $("#IsBookingNeeded").val(
+                res.isBookingNeeded ? "true" : "false"
+            );
+
+            $("#IsTicketingEnabled").val(
+                res.isTicketingEnabled ? "true" : "false"
+            );
+
+            $("#IsPaidEvent").val(
+                res.isPaidEvent ? "true" : "false"
+            );
+
             if (res.eventImage) {
 
-                $("#imagePreview").attr("src", res.eventImage);
+                $("#imagePreview")
+                    .attr("src", res.eventImage);
 
-                $("#ExistingImage").val(res.eventImage);
+                $("#ExistingImage")
+                    .val(res.eventImage);
             }
 
             if (res.qrCodeImage) {
@@ -184,65 +257,171 @@
             }
         });
     }
+
+
     function saveEvent() {
 
         if (!$("#CategoryId").val()) {
+
             alert("Please select event category");
             return;
         }
 
+
         let formData = new FormData();
 
-        formData.append("EventId", $("#EventId").val());
-        formData.append("CommunityId", "@Context.Session.GetString("CommunityId")");
-        formData.append("EventName", $("#EventName").val());
-        formData.append("CategoryId", $("#CategoryId").val());
+
+
+        formData.append(
+            "EventId",
+            $("#EventId").val()
+        );
+
+        formData.append(
+            "CommunityId",
+            "@Context.Session.GetString("CommunityId")"
+        );
+
+        formData.append(
+            "EventName",
+            $("#EventName").val()
+        );
+
+        formData.append(
+            "CategoryId",
+            $("#CategoryId").val()
+        );
+
 
         formData.append(
             "StartDate",
-            new Date($("#StartDate").val()).toISOString()
+            new Date(
+                $("#StartDate").val()
+            ).toISOString()
         );
+
         formData.append(
             "EndDate",
-            new Date($("#EndDate").val()).toISOString()
+            new Date(
+                $("#EndDate").val()
+            ).toISOString()
         );
 
-        formData.append("Location", $("#Location").val());
-        formData.append("Description", $("#Description").val());
-        formData.append("ContactName", $("#ContactName").val());
-        formData.append("ContactEmail", $("#ContactEmail").val());
-        formData.append("ContactPhone", $("#ContactPhone").val());
-        formData.append("IsFundRaising", $("#IsFundRaising").val());
+
+        formData.append(
+            "Location",
+            $("#Location").val()
+        );
+
+        formData.append(
+            "Description",
+            $("#Description").val()
+        );
+
+        formData.append(
+            "ContactName",
+            $("#ContactName").val()
+        );
+
+        formData.append(
+            "ContactEmail",
+            $("#ContactEmail").val()
+        );
+
+        formData.append(
+            "ContactPhone",
+            $("#ContactPhone").val()
+        );
+
+        formData.append(
+            "IsFundRaising",
+            $("#IsFundRaising").val()
+        );
+
+
+
+
+        formData.append(
+            "IsBookingNeeded",
+            $("#IsBookingNeeded").val()
+        );
+
+        formData.append(
+            "IsTicketingEnabled",
+            $("#IsTicketingEnabled").val()
+        );
+
+        formData.append(
+            "IsPaidEvent",
+            $("#IsPaidEvent").val()
+        );
+
+
+
 
         let image = $("#EventImage")[0].files[0];
+
         if (image) {
-            formData.append("EventImage", image);
+
+            formData.append(
+                "EventImage",
+                image
+            );
         }
 
+
+
         $.ajax({
+
             url: "/api/Event/AddUpdateEvent",
+
             type: "POST",
+
             data: formData,
+
             processData: false,
+
             contentType: false,
+
             success: function (res) {
+
                 alert(res.resultMessage);
+
                 if (res.resultId > 0) {
-                    window.location.href = "/Community/Home/ViewEvents";
+
+                    window.location.href =
+                        "/Community/Home/ViewEvents";
                 }
             },
+
             error: function (xhr) {
-                alert(xhr.responseText || "Error saving event");
+
+                alert(
+                    xhr.responseText ||
+                    "Error saving event"
+                );
             }
         });
     }
 
+
+
+
     $("#EventImage").on("change", function () {
+
         const file = this.files[0];
-        if (!file) return;
+
+        if (!file)
+            return;
 
         const reader = new FileReader();
-        reader.onload = e => $("#imagePreview").attr("src", e.target.result);
+
+        reader.onload = e =>
+            $("#imagePreview")
+                .attr("src", e.target.result);
+
         reader.readAsDataURL(file);
     });
+
 </script>
+
