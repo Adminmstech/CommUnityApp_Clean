@@ -15,7 +15,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BaseResponse> TrackGameplayAsync(int gameId, Guid userId, string prizeType, bool isWinner, int? attemptNumber, string? redeemCode,string? qrCodePath);
         Task<BaseResponse> DeleteBrandGameAsync(int brandGameId);
 
-        Task AddRewardCoinsAsync(Guid userId, int coins, int gameId);
+        Task AddRewardCoinsAsync(Guid userId, int coins, int gameId, string? notes = null);
         Task<int> GetTotalPlaysCountAsync(int gameId);
+        Task<string?> GetLastUserPrizeTypeAsync(int gameId, Guid userId);
     }
 }

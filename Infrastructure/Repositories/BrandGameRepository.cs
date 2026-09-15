@@ -223,7 +223,7 @@ VALUES
             };
         }
 
-        public async Task AddRewardCoinsAsync(Guid userId, int coins, int gameId)
+        public async Task AddRewardCoinsAsync(Guid userId, int coins, int gameId, string? notes = null)
         {
             using var connection = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection"));
@@ -236,7 +236,8 @@ VALUES
                 {
                     UserId = userId,
                     Coins = coins,
-                    GameId = gameId
+                    GameId = gameId,
+                    Notes = notes
                 },
                 commandType: CommandType.StoredProcedure);
         }
@@ -246,6 +247,17 @@ VALUES
             const string sql = "SELECT COUNT(*) FROM BrandGamePlayHistory WHERE BrandGameID = @GameId";
             using var con = Connection;
             return await con.ExecuteScalarAsync<int>(sql, new { GameId = gameId });
+        }
+
+        public async Task<string?> GetLastUserPrizeTypeAsync(int gameId, Guid userId)
+        {
+            const string sql = @"
+                SELECT TOP 1 PrizeType 
+                FROM BrandGamePlayHistory 
+                WHERE BrandGameID = @GameId AND UserId = @UserId 
+                ORDER BY GamePlayId DESC";
+            using var con = Connection;
+            return await con.QueryFirstOrDefaultAsync<string>(sql, new { GameId = gameId, UserId = userId });
         }
     }
 }

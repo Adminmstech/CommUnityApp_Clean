@@ -329,17 +329,23 @@ namespace CommUnityApp.Services
                 });
             }
 
-            if (request.SectionId <= 0)
+            SpinSectionRequest? requestedSection = null;
+            if (request.SectionId > 0)
             {
-                return BadRequest(new
-                {
-                    ResultId = 0,
-                    ResultMessage = "Valid sectionId is required."
-                });
+                requestedSection = await _spinGameRepository.GetSectionByIdAsync(request.SectionId);
             }
-            var requestedSection = await _spinGameRepository.GetSectionByIdAsync(request.SectionId);
 
-            bool isCoinReward = (requestedSection != null && requestedSection.Points.GetValueOrDefault() > 0) ||
+            int preCoins = requestedSection?.Points.GetValueOrDefault() ?? 0;
+            if (preCoins <= 0 && !string.IsNullOrWhiteSpace(requestedSection?.PrizeText))
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(requestedSection.PrizeText, @"\d+");
+                if (match.Success && int.TryParse(match.Value, out int parsed))
+                {
+                    preCoins = parsed;
+                }
+            }
+
+            bool isCoinReward = preCoins > 0 ||
                                 (requestedSection != null && !string.IsNullOrWhiteSpace(requestedSection.PrizeText) &&
                                  (requestedSection.PrizeText.Contains("point", StringComparison.OrdinalIgnoreCase) ||
                                   requestedSection.PrizeText.Contains("coin", StringComparison.OrdinalIgnoreCase) ||
@@ -351,8 +357,8 @@ namespace CommUnityApp.Services
                                     string.Equals(requestedSection.PrizeText, "Try Again :(", StringComparison.OrdinalIgnoreCase) ||
                                     string.Equals(requestedSection.PrizeText, "Spin Again", StringComparison.OrdinalIgnoreCase));
 
-            bool isRedeemable = !isCoinReward && !isLosingSection &&
-                                (requestedSection != null && (requestedSection.PromotionId.GetValueOrDefault() > 0 ||
+            bool isRedeemable = (requestedSection == null) || (!isCoinReward && !isLosingSection &&
+                                (requestedSection.PromotionId.GetValueOrDefault() > 0 ||
                                  (!string.IsNullOrWhiteSpace(requestedSection.PrizeText) && !requestedSection.PrizeText.Equals("None", StringComparison.OrdinalIgnoreCase))));
 
             string? redeemCode = null;
@@ -375,29 +381,55 @@ namespace CommUnityApp.Services
                 var game = await _spinGameRepository.GetSpinGameByIdAsync(request.GameId);
                 var section = await _spinGameRepository.GetSectionByIdAsync(result.SectionId) ?? requestedSection;
 
+                // Robust coin parsing from section.Points or section.PrizeText
+                int coinsFromSection = section?.Points.GetValueOrDefault() ?? 0;
+                if (coinsFromSection <= 0 && !string.IsNullOrWhiteSpace(section?.PrizeText))
+                {
+                    var match = System.Text.RegularExpressions.Regex.Match(section.PrizeText, @"\d+");
+                    if (match.Success && int.TryParse(match.Value, out int parsedCoins))
+                    {
+                        coinsFromSection = parsedCoins;
+                    }
+                }
+
+                isCoinReward = coinsFromSection > 0 ||
+                               (!string.IsNullOrWhiteSpace(section?.PrizeText) &&
+                                (section.PrizeText.Contains("point", StringComparison.OrdinalIgnoreCase) ||
+                                 section.PrizeText.Contains("coin", StringComparison.OrdinalIgnoreCase) ||
+                                 section.PrizeText.Contains("ic", StringComparison.OrdinalIgnoreCase) ||
+                                 section.PrizeText.Contains("indocoin", StringComparison.OrdinalIgnoreCase)));
+
+                isLosingSection = section != null &&
+                                  (string.Equals(section.PrizeText, "Better Luck Next Time", StringComparison.OrdinalIgnoreCase) ||
+                                   string.Equals(section.PrizeText, "Try Again :(", StringComparison.OrdinalIgnoreCase) ||
+                                   string.Equals(section.PrizeText, "Spin Again", StringComparison.OrdinalIgnoreCase));
+
+                isRedeemable = !isCoinReward && !isLosingSection &&
+                               (section != null && (section.PromotionId.GetValueOrDefault() > 0 ||
+                                (!string.IsNullOrWhiteSpace(section.PrizeText) && !section.PrizeText.Equals("None", StringComparison.OrdinalIgnoreCase))));
+
                 int totalCoinsAwarded = 0;
                 if (game != null && game.RewardCoins > 0)
                 {
                     totalCoinsAwarded += game.RewardCoins;
                 }
-                if (section != null && section.Points.GetValueOrDefault() > 0)
-                {
-                    totalCoinsAwarded += section.Points.Value;
-                }
+                totalCoinsAwarded += coinsFromSection;
 
                 if (totalCoinsAwarded > 0)
                 {
+                    string spinNotes = $"Coins earned from Spin the Wheel - {section?.PrizeText ?? $"{totalCoinsAwarded} Coins"}";
                     await _spinGameRepository.AddSpinGameRewardCoinsAsync(
                         request.UserId,
                         totalCoinsAwarded,
-                        request.GameId);
+                        request.GameId,
+                        spinNotes);
                 }
 
                 // Resolve relevant image for section (coins, losing, or voucher)
                 string? resolvedSectionImage = section?.SectionImage;
                 if (string.IsNullOrWhiteSpace(resolvedSectionImage))
                 {
-                    int pts = section?.Points.GetValueOrDefault() ?? 0;
+                    int pts = coinsFromSection > 0 ? coinsFromSection : (section?.Points.GetValueOrDefault() ?? 0);
                     if (pts >= 200 || (section?.PrizeText?.Contains("200") ?? false))
                         resolvedSectionImage = "Images/brandgames/rewards/200_indocoins.png";
                     else if (pts >= 100 || (section?.PrizeText?.Contains("100") ?? false))
@@ -441,7 +473,7 @@ namespace CommUnityApp.Services
 
                     spinRedeemCode = effectiveRedeemCode,
 
-                    spinRedeemQrCode = BuildFullImageUrl(baseUrl, effectiveQrCodePath),
+                    spinRedeemQrCode = isRedeemable ? BuildFullImageUrl(baseUrl, effectiveQrCodePath) : null,
 
                     businessLocation = result.BusinessLocation,
 
@@ -453,7 +485,7 @@ namespace CommUnityApp.Services
                         sectionIndex = (section != null) ? (section.SectionNumber - 1) : -1,
                         offerText = section?.PrizeText ?? result.RewardValue,
                         redeemCode = effectiveRedeemCode,
-                        redeemQrCode = BuildFullImageUrl(baseUrl, effectiveQrCodePath),
+                        redeemQrCode = isRedeemable ? BuildFullImageUrl(baseUrl, effectiveQrCodePath) : null,
                         businessLocation = result.BusinessLocation,
                         gameImage = BuildFullImageUrl(baseUrl, game?.GameImage ?? resolvedSectionImage),
                         sectionImage = BuildFullImageUrl(baseUrl, resolvedSectionImage),
@@ -836,85 +868,83 @@ namespace CommUnityApp.Services
                 ? game.ConsolationPrizeBalCount.GetValueOrDefault()
                 : game.ConsolationPrizeCount.GetValueOrDefault();
 
-            // Default fallback is "Almost There" (Consolation, 5 IC)
-            string swFinalPrizeType = "AlmostThere";
-            string swPrizeLabel = "😮 Almost There";
-            string swPrizeMessage = "Almost There! Earned 5 IC";
-            string swPrizeImage = "Images/brandgames/rewards/almost_there.png";
+            // Check user's last prize type to prevent repeating the same reward image consecutively
+            string? lastPrizeType = await _brandGameRepository.GetLastUserPrizeTypeAsync(game.BrandGameID, request.UserId);
+
+            // Default fallback is 25 IndoCoins instead of repeating AlmostThere
+            string swFinalPrizeType = "25IndoCoins";
+            string swPrizeLabel = "🪙 25 IndoCoins";
+            string swPrizeMessage = "Nice! You won 25 IndoCoins!";
+            string swPrizeImage = "Images/brandgames/rewards/25_indocoins.png";
 
             // Roll a number 1-100 to determine reward based on probability
             int roll = Random.Shared.Next(1, 101); // 1 to 100
 
-            // Probability brackets:
-            // 1-15 (15%): 1st Prize (PrimaryPrize)
-            // 16-23 (8%): 2nd Prize (SecondaryPrize)
-            // 24-28 (5%): 3rd Prize (ConsolationPrize)
-            // 29 (1%): 200 IndoCoins (Jackpot)
-            // 30-32 (3%): 100 IndoCoins (Rare)
-            // 33-40 (8%): 50 IndoCoins (Medium)
-            // 41-60 (20%): 25 IndoCoins (Frequent)
-            // 61-100 (40%): Almost There (Consolation, 5 IC)
+            if (roll <= 15 && isReleased && isWinningAttempt && primaryBalance > 0)
+            {
+                swFinalPrizeType = "PrimaryPrize";
+                swPrizeLabel = game.PrimaryOfferText ?? "1st Prize";
+                swPrizeMessage = game.PrimaryWinMessage ?? "You won the 1st Prize!";
+                swPrizeImage = game.PrimaryPrizeImage ?? game.BrandGameImage ?? "Images/brandgames/rewards/mystery_gift.png";
+            }
+            else if (roll <= 23 && isReleased && isWinningAttempt && secondaryBalance > 0)
+            {
+                swFinalPrizeType = "SecondaryPrize";
+                swPrizeLabel = game.OfferText ?? "2nd Prize";
+                swPrizeMessage = game.SecondaryWinMessage ?? "You won the 2nd Prize!";
+                swPrizeImage = game.SecondaryPrizeImage ?? game.BrandGameImage ?? "Images/brandgames/rewards/50_indocoins.png";
+            }
+            else if (roll <= 28 && isReleased && isWinningAttempt && consolationBalance > 0)
+            {
+                swFinalPrizeType = "ConsolationPrize";
+                swPrizeLabel = game.OfferText ?? "3rd Prize";
+                swPrizeMessage = game.ConsolationMessage ?? "You won the 3rd Prize!";
+                swPrizeImage = game.ConsolationPrizeImage ?? game.UnSuccessfulImage ?? game.BrandGameImage ?? "Images/brandgames/rewards/almost_there.png";
+            }
+            else
+            {
+                // Diverse non-major rewards pool
+                var coinPool = new List<(string Type, string Label, string Message, string Image)>
+                {
+                    ("25IndoCoins", "🪙 25 IndoCoins", "Nice! You won 25 IndoCoins!", "Images/brandgames/rewards/25_indocoins.png"),
+                    ("50IndoCoins", "🪙 50 IndoCoins", "Great! You won 50 IndoCoins!", "Images/brandgames/rewards/50_indocoins.png"),
+                    ("100IndoCoins", "🪙 100 IndoCoins", "Awesome! You won 100 IndoCoins!", "Images/brandgames/rewards/100_indocoins.png"),
+                    ("10IndoCoins", "🪙 10 IndoCoins", "Good luck! You won 10 IndoCoins!", "Images/brandgames/rewards/mystery_gift.png"),
+                    ("200IndoCoins", "🪙 200 IndoCoins", "Jackpot! You won 200 IndoCoins!", "Images/brandgames/rewards/200_indocoins.png"),
+                    ("AlmostThere", "😮 Almost There", "Almost There! Earned 5 IC", "Images/brandgames/rewards/almost_there.png")
+                };
 
-            if (roll <= 15)
-            {
-                // 1st Prize
-                if (isReleased && isWinningAttempt && primaryBalance > 0)
+                // Filter out previous attempt's prize type to guarantee NO consecutive identical reward images
+                var eligiblePool = (!string.IsNullOrEmpty(lastPrizeType))
+                    ? coinPool.Where(p => p.Type != lastPrizeType).ToList()
+                    : coinPool;
+
+                if (!eligiblePool.Any())
                 {
-                    swFinalPrizeType = "PrimaryPrize";
-                    swPrizeLabel = game.PrimaryOfferText ?? "1st Prize";
-                    swPrizeMessage = game.PrimaryWinMessage ?? "You won the 1st Prize!";
-                    swPrizeImage = game.PrimaryPrizeImage ?? game.BrandGameImage ?? "Images/brandgames/rewards/mystery_gift.png";
+                    eligiblePool = coinPool;
                 }
-            }
-            else if (roll <= 23)
-            {
-                // 2nd Prize
-                if (isReleased && isWinningAttempt && secondaryBalance > 0)
+
+                // Weighted selection from eligible pool
+                int coinRoll = Random.Shared.Next(1, 101);
+                var selectedReward = coinRoll switch
                 {
-                    swFinalPrizeType = "SecondaryPrize";
-                    swPrizeLabel = game.OfferText ?? "2nd Prize";
-                    swPrizeMessage = game.SecondaryWinMessage ?? "You won the 2nd Prize!";
-                    swPrizeImage = game.SecondaryPrizeImage ?? game.BrandGameImage ?? "Images/brandgames/rewards/50_indocoins.png";
-                }
-            }
-            else if (roll <= 28)
-            {
-                // 3rd Prize
-                if (isReleased && isWinningAttempt && consolationBalance > 0)
+                    <= 35 => eligiblePool.FirstOrDefault(p => p.Type == "25IndoCoins"),
+                    <= 60 => eligiblePool.FirstOrDefault(p => p.Type == "50IndoCoins"),
+                    <= 75 => eligiblePool.FirstOrDefault(p => p.Type == "10IndoCoins"),
+                    <= 87 => eligiblePool.FirstOrDefault(p => p.Type == "100IndoCoins"),
+                    <= 95 => eligiblePool.FirstOrDefault(p => p.Type == "200IndoCoins"),
+                    _     => eligiblePool.FirstOrDefault(p => p.Type == "AlmostThere")
+                };
+
+                if (string.IsNullOrEmpty(selectedReward.Type))
                 {
-                    swFinalPrizeType = "ConsolationPrize";
-                    swPrizeLabel = game.OfferText ?? "3rd Prize";
-                    swPrizeMessage = game.ConsolationMessage ?? "You won the 3rd Prize!";
-                    swPrizeImage = game.ConsolationPrizeImage ?? game.UnSuccessfulImage ?? game.BrandGameImage ?? "Images/brandgames/rewards/almost_there.png";
+                    selectedReward = eligiblePool[Random.Shared.Next(eligiblePool.Count)];
                 }
-            }
-            else if (roll <= 29)
-            {
-                swFinalPrizeType = "200IndoCoins";
-                swPrizeLabel = "🪙 200 IndoCoins";
-                swPrizeMessage = "Jackpot! You won 200 IndoCoins!";
-                swPrizeImage = "Images/brandgames/rewards/200_indocoins.png";
-            }
-            else if (roll <= 32)
-            {
-                swFinalPrizeType = "100IndoCoins";
-                swPrizeLabel = "🪙 100 IndoCoins";
-                swPrizeMessage = "Awesome! You won 100 IndoCoins!";
-                swPrizeImage = "Images/brandgames/rewards/100_indocoins.png";
-            }
-            else if (roll <= 40)
-            {
-                swFinalPrizeType = "50IndoCoins";
-                swPrizeLabel = "🪙 50 IndoCoins";
-                swPrizeMessage = "Great! You won 50 IndoCoins!";
-                swPrizeImage = "Images/brandgames/rewards/50_indocoins.png";
-            }
-            else if (roll <= 60)
-            {
-                swFinalPrizeType = "25IndoCoins";
-                swPrizeLabel = "🪙 25 IndoCoins";
-                swPrizeMessage = "Nice! You won 25 IndoCoins!";
-                swPrizeImage = "Images/brandgames/rewards/25_indocoins.png";
+
+                swFinalPrizeType = selectedReward.Type;
+                swPrizeLabel = selectedReward.Label;
+                swPrizeMessage = selectedReward.Message;
+                swPrizeImage = selectedReward.Image;
             }
 
             var verificationToken = GenerateVerificationToken(game.BrandGameID, request.UserId, swFinalPrizeType, attemptNumber);
@@ -1079,6 +1109,14 @@ namespace CommUnityApp.Services
                 coinsEarned = 25;
                 swIsWinner = true;
             }
+            else if (swFinalPrizeType == "10IndoCoins")
+            {
+                swPrizeLabel = "🪙 10 IndoCoins";
+                swPrizeMessage = "Good luck! You won 10 IndoCoins!";
+                swPrizeImage = "Images/brandgames/rewards/mystery_gift.png";
+                coinsEarned = 10;
+                swIsWinner = true;
+            }
 
             // Save permanent gameplay to history
             await _brandGameRepository.TrackGameplayAsync(
@@ -1093,10 +1131,12 @@ namespace CommUnityApp.Services
             // Add coins to wallet if won
             if (coinsEarned > 0)
             {
+                string brandGameNote = $"Coins earned from Scratch & Win - {swPrizeLabel}";
                 await _brandGameRepository.AddRewardCoinsAsync(
                     request.UserId,
                     coinsEarned,
-                    game.BrandGameID);
+                    game.BrandGameID,
+                    brandGameNote);
             }
 
             // Fetch fresh balance counts

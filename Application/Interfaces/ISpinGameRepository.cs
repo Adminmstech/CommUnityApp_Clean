@@ -21,7 +21,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
     string redeemCode,
     string qrCodePath);
         Task<IEnumerable<GameSpinResultDto>> GetGameSpinResultsAsync(int? gameId, Guid? userId);
-        Task AddSpinGameRewardCoinsAsync(Guid userId, int coins, int gameId);
+        Task AddSpinGameRewardCoinsAsync(Guid userId, int coins, int gameId, string? notes = null);
     }
 }
 

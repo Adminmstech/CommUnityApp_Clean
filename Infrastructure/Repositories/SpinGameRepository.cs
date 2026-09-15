@@ -436,6 +436,16 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "Invalid section or section does not belong to this game." };
             }
 
+            // Robust coin parsing from PrizeText if Points is null or 0
+            if ((!selectedSection.Points.HasValue || selectedSection.Points.Value <= 0) && !string.IsNullOrWhiteSpace(selectedSection.PrizeText))
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(selectedSection.PrizeText, @"\d+");
+                if (match.Success && int.TryParse(match.Value, out int parsedPoints))
+                {
+                    selectedSection.Points = parsedPoints;
+                }
+            }
+
             // Determine if section is a coin/point reward
             bool isCoinReward = (selectedSection.Points.GetValueOrDefault() > 0) ||
                                 (!string.IsNullOrWhiteSpace(selectedSection.PrizeText) &&
@@ -550,7 +560,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return await _dapper.QueryAsync<GameSpinResultDto>(con, queryBuilder.ToString(), new { GameId = gameId, UserId = userId });
         }
-        public async Task AddSpinGameRewardCoinsAsync(Guid userId, int coins, int gameId)
+        public async Task AddSpinGameRewardCoinsAsync(Guid userId, int coins, int gameId, string? notes = null)
         {
             using var connection = new SqlConnection(
                 _configuration?.GetConnectionString("DefaultConnection")
@@ -564,7 +574,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 {
                     UserId = userId,
                     Coins = coins,
-                    GameId = gameId
+                    GameId = gameId,
+                    Notes = notes
                 },
                 commandType: CommandType.StoredProcedure);
         }
