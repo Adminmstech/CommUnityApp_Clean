@@ -265,7 +265,7 @@ namespace CommUnityApp.Services
                 data = result
             });
         }
-
+        
         [HttpGet("GetUserEventBookings")]
         public async Task<IActionResult> GetUserBookings(Guid userId)
         {

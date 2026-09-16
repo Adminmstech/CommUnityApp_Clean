@@ -393,6 +393,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public DateTime PostedDate { get; set; }
 
         public bool IsViewed { get; set; }
+        public bool IsPaidEvent { get; set; }
 
         public string EventName { get; set; }
 

@@ -464,6 +464,58 @@ namespace CommUnityApp.Services
                 });
             }
         }
+
+        [HttpGet("GetCareConnectRequestButtonStatus")]
+        public async Task<IActionResult> GetCareConnectRequestButtonStatus(long requestId,Guid userId)
+        {
+            try
+            {
+                if (requestId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        resultId = 0,
+                        resultMessage = "Invalid requestId."
+                    });
+                }
+
+                if (userId == Guid.Empty)
+                {
+                    return BadRequest(new
+                    {
+                        resultId = 0,
+                        resultMessage = "Invalid userId."
+                    });
+                }
+
+                var result = await _careConnectService
+                    .GetCareConnectRequestButtonStatus(requestId, userId);
+
+                if (result == null)
+                {
+                    return NotFound(new
+                    {
+                        resultId = 0,
+                        resultMessage = "Care Connect request not found."
+                    });
+                }
+
+                return Ok(new
+                {
+                    resultId = 1,
+                    resultMessage = "Request status retrieved successfully.",
+                    data = result
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    resultId = 0,
+                    resultMessage = ex.Message
+                });
+            }
+        }
     }
 }
     
