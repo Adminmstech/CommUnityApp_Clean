@@ -33,5 +33,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<CompleteCareConnectResponse?> CompleteCareConnectService(int requestId, Guid supporterId);
         Task<SelectCareConnectSupporterResponse?> SelectCareConnectSupporter(int requestId,Guid supporterId);
+
+
+        Task<CareConnectRequestButtonStatusResponse?> GetCareConnectRequestButtonStatus(long requestId,Guid userId);
     }
 }

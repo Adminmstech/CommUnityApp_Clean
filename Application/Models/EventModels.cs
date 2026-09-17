@@ -393,6 +393,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public DateTime PostedDate { get; set; }
 
         public bool IsViewed { get; set; }
+        public bool IsPaidEvent { get; set; }
 
         public string EventName { get; set; }
 
@@ -415,7 +416,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string ContactPhone { get; set; }
 
         public string ContactEmail { get; set; }
-    }
+    } 
 
 
     public class BookEventRequest

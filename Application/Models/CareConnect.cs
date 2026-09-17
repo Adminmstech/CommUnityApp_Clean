@@ -201,7 +201,24 @@ namespace CommUnityApp.ApplicationCore.Models
         public int RequestId { get; set; }
         public Guid SupporterId { get; set; }
     }
+    public class CareConnectRequestButtonStatusResponse
+    {
+        public long RequestId { get; set; }
 
+        public Guid? SupporterId { get; set; }
+
+        public string? Status { get; set; }
+
+        public bool IsCompleted { get; set; }
+
+        public bool IsRequestOwner { get; set; }
+
+        public bool IsAcceptedSupporter { get; set; }
+
+        public bool ShowSelectButton { get; set; }
+
+        public bool ShowCompleteButton { get; set; }
+    }
 
 }
 

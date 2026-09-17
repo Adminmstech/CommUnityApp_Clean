@@ -350,6 +350,24 @@ item.ServiceImagePath =
                 },
                 commandType: CommandType.StoredProcedure);
         }
+
+        public async Task<CareConnectRequestButtonStatusResponse?> GetCareConnectRequestButtonStatus(long requestId,Guid userId)
+        {
+            using var connection = _connectionFactory.CreateConnection();
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@RequestId", requestId, DbType.Int64);
+            parameters.Add("@UserId", userId, DbType.Guid);
+
+            var result = await connection.QueryFirstOrDefaultAsync<CareConnectRequestButtonStatusResponse>(
+                "sp_GetCareConnectRequestButtonStatus",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result;
+        }
     }
 
 }
