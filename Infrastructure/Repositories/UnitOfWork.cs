@@ -27,6 +27,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         public ISmartQuizRepository SmartQuiz { get; }
         public ITextQuizRepository TextQuiz { get; }
         public ITalentShowRepository TalentShow { get; }
+        public ICommunityHelpRepository CommunityHelp { get; }
 
 
 
@@ -51,7 +52,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             IJobRepository job,
             ISmartQuizRepository smartQuiz,
             ITextQuizRepository textQuiz,
-            ITalentShowRepository talentShow)
+            ITalentShowRepository talentShow,
+            ICommunityHelpRepository communityHelp)
         {
             Community = community;
             Events = events;
@@ -74,6 +76,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             SmartQuiz = smartQuiz;
             TextQuiz = textQuiz;
             TalentShow = talentShow;
+            CommunityHelp = communityHelp;
         }
     }
 }
