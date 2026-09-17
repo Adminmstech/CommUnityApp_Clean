@@ -510,7 +510,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     RewardValue = selectedSection.PrizeText,
                     RedeemCode = redeemCode,
                     QRCodePath = qrCodePath,
-                    BusinessLocation = game.BusinessLocation,
+                    BusinessLocation = isRedeemable ? game.BusinessLocation : null,
                     Status = "Success",
                     PlayedAt = gameSpin.SpinDate
                 };
@@ -536,7 +536,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
                     gs.QRCodePath,
 
-                    sg.BusinessLocation,
+                    CASE 
+                        WHEN gs.RedeemCode IS NOT NULL AND gs.RedeemCode <> '' THEN sg.BusinessLocation 
+                        ELSE NULL 
+                    END AS BusinessLocation,
                     sg.GameId,
                     sg.GameName,
                     ss.PrizeText

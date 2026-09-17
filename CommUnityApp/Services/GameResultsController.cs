@@ -134,7 +134,8 @@ namespace CommUnityApp.Services
                     redeemQrCode = qrUrl,
                     x.IsWinner,
                     x.PointsAwarded,
-                    x.BusinessLocation,
+                    BusinessLocation = !string.IsNullOrEmpty(x.RedeemCode) ? x.BusinessLocation : null,
+                    businessLocation = !string.IsNullOrEmpty(x.RedeemCode) ? x.BusinessLocation : null,
                     x.SectionId,
                     SectionImage = BuildFullImageUrl(baseUrl, x.SectionImage)
                 };

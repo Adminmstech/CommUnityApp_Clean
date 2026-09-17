@@ -448,6 +448,7 @@ namespace CommUnityApp.Services
 
                 string? effectiveRedeemCode = isRedeemable ? result.RedeemCode : null;
                 string? effectiveQrCodePath = isRedeemable ? result.QRCodePath : null;
+                string? effectiveBusinessLocation = isRedeemable ? (result.BusinessLocation ?? game?.BusinessLocation) : null;
 
                 // Backward compatible response + enriched fields for app/store redemption flows.
                 return Ok(new
@@ -475,7 +476,7 @@ namespace CommUnityApp.Services
 
                     spinRedeemQrCode = isRedeemable ? BuildFullImageUrl(baseUrl, effectiveQrCodePath) : null,
 
-                    businessLocation = result.BusinessLocation,
+                    businessLocation = effectiveBusinessLocation,
 
                     reward = new
                     {
@@ -486,7 +487,7 @@ namespace CommUnityApp.Services
                         offerText = section?.PrizeText ?? result.RewardValue,
                         redeemCode = effectiveRedeemCode,
                         redeemQrCode = isRedeemable ? BuildFullImageUrl(baseUrl, effectiveQrCodePath) : null,
-                        businessLocation = result.BusinessLocation,
+                        businessLocation = effectiveBusinessLocation,
                         gameImage = BuildFullImageUrl(baseUrl, game?.GameImage ?? resolvedSectionImage),
                         sectionImage = BuildFullImageUrl(baseUrl, resolvedSectionImage),
                         isCoinReward = isCoinReward,
@@ -1142,29 +1143,32 @@ namespace CommUnityApp.Services
             // Fetch fresh balance counts
             var freshGame = await _brandGameRepository.GetBrandGameByIdAsync(game.BrandGameID);
 
-            return Ok(new
-            {
-                resultId = 1,
-                resultMessage = "Prize redeemed successfully.",
-                gameId = game.BrandGameID,
-                memberId = request.UserId,
-                isWinner = swIsWinner,
-                prizeType = swFinalPrizeType,
-                prizeLabel = swPrizeLabel,
-                prizeMessage = swPrizeMessage,
-                prizeImage = BuildFullImageUrl(baseUrl, swPrizeImage),
-                coinsEarned = coinsEarned,
-                redeemCode = swRedeemCode,
-                redeemQrCode = BuildFullImageUrl(baseUrl, swQrCodePath),
-                businessLocation = game.BusinessLocation,
-                prizeBalances = new
+                bool isPhysicalPrize = swIsWinner && !string.IsNullOrEmpty(swRedeemCode);
+                string? effectiveBusinessLocation = isPhysicalPrize ? game.BusinessLocation : null;
+
+                return Ok(new
                 {
-                    primary = freshGame?.PrimaryPrizeBalCount.GetValueOrDefault() ?? 0,
-                    secondary = freshGame?.SecondaryPrizeBalCount.GetValueOrDefault() ?? 0,
-                    consolation = freshGame?.ConsolationPrizeBalCount.GetValueOrDefault() ?? 0
-                }
-            });
-        }
+                    resultId = 1,
+                    resultMessage = "Prize redeemed successfully.",
+                    gameId = game.BrandGameID,
+                    memberId = request.UserId,
+                    isWinner = swIsWinner,
+                    prizeType = swFinalPrizeType,
+                    prizeLabel = swPrizeLabel,
+                    prizeMessage = swPrizeMessage,
+                    prizeImage = BuildFullImageUrl(baseUrl, swPrizeImage),
+                    coinsEarned = coinsEarned,
+                    redeemCode = swRedeemCode,
+                    redeemQrCode = isPhysicalPrize ? BuildFullImageUrl(baseUrl, swQrCodePath) : null,
+                    businessLocation = effectiveBusinessLocation,
+                    prizeBalances = new
+                    {
+                        primary = freshGame?.PrimaryPrizeBalCount.GetValueOrDefault() ?? 0,
+                        secondary = freshGame?.SecondaryPrizeBalCount.GetValueOrDefault() ?? 0,
+                        consolation = freshGame?.ConsolationPrizeBalCount.GetValueOrDefault() ?? 0
+                    }
+                });
+            }
 
         private string GenerateVerificationToken(int gameId, Guid userId, string prizeType, int attemptNumber)
         {
