@@ -488,7 +488,7 @@ namespace CommUnityApp.Services
                     });
                 }
 
-                var result = await _careConnectService
+                var result = await _careConnectRepository
                     .GetCareConnectRequestButtonStatus(requestId, userId);
 
                 if (result == null)

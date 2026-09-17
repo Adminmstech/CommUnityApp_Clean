@@ -353,14 +353,14 @@ item.ServiceImagePath =
 
         public async Task<CareConnectRequestButtonStatusResponse?> GetCareConnectRequestButtonStatus(long requestId,Guid userId)
         {
-            using var connection = _connectionFactory.CreateConnection();
-
+            using var con = new SqlConnection(
+                                   _configuration.GetConnectionString("DefaultConnection"));
             var parameters = new DynamicParameters();
 
             parameters.Add("@RequestId", requestId, DbType.Int64);
             parameters.Add("@UserId", userId, DbType.Guid);
 
-            var result = await connection.QueryFirstOrDefaultAsync<CareConnectRequestButtonStatusResponse>(
+            var result = await con.QueryFirstOrDefaultAsync<CareConnectRequestButtonStatusResponse>(
                 "sp_GetCareConnectRequestButtonStatus",
                 parameters,
                 commandType: CommandType.StoredProcedure

@@ -114,6 +114,7 @@ builder.Services.AddScoped<IPushNotificationService, PushNotificationService>();
 builder.Services.AddTransient<ISmartQuizRepository, SmartQuizRepository>();
 builder.Services.AddTransient<ITextQuizRepository,TextQuizRepository>();
 builder.Services.AddTransient<ITalentShowRepository, TalentShowRepository>();
+builder.Services.AddTransient<ICommunityHelpRepository,CommunityHelpRepository>();
 builder.Services.AddTransient<ISpinGameRepository>(provider =>
 {
     var configuration = provider.GetRequiredService<IConfiguration>();
