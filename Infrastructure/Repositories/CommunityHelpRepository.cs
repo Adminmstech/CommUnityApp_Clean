@@ -18,7 +18,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         public CommunityHelpRepository(IConfiguration configuration)
         { 
             _configuration = configuration;
-        }
+        } 
          
 
         public async Task<CommunityHelpResult> CreateHelpRequest(
