@@ -16,9 +16,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         private readonly IConfiguration _configuration;
 
         public CommunityHelpRepository(IConfiguration configuration)
-        { 
+        {  
             _configuration = configuration;
-        }
+        } 
          
 
         public async Task<CommunityHelpResult> CreateHelpRequest(
