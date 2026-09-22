@@ -31,97 +31,169 @@ namespace CommUnityApp.Services
                 JobId = jobId
             });
         }
+        //[HttpPost("ApplyJob")]
+        //public async Task<IActionResult> ApplyJob(
+        //    [FromBody] ApplyJobModel model)
+        //{
+
+        //    var appId =
+        //        await _jobsRepository
+        //        .ApplyJob(model);
+
+        //    string resumePath = "";
+
+
+        //    if (!string.IsNullOrEmpty(model.ResumePath))
+        //    {
+        //        string folderPath = 
+        //            Path.Combine(
+        //                _environment.WebRootPath,
+        //                "Uploads",
+        //                "JobApplications",
+        //                appId.ToString()
+        //            );
+
+
+        //        if (!Directory.Exists(folderPath))
+        //        {
+        //            Directory.CreateDirectory(folderPath);
+        //        }
+
+
+
+        //        string base64Data =
+        //            model.ResumePath.Trim();
+
+
+        //        string extension = ".pdf";
+
+        //        if (base64Data.StartsWith("iVBOR"))
+        //        {
+        //            extension = ".png";
+        //        }
+
+        //        else if (base64Data.StartsWith("/9j/"))
+        //        {
+        //            extension = ".jpg";
+        //        }
+
+        //        else if (base64Data.StartsWith("JVBER"))
+        //        {
+        //            extension = ".pdf";
+        //        }
+
+
+
+        //        if (base64Data.Contains(","))
+        //        {
+        //            base64Data =
+        //                base64Data.Split(',')[1];
+        //        }
+
+
+        //        byte[] fileBytes =
+        //            Convert.FromBase64String(base64Data);
+
+
+
+        //        string fileName =
+        //            "Resume" + extension;
+
+        //        string filePath =
+        //            Path.Combine(folderPath,
+        //                         fileName);
+
+
+        //        await System.IO.File
+        //            .WriteAllBytesAsync(
+        //                filePath,
+        //                fileBytes);
+
+
+        //        resumePath =
+        //            $"/Uploads/JobApplications/{appId}/{fileName}";
+
+
+
+        //        await _jobsRepository
+        //            .UpdateResumePath(
+        //                appId,
+        //                resumePath);
+        //    }
+
+
+        //    return Ok(new
+        //    {
+        //        ResultId = 1,
+        //        ResultMessage = "Applied successfully",
+        //        ApplicationId = appId,
+        //        ResumePath = resumePath
+        //    });
+        //}
         [HttpPost("ApplyJob")]
-        public async Task<IActionResult> ApplyJob(
-            [FromBody] ApplyJobModel model)
+        [RequestSizeLimit(20 * 1024 * 1024)]
+        public async Task<IActionResult> ApplyJob([FromForm] ApplyJobModel model)
         {
-          
-            var appId =
-                await _jobsRepository
-                .ApplyJob(model);
+            var appId = await _jobsRepository.ApplyJob(model);
 
             string resumePath = "";
 
-
-            if (!string.IsNullOrEmpty(model.ResumePath))
+            if (model.ResumeFile != null &&
+                model.ResumeFile.Length > 0)
             {
-                string folderPath = 
-                    Path.Combine(
-                        _environment.WebRootPath,
-                        "Uploads",
-                        "JobApplications",
-                        appId.ToString()
-                    );
+                var extension = Path.GetExtension(
+                    model.ResumeFile.FileName)
+                    .ToLowerInvariant(); 
 
-
-                if (!Directory.Exists(folderPath))
+                var allowedExtensions = new[] 
                 {
-                    Directory.CreateDirectory(folderPath);
+            ".pdf",
+            ".jpg",
+            ".jpeg",
+            ".png"
+        };
+
+                if (!allowedExtensions.Contains(extension))
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage =
+                            "Only PDF, JPG, JPEG and PNG files are allowed."
+                    });
                 }
 
-              
+                string folderPath = Path.Combine(
+                    _environment.WebRootPath,
+                    "Uploads",
+                    "JobApplications",
+                    appId.ToString()
+                );
 
-                string base64Data =
-                    model.ResumePath.Trim();
+                Directory.CreateDirectory(folderPath);
 
+                string fileName = "Resume" + extension;
 
-                string extension = ".pdf";
+                string filePath = Path.Combine(
+                    folderPath,
+                    fileName
+                );
 
-                if (base64Data.StartsWith("iVBOR"))
+                await using (var stream = new FileStream(
+                    filePath,
+                    FileMode.Create))
                 {
-                    extension = ".png";
+                    await model.ResumeFile.CopyToAsync(stream);
                 }
-
-                else if (base64Data.StartsWith("/9j/"))
-                {
-                    extension = ".jpg";
-                }
-
-                else if (base64Data.StartsWith("JVBER"))
-                {
-                    extension = ".pdf";
-                }
-
-             
-
-                if (base64Data.Contains(","))
-                {
-                    base64Data =
-                        base64Data.Split(',')[1];
-                }
-
-
-                byte[] fileBytes =
-                    Convert.FromBase64String(base64Data);
-
-          
-
-                string fileName =
-                    "Resume" + extension;
-
-                string filePath =
-                    Path.Combine(folderPath,
-                                 fileName);
-
-
-                await System.IO.File
-                    .WriteAllBytesAsync(
-                        filePath,
-                        fileBytes);
-
 
                 resumePath =
                     $"/Uploads/JobApplications/{appId}/{fileName}";
 
-          
-
-                await _jobsRepository
-                    .UpdateResumePath(
-                        appId,
-                        resumePath);
+                await _jobsRepository.UpdateResumePath(
+                    appId,
+                    resumePath);
             }
 
-  
             return Ok(new
             {
                 ResultId = 1,
@@ -130,7 +202,6 @@ namespace CommUnityApp.Services
                 ResumePath = resumePath
             });
         }
-
 
         [HttpPost("ApplyForJob")]
         public async Task<IActionResult> ApplyJobLink([FromForm] ApplyJobModel model)
