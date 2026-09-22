@@ -143,7 +143,7 @@ namespace CommUnityApp.Services
             {
                 var extension = Path.GetExtension(
                     model.ResumeFile.FileName)
-                    .ToLowerInvariant();
+                    .ToLowerInvariant(); 
 
                 var allowedExtensions = new[] 
                 {
