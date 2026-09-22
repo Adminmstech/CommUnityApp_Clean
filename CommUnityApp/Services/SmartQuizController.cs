@@ -338,18 +338,31 @@ namespace CommUnityApp.Services
         }
 
         [HttpPost("InsertSmartQuizCustomerAllAnswers")]
-        public async Task<IActionResult> InsertSmartQuizCustomerAllAnswers([FromBody] SubmitSmartQuizRequest request)
+        public async Task<IActionResult> InsertSmartQuizCustomerAllAnswers(
+    [FromBody] SubmitSmartQuizRequest request)
         {
             try
             {
+                // ---------------------------------------------------------
+                // Save Smart Quiz answers
+                // ---------------------------------------------------------
 
                 var submitResult =
                     await _smartQuizRepository
                         .InsertSmartQuizCustomerAllAnswers(request);
 
 
+                // ---------------------------------------------------------
+                // Calculate correct answers
+                // ---------------------------------------------------------
+
                 int correctAnswerCount =
                     submitResult?.CorrectAnswerCount ?? 0;
+
+
+                // ---------------------------------------------------------
+                // Calculate coins
+                // ---------------------------------------------------------
 
                 int coinsPerCorrectAnswer = 2;
 
@@ -357,16 +370,26 @@ namespace CommUnityApp.Services
                     correctAnswerCount * coinsPerCorrectAnswer;
 
 
+                // ---------------------------------------------------------
+                // Add coins to wallet
+                // ---------------------------------------------------------
+
+                SmartQuizRewardResult? walletResult = null;
 
                 if (coinsEarned > 0)
                 {
-                    await _smartQuizRepository.AddSmartQuizRewardCoinsAsync(
-                        request.UserId,
-                        coinsEarned,
-                        request.QuizId);
+                    walletResult =
+                        await _smartQuizRepository
+                            .AddSmartQuizRewardCoinsAsync(
+                                request.UserId,
+                                coinsEarned,
+                                request.QuizId);
                 }
 
 
+                // ---------------------------------------------------------
+                // Get quiz status
+                // ---------------------------------------------------------
 
                 var quiz =
                     await _smartQuizRepository
@@ -375,7 +398,9 @@ namespace CommUnityApp.Services
                             request.UserId);
 
 
-          
+                // ---------------------------------------------------------
+                // Get quiz results
+                // ---------------------------------------------------------
 
                 var results =
                     await _smartQuizRepository
@@ -383,6 +408,10 @@ namespace CommUnityApp.Services
                             request.QuizId,
                             request.UserId);
 
+
+                // ---------------------------------------------------------
+                // Status message
+                // ---------------------------------------------------------
 
                 string statusMessage =
                     "You missed the quiz. Better luck next time.";
@@ -398,13 +427,18 @@ namespace CommUnityApp.Services
                     statusMessage =
                         "Thanks for your time, you have completed the quiz.";
 
-                    if (quiz.SmartQuizDetails.GameStatus != 3)
+                    if (quiz?.SmartQuizDetails != null &&
+                        quiz.SmartQuizDetails.GameStatus != 3)
                     {
                         statusMessage +=
                             " Game is still running. Your rank may change.";
                     }
                 }
 
+
+                // ---------------------------------------------------------
+                // Final response
+                // ---------------------------------------------------------
 
                 return Ok(new
                 {
@@ -419,7 +453,8 @@ namespace CommUnityApp.Services
                     {
                         StatusMessage = statusMessage,
 
-                        CorrectAnswers = correctAnswerCount,
+                        CorrectAnswers =
+                            correctAnswerCount,
 
                         AnsweredCount =
                             submitResult?.AnsweredCount ?? 0,
@@ -427,11 +462,17 @@ namespace CommUnityApp.Services
                         CoinsPerCorrectAnswer =
                             coinsPerCorrectAnswer,
 
-                        CoinsEarned = coinsEarned,
+                        CoinsEarned =
+                            coinsEarned,
 
-                        QuizResult = submitResult,
+                        WalletResult =
+                            walletResult,
 
-                        Results = results
+                        QuizResult =
+                            submitResult,
+
+                        Results =
+                            results
                     }
                 });
             }
@@ -440,7 +481,10 @@ namespace CommUnityApp.Services
                 return BadRequest(new
                 {
                     ResultId = 0,
-                    ResultMessage = ex.Message,
+
+                    ResultMessage =
+                        ex.Message,
+
                     Status = false
                 });
             }
