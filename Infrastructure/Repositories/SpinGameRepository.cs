@@ -436,31 +436,47 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "Invalid section or section does not belong to this game." };
             }
 
-            // Robust coin parsing from PrizeText if Points is null or 0
-            if ((!selectedSection.Points.HasValue || selectedSection.Points.Value <= 0) && !string.IsNullOrWhiteSpace(selectedSection.PrizeText))
+            string text = selectedSection.PrizeText ?? "";
+
+            // 1. Check if losing / try again / spin again (using contains to handle emojis like 🔄, 😮, etc.)
+            bool isLosingOrSpinAgain = text.Contains("spin again", StringComparison.OrdinalIgnoreCase) ||
+                                       text.Contains("try again", StringComparison.OrdinalIgnoreCase) ||
+                                       text.Contains("better luck", StringComparison.OrdinalIgnoreCase) ||
+                                       text.Contains("almost there", StringComparison.OrdinalIgnoreCase) ||
+                                       text.Contains("no prize", StringComparison.OrdinalIgnoreCase) ||
+                                       string.Equals(text.Trim(), "none", StringComparison.OrdinalIgnoreCase);
+
+            // 2. Check if coin reward
+            // A section is coins if Points > 0, or if text specifically mentions coins/IC and is NOT a % off / discount promotion
+            bool hasDiscount = text.Contains("%") || text.Contains("off", StringComparison.OrdinalIgnoreCase) || text.Contains("discount", StringComparison.OrdinalIgnoreCase);
+            bool hasCoinKeyword = System.Text.RegularExpressions.Regex.IsMatch(text, @"\b(ic|indocoin|indocoins|coin|coins|points?)\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+            int coins = 0;
+            if (selectedSection.Points.HasValue && selectedSection.Points.Value > 0)
             {
-                var match = System.Text.RegularExpressions.Regex.Match(selectedSection.PrizeText, @"\d+");
-                if (match.Success && int.TryParse(match.Value, out int parsedPoints))
+                coins = selectedSection.Points.Value;
+            }
+            else if (!hasDiscount && hasCoinKeyword)
+            {
+                var match = System.Text.RegularExpressions.Regex.Match(text, @"\d+");
+                if (match.Success && int.TryParse(match.Value, out int parsed))
                 {
-                    selectedSection.Points = parsedPoints;
+                    coins = parsed;
                 }
             }
 
-            // Determine if section is a coin/point reward
-            bool isCoinReward = (selectedSection.Points.GetValueOrDefault() > 0) ||
-                                (!string.IsNullOrWhiteSpace(selectedSection.PrizeText) &&
-                                 (selectedSection.PrizeText.Contains("point", StringComparison.OrdinalIgnoreCase) ||
-                                  selectedSection.PrizeText.Contains("coin", StringComparison.OrdinalIgnoreCase) ||
-                                  selectedSection.PrizeText.Contains("ic", StringComparison.OrdinalIgnoreCase) ||
-                                  selectedSection.PrizeText.Contains("indocoin", StringComparison.OrdinalIgnoreCase)));
+            bool isCoinReward = coins > 0 || (!hasDiscount && hasCoinKeyword);
+            if (isCoinReward)
+            {
+                selectedSection.Points = coins > 0 ? coins : 0;
+            }
+            else
+            {
+                selectedSection.Points = null;
+            }
 
-            // Determine if section is a losing/non-prize section
-            bool isLosingSection = string.Equals(selectedSection.PrizeText, "Better Luck Next Time", StringComparison.OrdinalIgnoreCase) ||
-                                   string.Equals(selectedSection.PrizeText, "Try Again :(", StringComparison.OrdinalIgnoreCase) ||
-                                   string.Equals(selectedSection.PrizeText, "Spin Again", StringComparison.OrdinalIgnoreCase);
-
-            // Prize is redeemable ONLY for physical prizes or store vouchers (must not be coins and not be a losing section)
-            bool isRedeemable = !isCoinReward && !isLosingSection &&
+            // 3. Redeemable ONLY for real physical/voucher prizes (NOT coins, NOT spin-again/losing)
+            bool isRedeemable = !isLosingOrSpinAgain && !isCoinReward &&
                                 (selectedSection.PromotionId.GetValueOrDefault() > 0 ||
                                  (!string.IsNullOrWhiteSpace(selectedSection.PrizeText) && !selectedSection.PrizeText.Equals("None", StringComparison.OrdinalIgnoreCase)));
 
@@ -532,12 +548,42 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     gs.SelectedSectionId, 
                     gs.PointsAwarded, 
                     gs.PromotionId,
-                    gs.RedeemCode,
-
-                    gs.QRCodePath,
 
                     CASE 
-                        WHEN gs.RedeemCode IS NOT NULL AND gs.RedeemCode <> '' THEN sg.BusinessLocation 
+                        WHEN ISNULL(gs.PointsAwarded, 0) > 0 
+                             OR LOWER(ISNULL(ss.PrizeText, '')) LIKE '%ic%'
+                             OR LOWER(ISNULL(ss.PrizeText, '')) LIKE '%coin%'
+                             OR LOWER(ISNULL(ss.PrizeText, '')) LIKE '%point%'
+                             OR LOWER(ISNULL(ss.PrizeText, '')) LIKE '%spin again%'
+                             OR LOWER(ISNULL(ss.PrizeText, '')) LIKE '%try again%'
+                             OR LOWER(ISNULL(ss.PrizeText, '')) LIKE '%better luck%'
+                        THEN NULL
+                        ELSE gs.RedeemCode
+                    END AS RedeemCode,
+
+                    CASE 
+                        WHEN ISNULL(gs.PointsAwarded, 0) > 0 
+                             OR LOWER(ISNULL(ss.PrizeText, '')) LIKE '%ic%'
+                             OR LOWER(ISNULL(ss.PrizeText, '')) LIKE '%coin%'
+                             OR LOWER(ISNULL(ss.PrizeText, '')) LIKE '%point%'
+                             OR LOWER(ISNULL(ss.PrizeText, '')) LIKE '%spin again%'
+                             OR LOWER(ISNULL(ss.PrizeText, '')) LIKE '%try again%'
+                             OR LOWER(ISNULL(ss.PrizeText, '')) LIKE '%better luck%'
+                        THEN NULL
+                        ELSE gs.QRCodePath
+                    END AS QRCodePath,
+
+                    CASE 
+                        WHEN gs.RedeemCode IS NOT NULL 
+                             AND LTRIM(RTRIM(gs.RedeemCode)) <> ''
+                             AND ISNULL(gs.PointsAwarded, 0) = 0
+                             AND LOWER(ISNULL(ss.PrizeText, '')) NOT LIKE '%ic%'
+                             AND LOWER(ISNULL(ss.PrizeText, '')) NOT LIKE '%coin%'
+                             AND LOWER(ISNULL(ss.PrizeText, '')) NOT LIKE '%point%'
+                             AND LOWER(ISNULL(ss.PrizeText, '')) NOT LIKE '%spin again%'
+                             AND LOWER(ISNULL(ss.PrizeText, '')) NOT LIKE '%try again%'
+                             AND LOWER(ISNULL(ss.PrizeText, '')) NOT LIKE '%better luck%'
+                        THEN sg.BusinessLocation 
                         ELSE NULL 
                     END AS BusinessLocation,
                     sg.GameId,

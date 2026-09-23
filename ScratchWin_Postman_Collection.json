@@ -1,13 +1,33 @@
 {
 	"info": {
 		"_postman_id": "8f8e1261-0428-4ef8-a28a-165b4c1ea7c1",
-		"name": "CommUnityApp - Scratch & Win Game",
-		"description": "Collection containing the separated gameplay endpoints for revealing and redeeming prizes in the Scratch & Win game.",
+		"name": "CommUnityApp - Scratch & Win Module (Dedicated)",
+		"description": "Collection for the dedicated Scratch & Win (scratch_win) module with dynamic 8 rewards (Free Coffee, Free Burger, Mystery Gift, 200 IC, 100 IC, 50 IC, 25 IC, and Almost There 5 IC).",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
 		{
-			"name": "1. Reveal Prize (SubmitBrandGame)",
+			"name": "1. Get Active Scratch Game",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/ScratchWin/GetActiveGame",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"ScratchWin",
+						"GetActiveGame"
+					]
+				},
+				"description": "Retrieves the currently active Scratch & Win game and its 8 dynamic rewards with bound images and percentage probabilities."
+			},
+			"response": []
+		},
+		{
+			"name": "2. Reveal Prize (SubmitScratchGame)",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -27,22 +47,22 @@
 					}
 				},
 				"url": {
-					"raw": "{{baseUrl}}/api/Game/SubmitBrandGame",
+					"raw": "{{baseUrl}}/api/ScratchWin/SubmitScratchGame",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
 						"api",
-						"Game",
-						"SubmitBrandGame"
+						"ScratchWin",
+						"SubmitScratchGame"
 					]
 				},
-				"description": "Calls the backend to execute a secure probability roll and reveal the won prize category. Returns a signed verificationToken."
+				"description": "Executes a probability roll across the 8 configured tiers (15%, 8%, 5%, 1%, 3%, 8%, 20%, 40%). Returns the revealed reward details and a cryptographically signed verificationToken."
 			},
 			"response": []
 		},
 		{
-			"name": "2. Claim / Redeem Prize (RedeemPrize)",
+			"name": "3. Claim / Redeem Prize (RedeemScratchPrize)",
 			"request": {
 				"method": "POST",
 				"header": [
@@ -54,7 +74,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"gameId\": 1,\n    \"userId\": \"d290f1ee-6c54-4b01-90e6-d701748f0851\",\n    \"prizeType\": \"PrimaryPrize\",\n    \"attemptNumber\": 1,\n    \"verificationToken\": \"<Paste verificationToken from SubmitBrandGame response>\"\n}",
+					"raw": "{\n    \"gameId\": 1,\n    \"userId\": \"d290f1ee-6c54-4b01-90e6-d701748f0851\",\n    \"rewardId\": 1,\n    \"rewardName\": \"Free Coffee\",\n    \"rewardType\": \"Prize\",\n    \"attemptNumber\": 1,\n    \"verificationToken\": \"<Paste verificationToken from SubmitScratchGame response>\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -62,39 +82,19 @@
 					}
 				},
 				"url": {
-					"raw": "{{baseUrl}}/api/Game/RedeemPrize",
+					"raw": "{{baseUrl}}/api/ScratchWin/RedeemScratchPrize",
 					"host": [
 						"{{baseUrl}}"
 					],
 					"path": [
 						"api",
-						"Game",
-						"RedeemPrize"
+						"ScratchWin",
+						"RedeemScratchPrize"
 					]
 				},
-				"description": "Verifies the signed token, decrements stock for physical prizes, writes the gameplay to history, adds coins to the user's wallet, and generates QR/Redeem codes only for physical prizes."
+				"description": "Verifies the signed token, atomically decrements physical prize stock, logs gameplay in history, credits IndoCoins directly to wallet for coin tiers, and generates Redeem & QR code only for physical prizes (null for coins)."
 			},
 			"response": []
-		}
-	],
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
 		}
 	],
 	"variable": [

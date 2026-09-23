@@ -335,45 +335,13 @@ namespace CommUnityApp.Services
                 requestedSection = await _spinGameRepository.GetSectionByIdAsync(request.SectionId);
             }
 
-            int preCoins = requestedSection?.Points.GetValueOrDefault() ?? 0;
-            if (preCoins <= 0 && !string.IsNullOrWhiteSpace(requestedSection?.PrizeText))
-            {
-                var match = System.Text.RegularExpressions.Regex.Match(requestedSection.PrizeText, @"\d+");
-                if (match.Success && int.TryParse(match.Value, out int parsed))
-                {
-                    preCoins = parsed;
-                }
-            }
-
-            bool isCoinReward = preCoins > 0 ||
-                                (requestedSection != null && !string.IsNullOrWhiteSpace(requestedSection.PrizeText) &&
-                                 (requestedSection.PrizeText.Contains("point", StringComparison.OrdinalIgnoreCase) ||
-                                  requestedSection.PrizeText.Contains("coin", StringComparison.OrdinalIgnoreCase) ||
-                                  requestedSection.PrizeText.Contains("ic", StringComparison.OrdinalIgnoreCase) ||
-                                  requestedSection.PrizeText.Contains("indocoin", StringComparison.OrdinalIgnoreCase)));
-
-            bool isLosingSection = requestedSection != null &&
-                                   (string.Equals(requestedSection.PrizeText, "Better Luck Next Time", StringComparison.OrdinalIgnoreCase) ||
-                                    string.Equals(requestedSection.PrizeText, "Try Again :(", StringComparison.OrdinalIgnoreCase) ||
-                                    string.Equals(requestedSection.PrizeText, "Spin Again", StringComparison.OrdinalIgnoreCase));
-
-            bool isRedeemable = (requestedSection == null) || (!isCoinReward && !isLosingSection &&
-                                (requestedSection.PromotionId.GetValueOrDefault() > 0 ||
-                                 (!string.IsNullOrWhiteSpace(requestedSection.PrizeText) && !requestedSection.PrizeText.Equals("None", StringComparison.OrdinalIgnoreCase))));
-
-            string? redeemCode = null;
-            string? qrCodePath = null;
-
-            if (isRedeemable)
-            {
-                redeemCode = GenerateRedeemCode();
-                qrCodePath = GenerateSpinGameQRCode(redeemCode);
-            }
+            var candidateCode = GenerateRedeemCode();
+            var candidateQr = GenerateSpinGameQRCode(candidateCode);
 
             var result = await _spinGameRepository.PlaySpinGameAsync(
                 request,
-                redeemCode,
-                qrCodePath);
+                candidateCode,
+                candidateQr);
 
             if (result.ResultId > 0)
             {
@@ -381,32 +349,36 @@ namespace CommUnityApp.Services
                 var game = await _spinGameRepository.GetSpinGameByIdAsync(request.GameId);
                 var section = await _spinGameRepository.GetSectionByIdAsync(result.SectionId) ?? requestedSection;
 
-                // Robust coin parsing from section.Points or section.PrizeText
-                int coinsFromSection = section?.Points.GetValueOrDefault() ?? 0;
-                if (coinsFromSection <= 0 && !string.IsNullOrWhiteSpace(section?.PrizeText))
+                string text = section?.PrizeText ?? result.RewardValue ?? "";
+
+                // 1. Check if losing / try again / spin again
+                bool isLosingOrSpinAgain = text.Contains("spin again", StringComparison.OrdinalIgnoreCase) ||
+                                           text.Contains("try again", StringComparison.OrdinalIgnoreCase) ||
+                                           text.Contains("better luck", StringComparison.OrdinalIgnoreCase) ||
+                                           text.Contains("almost there", StringComparison.OrdinalIgnoreCase) ||
+                                           text.Contains("no prize", StringComparison.OrdinalIgnoreCase) ||
+                                           string.Equals(text.Trim(), "none", StringComparison.OrdinalIgnoreCase);
+
+                // 2. Check if coin reward (Coins if points > 0 or has coin keyword without being a % discount)
+                bool hasDiscount = text.Contains("%") || text.Contains("off", StringComparison.OrdinalIgnoreCase) || text.Contains("discount", StringComparison.OrdinalIgnoreCase);
+                bool hasCoinKeyword = System.Text.RegularExpressions.Regex.IsMatch(text, @"\b(ic|indocoin|indocoins|coin|coins|points?)\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+
+                int coinsFromSection = 0;
+                if (section?.Points.GetValueOrDefault() > 0)
                 {
-                    var match = System.Text.RegularExpressions.Regex.Match(section.PrizeText, @"\d+");
+                    coinsFromSection = section.Points.Value;
+                }
+                else if (!hasDiscount && hasCoinKeyword)
+                {
+                    var match = System.Text.RegularExpressions.Regex.Match(text, @"\d+");
                     if (match.Success && int.TryParse(match.Value, out int parsedCoins))
                     {
                         coinsFromSection = parsedCoins;
                     }
                 }
 
-                isCoinReward = coinsFromSection > 0 ||
-                               (!string.IsNullOrWhiteSpace(section?.PrizeText) &&
-                                (section.PrizeText.Contains("point", StringComparison.OrdinalIgnoreCase) ||
-                                 section.PrizeText.Contains("coin", StringComparison.OrdinalIgnoreCase) ||
-                                 section.PrizeText.Contains("ic", StringComparison.OrdinalIgnoreCase) ||
-                                 section.PrizeText.Contains("indocoin", StringComparison.OrdinalIgnoreCase)));
-
-                isLosingSection = section != null &&
-                                  (string.Equals(section.PrizeText, "Better Luck Next Time", StringComparison.OrdinalIgnoreCase) ||
-                                   string.Equals(section.PrizeText, "Try Again :(", StringComparison.OrdinalIgnoreCase) ||
-                                   string.Equals(section.PrizeText, "Spin Again", StringComparison.OrdinalIgnoreCase));
-
-                isRedeemable = !isCoinReward && !isLosingSection &&
-                               (section != null && (section.PromotionId.GetValueOrDefault() > 0 ||
-                                (!string.IsNullOrWhiteSpace(section.PrizeText) && !section.PrizeText.Equals("None", StringComparison.OrdinalIgnoreCase))));
+                bool isCoinReward = coinsFromSection > 0 || (!hasDiscount && hasCoinKeyword);
+                bool isRedeemable = !isLosingOrSpinAgain && !isCoinReward && !string.IsNullOrEmpty(result.RedeemCode);
 
                 int totalCoinsAwarded = 0;
                 if (game != null && game.RewardCoins > 0)
@@ -440,7 +412,7 @@ namespace CommUnityApp.Services
                         resolvedSectionImage = "Images/brandgames/rewards/25_indocoins.png";
                     else if (isCoinReward)
                         resolvedSectionImage = "Images/brandgames/rewards/50_indocoins.png";
-                    else if (isLosingSection)
+                    else if (isLosingOrSpinAgain)
                         resolvedSectionImage = "Images/brandgames/rewards/almost_there.png";
                     else
                         resolvedSectionImage = game?.GameImage ?? "Images/brandgames/rewards/mystery_gift.png";

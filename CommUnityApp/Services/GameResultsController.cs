@@ -104,15 +104,26 @@ namespace CommUnityApp.Services
 
             var result = history.Select(x =>
             {
+                string text = x.RewardValue ?? "";
+                bool isCoinOrSpinAgain = (x.PointsAwarded.GetValueOrDefault() > 0) ||
+                                         System.Text.RegularExpressions.Regex.IsMatch(text, @"\b(ic|indocoin|indocoins|coin|coins|points?)\b", System.Text.RegularExpressions.RegexOptions.IgnoreCase) ||
+                                         text.Contains("spin again", StringComparison.OrdinalIgnoreCase) ||
+                                         text.Contains("try again", StringComparison.OrdinalIgnoreCase) ||
+                                         text.Contains("almost there", StringComparison.OrdinalIgnoreCase);
+
+                bool isPhysicalPrize = !isCoinOrSpinAgain && !string.IsNullOrEmpty(x.RedeemCode);
+
                 string category = !string.IsNullOrWhiteSpace(x.PrizeCategory)
                     ? x.PrizeCategory
-                    : (x.RewardValue?.Contains("Voucher", StringComparison.OrdinalIgnoreCase) == true || x.RewardValue?.Contains("Off", StringComparison.OrdinalIgnoreCase) == true
+                    : (text.Contains("Voucher", StringComparison.OrdinalIgnoreCase) || text.Contains("Off", StringComparison.OrdinalIgnoreCase)
                         ? "Voucher"
-                        : (x.RewardValue?.Contains("Free", StringComparison.OrdinalIgnoreCase) == true ? "Freebie" : "Promo"));
+                        : (text.Contains("Free", StringComparison.OrdinalIgnoreCase) ? "Freebie" : "Promo"));
 
-                string qrUrl = string.IsNullOrEmpty(x.QRCodePath)
-                    ? null
-                    : BuildFullImageUrl(baseUrl, x.QRCodePath);
+                string? effectiveRedeemCode = isPhysicalPrize ? x.RedeemCode : null;
+                string? qrUrl = isPhysicalPrize && !string.IsNullOrEmpty(x.QRCodePath)
+                    ? BuildFullImageUrl(baseUrl, x.QRCodePath)
+                    : null;
+                string? effectiveLocation = isPhysicalPrize ? x.BusinessLocation : null;
 
                 return new
                 {
@@ -123,19 +134,20 @@ namespace CommUnityApp.Services
                     x.GameTitle,
                     prizeTitle = x.RewardValue,
                     prizeCategory = category,
-                    isRedeemable = !string.IsNullOrEmpty(x.RedeemCode),
+                    isRedeemable = isPhysicalPrize,
 
                     GameImage = BuildFullImageUrl(baseUrl, x.GameImage),
                     PrizeImage = BuildFullImageUrl(baseUrl, x.PrizeImage),
                     x.PlayedAt,
                     x.RewardValue,
-                    x.RedeemCode,
+                    RedeemCode = effectiveRedeemCode,
+                    redeemCode = effectiveRedeemCode,
                     RedeemQRCode = qrUrl,
                     redeemQrCode = qrUrl,
                     x.IsWinner,
                     x.PointsAwarded,
-                    BusinessLocation = !string.IsNullOrEmpty(x.RedeemCode) ? x.BusinessLocation : null,
-                    businessLocation = !string.IsNullOrEmpty(x.RedeemCode) ? x.BusinessLocation : null,
+                    BusinessLocation = effectiveLocation,
+                    businessLocation = effectiveLocation,
                     x.SectionId,
                     SectionImage = BuildFullImageUrl(baseUrl, x.SectionImage)
                 };

@@ -1,4 +1,4 @@
-﻿using CommUnityApp.ApplicationCore.Interfaces;
+using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using Dapper;
 using Microsoft.AspNet.SignalR.Infrastructure;
@@ -353,7 +353,7 @@ item.ServiceImagePath =
 
         public async Task<CareConnectRequestButtonStatusResponse?> GetCareConnectRequestButtonStatus(long requestId,Guid userId)
         {
-            using var connection = _connectionFactory.CreateConnection();
+            using var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
             var parameters = new DynamicParameters();
 

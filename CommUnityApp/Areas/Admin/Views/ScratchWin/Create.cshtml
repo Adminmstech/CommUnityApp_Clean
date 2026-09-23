@@ -1,0 +1,279 @@
+@model CommUnityApp.ApplicationCore.Models.AddUpdateScratchWinGameRequest
+@{
+    var isEdit = Model.GameId > 0;
+    ViewData["Title"] = isEdit ? "Edit Scratch & Win Game" : "Create Scratch & Win Game";
+    Layout = "AdminLayout";
+}
+
+<div class="container-fluid pb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-800 mb-1">
+                <i class="fa-solid fa-gift text-primary me-2"></i>@(isEdit ? "Edit Scratch & Win Game" : "Create New Scratch & Win Game")
+            </h2>
+            <p class="text-muted">Configure game parameters, dynamic prizes, coins, and win probabilities.</p>
+        </div>
+        <a href="@Url.Action("Index", "ScratchWin", new { area = "Admin" })" class="btn btn-outline-secondary rounded-pill px-4 fw-600">
+            <i class="fa-solid fa-arrow-left me-2"></i> Back to Games
+        </a>
+    </div>
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="alert alert-danger rounded-4 shadow-sm mb-4 border-0">
+            <div asp-validation-summary="All" class="text-danger fw-600 mb-0"></div>
+        </div>
+    }
+
+    <form asp-action="Create" asp-controller="ScratchWin" asp-area="Admin" method="post" enctype="multipart/form-data" id="scratchGameForm">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="GameId" />
+
+        <!-- 1. Game Details Card -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-2">
+                <h5 class="fw-700 text-dark mb-0"><i class="fa-solid fa-sliders text-primary me-2"></i>General Game Configuration</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-600">Game Name <span class="text-danger">*</span></label>
+                        <input asp-for="GameName" class="form-control" placeholder="e.g. Scratch & Win Exciting Rewards" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-600">Catchy Title <span class="text-danger">*</span></label>
+                        <input asp-for="GameTitle" class="form-control" placeholder="e.g. Scratch & Win Daily Rewards!" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-600">Start Date <span class="text-danger">*</span></label>
+                        <input asp-for="StartDate" type="datetime-local" class="form-control" value="@Model.StartDate.ToString("yyyy-MM-ddTHH:mm")" required />
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-600">End Date <span class="text-danger">*</span></label>
+                        <input asp-for="EndDate" type="datetime-local" class="form-control" value="@Model.EndDate.ToString("yyyy-MM-ddTHH:mm")" required />
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label fw-600">Chances per User/Day <span class="text-danger">*</span></label>
+                        <input asp-for="ChanceCount" type="number" min="1" class="form-control" required />
+                        <small class="text-muted">How many times a member can play daily.</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-600">Once In Frequency (Winning Attempt) <span class="text-danger">*</span></label>
+                        <input asp-for="OnceIn" type="number" min="1" class="form-control" required />
+                        <small class="text-muted">Prizes released every Nth attempt (e.g. 1 = every play can win).</small>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-600">Status</label>
+                        <select asp-for="Status" class="form-select">
+                            <option value="1">Active</option>
+                            <option value="0">Inactive</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-600">Game Description</label>
+                        <textarea asp-for="GameDescription" class="form-control" rows="2" placeholder="Brief description displayed to users"></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-600">Terms & Conditions</label>
+                        <textarea asp-for="TermsAndConditions" class="form-control" rows="2" placeholder="Rules, claim limits, eligibility"></textarea>
+                    </div>
+
+                    <div class="col-md-12">
+                        <label class="form-label fw-600">
+                            <i class="fa-solid fa-location-dot text-danger me-1"></i>Prize Redemption Store / Location
+                        </label>
+                        <input asp-for="BusinessLocation" class="form-control" placeholder="e.g. Main Store Counter 2, 123 Main Street" />
+                        <small class="text-muted">Where physical prizes (1st, 2nd, 3rd) can be redeemed. This location is attached to the redeem code and shown to the user on prize wins (omitted for coin prizes).</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Dynamic Prizes & Probability Header with Live Calculator -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-2 d-flex flex-wrap justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-700 text-dark mb-1"><i class="fa-solid fa-chart-pie text-primary me-2"></i>8 Dynamic Scratch & Win Rewards</h5>
+                    <p class="text-muted small mb-0">1st, 2nd, and 3rd are physical prizes (with stock). Others are digital IndoCoins credited to user wallet.</p>
+                </div>
+                <div class="d-flex align-items-center gap-3 mt-2 mt-md-0">
+                    <div class="fs-6 fw-700">
+                        Total Probability: 
+                        <span id="probTotalBadge" class="badge bg-success fs-6 rounded-pill px-3 py-2">100.00%</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="progress mb-4" style="height: 10px; border-radius: 5px;">
+                    <div id="probProgressBar" class="progress-bar bg-success" role="progressbar" style="width: 100%;"></div>
+                </div>
+
+                <div class="row g-4" id="rewardsContainer">
+                    @for (int i = 0; i < Model.Rewards.Count; i++)
+                    {
+                        var reward = Model.Rewards[i];
+                        var isPrize = reward.RewardType == "Prize";
+                        var isConsolation = reward.RewardType == "Consolation";
+
+                        <div class="col-xl-3 col-lg-4 col-md-6">
+                            <div class="card h-100 border rounded-4 shadow-sm @(isPrize ? "border-primary-subtle" : isConsolation ? "border-warning-subtle" : "border-info-subtle")">
+                                <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center pt-3 px-3">
+                                    <span class="badge @(isPrize ? "bg-primary text-white" : isConsolation ? "bg-warning text-dark" : "bg-info text-white") rounded-pill px-3 py-2 fw-700">
+                                        #@(reward.RewardOrder) - @(isPrize ? (reward.RewardOrder == 1 ? "1st Prize" : reward.RewardOrder == 2 ? "2nd Prize" : "3rd Prize") : isConsolation ? "Consolation" : "Coins")
+                                    </span>
+                                    <span class="small fw-700 text-muted">Order: @reward.RewardOrder</span>
+                                </div>
+
+                                <div class="card-body px-3 py-2 text-center">
+                                    <!-- Image Preview & Default Binding -->
+                                    <div class="position-relative mx-auto mb-3" style="width: 120px; height: 120px;">
+                                        <img id="preview_@(i)" src="/@reward.RewardImage" alt="@reward.RewardName" 
+                                             class="img-thumbnail rounded-4 shadow-sm w-100 h-100 object-fit-contain bg-light" />
+                                    </div>
+
+                                    <input type="hidden" name="Rewards[@i].RewardId" value="@reward.RewardId" />
+                                    <input type="hidden" name="Rewards[@i].RewardOrder" value="@reward.RewardOrder" />
+                                    <input type="hidden" name="Rewards[@i].RewardType" value="@reward.RewardType" />
+                                    <input type="hidden" name="Rewards[@i].RewardImage" value="@reward.RewardImage" id="rewardImgInput_@(i)" />
+                                    <input type="hidden" name="Rewards[@i].IsActive" value="true" />
+
+                                    <div class="mb-2 text-start">
+                                        <label class="form-label small fw-700 mb-1">Custom Image (Optional)</label>
+                                        <input type="file" name="Rewards[@i].RewardImageFile" class="form-control form-control-sm" 
+                                               accept="image/*" onchange="previewImage(this, 'preview_@(i)')" />
+                                        <small class="text-muted" style="font-size:11px;">Default pre-bound from design folder.</small>
+                                    </div>
+
+                                    <div class="mb-2 text-start">
+                                        <label class="form-label small fw-700 mb-1">Reward Name <span class="text-danger">*</span></label>
+                                        <input type="text" name="Rewards[@i].RewardName" class="form-control form-control-sm fw-600" 
+                                               value="@reward.RewardName" required />
+                                    </div>
+
+                                    <div class="mb-2 text-start">
+                                        <label class="form-label small fw-700 mb-1 text-primary">
+                                            <i class="fa-solid fa-percent me-1"></i>Probability (%) <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="number" step="0.01" min="0" max="100" name="Rewards[@i].ProbabilityPercentage" 
+                                               class="form-control form-control-sm fw-700 text-primary prob-input" 
+                                               value="@reward.ProbabilityPercentage.ToString("0.00")" oninput="calculateTotalProbability()" required />
+                                    </div>
+
+                                    @if (isPrize)
+                                    {
+                                        <div class="mb-2 text-start">
+                                            <label class="form-label small fw-700 mb-1 text-dark">
+                                                <i class="fa-solid fa-boxes-stacked me-1"></i>Total Stock <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="number" min="1" name="Rewards[@i].TotalStock" class="form-control form-control-sm" 
+                                                   value="@(reward.TotalStock ?? 50)" required />
+                                            <small class="text-muted" style="font-size:11px;">Generates Redeem & QR Code upon win.</small>
+                                        </div>
+                                        <input type="hidden" name="Rewards[@i].CoinValue" value="0" />
+                                    }
+                                    else
+                                    {
+                                        <div class="mb-2 text-start">
+                                            <label class="form-label small fw-700 mb-1 text-warning">
+                                                <i class="fa-solid fa-coins me-1"></i>Coin Value (IC) <span class="text-danger">*</span>
+                                            </label>
+                                            <input type="number" min="0" name="Rewards[@i].CoinValue" class="form-control form-control-sm" 
+                                                   value="@reward.CoinValue" required />
+                                            <small class="text-muted" style="font-size:11px;">Credited directly to wallet. No QR needed.</small>
+                                        </div>
+                                        <input type="hidden" name="Rewards[@i].TotalStock" value="" />
+                                    }
+
+                                    <div class="mb-2 text-start">
+                                        <label class="form-label small fw-700 mb-1">Win Message</label>
+                                        <input type="text" name="Rewards[@i].WinMessage" class="form-control form-control-sm" 
+                                               value="@reward.WinMessage" placeholder="Display message on scratch" />
+                                    </div>
+
+                                    <div class="text-start">
+                                        <label class="form-label small fw-700 mb-1">Description</label>
+                                        <input type="text" name="Rewards[@i].Description" class="form-control form-control-sm" 
+                                               value="@reward.Description" placeholder="Optional notes (e.g. Earned 5 IC)" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Form Submit Bar -->
+        <div class="d-flex justify-content-end gap-3">
+            <a href="@Url.Action("Index", "ScratchWin", new { area = "Admin" })" class="btn btn-light rounded-pill px-4 fw-600">
+                Cancel
+            </a>
+            <button type="submit" id="saveGameBtn" class="btn btn-primary rounded-pill px-5 fw-700 shadow-sm">
+                <i class="fa-solid fa-check me-2"></i> Save Scratch & Win Game
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    function previewImage(input, previewId) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                document.getElementById(previewId).src = e.target.result;
+            }
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function calculateTotalProbability() {
+        let total = 0;
+        const inputs = document.querySelectorAll('.prob-input');
+        inputs.forEach(input => {
+            const val = parseFloat(input.value) || 0;
+            total += val;
+        });
+
+        total = Math.round(total * 100) / 100;
+
+        const badge = document.getElementById('probTotalBadge');
+        const bar = document.getElementById('probProgressBar');
+        const submitBtn = document.getElementById('saveGameBtn');
+
+        badge.innerText = total.toFixed(2) + '%';
+        bar.style.width = Math.min(total, 100) + '%';
+
+        if (Math.abs(total - 100) < 0.01) {
+            badge.className = 'badge bg-success fs-6 rounded-pill px-3 py-2';
+            bar.className = 'progress-bar bg-success';
+            submitBtn.disabled = false;
+        } else if (total > 100) {
+            badge.className = 'badge bg-danger fs-6 rounded-pill px-3 py-2';
+            bar.className = 'progress-bar bg-danger';
+            submitBtn.disabled = true;
+        } else {
+            badge.className = 'badge bg-warning text-dark fs-6 rounded-pill px-3 py-2';
+            bar.className = 'progress-bar bg-warning';
+            submitBtn.disabled = true;
+        }
+    }
+
+    document.getElementById('scratchGameForm').addEventListener('submit', function(e) {
+        let total = 0;
+        document.querySelectorAll('.prob-input').forEach(input => {
+            total += parseFloat(input.value) || 0;
+        });
+        total = Math.round(total * 100) / 100;
+        if (Math.abs(total - 100) >= 0.01) {
+            e.preventDefault();
+            alert('Total probability percentage must equal exactly 100.00%. Current total: ' + total.toFixed(2) + '%');
+        }
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        calculateTotalProbability();
+    });
+</script>

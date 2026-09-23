@@ -1,4 +1,4 @@
-﻿using CommUnityApp.ApplicationCore.Interfaces;
+using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using CommUnityApp.InfrastructureLayer.Repositories;
 using Microsoft.AspNetCore.Mvc;
@@ -488,7 +488,7 @@ namespace CommUnityApp.Services
                     });
                 }
 
-                var result = await _careConnectService
+                var result = await _careConnectRepository
                     .GetCareConnectRequestButtonStatus(requestId, userId);
 
                 if (result == null)

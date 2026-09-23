@@ -1,4 +1,4 @@
-﻿@{
+@{
     var adminName = Context.Session.GetString("AdminName") ?? "Super Admin";
     var adminInitial = adminName.Substring(0, 1).ToUpper();
     var currentArea = ViewContext.RouteData.Values["area"]?.ToString();
@@ -539,8 +539,8 @@
                 <a href="@Url.Action("Index", "SpinGame", new { area = "Admin" })">
                     <i class="fa-solid fa-concierge-bell"></i> Spin Game
                 </a>
-                <a href="@Url.Action("Index", "Game", new { area = "Admin" })">
-                    <i class="fa-solid fa-concierge-bell"></i> Brand Game
+                <a href="@Url.Action("Index", "ScratchWin", new { area = "Admin" })">
+                    <i class="fa-solid fa-gift"></i> Scratch & Win
                 </a>
 
 
