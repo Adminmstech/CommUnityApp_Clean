@@ -338,156 +338,51 @@ namespace CommUnityApp.Services
         }
 
         [HttpPost("InsertSmartQuizCustomerAllAnswers")]
-        public async Task<IActionResult> InsertSmartQuizCustomerAllAnswers(
-    [FromBody] SubmitSmartQuizRequest request)
-        {
-            try
-            {
-                // ---------------------------------------------------------
-                // Save Smart Quiz answers
-                // ---------------------------------------------------------
-
-                var submitResult =
-                    await _smartQuizRepository
-                        .InsertSmartQuizCustomerAllAnswers(request);
-
-
-                // ---------------------------------------------------------
-                // Calculate correct answers
-                // ---------------------------------------------------------
-
-                int correctAnswerCount =
-                    submitResult?.CorrectAnswerCount ?? 0;
-
-
-                // ---------------------------------------------------------
-                // Calculate coins
-                // ---------------------------------------------------------
-
-                int coinsPerCorrectAnswer = 2;
-
-                int coinsEarned =
-                    correctAnswerCount * coinsPerCorrectAnswer;
-
-
-                // ---------------------------------------------------------
-                // Add coins to wallet
-                // ---------------------------------------------------------
-
-                SmartQuizRewardResult? walletResult = null;
-
-                if (coinsEarned > 0)
+        public async Task<IActionResult> InsertSmartQuizCustomerAllAnswers([FromBody] SubmitSmartQuizRequest request) 
+        { 
+            try 
+            { 
+                var submitResult = await _smartQuizRepository.InsertSmartQuizCustomerAllAnswers(request); 
+                int correctAnswerCount = submitResult?.CorrectAnswerCount ?? 0; 
+                int coinsPerCorrectAnswer = 2;  
+                int coinsEarned = correctAnswerCount * coinsPerCorrectAnswer; 
+                if (coinsEarned > 0) 
                 {
-                    walletResult =
-                        await _smartQuizRepository
-                            .AddSmartQuizRewardCoinsAsync(
-                                request.UserId,
-                                coinsEarned,
-                                request.QuizId);
+                    await _smartQuizRepository.AddSmartQuizRewardCoinsAsync(request.UserId, coinsEarned, request.QuizId);
                 }
+                var quiz = await _smartQuizRepository.GetSmartQuizStatusByCustomer(request.QuizId, request.UserId); 
+                var results = await _smartQuizRepository.GetCustomerSmartQuizResult(request.QuizId, request.UserId);
 
-
-                // ---------------------------------------------------------
-                // Get quiz status
-                // ---------------------------------------------------------
-
-                var quiz =
-                    await _smartQuizRepository
-                        .GetSmartQuizStatusByCustomer(
-                            request.QuizId,
-                            request.UserId);
-
-
-                // ---------------------------------------------------------
-                // Get quiz results
-                // ---------------------------------------------------------
-
-                var results =
-                    await _smartQuizRepository
-                        .GetCustomerSmartQuizResult(
-                            request.QuizId,
-                            request.UserId);
-
-
-                // ---------------------------------------------------------
-                // Status message
-                // ---------------------------------------------------------
-
-                string statusMessage =
-                    "You missed the quiz. Better luck next time.";
-
-
-                var self =
-                    results.FirstOrDefault(
-                        x => x.UserId == request.UserId);
-
-
-                if (self != null)
-                {
-                    statusMessage =
-                        "Thanks for your time, you have completed the quiz.";
-
-                    if (quiz?.SmartQuizDetails != null &&
-                        quiz.SmartQuizDetails.GameStatus != 3)
-                    {
-                        statusMessage +=
-                            " Game is still running. Your rank may change.";
-                    }
-                }
-
-
-                // ---------------------------------------------------------
-                // Final response
-                // ---------------------------------------------------------
-
-                return Ok(new
-                {
-                    ResultId = 1,
-
-                    ResultMessage =
-                        "Quiz submitted successfully.",
-
+                string statusMessage = "You missed the quiz. Better luck next time.";
+                var self = results.FirstOrDefault(x => x.UserId == request.UserId); if (self != null) 
+                { 
+                    statusMessage = "Thanks for your time, you have completed the quiz.";
+                    if (
+                        quiz.SmartQuizDetails.GameStatus != 3
+                        ) 
+                    { 
+                        statusMessage += " Game is still running. Your rank may change."; }
+                } return Ok(new { ResultId = 1, ResultMessage = "Quiz submitted successfully.",
                     Status = true,
-
-                    Data = new
-                    {
-                        StatusMessage = statusMessage,
-
-                        CorrectAnswers =
-                            correctAnswerCount,
-
-                        AnsweredCount =
-                            submitResult?.AnsweredCount ?? 0,
-
-                        CoinsPerCorrectAnswer =
-                            coinsPerCorrectAnswer,
-
-                        CoinsEarned =
-                            coinsEarned,
-
-                        WalletResult =
-                            walletResult,
-
-                        QuizResult =
-                            submitResult,
-
-                        Results =
-                            results
-                    }
-                });
+                    Data = new 
+                    { 
+                        StatusMessage = statusMessage, 
+                        CorrectAnswers = correctAnswerCount, 
+                        AnsweredCount = submitResult?.AnsweredCount ?? 0, 
+                        CoinsPerCorrectAnswer = coinsPerCorrectAnswer, 
+                        CoinsEarned = coinsEarned, 
+                        QuizResult = submitResult, Results = results } }); 
             }
-            catch (Exception ex)
+            catch
+            (Exception ex)
             {
-                return BadRequest(new
-                {
-                    ResultId = 0,
-
-                    ResultMessage =
-                        ex.Message,
-
-                    Status = false
-                });
-            }
+                return BadRequest
+                    (
+                    new {
+                        ResultId = 0,
+                        ResultMessage = ex.Message,
+                        Status = false }); 
+            } 
         }
         [HttpGet("GetSmartQuizResultsByUserId")]
         public async Task<IActionResult> GetSmartQuizResultsByUserId(Guid userId)
