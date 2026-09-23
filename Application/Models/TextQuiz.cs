@@ -354,4 +354,12 @@ namespace CommUnityApp.ApplicationCore.Models
 
         public DateTime? ModifiedDate { get; set; }
     }
+
+    public class SmartQuizRewardResult
+    {
+        public int ResultId { get; set; }
+        public string ResultMessage { get; set; } = string.Empty;
+        public int CoinsAdded { get; set; }
+        public long? WalletId { get; set; }
+    }
 }

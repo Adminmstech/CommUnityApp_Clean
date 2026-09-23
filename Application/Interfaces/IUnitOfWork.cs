@@ -23,5 +23,6 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         ISmartQuizRepository SmartQuiz { get; }
         ITextQuizRepository TextQuiz { get; }
         ITalentShowRepository TalentShow { get; }
+        ICommunityHelpRepository CommunityHelp { get; }
     }
 }
