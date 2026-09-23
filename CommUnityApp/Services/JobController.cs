@@ -132,6 +132,7 @@ namespace CommUnityApp.Services
         //}
         [HttpPost("ApplyJob")]
         [RequestSizeLimit(20 * 1024 * 1024)]
+        [Consumes("multipart/form-data")]
         public async Task<IActionResult> ApplyJob([FromForm] ApplyJobModel model)
         {
             var appId = await _jobsRepository.ApplyJob(model);
