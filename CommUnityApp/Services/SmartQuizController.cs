@@ -347,7 +347,7 @@ namespace CommUnityApp.Services
                 int coinsPerCorrectAnswer = 2;  
                 int coinsEarned = correctAnswerCount * coinsPerCorrectAnswer; 
                 if (coinsEarned > 0) 
-                {
+                { 
                     await _smartQuizRepository.AddSmartQuizRewardCoinsAsync(request.UserId, coinsEarned, request.QuizId);
                 }
                 var quiz = await _smartQuizRepository.GetSmartQuizStatusByCustomer(request.QuizId, request.UserId); 
