@@ -72,5 +72,55 @@ namespace CommUnityApp.UnitTests
             // Assert
             Assert.Equal(expectedWinning, isWinningAttempt);
         }
+
+        [Theory]
+        [InlineData(5, null, 5)]
+        [InlineData(null, 10, 10)]
+        [InlineData(5, 10, 5)] // route id takes precedence
+        [InlineData(null, null, 0)]
+        [InlineData(0, 0, 0)]
+        public void TargetGameIdResolution_ShouldCorrectlyResolveIdOrGameId(int? id, int? gameId, int expectedId)
+        {
+            // Act
+            int targetGameId = (id.HasValue && id.Value > 0) ? id.Value : (gameId ?? 0);
+
+            // Assert
+            Assert.Equal(expectedId, targetGameId);
+        }
+
+        [Theory]
+        [InlineData("Images/scratch_win/custom/pic.png", "/Images/scratch_win/custom/pic.png")]
+        [InlineData("/Images/scratch_win/custom/pic.png", "/Images/scratch_win/custom/pic.png")]
+        [InlineData(null, "/Images/scratch_win/default/free_coffee.png")]
+        [InlineData("", "/Images/scratch_win/default/free_coffee.png")]
+        public void ImagePathNormalization_ShouldProduceValidUrl(string? rawPath, string expectedUrl)
+        {
+            // Act
+            var normalized = string.IsNullOrEmpty(rawPath)
+                ? "/Images/scratch_win/default/free_coffee.png"
+                : (rawPath.StartsWith("/") ? rawPath : "/" + rawPath);
+
+            // Assert
+            Assert.Equal(expectedUrl, normalized);
+        }
+
+        [Fact]
+        public void TotalProbabilityValidation_ShouldDetectNon100Percent()
+        {
+            // Arrange
+            var rewards = new List<AddUpdateScratchWinRewardRequest>
+            {
+                new() { ProbabilityPercentage = 50.00m },
+                new() { ProbabilityPercentage = 40.00m }
+            };
+
+            // Act
+            var total = rewards.Sum(r => r.ProbabilityPercentage);
+            bool isValid = Math.Abs(total - 100.00m) <= 0.01m;
+
+            // Assert
+            Assert.False(isValid);
+            Assert.Equal(90.00m, total);
+        }
     }
 }

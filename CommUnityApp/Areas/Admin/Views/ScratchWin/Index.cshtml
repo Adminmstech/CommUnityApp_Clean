@@ -78,7 +78,7 @@
                                         </button>
                                         <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3">
                                             <li>
-                                                <a class="dropdown-item py-2" href="@Url.Action("Create", "ScratchWin", new { area = "Admin", gameId = game.GameId })">
+                                                <a class="dropdown-item py-2" href="@Url.Action("Edit", "ScratchWin", new { area = "Admin", id = game.GameId, gameId = game.GameId })">
                                                     <i class="fa-solid fa-pen-to-square me-2 text-primary"></i> Edit & Configure Prizes
                                                 </a>
                                             </li>

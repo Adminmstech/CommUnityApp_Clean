@@ -184,7 +184,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                         CoinValue = @CoinValue,
                                         ProbabilityPercentage = @ProbabilityPercentage,
                                         TotalStock = @TotalStock,
-                                        AvailableStock = ISNULL(AvailableStock, @TotalStock),
+                                        AvailableStock = CASE WHEN @TotalStock IS NULL THEN NULL ELSE ISNULL(AvailableStock, @TotalStock) END,
                                         RewardImage = @RewardImage,
                                         Description = @Description,
                                         WinMessage = @WinMessage,
@@ -209,51 +209,88 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                             }
                             else
                             {
-                                const string insertRewardSql = @"
-                                    INSERT INTO ScratchWinReward (
-                                        GameId,
-                                        RewardOrder,
-                                        RewardType,
-                                        RewardName,
-                                        CoinValue,
-                                        ProbabilityPercentage,
-                                        TotalStock,
-                                        AvailableStock,
-                                        RewardImage,
-                                        Description,
-                                        WinMessage,
-                                        IsActive
-                                    )
-                                    VALUES (
-                                        @GameId,
-                                        @RewardOrder,
-                                        @RewardType,
-                                        @RewardName,
-                                        @CoinValue,
-                                        @ProbabilityPercentage,
-                                        @TotalStock,
-                                        @AvailableStock,
-                                        @RewardImage,
-                                        @Description,
-                                        @WinMessage,
-                                        @IsActive
-                                    );";
+                                const string checkExistSql = @"SELECT RewardId FROM ScratchWinReward WHERE GameId = @GameId AND RewardOrder = @RewardOrder;";
+                                var existingRewardId = await con.ExecuteScalarAsync<int?>(checkExistSql, new { GameId = gameId, reward.RewardOrder }, tx);
 
-                                await con.ExecuteAsync(insertRewardSql, new
+                                if (existingRewardId.HasValue && existingRewardId.Value > 0)
                                 {
-                                    GameId = gameId,
-                                    reward.RewardOrder,
-                                    reward.RewardType,
-                                    reward.RewardName,
-                                    reward.CoinValue,
-                                    reward.ProbabilityPercentage,
-                                    reward.TotalStock,
-                                    AvailableStock = reward.TotalStock,
-                                    reward.RewardImage,
-                                    reward.Description,
-                                    reward.WinMessage,
-                                    reward.IsActive
-                                }, tx);
+                                    const string updateByOrderSql = @"
+                                        UPDATE ScratchWinReward
+                                        SET RewardType = @RewardType,
+                                            RewardName = @RewardName,
+                                            CoinValue = @CoinValue,
+                                            ProbabilityPercentage = @ProbabilityPercentage,
+                                            TotalStock = @TotalStock,
+                                            AvailableStock = CASE WHEN @TotalStock IS NULL THEN NULL ELSE ISNULL(AvailableStock, @TotalStock) END,
+                                            RewardImage = @RewardImage,
+                                            Description = @Description,
+                                            WinMessage = @WinMessage,
+                                            IsActive = @IsActive
+                                        WHERE RewardId = @RewardId AND GameId = @GameId;";
+
+                                    await con.ExecuteAsync(updateByOrderSql, new
+                                    {
+                                        RewardId = existingRewardId.Value,
+                                        GameId = gameId,
+                                        reward.RewardType,
+                                        reward.RewardName,
+                                        reward.CoinValue,
+                                        reward.ProbabilityPercentage,
+                                        reward.TotalStock,
+                                        reward.RewardImage,
+                                        reward.Description,
+                                        reward.WinMessage,
+                                        reward.IsActive
+                                    }, tx);
+                                }
+                                else
+                                {
+                                    const string insertRewardSql = @"
+                                        INSERT INTO ScratchWinReward (
+                                            GameId,
+                                            RewardOrder,
+                                            RewardType,
+                                            RewardName,
+                                            CoinValue,
+                                            ProbabilityPercentage,
+                                            TotalStock,
+                                            AvailableStock,
+                                            RewardImage,
+                                            Description,
+                                            WinMessage,
+                                            IsActive
+                                        )
+                                        VALUES (
+                                            @GameId,
+                                            @RewardOrder,
+                                            @RewardType,
+                                            @RewardName,
+                                            @CoinValue,
+                                            @ProbabilityPercentage,
+                                            @TotalStock,
+                                            @AvailableStock,
+                                            @RewardImage,
+                                            @Description,
+                                            @WinMessage,
+                                            @IsActive
+                                        );";
+
+                                    await con.ExecuteAsync(insertRewardSql, new
+                                    {
+                                        GameId = gameId,
+                                        reward.RewardOrder,
+                                        reward.RewardType,
+                                        reward.RewardName,
+                                        reward.CoinValue,
+                                        reward.ProbabilityPercentage,
+                                        reward.TotalStock,
+                                        AvailableStock = reward.TotalStock,
+                                        reward.RewardImage,
+                                        reward.Description,
+                                        reward.WinMessage,
+                                        reward.IsActive
+                                    }, tx);
+                                }
                             }
                         }
                     }

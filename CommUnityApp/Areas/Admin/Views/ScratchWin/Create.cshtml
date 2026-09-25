@@ -25,9 +25,10 @@
         </div>
     }
 
-    <form asp-action="Create" asp-controller="ScratchWin" asp-area="Admin" method="post" enctype="multipart/form-data" id="scratchGameForm">
+    <form asp-action="@(isEdit ? "Edit" : "Create")" asp-controller="ScratchWin" asp-area="Admin" asp-route-id="@Model.GameId" method="post" enctype="multipart/form-data" id="scratchGameForm">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="GameId" />
+        <input type="hidden" asp-for="BusinessId" />
 
         <!-- 1. Game Details Card -->
         <div class="card border-0 shadow-sm rounded-4 mb-4">
@@ -130,7 +131,12 @@
                                 <div class="card-body px-3 py-2 text-center">
                                     <!-- Image Preview & Default Binding -->
                                     <div class="position-relative mx-auto mb-3" style="width: 120px; height: 120px;">
-                                        <img id="preview_@(i)" src="/@reward.RewardImage" alt="@reward.RewardName" 
+                                        @{
+                                            var imgSrc = string.IsNullOrEmpty(reward.RewardImage) 
+                                                ? "/Images/scratch_win/default/free_coffee.png" 
+                                                : (reward.RewardImage.StartsWith("/") ? reward.RewardImage : "/" + reward.RewardImage);
+                                        }
+                                        <img id="preview_@(i)" src="@imgSrc" alt="@reward.RewardName" 
                                              class="img-thumbnail rounded-4 shadow-sm w-100 h-100 object-fit-contain bg-light" />
                                     </div>
 
@@ -142,7 +148,7 @@
 
                                     <div class="mb-2 text-start">
                                         <label class="form-label small fw-700 mb-1">Custom Image (Optional)</label>
-                                        <input type="file" name="Rewards[@i].RewardImageFile" class="form-control form-control-sm" 
+                                        <input type="file" name="Rewards[@i].RewardImageFile" id="RewardImageFile_@(i)" class="form-control form-control-sm" 
                                                accept="image/*" onchange="previewImage(this, 'preview_@(i)')" />
                                         <small class="text-muted" style="font-size:11px;">Default pre-bound from design folder.</small>
                                     </div>
@@ -184,7 +190,6 @@
                                                    value="@reward.CoinValue" required />
                                             <small class="text-muted" style="font-size:11px;">Credited directly to wallet. No QR needed.</small>
                                         </div>
-                                        <input type="hidden" name="Rewards[@i].TotalStock" value="" />
                                     }
 
                                     <div class="mb-2 text-start">

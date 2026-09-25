@@ -1,4 +1,4 @@
-﻿using CommUnityApp.ApplicationCore.Interfaces;
+using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using Dapper;
 using Microsoft.AspNetCore.Mvc;
@@ -378,12 +378,11 @@ namespace CommUnityApp.Services
 
                 if (coinsEarned > 0)
                 {
-                    walletResult =
-                        await _smartQuizRepository
-                            .AddSmartQuizRewardCoinsAsync(
-                                request.UserId,
-                                coinsEarned,
-                                request.QuizId);
+                    await _smartQuizRepository
+                        .AddSmartQuizRewardCoinsAsync(
+                            request.UserId,
+                            coinsEarned,
+                            request.QuizId);
                 }
 
 

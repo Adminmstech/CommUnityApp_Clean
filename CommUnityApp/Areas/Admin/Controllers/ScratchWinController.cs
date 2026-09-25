@@ -33,11 +33,14 @@ namespace CommUnityApp.Areas.Admin.Controllers
         }
 
         [HttpGet("Create")]
-        public async Task<IActionResult> Create(int? gameId = null)
+        [HttpGet("Create/{id?}")]
+        public async Task<IActionResult> Create(int? id = null, int? gameId = null)
         {
+            int targetGameId = (id.HasValue && id.Value > 0) ? id.Value : (gameId ?? 0);
+
             var model = new AddUpdateScratchWinGameRequest
             {
-                GameId = gameId ?? 0,
+                GameId = targetGameId,
                 GameName = "Scratch & Win Exciting Rewards",
                 GameTitle = "Scratch & Win Daily Rewards!",
                 GameDescription = "Scratch the card to reveal your prize! Win Free Coffee, Burgers, Mystery Gifts, or IndoCoins!",
@@ -51,9 +54,9 @@ namespace CommUnityApp.Areas.Admin.Controllers
                 Rewards = new List<AddUpdateScratchWinRewardRequest>()
             };
 
-            if (model.GameId > 0)
+            if (targetGameId > 0)
             {
-                var existing = await _scratchWinRepository.GetScratchWinGameByIdAsync(model.GameId);
+                var existing = await _scratchWinRepository.GetScratchWinGameByIdAsync(targetGameId);
                 if (existing != null)
                 {
                     model.GameId = existing.GameId;
@@ -92,13 +95,30 @@ namespace CommUnityApp.Areas.Admin.Controllers
                 model.Rewards = GetDefaultRewards();
             }
 
-            return View(model);
+            return View("Create", model);
+        }
+
+        [HttpGet("Edit")]
+        [HttpGet("Edit/{id?}")]
+        public async Task<IActionResult> Edit(int? id = null, int? gameId = null)
+        {
+            return await Create(id, gameId);
         }
 
         [HttpPost("Create")]
+        [HttpPost("Create/{id?}")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(AddUpdateScratchWinGameRequest model)
+        public async Task<IActionResult> Create(AddUpdateScratchWinGameRequest model, int? id = null, int? gameId = null)
         {
+            if ((model.GameId <= 0) && (id.HasValue && id.Value > 0))
+            {
+                model.GameId = id.Value;
+            }
+            else if ((model.GameId <= 0) && (gameId.HasValue && gameId.Value > 0))
+            {
+                model.GameId = gameId.Value;
+            }
+
             if (model.Rewards == null || !model.Rewards.Any())
             {
                 model.Rewards = GetDefaultRewards();
@@ -109,32 +129,63 @@ namespace CommUnityApp.Areas.Admin.Controllers
             if (Math.Abs(totalPercentage - 100.00m) > 0.01m)
             {
                 ModelState.AddModelError("", $"Total reward probability must sum to exactly 100%. Current total: {totalPercentage}%.");
-                return View(model);
+                return View("Create", model);
             }
+
+            // Resolve web root directory safely
+            string webRoot = _webHostEnvironment.WebRootPath;
+            if (string.IsNullOrWhiteSpace(webRoot))
+            {
+                webRoot = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            }
+            string uploadsFolder = Path.Combine(webRoot, "Images", "scratch_win", "custom");
+            if (!Directory.Exists(uploadsFolder))
+            {
+                Directory.CreateDirectory(uploadsFolder);
+            }
+
+            var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
 
             // Handle reward image file uploads
             for (int i = 0; i < model.Rewards.Count; i++)
             {
                 var reward = model.Rewards[i];
-                if (reward.RewardImageFile != null && reward.RewardImageFile.Length > 0)
+
+                // Check model-bound file first, then fall back to Request.Form.Files
+                IFormFile? file = reward.RewardImageFile;
+
+                if (file == null || file.Length == 0)
                 {
-                    string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "Images", "scratch_win", "custom");
-                    if (!Directory.Exists(uploadsFolder))
+                    file = Request.Form.Files.GetFile($"Rewards[{i}].RewardImageFile")
+                        ?? Request.Form.Files.GetFile($"Rewards_{i}__RewardImageFile")
+                        ?? Request.Form.Files.GetFile($"RewardImageFile_{i}")
+                        ?? Request.Form.Files.GetFile($"RewardImageFile_{reward.RewardOrder}")
+                        ?? Request.Form.Files.FirstOrDefault(f =>
+                            f.Name.Equals($"Rewards[{i}].RewardImageFile", StringComparison.OrdinalIgnoreCase) ||
+                            f.Name.EndsWith($"[{i}].RewardImageFile", StringComparison.OrdinalIgnoreCase) ||
+                            f.Name.Equals($"RewardImageFile_{i}", StringComparison.OrdinalIgnoreCase) ||
+                            f.Name.Equals($"RewardImageFile_{reward.RewardOrder}", StringComparison.OrdinalIgnoreCase));
+                }
+
+                if (file != null && file.Length > 0)
+                {
+                    var fileExtension = Path.GetExtension(file.FileName).ToLowerInvariant();
+                    if (string.IsNullOrEmpty(fileExtension) || !allowedExtensions.Contains(fileExtension))
                     {
-                        Directory.CreateDirectory(uploadsFolder);
+                        fileExtension = ".png";
                     }
 
-                    string uniqueFileName = Guid.NewGuid().ToString() + "_" + Path.GetFileName(reward.RewardImageFile.FileName);
+                    string uniqueFileName = $"reward_{reward.RewardOrder}_{Guid.NewGuid():N}{fileExtension}";
                     string filePath = Path.Combine(uploadsFolder, uniqueFileName);
 
                     using (var fileStream = new FileStream(filePath, FileMode.Create))
                     {
-                        await reward.RewardImageFile.CopyToAsync(fileStream);
+                        await file.CopyToAsync(fileStream);
                     }
 
                     reward.RewardImage = $"Images/scratch_win/custom/{uniqueFileName}";
                 }
-                else if (string.IsNullOrEmpty(reward.RewardImage))
+                else if (string.IsNullOrWhiteSpace(reward.RewardImage))
                 {
                     // Fallback to default bound image
                     var defaults = GetDefaultRewards();
@@ -155,7 +206,15 @@ namespace CommUnityApp.Areas.Admin.Controllers
             }
 
             ModelState.AddModelError("", result.ResultMessage ?? "Failed to save Scratch & Win game.");
-            return View(model);
+            return View("Create", model);
+        }
+
+        [HttpPost("Edit")]
+        [HttpPost("Edit/{id?}")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(AddUpdateScratchWinGameRequest model, int? id = null, int? gameId = null)
+        {
+            return await Create(model, id, gameId);
         }
 
         [HttpPost("Delete/{id}")]
