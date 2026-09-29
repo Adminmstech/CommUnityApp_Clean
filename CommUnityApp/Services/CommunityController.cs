@@ -1431,8 +1431,270 @@ namespace CommUnityApp.Services
                 });
             }
         }
+
+        [HttpPost("CommunityAppLogin")]
+        public async Task<IActionResult> CommunityLogin([FromBody] AdminAppLoginRequest request)
+        {
+            if (request == null ||
+                string.IsNullOrWhiteSpace(request.UserName) ||
+                string.IsNullOrWhiteSpace(request.Password))
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Username and password are required."
+                });
+            }
+
+            var community =
+                await _communityRepository.CommunityLogin(request);
+
+            if (community == null)
+            {
+                return Unauthorized(new
+                {
+                    resultId = 0,
+                    resultMessage = "Invalid username or password."
+                });
+            }
+
+            return Ok(new
+            {
+                resultId = 1,
+                resultMessage = "Community login successful.",
+                data = community
+            });
+        }
+        [HttpPost("AdminAppLogin")]
+        public async Task<IActionResult> AdminLogin([FromBody] AdminAppLoginRequest request)
+        {
+            if (request == null ||
+                string.IsNullOrWhiteSpace(request.UserName) ||
+                string.IsNullOrWhiteSpace(request.Password))
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Username and password are required."
+                });
+            }
+
+            var login =
+                await _communityRepository.AdminAppLogin(request);
+
+            if (login == null)
+            {
+                return Unauthorized(new
+                {
+                    resultId = 0,
+                    resultMessage = "Invalid username or password."
+                });
+            }
+
+            string message;
+
+            if (login.LoginType == "Business")
+            {
+                message = "Business login successful.";
+            }
+            else
+            {
+                message = "Community login successful.";
+            }
+
+            return Ok(new
+            {
+                resultId = 1,
+                resultMessage = message,
+                loginType = login.LoginType,
+                data = login
+            });
+        }
+
+
+
+        [HttpGet("GetCommunityAppDetails")]
+        public async Task<IActionResult> GetCommunityAppDetails(
+            int communityId)
+        {
+            if (communityId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid communityId is required."
+                });
+            }
+
+            var community =
+                await _communityRepository.GetCommunityDetails(
+                    communityId);
+
+            if (community == null)
+            {
+                return NotFound(new
+                {
+                    resultId = 0,
+                    resultMessage = "Community not found."
+                });
+            }
+
+            return Ok(new
+            {
+                resultId = 1,
+                resultMessage = "Community details retrieved successfully.",
+                data = community
+            });
+        }
+
+
+
+        [HttpGet("GetCommunityAppEvents")]
+        public async Task<IActionResult> GetCommunityEvents(
+            int communityId)
+        {
+            if (communityId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid communityId is required."
+                });
+            }
+
+            var events =
+                await _communityRepository.GetCommunityEvents(
+                    communityId);
+
+            return Ok(new
+            {
+                resultId = 1,
+                resultMessage = "Community events retrieved successfully.",
+                communityId = communityId,
+                count = events.Count,
+                data = events
+            });
+        }
+
+
+
+        [HttpGet("GetCommunityAppEventBookings")]
+        public async Task<IActionResult> GetEventBookings([FromQuery] int communityId,[FromQuery] int eventId)
+        {
+            if (communityId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid communityId is required."
+                });
+            }
+
+            if (eventId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid eventId is required."
+                });
+            }
+
+            var bookings = 
+                await _communityRepository.GetEventBookings(
+                    communityId,
+                    eventId);
+
+            return Ok(new
+            {
+                resultId = 1,
+                resultMessage = "Event bookings retrieved successfully.",
+                communityId,
+                eventId,
+                count = bookings.Count,
+                data = bookings
+            });
+        }
+
+
+
+
+        [HttpGet("GetEventTickets")]
+        public async Task<IActionResult> GetEventTickets([FromQuery] int communityId,[FromQuery] int eventId)
+        {
+            if (communityId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid communityId is required."
+                });
+            }
+
+            if (eventId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid eventId is required."
+                });
+            }
+
+            var tickets =
+                await _communityRepository.GetEventTickets(
+                    communityId,
+                    eventId);
+
+            return Ok(new
+            {
+                resultId = 1,
+                resultMessage = "Event tickets retrieved successfully.",
+                communityId,
+                eventId,
+                count = tickets.Count,
+                data = tickets
+            });
+        }
+
+
+        [HttpGet("GetEventScanHistory")]
+        public async Task<IActionResult> GetEventScanHistory([FromQuery] int communityId,[FromQuery] int eventId)
+        {
+            if (communityId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid communityId is required."
+                });
+            }
+
+            if (eventId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid eventId is required."
+                });
+            }
+
+            var scans =
+                await _communityRepository.GetEventScanHistory(
+                    communityId,
+                    eventId);
+
+            return Ok(new
+            {
+                resultId = 1,
+                resultMessage = "Event scan history retrieved successfully.",
+                communityId,
+                eventId,
+                count = scans.Count,
+                data = scans
+            });
+        }
     }
-
-
 }
+
+
+
 

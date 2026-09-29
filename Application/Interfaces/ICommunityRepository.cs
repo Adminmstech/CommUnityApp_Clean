@@ -65,7 +65,21 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<List<CommunityShareRewardHistoryResult>> GetCommunityShareRewardHistory(int communityId);
 
         Task<CommunityDetailsEntity> GetCommunityDetails(int communityId,Guid? userId);
+
+        Task<CommunityModel?> CommunityLogin(AdminAppLoginRequest request);
+
+        Task<CommunityModel?> GetCommunityDetails(int communityId);
+
+        Task<List<CommunityEventModel>> GetCommunityEvents(int communityId);
+
+        Task<List<CommunityEventBookingModel>> GetEventBookings(int communityId,int eventId);
+
+        Task<List<CommunityEventTicketModel>> GetEventTickets(int communityId,int eventId);
+
+        Task<List<CommunityEventScanModel>> GetEventScanHistory(int communityId,int eventId);
+        Task<AdminAppLoginResponse?> AdminAppLogin(AdminAppLoginRequest request);
     }
+
 
 }
 

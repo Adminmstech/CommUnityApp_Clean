@@ -806,8 +806,7 @@ CommunityPostModel model)
             return result;
         }
 
-        public async Task<List<CommunityWalletTransactionResult>> GetCommunityWalletTransactions(
-     int communityId)
+        public async Task<List<CommunityWalletTransactionResult>> GetCommunityWalletTransactions(int communityId)
         {
             using var con = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection"));
@@ -822,8 +821,7 @@ CommunityPostModel model)
 
             return result.ToList();
         }
-        public async Task<CommunityRewardsDashboardResult> GetCommunityRewardsDashboard(
-    int communityId)
+        public async Task<CommunityRewardsDashboardResult> GetCommunityRewardsDashboard(int communityId)
         {
             using var con = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection"));
@@ -839,8 +837,7 @@ CommunityPostModel model)
             return result;
         }
 
-        public async Task<List<CommunityShareRewardHistoryResult>> GetCommunityShareRewardHistory(
-    int communityId)
+        public async Task<List<CommunityShareRewardHistoryResult>> GetCommunityShareRewardHistory(int communityId)
         {
             using var con = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection"));
@@ -882,6 +879,123 @@ CommunityPostModel model)
 
             return result;
         }
-    }
+
+        public async Task<CommunityModel?> CommunityLogin(AdminAppLoginRequest request)
+        {
+            using var connection = new SqlConnection(
+                          _configuration.GetConnectionString("DefaultConnection"));
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@UserName", request.UserName);
+            parameters.Add("@Password", request.Password);
+
+            return await connection.QueryFirstOrDefaultAsync<CommunityModel>(
+                "SP_CommunityAdminLogin",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+        }
+        public async Task<AdminAppLoginResponse?> AdminAppLogin( AdminAppLoginRequest request)
+        {
+            using var connection = new SqlConnection(
+                                 _configuration.GetConnectionString("DefaultConnection"));
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@UserName", request.UserName);
+            parameters.Add("@Password", request.Password);
+
+            return await connection.QueryFirstOrDefaultAsync<AdminAppLoginResponse>(
+                "SP_AdminAppLogin",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<CommunityModel?> GetCommunityDetails(int communityId)
+        {
+            using var connection = new SqlConnection(
+                                     _configuration.GetConnectionString("DefaultConnection"));
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@CommunityId", communityId);
+
+            return await connection.QueryFirstOrDefaultAsync<CommunityModel>(
+                "SP_GetCommunityAppAdminDetails",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+        }
+
+
+        public async Task<List<CommunityEventModel>> GetCommunityEvents(int communityId)
+        {
+            using var connection = new SqlConnection(
+                                     _configuration.GetConnectionString("DefaultConnection"));
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@CommunityId", communityId);
+
+            var result = await connection.QueryAsync<CommunityEventModel>(
+                "SP_GetCommunityAppEvents",
+                parameters,
+                commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+
+        public async Task<List<CommunityEventBookingModel>> GetEventBookings(int communityId,int eventId)
+        {
+            using var connection = new SqlConnection(
+                                     _configuration.GetConnectionString("DefaultConnection"));
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@CommunityId", communityId);
+            parameters.Add("@EventId", eventId);
+
+            var result =
+                await connection.QueryAsync<CommunityEventBookingModel>(
+                    "SP_GetCommunityAppEventBookings",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+
+        public async Task<List<CommunityEventTicketModel>> GetEventTickets(int communityId,int eventId)
+        {
+            using var connection = new SqlConnection(
+                                     _configuration.GetConnectionString("DefaultConnection"));
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@CommunityId", communityId);
+            parameters.Add("@EventId", eventId);
+
+            var result =
+                await connection.QueryAsync<CommunityEventTicketModel>(
+                    "SP_GetCommunityAppEventTickets",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+
+        public async Task<List<CommunityEventScanModel>> GetEventScanHistory(int communityId,int eventId)
+        {
+            using var connection = new SqlConnection(
+                                     _configuration.GetConnectionString("DefaultConnection"));
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@CommunityId", communityId);
+            parameters.Add("@EventId", eventId);
+
+            var result =
+                await connection.QueryAsync<CommunityEventScanModel>(
+                    "SP_GetCommunityAppEventTicketScans",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+            return result.ToList();
+        }
+    
+}
 }
 
