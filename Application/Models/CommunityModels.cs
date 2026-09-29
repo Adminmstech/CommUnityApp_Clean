@@ -19,7 +19,25 @@ namespace CommUnityApp.ApplicationCore.Models
         public string UserName { get; set; }
         public string Password { get; set; }
     }
+    public class AdminAppLoginRequest
+    {
+        public string UserName { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+    }
+    public class AdminAppLoginResponse
+    {
+        public string LoginType { get; set; } = string.Empty;
 
+        public int? BusinessId { get; set; }
+        public int? CommunityId { get; set; }
+
+        public string? BusinessName { get; set; }
+        public string? CommunityName { get; set; }
+
+        public string? Logo { get; set; }
+
+        public Guid? UserId { get; set; }
+    }
     public class GroupDto
     {
         public long GroupId { get; set; }
@@ -649,5 +667,144 @@ namespace CommUnityApp.ApplicationCore.Models
         public int? CommunityCategoryId { get; set; }
 
         public bool IsMeIn { get; set; }
+    }
+
+    public class CommunityModel
+    {
+        public int CommunityId { get; set; }
+        public string? CommunityName { get; set; }
+        public string? Logo { get; set; }
+        public string? Description { get; set; }
+        public string? ContactName { get; set; }
+        public string? ContactEmail { get; set; }
+        public string? ContactPhone { get; set; }
+        public string? Website { get; set; }
+        public string? Address { get; set; }
+        public string? OtherInfo { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime? CreatedDate { get; set; }
+        public string? UserName { get; set; }
+        public string? Password { get; set; }
+        public int? CommunityCategoryId { get; set; }
+    }
+
+
+   
+
+
+    // Event list for Community Admin
+    public class CommunityEventModel
+    {
+        public int EventId { get; set; }
+        public int CommunityId { get; set; }
+        public string? EventName { get; set; }
+        public string? EventImage { get; set; }
+        public string? Description { get; set; }
+        public string? Location { get; set; }
+
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
+
+        public bool IsActive { get; set; }
+        public bool IsPaidEvent { get; set; }
+        public decimal? TicketPrice { get; set; }
+        public int? AvailableTickets { get; set; }
+
+        public bool IsBookingNeeded { get; set; }
+        public int? TotalSeats { get; set; }
+        public int? TicketsBooked { get; set; }
+
+        public bool IsRegistrationRequired { get; set; }
+        public bool IsTicketingEnabled { get; set; }
+
+        public int BookingCount { get; set; }
+        public int TicketCount { get; set; }
+        public int CheckedInCount { get; set; }
+
+        public DateTime? CreatedDate { get; set; }
+        public DateTime? ModifiedDate { get; set; }
+    }
+
+
+    // Event Booking
+    public class CommunityEventBookingModel
+    {
+        public long BookingId { get; set; }
+        public Guid UserId { get; set; }
+        public int EventId { get; set; }
+        public string? EventName { get; set; }
+
+        public int? NoOfTickets { get; set; }
+
+        public decimal? TotalAmount { get; set; }
+        public decimal? WalletUsed { get; set; }
+        public decimal? PayableAmount { get; set; }
+
+        public DateTime? BookingDate { get; set; }
+
+        public string? TransactionId { get; set; }
+        public string? PaymentStatus { get; set; }
+        public string? PaymentMethod { get; set; }
+
+        public bool? UseWallet { get; set; }
+        public string? ShareId { get; set; }
+    }
+
+
+    // Event Ticket
+    public class CommunityEventTicketModel
+    {
+        public long TicketId { get; set; }
+        public long BookingId { get; set; }
+        public int EventId { get; set; }
+        public string? EventName { get; set; }
+
+        public int? TicketTypeId { get; set; }
+
+        public Guid UserId { get; set; }
+
+        public string? TicketCode { get; set; }
+        public string? QRCodePath { get; set; }
+
+        public string? AttendeeName { get; set; }
+        public string? AttendeeEmail { get; set; }
+
+        public decimal? TicketPrice { get; set; }
+
+        public string? TicketStatus { get; set; }
+
+        public bool IsCheckedIn { get; set; }
+        public DateTime? CheckInTime { get; set; }
+
+        public DateTime? CreatedDate { get; set; }
+        public DateTime? ExpiryDate { get; set; }
+
+        public string? ConditionsApply { get; set; }
+        public string? DisplayName { get; set; }
+
+        public int ScanCount { get; set; }
+        public DateTime? LastScanTime { get; set; }
+    }
+
+
+    // Ticket Scan History
+    public class CommunityEventScanModel
+    {
+        public long ScanId { get; set; }
+        public long TicketId { get; set; }
+
+        public string? TicketCode { get; set; }
+
+        public DateTime? ScanTime { get; set; }
+
+        public string? ScanStatus { get; set; }
+
+        public Guid UserId { get; set; }
+
+        public string? AttendeeName { get; set; }
+        public string? AttendeeEmail { get; set; }
+
+        public int EventId { get; set; }
+        public string? EventName { get; set; }
     }
 }
