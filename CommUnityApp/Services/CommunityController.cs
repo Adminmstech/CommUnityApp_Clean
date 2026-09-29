@@ -1599,7 +1599,7 @@ namespace CommUnityApp.Services
                 });
             }
 
-            var bookings =
+            var bookings = 
                 await _communityRepository.GetEventBookings(
                     communityId,
                     eventId);
