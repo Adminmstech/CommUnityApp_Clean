@@ -197,9 +197,16 @@ namespace CommUnityApp.ApplicationCore.Models
     public class SelectCareConnectSupporterResponse
     {
         public int ResultId { get; set; }
-        public string ResultMessage { get; set; }
-        public int RequestId { get; set; }
+
+        public string ResultMessage { get; set; } = string.Empty;
+
+        public long RequestId { get; set; }
+
         public Guid SupporterId { get; set; }
+
+        public bool IsSelected { get; set; }
+
+        public bool ShowAcceptButton { get; set; }
     }
     public class CareConnectRequestButtonStatusResponse
     {

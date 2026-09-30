@@ -432,7 +432,7 @@ namespace CommUnityApp.Services
 
                 if (result == null)
                 {
-                    return NotFound(new
+                    return NotFound(new 
                     {
                         resultId = 0,
                         resultMessage = "Unable to select supporter."
@@ -444,7 +444,10 @@ namespace CommUnityApp.Services
                     resultId = result.ResultId,
                     resultMessage = result.ResultMessage,
                     requestId = result.RequestId,
-                    supporterId = result.SupporterId
+                    supporterId = result.SupporterId,
+                    isSelected = result.IsSelected,
+                    showAcceptButton = result.ShowAcceptButton
+                   
                 });
             }
             catch (SqlException ex)
