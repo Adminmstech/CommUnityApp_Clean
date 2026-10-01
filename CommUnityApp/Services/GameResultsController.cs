@@ -140,20 +140,20 @@ namespace CommUnityApp.Services
                     PrizeImage = BuildFullImageUrl(baseUrl, x.PrizeImage),
                     x.PlayedAt,
                     x.RewardValue,
-                    RedeemCode = effectiveRedeemCode,
+                   // RedeemCode = effectiveRedeemCode,
                     redeemCode = effectiveRedeemCode,
-                    RedeemQRCode = qrUrl,
+                  //  RedeemQRCode = qrUrl,
                     redeemQrCode = qrUrl,
                     x.IsWinner,
                     x.PointsAwarded,
-                    BusinessLocation = effectiveLocation,
+                   // BusinessLocation = effectiveLocation,
                     businessLocation = effectiveLocation,
                     x.SectionId,
                     SectionImage = BuildFullImageUrl(baseUrl, x.SectionImage)
                 };
             }).ToList();
 
-            return Ok(new
+            return Ok(new 
             {
                 ResultId = 1,
                 ResultMessage = "Success",
