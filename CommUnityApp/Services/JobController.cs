@@ -133,75 +133,160 @@ namespace CommUnityApp.Services
         [HttpPost("ApplyJob")]
         [RequestSizeLimit(20 * 1024 * 1024)]
         [Consumes("multipart/form-data")]
+ 
         public async Task<IActionResult> ApplyJob([FromForm] ApplyJobModel model)
         {
-            var appId = await _jobsRepository.ApplyJob(model);
-
-            string resumePath = "";
-
-            if (model.ResumeFile != null &&
-                model.ResumeFile.Length > 0)
+            try
             {
-                var extension = Path.GetExtension(
-                    model.ResumeFile.FileName)
-                    .ToLowerInvariant(); 
-
-                var allowedExtensions = new[] 
+               
+                if (model == null)
                 {
-            ".pdf",
-            ".jpg",
-            ".jpeg",
-            ".png"
-        };
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Invalid application details."
+                    });
+                }
 
-                if (!allowedExtensions.Contains(extension))
+
+                if (string.IsNullOrWhiteSpace(model.CoverLetter))
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Please add a cover letter before applying."
+                    });
+                }
+
+
+                if (string.IsNullOrWhiteSpace(model.Phone))
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Please enter your mobile number."
+                    });
+                }
+
+                if (model.Phone.Length != 10 ||
+                    !model.Phone.All(char.IsDigit))
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Mobile number must contain exactly 10 digits."
+                    });
+                }
+
+
+       
+                var appId = await _jobsRepository.ApplyJob(model);
+
+
+                if (appId <= 0)
                 {
                     return BadRequest(new
                     {
                         ResultId = 0,
                         ResultMessage =
-                            "Only PDF, JPG, JPEG and PNG files are allowed."
+                            "Unable to apply for this job. You may be the job poster, already applied, or the job may no longer be available."
                     });
                 }
 
-                string folderPath = Path.Combine(
-                    _environment.WebRootPath,
-                    "Uploads",
-                    "JobApplications",
-                    appId.ToString()
-                );
 
-                Directory.CreateDirectory(folderPath);
+                string resumePath = "";
 
-                string fileName = "Resume" + extension;
-
-                string filePath = Path.Combine(
-                    folderPath,
-                    fileName
-                );
-
-                await using (var stream = new FileStream(
-                    filePath,
-                    FileMode.Create))
+                if (model.ResumeFile != null &&
+                    model.ResumeFile.Length > 0)
                 {
-                    await model.ResumeFile.CopyToAsync(stream);
+                    var extension = Path.GetExtension(
+                        model.ResumeFile.FileName)
+                        .ToLowerInvariant();
+
+
+                    var allowedExtensions = new[]
+                    {
+                ".pdf",
+                ".jpg",
+                ".jpeg",
+                ".png"
+            };
+
+
+                    if (!allowedExtensions.Contains(extension))
+                    {
+                        return BadRequest(new
+                        {
+                            ResultId = 0,
+                            ResultMessage =
+                                "Only PDF, JPG, JPEG and PNG files are allowed."
+                        });
+                    }
+
+
+
+                    if (model.ResumeFile.Length > 20 * 1024 * 1024)
+                    {
+                        return BadRequest(new
+                        {
+                            ResultId = 0,
+                            ResultMessage =
+                                "Resume file size cannot exceed 20 MB."
+                        });
+                    }
+
+
+                    string folderPath = Path.Combine(
+                        _environment.WebRootPath,
+                        "Uploads",
+                        "JobApplications",
+                        appId.ToString()
+                    );
+
+                    Directory.CreateDirectory(folderPath);
+
+                    string fileName = "Resume" + extension;
+
+                    string filePath = Path.Combine(
+                        folderPath,
+                        fileName
+                    );
+
+
+                    await using (var stream = new FileStream(
+                        filePath,
+                        FileMode.Create))
+                    {
+                        await model.ResumeFile.CopyToAsync(stream);
+                    }
+
+
+                    resumePath =
+                        $"/Uploads/JobApplications/{appId}/{fileName}";
+
+
+                    await _jobsRepository.UpdateResumePath(
+                        appId,
+                        resumePath);
                 }
 
-                resumePath =
-                    $"/Uploads/JobApplications/{appId}/{fileName}";
-
-                await _jobsRepository.UpdateResumePath(
-                    appId,
-                    resumePath);
+                return Ok(new
+                {
+                    ResultId = 1,
+                    ResultMessage = "Applied successfully.",
+                    ApplicationId = appId,
+                    ResumePath = resumePath
+                });
             }
-
-            return Ok(new
+            catch (Exception ex)
             {
-                ResultId = 1,
-                ResultMessage = "Applied successfully",
-                ApplicationId = appId,
-                ResumePath = resumePath
-            });
+                return StatusCode(500, new
+                {
+                    ResultId = 0,
+                    ResultMessage = "An error occurred while applying for the job.",
+                    Error = ex.Message
+                });
+            }
         }
 
         [HttpPost("ApplyForJob")]

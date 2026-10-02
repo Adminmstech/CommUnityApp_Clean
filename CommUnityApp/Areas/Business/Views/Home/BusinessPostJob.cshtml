@@ -144,14 +144,15 @@
 
         $.ajax({
 
-            url: "https://localhost:7176/api/Job/BusinessPostJob",
+            url: "/api/Job/BusinessPostJob",
+            type: "POST",
 
             type: "POST",
 
             contentType: "application/json",
 
-            data: JSON.stringify(model),
-
+            data: JSON.stringify(model), 
+             
             success: function (res) {
 
                 Swal.fire({
@@ -167,7 +168,8 @@
 
             error: function (xhr) {
 
-                console.log(xhr.responseText);
+                console.log(xhr.responseText);    
+
 
                 Swal.fire({
 
