@@ -271,7 +271,7 @@ namespace CommUnityApp.ApplicationCore.Models
         [JsonIgnore]
         public bool IsVolunteer { get; set; }
     }
-     
+      
     public class VolunteerDetailsModel
     {
         public bool IsVolunteer { get; set; }
