@@ -300,13 +300,14 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             }
         }
 
-        public async Task<List<CharityItemListModel>> GetAllCharityItems()
+        public async Task<List<CharityItemListModel>> GetAllCharityItems(Guid userId)
         {
             using (var con = new SqlConnection(
                 _configuration.GetConnectionString("DefaultConnection")))
             {
                 using var multi = await con.QueryMultipleAsync(
                     "Get_AllCharityItems",
+                    new { UserId = userId },
                     commandType: CommandType.StoredProcedure);
 
                 var items = (await multi.ReadAsync<CharityItemListModel>())

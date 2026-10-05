@@ -24,7 +24,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task AssignVolunteerToRequest(AssignVolunteerModel model);
 
-        Task<List<CharityItemListModel>> GetAllCharityItems();
+        Task<List<CharityItemListModel>> GetAllCharityItems(Guid userId);
         Task<List<MyRequestedItemsModel>> GetMyRequestedItems(Guid userId);
         
         Task<List<Community>> GetCommunities();

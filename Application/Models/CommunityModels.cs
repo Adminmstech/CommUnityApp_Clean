@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using System.Text.Json.Serialization;
 using static Dapper.SqlMapper;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -240,29 +241,19 @@ namespace CommUnityApp.ApplicationCore.Models
     public class CharityItemListModel
     {
         public int CharityItemId { get; set; }
-
         public long CommunityId { get; set; }
-
         public string CommunityName { get; set; }
-
         public string ItemName { get; set; }
-
         public string ItemCategory { get; set; }
-
         public string Description { get; set; }
-
         public int Quantity { get; set; }
-
         public int RequestedQuantity { get; set; }
-
         public int AvailableQuantity { get; set; }
-
         public string AvailabilityStatus { get; set; }
 
         public List<string> ImagePaths { get; set; } = new List<string>();
 
         public string Status { get; set; }
-
         public DateTime? CreatedDate { get; set; }
 
         public string CreatedDateString
@@ -276,7 +267,16 @@ namespace CommUnityApp.ApplicationCore.Models
         }
 
         public string DeliveryStatus { get; set; }
+
+        [JsonIgnore]
+        public bool IsVolunteer { get; set; }
     }
+      
+    public class VolunteerDetailsModel
+    {
+        public bool IsVolunteer { get; set; }
+    }
+
     public class MyRequestedItemsModel
     {
         public int RequestId { get; set; }
