@@ -533,15 +533,26 @@ namespace CommUnityApp.Services
             await _communityRepository.AssignVolunteerToRequest(model);
             return Ok(new { message = "Volunteer Assigned Successfully" });
         }
-
-        [HttpGet("GetAllCharityItems")]
-        public async Task<IActionResult> GetAllCharityItems()
+[HttpGet("GetAllCharityItems")]
+public async Task<IActionResult> GetAllCharityItems(Guid userId)
         {
             try
             {
-                var data = await _communityRepository.GetAllCharityItems();
+                if (userId == Guid.Empty)
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Valid UserId is required."
+                    });
+                }
+
+                var data = await _communityRepository.GetAllCharityItems(userId);
 
                 string baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+               
+                bool isVolunteer = data.FirstOrDefault()?.IsVolunteer ?? false;
 
                 foreach (var item in data)
                 {
@@ -549,7 +560,10 @@ namespace CommUnityApp.Services
                     {
                         item.ImagePaths = item.ImagePaths
                             .Where(path => !string.IsNullOrWhiteSpace(path))
-                            .Select(path => baseUrl + path)
+                            .Select(path =>
+                                path.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                                    ? path
+                                    : baseUrl + path)
                             .ToList();
                     }
 
@@ -560,15 +574,30 @@ namespace CommUnityApp.Services
                     baseUrl + "/images/noimage.png"
                 };
                     }
+
+                    item.IsVolunteer = false;
                 }
 
-                return Ok(data);
+                return Ok(new
+                {
+                    volunteerDetails = new VolunteerDetailsModel
+                    {
+                        IsVolunteer = isVolunteer
+                    },
+                    charityItems = data
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = ex.Message
+                });
             }
         }
+
+
 
         [HttpGet("GetMyRequestedItems")]
         public async Task<IActionResult> GetMyRequestedItems(Guid userId)
@@ -1203,11 +1232,11 @@ namespace CommUnityApp.Services
 
 
         [HttpGet("Get_AllCharityItems")]
-        public async Task<IActionResult> Get_AllCharityItems()
+        public async Task<IActionResult> Get_AllCharityItems(Guid userId)
         {
             try
             {
-                var result = await _unitOfWork.Community.GetAllCharityItems();
+                var result = await _unitOfWork.Community.GetAllCharityItems( userId);
 
                 return Ok(result);
             }
