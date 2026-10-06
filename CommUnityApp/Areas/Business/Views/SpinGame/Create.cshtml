@@ -142,6 +142,7 @@
                                     <th>Promotion ID (optional)</th>
                                     <th>Prize Text *</th>
                                     <th>Color</th>
+                                    <th>Stock Limit</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -160,6 +161,14 @@
                                         <td><input type="number" name="Sections[@i].PromotionId" class="form-control promo-input" value="@section1.PromotionId" min="0" /></td>
                                         <td><input type="text" name="Sections[@i].PrizeText" class="form-control text-input" value="@section1.PrizeText" data-val="true" data-val-required="Prize text is required." /></td>
                                         <td><input type="color" name="Sections[@i].Color" class="form-control color-input" value="@section1.Color" /></td>
+                                        <td>
+                                            <input type="number" name="Sections[@i].TotalStock" class="form-control stock-input" value="@section1.TotalStock" min="0" placeholder="Unlimited" style="min-width: 90px;" />
+                                            <input type="hidden" name="Sections[@i].AvailableStock" value="@section1.AvailableStock" class="avail-stock-input" />
+                                            @if (section1.AvailableStock.HasValue)
+                                            {
+                                                <span class="badge bg-info-subtle text-dark mt-1 d-block text-center small">Avail: @section1.AvailableStock.Value</span>
+                                            }
+                                        </td>
                                         <td>
                                             <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteSection(this)">
                                                 <i class="fa-solid fa-trash"></i>
@@ -216,6 +225,10 @@ function addSection() {
             <td><input type="text" name="Sections[${idx}].PrizeText" class="form-control text-input" value="Try Again" data-val="true" data-val-required="Prize text is required." /></td>
             <td><input type="color" name="Sections[${idx}].Color" class="form-control color-input" value="#3498db" /></td>
             <td>
+                <input type="number" name="Sections[${idx}].TotalStock" class="form-control stock-input" value="" min="0" placeholder="Unlimited" style="min-width: 90px;" />
+                <input type="hidden" name="Sections[${idx}].AvailableStock" value="" class="avail-stock-input" />
+            </td>
+            <td>
                 <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteSection(this)">
                     <i class="fa-solid fa-trash"></i>
                 </button>
@@ -249,6 +262,10 @@ function reindexSections() {
         row.querySelector('.promo-input').name = `Sections[${index}].PromotionId`;
         row.querySelector('.text-input').name = `Sections[${index}].PrizeText`;
         row.querySelector('.color-input').name = `Sections[${index}].Color`;
+        const stockInput = row.querySelector('.stock-input');
+        if (stockInput) stockInput.name = `Sections[${index}].TotalStock`;
+        const availStockInput = row.querySelector('.avail-stock-input');
+        if (availStockInput) availStockInput.name = `Sections[${index}].AvailableStock`;
     });
     sectionCounter = rows.length;
 }

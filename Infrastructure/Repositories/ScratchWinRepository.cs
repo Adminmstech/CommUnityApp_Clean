@@ -99,7 +99,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                 RewardImage,
                                 Description,
                                 WinMessage,
-                                IsActive
+                                IsActive,
+                                BusinessId,
+                                BusinessLocation
                             )
                             VALUES (
                                 @GameId,
@@ -113,7 +115,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                 @RewardImage,
                                 @Description,
                                 @WinMessage,
-                                @IsActive
+                                @IsActive,
+                                @BusinessId,
+                                @BusinessLocation
                             );";
 
                         foreach (var reward in model.Rewards)
@@ -131,7 +135,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                 reward.RewardImage,
                                 reward.Description,
                                 reward.WinMessage,
-                                reward.IsActive
+                                reward.IsActive,
+                                BusinessId = reward.BusinessId ?? 0,
+                                reward.BusinessLocation
                             }, tx);
                         }
                     }
@@ -188,7 +194,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                         RewardImage = @RewardImage,
                                         Description = @Description,
                                         WinMessage = @WinMessage,
-                                        IsActive = @IsActive
+                                        IsActive = @IsActive,
+                                        BusinessId = @BusinessId,
+                                        BusinessLocation = @BusinessLocation
                                     WHERE RewardId = @RewardId AND GameId = @GameId;";
 
                                 await con.ExecuteAsync(updateRewardSql, new
@@ -204,7 +212,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                     reward.RewardImage,
                                     reward.Description,
                                     reward.WinMessage,
-                                    reward.IsActive
+                                    reward.IsActive,
+                                    BusinessId = reward.BusinessId ?? 0,
+                                    reward.BusinessLocation
                                 }, tx);
                             }
                             else
@@ -225,7 +235,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                             RewardImage = @RewardImage,
                                             Description = @Description,
                                             WinMessage = @WinMessage,
-                                            IsActive = @IsActive
+                                            IsActive = @IsActive,
+                                            BusinessId = @BusinessId,
+                                            BusinessLocation = @BusinessLocation
                                         WHERE RewardId = @RewardId AND GameId = @GameId;";
 
                                     await con.ExecuteAsync(updateByOrderSql, new
@@ -240,7 +252,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                         reward.RewardImage,
                                         reward.Description,
                                         reward.WinMessage,
-                                        reward.IsActive
+                                        reward.IsActive,
+                                        BusinessId = reward.BusinessId ?? 0,
+                                        reward.BusinessLocation
                                     }, tx);
                                 }
                                 else
@@ -258,7 +272,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                             RewardImage,
                                             Description,
                                             WinMessage,
-                                            IsActive
+                                            IsActive,
+                                            BusinessId,
+                                            BusinessLocation
                                         )
                                         VALUES (
                                             @GameId,
@@ -272,7 +288,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                             @RewardImage,
                                             @Description,
                                             @WinMessage,
-                                            @IsActive
+                                            @IsActive,
+                                            @BusinessId,
+                                            @BusinessLocation
                                         );";
 
                                     await con.ExecuteAsync(insertRewardSql, new
@@ -288,7 +306,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                         reward.RewardImage,
                                         reward.Description,
                                         reward.WinMessage,
-                                        reward.IsActive
+                                        reward.IsActive,
+                                        BusinessId = reward.BusinessId ?? 0,
+                                        reward.BusinessLocation
                                     }, tx);
                                 }
                             }
@@ -318,8 +338,20 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         {
             using var con = Connection;
             const string sql = @"
-                SELECT * FROM ScratchWinGame WHERE GameId = @GameId AND IsDeleted = 0;
-                SELECT * FROM ScratchWinReward WHERE GameId = @GameId ORDER BY RewardOrder ASC;";
+                SELECT g.*, 
+                       b.BusinessName,
+                       (SELECT COUNT(*) FROM ScratchWinPlayHistory h WHERE h.GameId = g.GameId) AS TotalEntries
+                FROM ScratchWinGame g 
+                LEFT JOIN Businesses b ON g.BusinessId = b.BusinessId
+                WHERE g.GameId = @GameId AND g.IsDeleted = 0;
+
+                SELECT r.*,
+                       b.BusinessName,
+                       (SELECT COUNT(*) FROM ScratchWinPlayHistory h WHERE h.GameId = r.GameId AND h.RewardId = r.RewardId) AS WinCount
+                FROM ScratchWinReward r 
+                LEFT JOIN Businesses b ON r.BusinessId = b.BusinessId
+                WHERE r.GameId = @GameId 
+                ORDER BY r.RewardOrder ASC;";
 
             using var multi = await con.QueryMultipleAsync(sql, new { GameId = gameId });
             var game = await multi.ReadFirstOrDefaultAsync<ScratchWinGameDto>();
@@ -335,15 +367,22 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
         {
             using var con = Connection;
             const string sql = @"
-                SELECT TOP 1 * 
-                FROM ScratchWinGame 
-                WHERE Status = 1 AND IsDeleted = 0 
-                ORDER BY GameId DESC;
+                SELECT TOP 1 g.*,
+                       b.BusinessName,
+                       (SELECT COUNT(*) FROM ScratchWinPlayHistory h WHERE h.GameId = g.GameId) AS TotalEntries
+                FROM ScratchWinGame g 
+                LEFT JOIN Businesses b ON g.BusinessId = b.BusinessId
+                WHERE g.Status = 1 AND g.IsDeleted = 0 
+                ORDER BY g.GameId DESC;
                 
-                SELECT * FROM ScratchWinReward 
-                WHERE GameId = (SELECT TOP 1 GameId FROM ScratchWinGame WHERE Status = 1 AND IsDeleted = 0 ORDER BY GameId DESC) 
-                  AND IsActive = 1
-                ORDER BY RewardOrder ASC;";
+                SELECT r.*,
+                       b.BusinessName,
+                       (SELECT COUNT(*) FROM ScratchWinPlayHistory h WHERE h.GameId = r.GameId AND h.RewardId = r.RewardId) AS WinCount
+                FROM ScratchWinReward r 
+                LEFT JOIN Businesses b ON r.BusinessId = b.BusinessId
+                WHERE r.GameId = (SELECT TOP 1 GameId FROM ScratchWinGame WHERE Status = 1 AND IsDeleted = 0 ORDER BY GameId DESC) 
+                  AND r.IsActive = 1
+                ORDER BY r.RewardOrder ASC;";
 
             using var multi = await con.QueryMultipleAsync(sql);
             var game = await multi.ReadFirstOrDefaultAsync<ScratchWinGameDto>();
@@ -360,8 +399,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             using var con = Connection;
             const string sql = @"
                 SELECT g.*, 
+                       b.BusinessName,
                        (SELECT COUNT(*) FROM ScratchWinPlayHistory h WHERE h.GameId = g.GameId) AS TotalEntries
                 FROM ScratchWinGame g
+                LEFT JOIN Businesses b ON g.BusinessId = b.BusinessId
                 WHERE g.IsDeleted = 0
                 ORDER BY g.GameId DESC;";
 
@@ -370,7 +411,12 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             if (games.Any())
             {
                 var gameIds = games.Select(x => x.GameId).ToArray();
-                const string rewardsSql = "SELECT * FROM ScratchWinReward WHERE GameId IN @GameIds ORDER BY RewardOrder ASC;";
+                const string rewardsSql = @"
+                    SELECT r.*, b.BusinessName 
+                    FROM ScratchWinReward r 
+                    LEFT JOIN Businesses b ON r.BusinessId = b.BusinessId
+                    WHERE r.GameId IN @GameIds 
+                    ORDER BY r.RewardOrder ASC;";
                 var rewards = (await con.QueryAsync<ScratchWinRewardDto>(rewardsSql, new { GameIds = gameIds })).ToList();
 
                 foreach (var game in games)
@@ -430,7 +476,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             return affected > 0;
         }
 
-        public async Task<int> TrackGameplayAsync(int gameId, Guid userId, int? rewardId, string rewardName, string rewardType, int coins, bool isWinner, int attemptNumber, string? redeemCode, string? qrCodePath, string? redeemLocation = null)
+        public async Task<int> TrackGameplayAsync(int gameId, Guid userId, int? rewardId, string rewardName, string rewardType, int coins, bool isWinner, int attemptNumber, string? redeemCode, string? qrCodePath, string? redeemLocation = null, int? businessId = null)
         {
             using var con = Connection;
             const string sql = @"
@@ -446,6 +492,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     RedeemCode,
                     QRCodePath,
                     RedeemLocation,
+                    BusinessId,
                     CreatedDate
                 )
                 VALUES (
@@ -460,6 +507,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     @RedeemCode,
                     @QRCodePath,
                     @RedeemLocation,
+                    @BusinessId,
                     GETDATE()
                 );
                 SELECT CAST(SCOPE_IDENTITY() as int);";
@@ -476,7 +524,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 AttemptNumber = attemptNumber,
                 RedeemCode = redeemCode,
                 QRCodePath = qrCodePath,
-                RedeemLocation = redeemLocation
+                RedeemLocation = redeemLocation,
+                BusinessId = businessId ?? 0
             });
         }
 
@@ -500,8 +549,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             using var con = Connection;
             var offset = (pageNumber - 1) * pageSize;
             const string sql = @"
-                SELECT h.*
+                SELECT h.*, u.UserName, b.BusinessName
                 FROM ScratchWinPlayHistory h
+                LEFT JOIN AspNetUsers u ON h.UserId = u.Id
+                LEFT JOIN Businesses b ON h.BusinessId = b.BusinessId
                 WHERE (@GameId IS NULL OR h.GameId = @GameId)
                 ORDER BY h.HistoryId DESC
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";

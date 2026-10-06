@@ -50,6 +50,12 @@
                                         <div>
                                             <div class="fw-700 text-dark">@game.GameName</div>
                                             <div class="text-muted small">@game.GameTitle</div>
+                                            @if (!string.IsNullOrWhiteSpace(game.BusinessLocation) || !string.IsNullOrWhiteSpace(game.BusinessName))
+                                            {
+                                                <div class="text-primary small mt-1">
+                                                    <i class="fa-solid fa-store me-1"></i>@(string.IsNullOrWhiteSpace(game.BusinessName) ? game.BusinessLocation : $"{game.BusinessName} ({game.BusinessLocation})")
+                                                </div>
+                                            }
                                         </div>
                                     </div>
                                 </td>

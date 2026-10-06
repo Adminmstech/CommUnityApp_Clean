@@ -1,4 +1,5 @@
 using CommUnityApp.ApplicationCore.Models;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -17,11 +18,10 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BaseResponse> AddUpdateConfigAsync(SpinGameConfigRequest model);
         Task<BaseResponse> AddUpdateSectionAsync(SpinSectionRequest model);
         Task<BaseResponse> DeleteSectionAsync(int sectionId);
-        Task<PlaySpinResponse> PlaySpinGameAsync(PlaySpinRequest request,
-    string redeemCode,
-    string qrCodePath);
+        Task<PlaySpinResponse> PlaySpinGameAsync(PlaySpinRequest request, string redeemCode, string qrCodePath);
         Task<IEnumerable<GameSpinResultDto>> GetGameSpinResultsAsync(int? gameId, Guid? userId);
         Task AddSpinGameRewardCoinsAsync(Guid userId, int coins, int gameId, string? notes = null);
+        Task<RedeemSpinPrizeResponse> RedeemSpinPrizeAsync(RedeemSpinPrizeRequest request);
+        Task<bool> TryConsumeSectionStockAsync(int sectionId);
     }
 }
-

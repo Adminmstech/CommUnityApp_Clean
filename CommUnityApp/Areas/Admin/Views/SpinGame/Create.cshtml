@@ -288,6 +288,7 @@
                                     <th>Color</th>
                                     <th>Probability (%)</th>
                                     <th>Calculated Range</th>
+                                    <th>Stock Limit</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -324,6 +325,14 @@
                                                 <span class="badge bg-secondary-subtle text-dark px-3 py-2 range-display">N/A</span>
                                                 <input type="hidden" name="Sections[@i].WinRangeMin" value="@section1.WinRangeMin" class="win-range-min-input" />
                                                 <input type="hidden" name="Sections[@i].WinRangeMax" value="@section1.WinRangeMax" class="win-range-max-input" />
+                                            </td>
+                                            <td>
+                                                <input type="number" name="Sections[@i].TotalStock" class="form-control stock-input" min="0" value="@section1.TotalStock" placeholder="Unlimited" style="min-width: 90px;" />
+                                                <input type="hidden" name="Sections[@i].AvailableStock" value="@section1.AvailableStock" class="avail-stock-input" />
+                                                @if (section1.AvailableStock.HasValue)
+                                                {
+                                                    <span class="badge bg-info-subtle text-dark mt-1 d-block text-center small">Avail: @section1.AvailableStock.Value</span>
+                                                }
                                             </td>
                                             <td>
                                                 <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteSection(this)">
@@ -414,6 +423,10 @@
                         <input type="hidden" name="Sections[${idx}].WinRangeMax" value="" class="win-range-max-input" />
                     </td>
                     <td>
+                        <input type="number" name="Sections[${idx}].TotalStock" class="form-control stock-input" min="0" value="" placeholder="Unlimited" style="min-width: 90px;" />
+                        <input type="hidden" name="Sections[${idx}].AvailableStock" value="" class="avail-stock-input" />
+                    </td>
+                    <td>
                         <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteSection(this)">
                             <i class="fa-solid fa-trash"></i>
                         </button>
@@ -451,6 +464,10 @@
                 row.querySelector('.probability-input').name = `Sections[${index}].Probability`;
                 row.querySelector('.win-range-min-input').name = `Sections[${index}].WinRangeMin`;
                 row.querySelector('.win-range-max-input').name = `Sections[${index}].WinRangeMax`;
+                const stockInput = row.querySelector('.stock-input');
+                if (stockInput) stockInput.name = `Sections[${index}].TotalStock`;
+                const availStockInput = row.querySelector('.avail-stock-input');
+                if (availStockInput) availStockInput.name = `Sections[${index}].AvailableStock`;
             });
             sectionCounter = rows.length;
         }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Http;
 using System;
+using System.Collections.Generic;
 
 namespace CommUnityApp.ApplicationCore.Models
 {
@@ -44,6 +45,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public int Probability { get; set; }
         public int? WinRangeMin { get; set; }
         public int? WinRangeMax { get; set; }
+        public int? TotalStock { get; set; }
+        public int? AvailableStock { get; set; }
     }
 
     public class AddUpdateSpinGameRequest
@@ -85,7 +88,12 @@ namespace CommUnityApp.ApplicationCore.Models
         public string? BusinessLocation { get; set; }
         public string Status { get; set; } = string.Empty;
         public DateTime PlayedAt { get; set; }
+        public int? TotalStock { get; set; }
+        public int? AvailableStock { get; set; }
+        public bool IsRedeemed { get; set; }
+        public DateTime? RedeemedDate { get; set; }
     }
+
     public class GameSpinResultDto
     {
         public int SpinId { get; set; }
@@ -98,12 +106,51 @@ namespace CommUnityApp.ApplicationCore.Models
         public int? PointsAwarded { get; set; }
         public int? PromotionId { get; set; }
         public string? RedeemCode { get; set; }
-
         public string? QRCodePath { get; set; }
-
         public string? BusinessLocation { get; set; }
+        public bool IsRedeemed { get; set; }
+        public DateTime? RedeemedDate { get; set; }
     }
 
-    // Add more DTOs for configs, sections, spins as needed
-}
+    public class RedeemSpinPrizeRequest
+    {
+        public string RedeemCode { get; set; } = string.Empty;
+        public Guid? RedeemedByUserId { get; set; }
+        public string? RedeemedBy { get; set; }
+    }
 
+    public class RedeemSpinPrizeResponse
+    {
+        public int ResultId { get; set; }
+        public string ResultMessage { get; set; } = string.Empty;
+        public bool Status { get; set; }
+        public int SpinId { get; set; }
+        public int GameId { get; set; }
+        public string? GameName { get; set; }
+        public string? PrizeText { get; set; }
+        public string? BusinessLocation { get; set; }
+        public string? RedeemCode { get; set; }
+        public DateTime? RedeemedDate { get; set; }
+        public int? RemainingStock { get; set; }
+    }
+
+    public class SpinRedemptionRecord
+    {
+        public int SpinId { get; set; }
+        public Guid UserId { get; set; }
+        public DateTime SpinDate { get; set; }
+        public int SelectedSectionId { get; set; }
+        public int? PointsAwarded { get; set; }
+        public int? PromotionId { get; set; }
+        public string? RedeemCode { get; set; }
+        public string? QRCodePath { get; set; }
+        public bool IsRedeemed { get; set; }
+        public DateTime? RedeemedDate { get; set; }
+        public string? RedeemedBy { get; set; }
+        public string? PrizeText { get; set; }
+        public int? AvailableStock { get; set; }
+        public int GameId { get; set; }
+        public string? GameName { get; set; }
+        public string? BusinessLocation { get; set; }
+    }
+}

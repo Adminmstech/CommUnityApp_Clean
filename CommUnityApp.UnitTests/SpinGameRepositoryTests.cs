@@ -647,5 +647,256 @@ namespace CommUnityApp.UnitTests
             Assert.Null(result.RedeemCode);
             Assert.Null(result.QRCodePath);
         }
+
+        [Fact]
+        public async Task PlaySpinGameAsync_WithStockLimit_DecrementsAvailableStock()
+        {
+            // Arrange
+            var gameId = 1;
+            var request = new PlaySpinRequest { GameId = gameId, UserId = Guid.NewGuid(), SectionId = 101 };
+
+            var game = new SpinGameDto { GameId = gameId, IsActive = true, ConfigId = 10 };
+            var config = new SpinGameConfigRequest { ConfigId = 10, IsActive = true, GameStartDate = DateTime.Now.AddDays(-1), GameEndDate = DateTime.Now.AddDays(1) };
+            var sections = new List<SpinSectionRequest>
+            {
+                new SpinSectionRequest { SectionId = 101, GameId = gameId, SectionNumber = 1, PrizeText = "Free Coffee", TotalStock = 5, AvailableStock = 5 }
+            };
+
+            _mockDapper
+                .Setup(d => d.QueryFirstOrDefaultAsync<SpinGameDto>(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("FROM SpinGame")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync(game);
+
+            _mockDapper
+                .Setup(d => d.QueryFirstOrDefaultAsync<SpinGameConfigRequest>(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("FROM SpinGameConfiguration")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync(config);
+
+            _mockDapper
+                .Setup(d => d.QueryAsync<SpinSectionRequest>(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("FROM SpinSection WHERE GameId = @GameId")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync(sections);
+
+            _mockDapper
+                .Setup(d => d.ExecuteAsync(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("UPDATE SpinSection")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync(1);
+
+            _mockDapper
+                .Setup(d => d.QueryFirstOrDefaultAsync<int>(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("INSERT INTO GameSpins")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync(1);
+
+            // Act
+            var result = await _repository.PlaySpinGameAsync(request, "COFFEE_CODE", "/coffee_qr.png");
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(1, result.ResultId);
+            Assert.Equal(101, result.SectionId);
+            Assert.Equal(4, result.AvailableStock);
+            Assert.Equal(5, result.TotalStock);
+        }
+
+        [Fact]
+        public async Task PlaySpinGameAsync_WhenSelectedSectionOutOfStock_FallsBackToAvailableSection()
+        {
+            // Arrange
+            var gameId = 1;
+            var request = new PlaySpinRequest { GameId = gameId, UserId = Guid.NewGuid(), SectionId = 101 };
+
+            var game = new SpinGameDto { GameId = gameId, IsActive = true, ConfigId = 10 };
+            var config = new SpinGameConfigRequest { ConfigId = 10, IsActive = true, GameStartDate = DateTime.Now.AddDays(-1), GameEndDate = DateTime.Now.AddDays(1) };
+            var sections = new List<SpinSectionRequest>
+            {
+                new SpinSectionRequest { SectionId = 101, GameId = gameId, SectionNumber = 1, PrizeText = "Free Coffee", TotalStock = 5, AvailableStock = 0 },
+                new SpinSectionRequest { SectionId = 102, GameId = gameId, SectionNumber = 2, PrizeText = "Try Again", TotalStock = null, AvailableStock = null }
+            };
+
+            _mockDapper
+                .Setup(d => d.QueryFirstOrDefaultAsync<SpinGameDto>(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("FROM SpinGame")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync(game);
+
+            _mockDapper
+                .Setup(d => d.QueryFirstOrDefaultAsync<SpinGameConfigRequest>(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("FROM SpinGameConfiguration")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync(config);
+
+            _mockDapper
+                .Setup(d => d.QueryAsync<SpinSectionRequest>(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("FROM SpinSection WHERE GameId = @GameId")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync(sections);
+
+            _mockDapper
+                .Setup(d => d.QueryFirstOrDefaultAsync<int>(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("INSERT INTO GameSpins")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync(1);
+
+            // Act
+            var result = await _repository.PlaySpinGameAsync(request, "COFFEE_CODE", "/coffee_qr.png");
+
+            // Assert: Fell back to Section 102 because 101 was out of stock
+            Assert.NotNull(result);
+            Assert.Equal(1, result.ResultId);
+            Assert.Equal(102, result.SectionId);
+            Assert.Equal("Try Again", result.RewardValue);
+        }
+
+        [Fact]
+        public async Task RedeemSpinPrizeAsync_ValidCode_Success()
+        {
+            // Arrange
+            var request = new RedeemSpinPrizeRequest { RedeemCode = "WIN123", RedeemedBy = "Cashier" };
+
+            var record = new SpinRedemptionRecord
+            {
+                SpinId = 10,
+                GameId = 1,
+                GameName = "Summer Spin",
+                PrizeText = "Free Coffee",
+                BusinessLocation = "Downtown",
+                IsRedeemed = false,
+                RedeemedDate = null,
+                AvailableStock = 4
+            };
+
+            _mockDapper
+                .Setup(d => d.QueryFirstOrDefaultAsync<SpinRedemptionRecord>(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("FROM GameSpins gs")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync(record);
+
+            _mockDapper
+                .Setup(d => d.ExecuteAsync(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("UPDATE GameSpins")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync(1);
+
+            // Act
+            var response = await _repository.RedeemSpinPrizeAsync(request);
+
+            // Assert
+            Assert.NotNull(response);
+            Assert.True(response.Status);
+            Assert.Equal(1, response.ResultId);
+            Assert.Equal("Free Coffee", response.PrizeText);
+            Assert.Equal("Downtown", response.BusinessLocation);
+            Assert.Equal(4, response.RemainingStock);
+        }
+
+        [Fact]
+        public async Task RedeemSpinPrizeAsync_AlreadyRedeemed_ReturnsError()
+        {
+            // Arrange
+            var request = new RedeemSpinPrizeRequest { RedeemCode = "WIN123", RedeemedBy = "Cashier" };
+
+            var record = new SpinRedemptionRecord
+            {
+                SpinId = 10,
+                GameId = 1,
+                GameName = "Summer Spin",
+                PrizeText = "Free Coffee",
+                IsRedeemed = true,
+                RedeemedDate = DateTime.Now.AddDays(-1)
+            };
+
+            _mockDapper
+                .Setup(d => d.QueryFirstOrDefaultAsync<SpinRedemptionRecord>(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("FROM GameSpins gs")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync(record);
+
+            // Act
+            var response = await _repository.RedeemSpinPrizeAsync(request);
+
+            // Assert
+            Assert.NotNull(response);
+            Assert.False(response.Status);
+            Assert.Equal(0, response.ResultId);
+            Assert.Contains("already been redeemed", response.ResultMessage);
+        }
+
+        [Fact]
+        public async Task RedeemSpinPrizeAsync_InvalidCode_ReturnsNotFound()
+        {
+            // Arrange
+            var request = new RedeemSpinPrizeRequest { RedeemCode = "UNKNOWN_CODE" };
+
+            _mockDapper
+                .Setup(d => d.QueryFirstOrDefaultAsync<SpinRedemptionRecord>(
+                    It.IsAny<IDbConnection>(),
+                    It.Is<string>(s => s.Contains("FROM GameSpins gs")),
+                    It.IsAny<object>(),
+                    It.IsAny<IDbTransaction>(),
+                    It.IsAny<int?>(),
+                    It.IsAny<CommandType?>()))
+                .ReturnsAsync((SpinRedemptionRecord)null!);
+
+            // Act
+            var response = await _repository.RedeemSpinPrizeAsync(request);
+
+            // Assert
+            Assert.NotNull(response);
+            Assert.False(response.Status);
+            Assert.Contains("Invalid", response.ResultMessage);
+        }
     }
 }

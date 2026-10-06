@@ -59,6 +59,8 @@ namespace CommUnityApp.Services
                 endDate = game.EndDate,
                 chanceCount = game.ChanceCount,
                 onceIn = game.OnceIn,
+                businessId = game.BusinessId,
+                businessName = game.BusinessName,
                 businessLocation = game.BusinessLocation,
                 rewards = game.Rewards.Select(r => new
                 {
@@ -69,6 +71,9 @@ namespace CommUnityApp.Services
                     coinValue = r.CoinValue,
                     probability = r.ProbabilityPercentage,
                     availableStock = r.AvailableStock,
+                    businessId = (r.BusinessId.HasValue && r.BusinessId.Value > 0) ? r.BusinessId.Value : game.BusinessId,
+                    businessName = !string.IsNullOrWhiteSpace(r.BusinessName) ? r.BusinessName : game.BusinessName,
+                    businessLocation = !string.IsNullOrWhiteSpace(r.BusinessLocation) ? r.BusinessLocation : game.BusinessLocation,
                     image = BuildFullImageUrl(baseUrl, r.RewardImage),
                     description = r.Description,
                     winMessage = r.WinMessage
@@ -114,6 +119,8 @@ namespace CommUnityApp.Services
                 chanceCount = game.ChanceCount,
                 onceIn = game.OnceIn,
                 status = game.Status,
+                businessId = game.BusinessId,
+                businessName = game.BusinessName,
                 businessLocation = game.BusinessLocation,
                 rewards = game.Rewards.Select(r => new
                 {
@@ -124,6 +131,9 @@ namespace CommUnityApp.Services
                     coinValue = r.CoinValue,
                     probability = r.ProbabilityPercentage,
                     availableStock = r.AvailableStock,
+                    businessId = (r.BusinessId.HasValue && r.BusinessId.Value > 0) ? r.BusinessId.Value : game.BusinessId,
+                    businessName = !string.IsNullOrWhiteSpace(r.BusinessName) ? r.BusinessName : game.BusinessName,
+                    businessLocation = !string.IsNullOrWhiteSpace(r.BusinessLocation) ? r.BusinessLocation : game.BusinessLocation,
                     image = BuildFullImageUrl(baseUrl, r.RewardImage),
                     description = r.Description,
                     winMessage = r.WinMessage
@@ -182,28 +192,46 @@ namespace CommUnityApp.Services
             var consolationReward = game.Rewards.FirstOrDefault(r => r.RewardType == "Consolation")
                                     ?? game.Rewards.OrderByDescending(r => r.RewardOrder).FirstOrDefault()!;
 
-            // Roll 0.00 to 100.00 using precise decimal
-            decimal roll = (decimal)Random.Shared.NextDouble() * 100.0m;
+            // Filter active rewards with positive probability
+            var activeRewards = game.Rewards
+                .Where(r => r.IsActive && r.ProbabilityPercentage > 0)
+                .OrderBy(r => r.RewardOrder)
+                .ToList();
 
             ScratchWinRewardDto selectedReward = consolationReward;
-            decimal cumulative = 0m;
 
-            foreach (var reward in game.Rewards.OrderBy(r => r.RewardOrder))
+            if (activeRewards.Any())
             {
-                cumulative += reward.ProbabilityPercentage;
-                if (roll <= cumulative)
+                decimal totalWeight = activeRewards.Sum(r => r.ProbabilityPercentage);
+                if (totalWeight <= 0) totalWeight = 100.0m;
+
+                // High-precision cryptographic random roll scaled to totalWeight
+                // 1,000,000 discrete steps gives 0.0001% precision with uniform distribution
+                int randomInt = RandomNumberGenerator.GetInt32(0, 1000000);
+                decimal roll = ((decimal)randomInt / 1000000.0m) * totalWeight;
+
+                decimal cumulative = 0m;
+                foreach (var reward in activeRewards)
                 {
-                    selectedReward = reward;
-                    break;
+                    cumulative += reward.ProbabilityPercentage;
+                    if (roll < cumulative)
+                    {
+                        selectedReward = reward;
+                        break;
+                    }
                 }
             }
 
             // If selected is a physical prize (1st, 2nd, 3rd)
             if (selectedReward.RewardType == "Prize")
             {
-                // Must be a winning attempt and stock must be available
                 var stock = selectedReward.AvailableStock.GetValueOrDefault(0);
-                if (!isWinningAttempt || stock <= 0)
+
+                // When OnceIn <= 1: Pure probability mode (Admin-configured probability directly governs every win)
+                // When OnceIn > 1: Gated mode (Prizes additionally restricted to every Nth attempt)
+                bool attemptAllowed = (onceIn <= 1) || isWinningAttempt;
+
+                if (!attemptAllowed || stock <= 0)
                 {
                     // Fall back to Almost There / Consolation
                     selectedReward = consolationReward;
@@ -211,6 +239,16 @@ namespace CommUnityApp.Services
             }
 
             var verificationToken = GenerateVerificationToken(game.GameId, request.UserId, selectedReward.RewardId, attemptNumber);
+
+            int? effectiveBusinessId = selectedReward.RewardType == "Prize"
+                ? (selectedReward.BusinessId.HasValue && selectedReward.BusinessId.Value > 0 ? selectedReward.BusinessId.Value : game.BusinessId)
+                : null;
+            string? effectiveLocation = selectedReward.RewardType == "Prize"
+                ? (!string.IsNullOrWhiteSpace(selectedReward.BusinessLocation) ? selectedReward.BusinessLocation : game.BusinessLocation)
+                : null;
+            string? effectiveBusinessName = selectedReward.RewardType == "Prize"
+                ? (!string.IsNullOrWhiteSpace(selectedReward.BusinessName) ? selectedReward.BusinessName : game.BusinessName)
+                : null;
 
             return Ok(new
             {
@@ -226,6 +264,9 @@ namespace CommUnityApp.Services
                 description = selectedReward.Description,
                 winMessage = selectedReward.WinMessage,
                 rewardImage = BuildFullImageUrl(baseUrl, selectedReward.RewardImage),
+                businessId = effectiveBusinessId,
+                businessName = effectiveBusinessName,
+                businessLocation = effectiveLocation,
                 attemptNumber = attemptNumber,
                 verificationToken = verificationToken
             });
@@ -319,7 +360,13 @@ namespace CommUnityApp.Services
             }
 
             // Location is only added for physical prize redeem codes, not for coins
-            string? redeemLocation = (isWinner && reward.RewardType == "Prize") ? game.BusinessLocation : null;
+            string? prizeLocation = !string.IsNullOrWhiteSpace(reward.BusinessLocation) ? reward.BusinessLocation : game.BusinessLocation;
+            string? prizeBusinessName = !string.IsNullOrWhiteSpace(reward.BusinessName) ? reward.BusinessName : game.BusinessName;
+            int? effectiveBusinessId = (isWinner && reward.RewardType == "Prize") 
+                ? (reward.BusinessId.HasValue && reward.BusinessId.Value > 0 ? reward.BusinessId.Value : game.BusinessId) 
+                : null;
+            string? redeemLocation = (isWinner && reward.RewardType == "Prize") ? prizeLocation : null;
+            string? redeemBusinessName = (isWinner && reward.RewardType == "Prize") ? prizeBusinessName : null;
 
             // Track gameplay permanently in history
             await _scratchWinRepository.TrackGameplayAsync(
@@ -333,7 +380,8 @@ namespace CommUnityApp.Services
                 request.AttemptNumber,
                 redeemCode,
                 qrCodePath,
-                redeemLocation);
+                redeemLocation,
+                effectiveBusinessId);
 
             // Add coins to user wallet
             if (coinsEarned > 0)
@@ -366,6 +414,8 @@ namespace CommUnityApp.Services
                 redeemQrCode = BuildFullImageUrl(baseUrl, qrCodePath),
                 redeemLocation = redeemLocation,
                 businessLocation = redeemLocation,
+                businessId = effectiveBusinessId,
+                businessName = redeemBusinessName,
                 availableStock = freshReward?.AvailableStock
             });
         }

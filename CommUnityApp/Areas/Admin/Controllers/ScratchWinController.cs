@@ -16,12 +16,30 @@ namespace CommUnityApp.Areas.Admin.Controllers
     public class ScratchWinController : Controller
     {
         private readonly IScratchWinRepository _scratchWinRepository;
+        private readonly IBusinessRepository _businessRepository;
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ScratchWinController(IScratchWinRepository scratchWinRepository, IWebHostEnvironment webHostEnvironment)
+        public ScratchWinController(
+            IScratchWinRepository scratchWinRepository,
+            IBusinessRepository businessRepository,
+            IWebHostEnvironment webHostEnvironment)
         {
             _scratchWinRepository = scratchWinRepository;
+            _businessRepository = businessRepository;
             _webHostEnvironment = webHostEnvironment;
+        }
+
+        private async Task LoadBusinessesToViewBagAsync()
+        {
+            try
+            {
+                var businesses = await _businessRepository.GetAllBusinesses(Guid.Empty);
+                ViewBag.Businesses = businesses ?? new List<BusinessDetailsDto>();
+            }
+            catch
+            {
+                ViewBag.Businesses = new List<BusinessDetailsDto>();
+            }
         }
 
         [HttpGet("")]
@@ -50,6 +68,7 @@ namespace CommUnityApp.Areas.Admin.Controllers
                 ChanceCount = 1,
                 OnceIn = 1,
                 Status = 1,
+                BusinessId = 0,
                 BusinessLocation = "Main Store",
                 Rewards = new List<AddUpdateScratchWinRewardRequest>()
             };
@@ -71,6 +90,7 @@ namespace CommUnityApp.Areas.Admin.Controllers
                     model.Status = existing.Status;
                     model.BusinessId = existing.BusinessId;
                     model.BusinessLocation = existing.BusinessLocation;
+                    model.TotalEntries = existing.TotalEntries;
                     model.Rewards = existing.Rewards.Select(r => new AddUpdateScratchWinRewardRequest
                     {
                         RewardId = r.RewardId,
@@ -84,7 +104,11 @@ namespace CommUnityApp.Areas.Admin.Controllers
                         RewardImage = r.RewardImage,
                         Description = r.Description,
                         WinMessage = r.WinMessage,
-                        IsActive = r.IsActive
+                        IsActive = r.IsActive,
+                        WinCount = r.WinCount,
+                        BusinessId = r.BusinessId,
+                        BusinessLocation = r.BusinessLocation,
+                        BusinessName = r.BusinessName
                     }).ToList();
                 }
             }
@@ -95,6 +119,7 @@ namespace CommUnityApp.Areas.Admin.Controllers
                 model.Rewards = GetDefaultRewards();
             }
 
+            await LoadBusinessesToViewBagAsync();
             return View("Create", model);
         }
 
@@ -129,6 +154,7 @@ namespace CommUnityApp.Areas.Admin.Controllers
             if (Math.Abs(totalPercentage - 100.00m) > 0.01m)
             {
                 ModelState.AddModelError("", $"Total reward probability must sum to exactly 100%. Current total: {totalPercentage}%.");
+                await LoadBusinessesToViewBagAsync();
                 return View("Create", model);
             }
 
@@ -206,6 +232,7 @@ namespace CommUnityApp.Areas.Admin.Controllers
             }
 
             ModelState.AddModelError("", result.ResultMessage ?? "Failed to save Scratch & Win game.");
+            await LoadBusinessesToViewBagAsync();
             return View("Create", model);
         }
 

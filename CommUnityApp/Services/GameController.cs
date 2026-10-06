@@ -439,6 +439,9 @@ namespace CommUnityApp.Services
                     isCoinReward = isCoinReward,
                     isRedeemable = isRedeemable,
                     coinsEarned = totalCoinsAwarded,
+                    totalStock = result.TotalStock,
+                    availableStock = result.AvailableStock,
+                    isRedeemed = result.IsRedeemed,
                   
                     gameImage = BuildFullImageUrl(baseUrl, game?.GameImage ?? resolvedSectionImage),
                     offerText = section?.PrizeText ?? result.RewardValue,
@@ -464,12 +467,49 @@ namespace CommUnityApp.Services
                         sectionImage = BuildFullImageUrl(baseUrl, resolvedSectionImage),
                         isCoinReward = isCoinReward,
                         isRedeemable = isRedeemable,
-                        coinsEarned = totalCoinsAwarded
+                        coinsEarned = totalCoinsAwarded,
+                        totalStock = result.TotalStock,
+                        availableStock = result.AvailableStock,
+                        isRedeemed = result.IsRedeemed
                     }
                 });
             }
 
             return BadRequest(result);
+        }
+
+        [HttpPost("RedeemSpinPrize")]
+        public async Task<IActionResult> RedeemSpinPrize([FromBody] RedeemSpinPrizeRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.RedeemCode))
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid redeemCode is required.",
+                    status = false
+                });
+            }
+
+            var response = await _spinGameRepository.RedeemSpinPrizeAsync(request);
+            if (!response.Status)
+            {
+                return BadRequest(new
+                {
+                    resultId = response.ResultId,
+                    resultMessage = response.ResultMessage,
+                    status = false,
+                    data = response
+                });
+            }
+
+            return Ok(new
+            {
+                resultId = response.ResultId,
+                resultMessage = response.ResultMessage,
+                status = true,
+                data = response
+            });
         }
 
         [HttpGet("GetGameSpinResults")]

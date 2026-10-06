@@ -12,6 +12,8 @@ namespace CommUnityApp.Domain.Entities
         public int? PromotionId { get; set; }
         public string? redeemCode { get; set; }
         public string? QRCodePath { get; set; }
+        public bool IsRedeemed { get; set; }
+        public DateTime? RedeemedDate { get; set; }
+        public string? RedeemedBy { get; set; }
     }
 }
-

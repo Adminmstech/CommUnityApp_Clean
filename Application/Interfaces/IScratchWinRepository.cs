@@ -15,7 +15,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<BaseResponse> ToggleGameStatusAsync(int gameId);
         Task<int> GetTotalPlaysCountAsync(int gameId);
         Task<bool> TryConsumeRewardStockAsync(int rewardId);
-        Task<int> TrackGameplayAsync(int gameId, Guid userId, int? rewardId, string rewardName, string rewardType, int coins, bool isWinner, int attemptNumber, string? redeemCode, string? qrCodePath, string? redeemLocation = null);
+        Task<int> TrackGameplayAsync(int gameId, Guid userId, int? rewardId, string rewardName, string rewardType, int coins, bool isWinner, int attemptNumber, string? redeemCode, string? qrCodePath, string? redeemLocation = null, int? businessId = null);
         Task AddRewardCoinsAsync(Guid userId, int coins, int gameId);
         Task<IEnumerable<ScratchWinPlayHistoryDto>> GetGameplayHistoryAsync(int? gameId, int pageNumber = 1, int pageSize = 50);
     }

@@ -19,6 +19,10 @@ namespace CommUnityApp.ApplicationCore.Models
         public string? Description { get; set; }
         public string? WinMessage { get; set; }
         public bool IsActive { get; set; } = true;
+        public int WinCount { get; set; } = 0;
+        public int? BusinessId { get; set; } = 0;
+        public string? BusinessLocation { get; set; }
+        public string? BusinessName { get; set; }
     }
 
     public class ScratchWinGameDto
@@ -36,6 +40,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public int Status { get; set; } = 1; // 1 = Active, 0 = Inactive
         public int? BusinessId { get; set; } = 0;
         public string? BusinessLocation { get; set; }
+        public string? BusinessName { get; set; }
         public DateTime CreatedDate { get; set; }
         public List<ScratchWinRewardDto> Rewards { get; set; } = new();
     }
@@ -55,6 +60,10 @@ namespace CommUnityApp.ApplicationCore.Models
         public string? Description { get; set; }
         public string? WinMessage { get; set; }
         public bool IsActive { get; set; } = true;
+        public int WinCount { get; set; } = 0;
+        public int? BusinessId { get; set; } = 0;
+        public string? BusinessLocation { get; set; }
+        public string? BusinessName { get; set; }
     }
 
     public class AddUpdateScratchWinGameRequest
@@ -68,6 +77,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public DateTime EndDate { get; set; } = DateTime.Now.AddMonths(6);
         public int ChanceCount { get; set; } = 1;
         public int OnceIn { get; set; } = 1;
+        public int TotalEntries { get; set; } = 0;
         public int Status { get; set; } = 1;
         public int? BusinessId { get; set; } = 0;
         public string? BusinessLocation { get; set; }
@@ -107,6 +117,8 @@ namespace CommUnityApp.ApplicationCore.Models
         public string? RedeemCode { get; set; }
         public string? QRCodePath { get; set; }
         public string? RedeemLocation { get; set; }
+        public int? BusinessId { get; set; } = 0;
+        public string? BusinessName { get; set; }
         public DateTime CreatedDate { get; set; }
     }
 }

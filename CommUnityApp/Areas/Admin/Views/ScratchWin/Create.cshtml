@@ -1,8 +1,10 @@
+@using CommUnityApp.ApplicationCore.Models
 @model CommUnityApp.ApplicationCore.Models.AddUpdateScratchWinGameRequest
 @{
     var isEdit = Model.GameId > 0;
     ViewData["Title"] = isEdit ? "Edit Scratch & Win Game" : "Create Scratch & Win Game";
     Layout = "AdminLayout";
+    var businesses = ViewBag.Businesses as List<BusinessDetailsDto> ?? new List<BusinessDetailsDto>();
 }
 
 <div class="container-fluid pb-5">
@@ -28,7 +30,7 @@
     <form asp-action="@(isEdit ? "Edit" : "Create")" asp-controller="ScratchWin" asp-area="Admin" asp-route-id="@Model.GameId" method="post" enctype="multipart/form-data" id="scratchGameForm">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="GameId" />
-        <input type="hidden" asp-for="BusinessId" />
+        <input type="hidden" asp-for="BusinessId" id="gameBusinessId" />
 
         <!-- 1. Game Details Card -->
         <div class="card border-0 shadow-sm rounded-4 mb-4">
@@ -63,7 +65,9 @@
                     <div class="col-md-4">
                         <label class="form-label fw-600">Once In Frequency (Winning Attempt) <span class="text-danger">*</span></label>
                         <input asp-for="OnceIn" type="number" min="1" class="form-control" required />
-                        <small class="text-muted">Prizes released every Nth attempt (e.g. 1 = every play can win).</small>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fa-solid fa-circle-info text-primary me-1"></i><strong>1 = Pure Probability (Recommended):</strong> Admin set percentages dictate every win directly. <strong>&gt;1:</strong> Physical prizes additionally gated to every Nth attempt.
+                        </small>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-600">Status</label>
@@ -82,12 +86,39 @@
                         <textarea asp-for="TermsAndConditions" class="form-control" rows="2" placeholder="Rules, claim limits, eligibility"></textarea>
                     </div>
 
-                    <div class="col-md-12">
+                    <!-- Prize Redemption Business & Location Selector -->
+                    <div class="col-md-6">
                         <label class="form-label fw-600">
-                            <i class="fa-solid fa-location-dot text-danger me-1"></i>Prize Redemption Store / Location
+                            <i class="fa-solid fa-store text-primary me-1"></i>Select Business Partner (Dropdown)
                         </label>
-                        <input asp-for="BusinessLocation" class="form-control" placeholder="e.g. Main Store Counter 2, 123 Main Street" />
-                        <small class="text-muted">Where physical prizes (1st, 2nd, 3rd) can be redeemed. This location is attached to the redeem code and shown to the user on prize wins (omitted for coin prizes).</small>
+                        <select id="gameBusinessSelect" class="form-select" onchange="onGameBusinessChange(this)">
+                            <option value="0">-- Select Business from List (Optional) --</option>
+                            @if (businesses != null && businesses.Any())
+                            {
+                                foreach (var b in businesses)
+                                {
+                                    var bAddr = string.Join(", ", new[] { b.Address, b.Suburb, b.City, b.State }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                                    var bDisplay = string.IsNullOrWhiteSpace(bAddr) ? b.BusinessName : $"{b.BusinessName} — {bAddr}";
+                                    <option value="@b.BusinessId" 
+                                            data-name="@b.BusinessName" 
+                                            data-location="@bDisplay" 
+                                            selected="@(Model.BusinessId == b.BusinessId ? "selected" : null)">
+                                        @bDisplay
+                                    </option>
+                                }
+                            }
+                            <option value="-1" selected="@(Model.BusinessId == 0 && !string.IsNullOrWhiteSpace(Model.BusinessLocation) && Model.BusinessLocation != "Main Store" ? "selected" : null)">
+                                ✏️ Enter Custom / Manual Location Text
+                            </option>
+                        </select>
+                        <small class="text-muted">Pulls registered businesses with locations. Selecting one auto-populates the location field below.</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-600">
+                            <i class="fa-solid fa-location-dot text-danger me-1"></i>Prize Redemption Store / Location Text <span class="text-danger">*</span>
+                        </label>
+                        <input asp-for="BusinessLocation" id="BusinessLocation" class="form-control" placeholder="e.g. Sydney Spice House — 25 George Street, Sydney" required />
+                        <small class="text-muted">Where physical prizes (1st, 2nd, 3rd) can be redeemed. Can be typed directly or auto-filled from dropdown above.</small>
                     </div>
                 </div>
             </div>
@@ -95,15 +126,36 @@
 
         <!-- 2. Dynamic Prizes & Probability Header with Live Calculator -->
         <div class="card border-0 shadow-sm rounded-4 mb-4">
-            <div class="card-header bg-white border-0 pt-4 px-4 pb-2 d-flex flex-wrap justify-content-between align-items-center">
-                <div>
-                    <h5 class="fw-700 text-dark mb-1"><i class="fa-solid fa-chart-pie text-primary me-2"></i>8 Dynamic Scratch & Win Rewards</h5>
-                    <p class="text-muted small mb-0">1st, 2nd, and 3rd are physical prizes (with stock). Others are digital IndoCoins credited to user wallet.</p>
+            <div class="card-header bg-white border-0 pt-4 px-4 pb-2">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-700 text-dark mb-1"><i class="fa-solid fa-chart-pie text-primary me-2"></i>8 Dynamic Scratch & Win Rewards</h5>
+                        <p class="text-muted small mb-0">1st, 2nd, and 3rd are physical prizes (with stock). Others are digital IndoCoins credited to user wallet.</p>
+                    </div>
+                    <div class="d-flex align-items-center gap-3 mt-2 mt-md-0">
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-700 shadow-sm" onclick="autoBalance()" title="Adjusts the Consolation prize to make total exactly 100%">
+                            <i class="fa-solid fa-wand-magic-sparkles me-1 text-warning"></i> Auto-Balance to 100%
+                        </button>
+                        <div class="fs-6 fw-700">
+                            Total: 
+                            <span id="probTotalBadge" class="badge bg-success fs-6 rounded-pill px-3 py-2">100.00%</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="d-flex align-items-center gap-3 mt-2 mt-md-0">
-                    <div class="fs-6 fw-700">
-                        Total Probability: 
-                        <span id="probTotalBadge" class="badge bg-success fs-6 rounded-pill px-3 py-2">100.00%</span>
+
+                <!-- Presets & Category Summary Bar -->
+                <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 p-2 bg-light rounded-3">
+                    <div class="d-flex flex-wrap align-items-center gap-1">
+                        <span class="small fw-700 text-muted me-2"><i class="fa-solid fa-sliders text-secondary me-1"></i>Presets:</span>
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2 fw-600" onclick="applyPreset('default')">🎯 Default Baseline</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2 fw-600" onclick="applyPreset('high_prizes')">🎁 Higher Prize Rate</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2 fw-600" onclick="applyPreset('coins_heavy')">🪙 Coins Focused</button>
+                        <button type="button" class="btn btn-xs btn-outline-secondary rounded-pill py-1 px-2 fw-600" onclick="applyPreset('equal')">⚖️ Equal (12.5% ea)</button>
+                    </div>
+                    <div class="d-flex align-items-center gap-3 small fw-600">
+                        <span class="text-primary"><i class="fa-solid fa-gift me-1"></i>Prizes: <strong id="prizesTotalBadge">28.00%</strong></span>
+                        <span class="text-info"><i class="fa-solid fa-coins me-1"></i>Coins: <strong id="coinsTotalBadge">32.00%</strong></span>
+                        <span class="text-warning"><i class="fa-solid fa-star me-1"></i>Consolation: <strong id="consolationTotalBadge">40.00%</strong></span>
                     </div>
                 </div>
             </div>
@@ -125,7 +177,16 @@
                                     <span class="badge @(isPrize ? "bg-primary text-white" : isConsolation ? "bg-warning text-dark" : "bg-info text-white") rounded-pill px-3 py-2 fw-700">
                                         #@(reward.RewardOrder) - @(isPrize ? (reward.RewardOrder == 1 ? "1st Prize" : reward.RewardOrder == 2 ? "2nd Prize" : "3rd Prize") : isConsolation ? "Consolation" : "Coins")
                                     </span>
-                                    <span class="small fw-700 text-muted">Order: @reward.RewardOrder</span>
+                                    @if (reward.WinCount > 0 || Model.TotalEntries > 0)
+                                    {
+                                        <span class="badge bg-light text-dark border px-2 py-1 fw-600" title="Historical win frequency in production">
+                                            <i class="fa-solid fa-trophy text-warning me-1"></i>@reward.WinCount wins @(Model.TotalEntries > 0 ? $"({(reward.WinCount * 100.0 / Model.TotalEntries):0.1}%)" : "")
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="small fw-700 text-muted">Order: @reward.RewardOrder</span>
+                                    }
                                 </div>
 
                                 <div class="card-body px-3 py-2 text-center">
@@ -179,6 +240,37 @@
                                             <small class="text-muted" style="font-size:11px;">Generates Redeem & QR Code upon win.</small>
                                         </div>
                                         <input type="hidden" name="Rewards[@i].CoinValue" value="0" />
+
+                                        <!-- Prize Partner Business & Location Selector -->
+                                        <div class="mb-2 text-start p-2 rounded-3 bg-light border border-primary-subtle">
+                                            <label class="form-label small fw-700 mb-1 text-primary">
+                                                <i class="fa-solid fa-store me-1"></i>Redemption Business & Location
+                                            </label>
+                                            <select class="form-select form-select-sm prize-business-select mb-1" data-index="@i" onchange="onPrizeBusinessChange(this, @i)">
+                                                <option value="0">🏢 Inherit Game Default Location</option>
+                                                @if (businesses != null && businesses.Any())
+                                                {
+                                                    foreach (var b in businesses)
+                                                    {
+                                                        var bAddr = string.Join(", ", new[] { b.Address, b.Suburb, b.City, b.State }.Where(s => !string.IsNullOrWhiteSpace(s)));
+                                                        var bDisplay = string.IsNullOrWhiteSpace(bAddr) ? b.BusinessName : $"{b.BusinessName} — {bAddr}";
+                                                        <option value="@b.BusinessId" 
+                                                                data-name="@b.BusinessName" 
+                                                                data-location="@bDisplay" 
+                                                                selected="@(reward.BusinessId == b.BusinessId ? "selected" : null)">
+                                                            @bDisplay
+                                                        </option>
+                                                    }
+                                                }
+                                                <option value="-1" selected="@(reward.BusinessId == 0 && !string.IsNullOrWhiteSpace(reward.BusinessLocation) ? "selected" : null)">
+                                                    ✏️ Custom Location for This Prize
+                                                </option>
+                                            </select>
+                                            <input type="hidden" name="Rewards[@i].BusinessId" id="reward_business_id_@i" value="@(reward.BusinessId ?? 0)" />
+                                            <input type="text" name="Rewards[@i].BusinessLocation" id="reward_business_loc_@i" class="form-control form-control-sm" 
+                                                   value="@reward.BusinessLocation" placeholder="Inherited from game default if blank" />
+                                            <small class="text-muted" style="font-size:10px;">Pick partner store or leave blank to inherit game store.</small>
+                                        </div>
                                     }
                                     else
                                     {
@@ -234,19 +326,78 @@
         }
     }
 
+    function applyPreset(presetType) {
+        let values = [];
+        if (presetType === 'default') {
+            values = [15.00, 8.00, 5.00, 1.00, 3.00, 8.00, 20.00, 40.00];
+        } else if (presetType === 'high_prizes') {
+            values = [20.00, 15.00, 10.00, 1.00, 4.00, 10.00, 15.00, 25.00];
+        } else if (presetType === 'coins_heavy') {
+            values = [5.00, 3.00, 2.00, 5.00, 15.00, 25.00, 35.00, 10.00];
+        } else if (presetType === 'equal') {
+            values = [12.50, 12.50, 12.50, 12.50, 12.50, 12.50, 12.50, 12.50];
+        }
+
+        const inputs = document.querySelectorAll('.prob-input');
+        inputs.forEach((input, idx) => {
+            if (idx < values.length) {
+                input.value = values[idx].toFixed(2);
+            }
+        });
+        calculateTotalProbability();
+    }
+
+    function autoBalance() {
+        const inputs = Array.from(document.querySelectorAll('.prob-input'));
+        if (inputs.length === 0) return;
+
+        // Sum all except the last one (Almost There / Consolation)
+        let sumOthers = 0;
+        for (let i = 0; i < inputs.length - 1; i++) {
+            sumOthers += parseFloat(inputs[i].value) || 0;
+        }
+
+        let remainder = Math.max(0, Math.round((100 - sumOthers) * 100) / 100);
+        inputs[inputs.length - 1].value = remainder.toFixed(2);
+        calculateTotalProbability();
+    }
+
     function calculateTotalProbability() {
         let total = 0;
+        let prizesTotal = 0;
+        let coinsTotal = 0;
+        let consolationTotal = 0;
+
         const inputs = document.querySelectorAll('.prob-input');
-        inputs.forEach(input => {
+        inputs.forEach((input, idx) => {
             const val = parseFloat(input.value) || 0;
             total += val;
+
+            if (idx < 3) {
+                prizesTotal += val; // Orders 1, 2, 3
+            } else if (idx < 7) {
+                coinsTotal += val;  // Orders 4, 5, 6, 7
+            } else {
+                consolationTotal += val; // Order 8
+            }
         });
 
         total = Math.round(total * 100) / 100;
+        prizesTotal = Math.round(prizesTotal * 100) / 100;
+        coinsTotal = Math.round(coinsTotal * 100) / 100;
+        consolationTotal = Math.round(consolationTotal * 100) / 100;
 
         const badge = document.getElementById('probTotalBadge');
         const bar = document.getElementById('probProgressBar');
         const submitBtn = document.getElementById('saveGameBtn');
+
+        const prizesBadge = document.getElementById('prizesTotalBadge');
+        const coinsBadge = document.getElementById('coinsTotalBadge');
+        const consolationBadge = document.getElementById('consolationTotalBadge');
+
+        if (prizesBadge) prizesBadge.innerText = prizesTotal.toFixed(2) + '%';
+        if (coinsBadge) coinsBadge.innerText = coinsTotal.toFixed(2) + '%';
+        if (consolationBadge) consolationBadge.innerText = consolationTotal.toFixed(2) + '%';
 
         badge.innerText = total.toFixed(2) + '%';
         bar.style.width = Math.min(total, 100) + '%';
@@ -266,6 +417,70 @@
         }
     }
 
+    function onGameBusinessChange(selectElem) {
+        const val = selectElem.value;
+        const busIdInput = document.getElementById('gameBusinessId');
+        const locInput = document.getElementById('BusinessLocation');
+        
+        if (val === "-1") {
+            // Manual entry
+            busIdInput.value = "0";
+            locInput.focus();
+        } else if (val !== "0") {
+            // Selected a business
+            busIdInput.value = val;
+            const opt = selectElem.options[selectElem.selectedIndex];
+            const loc = opt.getAttribute('data-location') || opt.getAttribute('data-name');
+            if (loc) {
+                locInput.value = loc;
+            }
+        } else {
+            busIdInput.value = "0";
+        }
+        updatePrizePlaceholders();
+    }
+
+    function onPrizeBusinessChange(selectElem, index) {
+        const val = selectElem.value;
+        const busIdInput = document.getElementById('reward_business_id_' + index);
+        const locInput = document.getElementById('reward_business_loc_' + index);
+        
+        if (val === "0") {
+            // Inherit from Game Default
+            busIdInput.value = "0";
+            locInput.value = "";
+            const gameLoc = document.getElementById('BusinessLocation').value || 'Main Store';
+            locInput.placeholder = "Inherited from game default (" + gameLoc + ")";
+        } else if (val === "-1") {
+            // Custom
+            busIdInput.value = "0";
+            locInput.value = "";
+            locInput.placeholder = "Enter custom prize location text";
+            locInput.focus();
+        } else {
+            // Business selected
+            busIdInput.value = val;
+            const opt = selectElem.options[selectElem.selectedIndex];
+            const loc = opt.getAttribute('data-location') || opt.getAttribute('data-name');
+            if (loc) {
+                locInput.value = loc;
+            }
+        }
+    }
+
+    function updatePrizePlaceholders() {
+        const gameLoc = document.getElementById('BusinessLocation') ? document.getElementById('BusinessLocation').value || 'Main Store' : 'Main Store';
+        document.querySelectorAll('.prize-business-select').forEach(sel => {
+            if (sel.value === "0") {
+                const idx = sel.getAttribute('data-index');
+                const locInput = document.getElementById('reward_business_loc_' + idx);
+                if (locInput && !locInput.value) {
+                    locInput.placeholder = "Inherited from game default (" + gameLoc + ")";
+                }
+            }
+        });
+    }
+
     document.getElementById('scratchGameForm').addEventListener('submit', function(e) {
         let total = 0;
         document.querySelectorAll('.prob-input').forEach(input => {
@@ -280,5 +495,11 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         calculateTotalProbability();
+        updatePrizePlaceholders();
+
+        const locElem = document.getElementById('BusinessLocation');
+        if (locElem) {
+            locElem.addEventListener('input', updatePrizePlaceholders);
+        }
     });
 </script>

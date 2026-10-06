@@ -171,7 +171,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                 sectionModel.Color,
                                 sectionModel.Probability,
                                 sectionModel.WinRangeMin,
-                                sectionModel.WinRangeMax
+                                sectionModel.WinRangeMax,
+                                sectionModel.TotalStock,
+                                AvailableStock = sectionModel.AvailableStock ?? sectionModel.TotalStock
                                 //IsActive = true
                             };
                         }
@@ -188,6 +190,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                                 sectionModel.Probability,
                                 sectionModel.WinRangeMin,
                                 sectionModel.WinRangeMax,
+                                sectionModel.TotalStock,
+                                AvailableStock = sectionModel.AvailableStock ?? sectionModel.TotalStock,
                                 IsActive = true
                             };
                         }
@@ -234,7 +238,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             using var con = Connection;
             return await _dapper.QueryAsync<SpinSectionRequest>(
                 con,
-                @"SELECT SectionId, GameId, SectionNumber, Points, PromotionId, PrizeText, Color, SectionImage, Probability, WinRangeMin, WinRangeMax 
+                @"SELECT SectionId, GameId, SectionNumber, Points, PromotionId, PrizeText, Color, SectionImage, Probability, WinRangeMin, WinRangeMax, TotalStock, AvailableStock 
                   FROM SpinSection WHERE GameId = @GameId ORDER BY SectionNumber",
                 new { GameId = gameId }
             );
@@ -245,7 +249,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             using var con = Connection;
             return await _dapper.QueryFirstOrDefaultAsync<SpinSectionRequest>(
                 con,
-                @"SELECT SectionId, GameId, SectionNumber, Points, PromotionId, PrizeText, Color, SectionImage, Probability, WinRangeMin, WinRangeMax
+                @"SELECT SectionId, GameId, SectionNumber, Points, PromotionId, PrizeText, Color, SectionImage, Probability, WinRangeMin, WinRangeMax, TotalStock, AvailableStock
                   FROM SpinSection WHERE SectionId = @SectionId",
                 new { SectionId = sectionId }
             );
@@ -299,10 +303,14 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 {
                     model.GameId,
                     model.SectionNumber,
-                    model.Points,
-                    model.PromotionId,
+                    model.SectionImage,
                     model.PrizeText,
-                    model.Color
+                    model.Color,
+                    model.Probability,
+                    model.WinRangeMin,
+                    model.WinRangeMax,
+                    model.TotalStock,
+                    AvailableStock = model.AvailableStock ?? model.TotalStock
                 };
             }
             else
@@ -312,11 +320,15 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     model.SectionId,
                     model.GameId,
                     model.SectionNumber,
-                    model.Points,
-                    model.PromotionId,
+                    model.SectionImage,
                     model.PrizeText,
                     model.Color,
-                    IsActive = true
+                    IsActive = true,
+                    model.Probability,
+                    model.WinRangeMin,
+                    model.WinRangeMax,
+                    model.TotalStock,
+                    AvailableStock = model.AvailableStock ?? model.TotalStock
                 };
             }
 
@@ -436,6 +448,52 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 return new PlaySpinResponse { ResultId = 0, ResultMessage = "Invalid section or section does not belong to this game." };
             }
 
+            // Check if selected section is out of stock (AvailableStock has value and <= 0)
+            if (selectedSection.AvailableStock.HasValue && selectedSection.AvailableStock.Value <= 0)
+            {
+                // Fallback to a section with available stock or unlimited stock (try again, almost there, coins, etc.)
+                var fallbackSection = sectionsList.FirstOrDefault(s =>
+                    (s.AvailableStock == null || s.AvailableStock > 0) &&
+                    (s.PrizeText?.Contains("try again", StringComparison.OrdinalIgnoreCase) == true ||
+                     s.PrizeText?.Contains("almost there", StringComparison.OrdinalIgnoreCase) == true ||
+                     s.PrizeText?.Contains("spin again", StringComparison.OrdinalIgnoreCase) == true ||
+                     (s.Points.HasValue && s.Points.Value > 0)))
+                    ?? sectionsList.FirstOrDefault(s => s.AvailableStock == null || s.AvailableStock > 0)
+                    ?? selectedSection;
+
+                selectedSection = fallbackSection;
+            }
+
+            // Decrement stock atomically if section has a stock limit
+            if (selectedSection.AvailableStock.HasValue && selectedSection.AvailableStock.Value > 0)
+            {
+                const string updateStockSql = @"
+                    UPDATE SpinSection 
+                    SET AvailableStock = AvailableStock - 1 
+                    WHERE SectionId = @SectionId AND AvailableStock > 0;";
+                var affected = await _dapper.ExecuteAsync(con, updateStockSql, new { SectionId = selectedSection.SectionId });
+                if (affected > 0)
+                {
+                    selectedSection.AvailableStock -= 1;
+                }
+                else
+                {
+                    // Fall back if stock just became 0 in race condition
+                    var fallback = sectionsList.FirstOrDefault(s =>
+                        (s.AvailableStock == null || s.AvailableStock > 0) &&
+                        s.SectionId != selectedSection.SectionId);
+                    if (fallback != null)
+                    {
+                        selectedSection = fallback;
+                        if (selectedSection.AvailableStock.HasValue && selectedSection.AvailableStock.Value > 0)
+                        {
+                            await _dapper.ExecuteAsync(con, updateStockSql, new { SectionId = selectedSection.SectionId });
+                            selectedSection.AvailableStock -= 1;
+                        }
+                    }
+                }
+            }
+
             string text = selectedSection.PrizeText ?? "";
 
             // 1. Check if losing / try again / spin again (using contains to handle emojis like 🔄, 😮, etc.)
@@ -485,14 +543,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 redeemCode = null;
                 qrCodePath = null; 
             }
-            //const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-            //var random = new Random();
-            //var redeemCode = new string(Enumerable.Repeat(chars, 6)
-            //    .Select(s => s[random.Next(s.Length)]).ToArray());
 
-            //var qrCodePath = GenerateSpinGameQRCode(redeemCode);
-
-            // Insert into GameSpin (using the entity name as table name, common in this project schema e.g., SpinGame, SpinSection)
+            // Insert into GameSpins (using the entity name as table name, common in this project schema e.g., SpinGame, SpinSection)
             var gameSpin = new CommUnityApp.Domain.Entities.GameSpin
             {
                 UserId = request.UserId,
@@ -501,12 +553,13 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 PointsAwarded = selectedSection.Points,
                 PromotionId = selectedSection.PromotionId,
                 redeemCode = redeemCode,
-                QRCodePath = qrCodePath
+                QRCodePath = qrCodePath,
+                IsRedeemed = false
             };
 
             var insertQuery = @"
-                INSERT INTO GameSpins (UserId, SpinDate, SelectedSectionId, PointsAwarded, PromotionId,RedeemCode,QRCodePath)
-                VALUES (@UserId, @SpinDate, @SelectedSectionId, @PointsAwarded, @PromotionId,@redeemCode,@QRCodePath);
+                INSERT INTO GameSpins (UserId, SpinDate, SelectedSectionId, PointsAwarded, PromotionId, RedeemCode, QRCodePath, IsRedeemed)
+                VALUES (@UserId, @SpinDate, @SelectedSectionId, @PointsAwarded, @PromotionId, @redeemCode, @QRCodePath, 0);
                 SELECT CAST(SCOPE_IDENTITY() as int);";
 
             try
@@ -528,7 +581,10 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     QRCodePath = qrCodePath,
                     BusinessLocation = isRedeemable ? game.BusinessLocation : null,
                     Status = "Success",
-                    PlayedAt = gameSpin.SpinDate
+                    PlayedAt = gameSpin.SpinDate,
+                    TotalStock = selectedSection.TotalStock,
+                    AvailableStock = selectedSection.AvailableStock,
+                    IsRedeemed = false
                 };
             }
             catch (Exception ex)
@@ -548,6 +604,8 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     gs.SelectedSectionId, 
                     gs.PointsAwarded, 
                     gs.PromotionId,
+                    gs.IsRedeemed,
+                    gs.RedeemedDate,
 
                     CASE 
                         WHEN ISNULL(gs.PointsAwarded, 0) > 0 
@@ -609,6 +667,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return await _dapper.QueryAsync<GameSpinResultDto>(con, queryBuilder.ToString(), new { GameId = gameId, UserId = userId });
         }
+
         public async Task AddSpinGameRewardCoinsAsync(Guid userId, int coins, int gameId, string? notes = null)
         {
             using var connection = new SqlConnection(
@@ -627,6 +686,126 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                     Notes = notes
                 },
                 commandType: CommandType.StoredProcedure);
+        }
+
+        public async Task<bool> TryConsumeSectionStockAsync(int sectionId)
+        {
+            using var con = Connection;
+            const string sql = @"
+                UPDATE SpinSection 
+                SET AvailableStock = AvailableStock - 1 
+                WHERE SectionId = @SectionId 
+                  AND AvailableStock IS NOT NULL 
+                  AND AvailableStock > 0;";
+            var affected = await _dapper.ExecuteAsync(con, sql, new { SectionId = sectionId });
+            return affected > 0;
+        }
+
+        public async Task<RedeemSpinPrizeResponse> RedeemSpinPrizeAsync(RedeemSpinPrizeRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.RedeemCode))
+            {
+                return new RedeemSpinPrizeResponse
+                {
+                    ResultId = 0,
+                    ResultMessage = "Redeem code is required.",
+                    Status = false
+                };
+            }
+
+            using var con = Connection;
+            var trimmedCode = request.RedeemCode.Trim();
+
+            const string findQuery = @"
+                SELECT 
+                    gs.SpinId, 
+                    gs.UserId, 
+                    gs.SpinDate, 
+                    gs.SelectedSectionId, 
+                    gs.PointsAwarded, 
+                    gs.PromotionId, 
+                    gs.RedeemCode, 
+                    gs.QRCodePath, 
+                    gs.IsRedeemed, 
+                    gs.RedeemedDate,
+                    gs.RedeemedBy,
+                    ss.PrizeText,
+                    ss.AvailableStock,
+                    sg.GameId,
+                    sg.GameName,
+                    sg.BusinessLocation
+                FROM GameSpins gs
+                INNER JOIN SpinSection ss ON gs.SelectedSectionId = ss.SectionId
+                INNER JOIN SpinGame sg ON ss.GameId = sg.GameId
+                WHERE gs.RedeemCode = @RedeemCode;";
+
+            var record = await _dapper.QueryFirstOrDefaultAsync<SpinRedemptionRecord>(con, findQuery, new { RedeemCode = trimmedCode });
+            if (record == null)
+            {
+                return new RedeemSpinPrizeResponse
+                {
+                    ResultId = 0,
+                    ResultMessage = "Invalid or non-existent redeem code.",
+                    Status = false
+                };
+            }
+
+            if (record.IsRedeemed)
+            {
+                DateTime? dt = record.RedeemedDate;
+                string dateStr = dt.HasValue ? dt.Value.ToString("dd-MMM-yyyy hh:mm tt") : "previously";
+                return new RedeemSpinPrizeResponse
+                {
+                    ResultId = 0,
+                    ResultMessage = $"This prize has already been redeemed on {dateStr}.",
+                    Status = false,
+                    SpinId = record.SpinId,
+                    GameId = record.GameId,
+                    GameName = record.GameName,
+                    PrizeText = record.PrizeText,
+                    RedeemCode = trimmedCode,
+                    RedeemedDate = dt
+                };
+            }
+
+            // Mark as redeemed
+            const string redeemSql = @"
+                UPDATE GameSpins 
+                SET IsRedeemed = 1, 
+                    RedeemedDate = GETDATE(), 
+                    RedeemedBy = @RedeemedBy 
+                WHERE SpinId = @SpinId AND IsRedeemed = 0;";
+
+            var affected = await _dapper.ExecuteAsync(con, redeemSql, new 
+            { 
+                SpinId = record.SpinId, 
+                RedeemedBy = request.RedeemedBy ?? request.RedeemedByUserId?.ToString() 
+            });
+
+            if (affected <= 0)
+            {
+                return new RedeemSpinPrizeResponse
+                {
+                    ResultId = 0,
+                    ResultMessage = "Could not redeem prize. It may have already been redeemed.",
+                    Status = false
+                };
+            }
+
+            return new RedeemSpinPrizeResponse
+            {
+                ResultId = 1,
+                ResultMessage = "Prize redeemed successfully!",
+                Status = true,
+                SpinId = record.SpinId,
+                GameId = record.GameId,
+                GameName = record.GameName,
+                PrizeText = record.PrizeText,
+                BusinessLocation = record.BusinessLocation,
+                RedeemCode = trimmedCode,
+                RedeemedDate = DateTime.Now,
+                RemainingStock = record.AvailableStock
+            };
         }
         
 

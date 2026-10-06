@@ -37,6 +37,8 @@ namespace CommUnityApp.Domain.Entities
         public string? Description { get; set; }
         public string? WinMessage { get; set; }
         public bool IsActive { get; set; } = true;
+        public int? BusinessId { get; set; } = 0;
+        public string? BusinessLocation { get; set; }
     }
 
     public class ScratchWinPlayHistory
@@ -53,6 +55,7 @@ namespace CommUnityApp.Domain.Entities
         public string? RedeemCode { get; set; }
         public string? QRCodePath { get; set; }
         public string? RedeemLocation { get; set; }
+        public int? BusinessId { get; set; } = 0;
         public DateTime CreatedDate { get; set; } = DateTime.Now;
     }
 }
