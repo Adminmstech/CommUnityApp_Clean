@@ -824,9 +824,9 @@ namespace CommUnityApp.Services
                     });
                 }
             }
+
         [HttpPost("RegisterEventShareReceiver")]
-        public async Task<IActionResult> RegisterEventShareReceiver(
-    [FromBody] RegisterEventShareReceiverRequest request)
+        public async Task<IActionResult> RegisterEventShareReceiver([FromBody] RegisterEventShareReceiverRequest request)
         {
             if (request == null)
             {
@@ -894,6 +894,7 @@ namespace CommUnityApp.Services
                 });
             } 
         }
+
 
         [HttpGet("GetEventByShareToken")] 
         public async Task<IActionResult> GetEventByShareToken([FromQuery] Guid shareToken)

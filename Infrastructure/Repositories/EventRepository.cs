@@ -1,3 +1,4 @@
+using Azure.Core;
 using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using CommUnityApp.Domain.Entities;
@@ -592,8 +593,11 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                         param.Add("@UseWallet", model.UseWallet);
                         param.Add("@PaymentMethod", model.PaymentMethod);
                         param.Add("@TransactionId", model.TransactionId);
+                        param.Add("@ShareToken", model.ShareToken, DbType.Guid);
+
                         var ticketsJson = JsonSerializer.Serialize(model.Tickets);
                         param.Add("@TicketsJson", ticketsJson);
+
 
                         Console.WriteLine(ticketsJson);
                         var bookingResult = await con.QueryFirstOrDefaultAsync<dynamic>(
