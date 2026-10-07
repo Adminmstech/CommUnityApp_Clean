@@ -332,7 +332,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             parameters.Add("@TicketsJson",JsonSerializer.Serialize(model.Tickets));
 
-            parameters.Add("@UseWallet", model.UseWallet);
+            parameters.Add("@UseWallet", model.UseWallet); 
 
             return await con.QueryFirstOrDefaultAsync<EventCheckoutSummaryResponse>(
                 "SP_EventCheckoutSummary_ByUser",
