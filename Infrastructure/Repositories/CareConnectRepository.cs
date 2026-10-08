@@ -188,26 +188,31 @@ item.ServiceImagePath =
                 commandType: CommandType.StoredProcedure
             );
         }
-        public async Task<dynamic> AddSupporterService(AddSupporterServiceModel model)
+        public async Task<dynamic> AddSupporterService( AddSupporterServiceModel model)
         {
-            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
 
-           
+            using var multi = await con.QueryMultipleAsync(
+                "sp_AddSupporterService",
+                new
+                {
+                    UserId = model.UserId,
+                    ServiceIds = model.ServiceIds
+                },
+                commandType: CommandType.StoredProcedure);
+
+            var result = await multi.ReadFirstOrDefaultAsync<dynamic>();
+
+            var services = (await multi.ReadAsync<dynamic>()).ToList();
+
+            return new
             {
-                var result =
-                    await con
-                    .QueryFirstOrDefaultAsync<dynamic>(
-                        "sp_AddSupporterService",
-                        new
-                        {
-                            UserId = model.UserId,
-                            ServiceIds = model.ServiceIds
-                        },
-                        commandType:
-                        CommandType.StoredProcedure);
-
-                return result;
-            }
+                ResultId = result?.ResultId ?? 0,
+                ResultMessage = result?.ResultMessage ?? "Unable to update supporter services.",
+                IsSupporter = result?.IsSupporter ?? false,
+                Services = services
+            };
         }
 
         public async Task<dynamic>SendCareConnectMessage(SendCareMessageModel model)

@@ -227,6 +227,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public bool ShowCompleteButton { get; set; }
     }
 
+  
 }
 
 
