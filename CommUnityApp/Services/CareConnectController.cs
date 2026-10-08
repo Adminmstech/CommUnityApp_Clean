@@ -216,12 +216,30 @@ namespace CommUnityApp.Services
         [HttpPost("AddSupporterService")]
         public async Task<IActionResult> AddSupporterService([FromBody] AddSupporterServiceModel model)
         {
-            var result =
-                await _careConnectRepository
+            if (model == null)
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = "Request is required."
+                });
+            }
+
+            if (model.UserId == Guid.Empty) 
+            {
+                return BadRequest(new
+                {
+                    ResultId = 0,
+                    ResultMessage = "Valid userId is required."
+                });
+            }
+
+            var result = await _careConnectRepository
                 .AddSupporterService(model);
 
             return Ok(result);
         }
+
         [HttpPost("SendCareConnectMessage")]
         public async Task<IActionResult> SendMessage( [FromBody] SendCareMessageModel model)
         {
