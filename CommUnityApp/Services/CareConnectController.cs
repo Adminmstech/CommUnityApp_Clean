@@ -225,7 +225,7 @@ namespace CommUnityApp.Services
                 });
             }
 
-            if (model.UserId == Guid.Empty)
+            if (model.UserId == Guid.Empty) 
             {
                 return BadRequest(new
                 {
