@@ -641,49 +641,57 @@ namespace CommUnityApp.Services
         }
 
 
-        [HttpGet("GetAllJobPosts")] 
-        public async Task<IActionResult> GetAllJobPosts( int pageNumber = 1, int pageSize = 10, string search = null)
+
+
+        [HttpGet("GetAllJobPosts")]
+        public async Task<IActionResult> GetAllJobPosts(int pageNumber = 1, int pageSize = 10, string? search = null, Guid? userId = null)
         {
             try
-            { 
-                var result =
-                    await _jobsRepository.GetAllJobPostsForUsers(
-                        pageNumber,
-                        pageSize,
-                        search);
+            {
+                if (!userId.HasValue || userId.Value == Guid.Empty)
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Valid userId is required."
+                    });
+                }
+
+                if (pageNumber < 1)
+                    pageNumber = 1;
+
+                if (pageSize < 1)
+                    pageSize = 10;
+
+                var result = await _jobsRepository.GetAllJobPostsForUsers(
+                    pageNumber,
+                    pageSize,
+                    search,
+                    userId.Value);
 
                 return Ok(new
                 {
                     ResultId = 1,
-
-                    ResultMessage =
-                        "Jobs retrieved successfully.",
-
-                    TotalRecords =
-                        result.TotalRecords,
-
-                    PageNumber =
-                        result.PageNumber,
-
-                    PageSize =
-                        result.PageSize,
-
-                    TotalPages =
-                        result.TotalPages,
-
-                    Data =
-                        result.Data
+                    ResultMessage = "Jobs retrieved successfully.",
+                    TotalRecords = result.TotalRecords,
+                    PageNumber = result.PageNumber,
+                    PageSize = result.PageSize,
+                    TotalPages = result.TotalPages,
+                    Data = result.Data
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new
+                return StatusCode(500, new
                 {
                     ResultId = 0,
-                    ResultMessage = ex.Message
+                    ResultMessage = "Failed to retrieve jobs.",
+                    Error = ex.Message
                 });
             }
         }
+
+
 
         [HttpGet("GetJobApplicationsReceived")]
         public async Task<IActionResult> GetJobApplicationsReceived(Guid userId,int pageNumber = 1,int pageSize = 10)

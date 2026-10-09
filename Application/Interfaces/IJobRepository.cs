@@ -29,7 +29,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<(int TotalRecords, IEnumerable<JobApplicantModel> Applicants)>GetBusinessJobApplicants(int jobId,int businessId,int pageNumber,int pageSize);
         Task<JobApplicantModel?> GetBusinessJobApplicantDetails(int applicationId,int jobId,int businessId);
 
-        Task<UserJobListResponse> GetAllJobPostsForUsers(int pageNumber,int pageSize,string search);
+        Task<UserJobListResponse> GetAllJobPostsForUsers(int pageNumber,int pageSize,string search, Guid userId);
 
         Task<JobApplicationsReceivedResponse> GetJobApplicationsReceivedByUser(Guid userId, int pageNumber, int pageSize);
     }
