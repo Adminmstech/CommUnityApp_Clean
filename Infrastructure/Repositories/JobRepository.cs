@@ -260,32 +260,33 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public async Task<UserJobListResponse> GetAllJobPostsForUsers(int pageNumber,int pageSize,string search)
+
+        public async Task<UserJobListResponse> GetAllJobPostsForUsers(int pageNumber,int pageSize,string? search,Guid userId)
         {
-            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
 
-            using var multi =
-                await con.QueryMultipleAsync(
-                    "sp_GetAllJobPostsForUsers",
-                    new
-                    {
-                        PageNumber = pageNumber,
-                        PageSize = pageSize,
-                        Search = search
-                    },
-                    commandType: CommandType.StoredProcedure);
+            await con.OpenAsync();
 
-            var totalRecords =
-                await multi.ReadFirstAsync<int>();
+            using var multi = await con.QueryMultipleAsync(
+                "sp_GetAllJobPostsForUsers",
+                new
+                {
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    Search = search,
+                    UserId = userId
+                },
+                commandType: CommandType.StoredProcedure);
 
-            var jobs =
-                await multi.ReadAsync<UserJobPostModel>();
+            var totalRecords = await multi.ReadFirstAsync<int>();
 
-            var totalPages =
-                totalRecords == 0
-                    ? 0
-                    : (int)Math.Ceiling(
-                        (double)totalRecords / pageSize);
+            var jobs = (await multi.ReadAsync<UserJobPostModel>()).ToList();
+
+            var totalPages = totalRecords == 0
+                ? 0
+                : (int)Math.Ceiling(
+                    (double)totalRecords / pageSize);
 
             return new UserJobListResponse
             {

@@ -250,6 +250,9 @@ namespace CommUnityApp.ApplicationCore.Models
         public string Status { get; set; }
 
         public DateTime CreatedDate { get; set; }
+
+        public bool IsOwnJob { get; set; }
+
     }
 
     public class UserJobListResponse
