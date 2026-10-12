@@ -269,7 +269,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public string DeliveryStatus { get; set; }
 
         [JsonIgnore]
-        public bool IsVolunteer { get; set; }
+        public bool IsVolunteer { get; set; } 
         public bool IsOwnCharityItem { get; set; }
 
     }
