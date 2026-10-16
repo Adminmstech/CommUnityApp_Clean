@@ -819,7 +819,7 @@ namespace CommUnityApp.Services
                         model,
                         businessId); 
 
-                return Ok(new
+                return Ok(new 
                 {
                     resultId = response.ResultId,
                     resultMessage = response.ResultMessage
