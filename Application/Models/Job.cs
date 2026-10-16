@@ -358,4 +358,21 @@ namespace CommUnityApp.ApplicationCore.Models
         public IEnumerable<JobApplicationReceivedModel> Data { get; set; }
             = new List<JobApplicationReceivedModel>();
     }
+
+    public class UpdateApplicationStatusModel
+    {
+        public long ApplicationId { get; set; }
+
+        public long BusinessId { get; set; }
+
+        public string Status { get; set; } = string.Empty;
+
+        public string? Remarks { get; set; }
+    }
+    public class StatusUpdateResult
+        {
+            public int ResultId { get; set; }
+
+            public string ResultMessage { get; set; } = string.Empty;
+        }
 }

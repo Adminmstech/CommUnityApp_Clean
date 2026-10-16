@@ -213,17 +213,20 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public async Task<(int TotalRecords, IEnumerable<JobApplicantModel> Applicants)>
-    GetBusinessJobApplicants(
-        int jobId,
-        int businessId,
-        int pageNumber,
-        int pageSize)
+        public async Task<(
+     int TotalRecords,
+     IEnumerable<JobApplicantModel> Applicants)>
+     GetBusinessJobApplicants(
+         int jobId,
+         int businessId,
+         int pageNumber,
+         int pageSize)
         {
-            using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
 
             using var multi = await con.QueryMultipleAsync(
-                "sp_GetBusinessJobApplicants",
+                "dbo.sp_GetBusinessJobApplicants",
                 new
                 {
                     JobId = jobId,
@@ -235,8 +238,9 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             var totalRecords = await multi.ReadFirstAsync<int>();
 
-            var applicants =
-                await multi.ReadAsync<JobApplicantModel>();
+            var applicants = (
+                await multi.ReadAsync<JobApplicantModel>()
+            ).ToList();
 
             return (totalRecords, applicants);
         }
@@ -343,5 +347,40 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 Data = applications
             };
         }
+
+        public async Task<(int ResultId, string ResultMessage)>UpdateApplicationStatusAsync(UpdateApplicationStatusModel model,long businessId)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@ApplicationId", model.ApplicationId);
+            parameters.Add("@Status", model.Status.Trim());
+            parameters.Add("@Remarks", model.Remarks);
+            parameters.Add("@BusinessId", businessId);
+
+            var response =
+                await con.QueryFirstOrDefaultAsync<StatusUpdateResult>(
+                    "dbo.sp_BusinessUpdateApplicationStatus",
+                    parameters,
+                    commandType: CommandType.StoredProcedure);
+
+            if (response == null)
+            {
+                return (0, "No response received from the database.");
+            }
+
+            return (response.ResultId, response.ResultMessage);
+        }
+
+        private class StatusUpdateResult
+        {
+            public int ResultId { get; set; }
+
+            public string ResultMessage { get; set; } = string.Empty;
+        }
+
+
     }
 }
