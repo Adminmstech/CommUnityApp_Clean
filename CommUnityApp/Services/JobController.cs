@@ -1,6 +1,7 @@
 ﻿using CommUnityApp.ApplicationCore.Interfaces;
 using CommUnityApp.ApplicationCore.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace CommUnityApp.Services
 {
@@ -529,65 +530,68 @@ namespace CommUnityApp.Services
         }
 
         [HttpGet("GetBusinessJobApplicants")]
-        public async Task<IActionResult> GetBusinessJobApplicants(int jobId,int pageNumber = 1,int pageSize = 10)
+        public async Task<IActionResult> GetBusinessJobApplicants(
+     int jobId,
+     int pageNumber = 1,
+     int pageSize = 10)
         {
             try
             {
-                var businessIdString =
-                    HttpContext.Session.GetString("BusinessId");
-
-                if (!int.TryParse(
-                        businessIdString,
-                        out int businessId))
+                if (jobId <= 0)
                 {
-                    return Unauthorized(new
+                    return BadRequest(new
                     {
-                        ResultId = 0,
-                        ResultMessage = "Business session expired."
+                        resultId = 0,
+                        resultMessage = "Valid JobId is required."
                     });
                 }
 
-                var result =
-                    await _jobsRepository.GetBusinessJobApplicants(
-                        jobId,
-                        businessId,
-                        pageNumber,
-                        pageSize);
+                if (pageNumber < 1)
+                    pageNumber = 1;
+
+                if (pageSize < 1)
+                    pageSize = 10;
+
+                var businessIdString =
+                    HttpContext.Session.GetString("BusinessId");
+
+                if (!int.TryParse(businessIdString, out int businessId)
+                    || businessId <= 0)
+                {
+                    return Unauthorized(new
+                    {
+                        resultId = 0,
+                        resultMessage = "Business session expired."
+                    });
+                }
+
+                var result = await _jobsRepository.GetBusinessJobApplicants(
+                    jobId,
+                    businessId,
+                    pageNumber,
+                    pageSize);
 
                 return Ok(new
                 {
-                    ResultId = 1,
-                    ResultMessage =
-                        "Applicants retrieved successfully.",
-
-                    TotalRecords =
-                        result.TotalRecords,
-
-                    PageNumber =
-                        pageNumber,
-
-                    PageSize =
-                        pageSize,
-
-                    TotalPages =
-                        (int)Math.Ceiling(
-                            (double)result.TotalRecords /
-                            pageSize),
-
-                    Data =
-                        result.Applicants
+                    resultId = 1,
+                    resultMessage = "Applicants retrieved successfully.",
+                    totalRecords = result.TotalRecords,
+                    pageNumber = pageNumber,
+                    pageSize = pageSize,
+                    totalPages = (int)Math.Ceiling(
+                        (double)result.TotalRecords / pageSize),
+                    data = result.Applicants
                 });
             }
             catch (Exception ex)
             {
-                return BadRequest(new
+                return StatusCode(500, new
                 {
-                    ResultId = 0,
-                    ResultMessage = ex.Message
+                    resultId = 0,
+                    resultMessage = ex.Message
                 });
             }
         }
-
         [HttpGet("GetBusinessJobApplicantDetails")]
         public async Task<IActionResult> GetBusinessJobApplicantDetails(int jobId,int applicationId)
         {
@@ -755,6 +759,78 @@ namespace CommUnityApp.Services
                 {
                     ResultId = 0,
                     ResultMessage = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("BusinessUpdateApplicationStatus")]
+        public async Task<IActionResult> BusinessUpdateApplicationStatus(
+    [FromBody] UpdateApplicationStatusModel model)
+        {
+            if (model == null)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Invalid request."
+                });
+            }
+
+            if (model.ApplicationId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid ApplicationId is required."
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Status) ||
+                !(model.Status.Equals("Accepted",
+                        StringComparison.OrdinalIgnoreCase) ||
+                  model.Status.Equals("Rejected",
+                        StringComparison.OrdinalIgnoreCase)))
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Status must be Accepted or Rejected."
+                });
+            }
+
+            // Get BusinessId from the logged-in business session
+            var businessIdString =
+                HttpContext.Session.GetString("BusinessId");
+
+            if (!long.TryParse(businessIdString, out long businessId) ||
+                businessId <= 0)
+            {
+                return Unauthorized(new
+                {
+                    resultId = 0,
+                    resultMessage = "Business session expired. Please log in again."
+                });
+            }
+
+            try
+            {
+                var response =
+                    await _jobsRepository.UpdateApplicationStatusAsync(
+                        model,
+                        businessId); 
+
+                return Ok(new 
+                {
+                    resultId = response.ResultId,
+                    resultMessage = response.ResultMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    resultId = 0,
+                    resultMessage = ex.Message
                 });
             }
         }

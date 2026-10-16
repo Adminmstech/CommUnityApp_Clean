@@ -327,10 +327,21 @@ namespace CommUnityApp.Areas.Business.Controllers
         {
             return View();
         }
-
         public IActionResult JobApplicants(int jobId)
         {
             ViewBag.JobId = jobId;
+
+            string? businessIdValue =
+                HttpContext.Session.GetString("BusinessId");
+
+            if (!long.TryParse(businessIdValue, out long businessId) ||
+                businessId <= 0)
+            {
+                return Unauthorized(
+                    "BusinessId is missing from the login session.");
+            }
+
+            ViewBag.BusinessId = businessId;
 
             return View();
         }

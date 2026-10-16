@@ -588,6 +588,57 @@ namespace CommUnityApp.Services
             }
         }
 
+        //[HttpPost("BusinessLogin")]
+        //public async Task<IActionResult> BusinessLogin([FromBody] AppBusinessLoginRequest request)
+        //{
+        //    try
+        //    {
+        //        if (request == null ||
+        //            string.IsNullOrWhiteSpace(request.Email) ||
+        //            string.IsNullOrWhiteSpace(request.Password))
+        //        {
+        //            return Ok(new
+        //            {
+        //                ResultId = 0,
+        //                ResultMessage = "Email and password are required.",
+        //                Status = false
+        //            });
+        //        }
+
+        //        var result = await _unitOfWork.Business.BusinessLogin(request);
+
+        //        if (result == null)
+        //        {
+        //            return Ok(new
+        //            {
+        //                ResultId = 0,
+        //                ResultMessage = "Invalid email or password.",
+        //                Status = false
+        //            });
+        //        }
+
+        //        if (result.Status && !string.IsNullOrWhiteSpace(result.Logo))
+        //        {
+        //            string baseUrl = $"{Request.Scheme}://{Request.Host}";
+
+        //            result.Logo = result.Logo.StartsWith("/")
+        //                ? baseUrl + result.Logo
+        //                : baseUrl + "/" + result.Logo;
+        //        }
+
+        //        return Ok(result);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return Ok(new
+        //        {
+        //            ResultId = 0,
+        //            ResultMessage = ex.Message,
+        //            Status = false
+        //        });
+        //    }
+        //}
+
         [HttpPost("BusinessLogin")]
         public async Task<IActionResult> BusinessLogin([FromBody] AppBusinessLoginRequest request)
         {
@@ -597,7 +648,7 @@ namespace CommUnityApp.Services
                     string.IsNullOrWhiteSpace(request.Email) ||
                     string.IsNullOrWhiteSpace(request.Password))
                 {
-                    return Ok(new
+                    return BadRequest(new
                     {
                         ResultId = 0,
                         ResultMessage = "Email and password are required.",
@@ -607,9 +658,9 @@ namespace CommUnityApp.Services
 
                 var result = await _unitOfWork.Business.BusinessLogin(request);
 
-                if (result == null)
+                if (result == null || !result.Status)
                 {
-                    return Ok(new
+                    return Unauthorized(new
                     {
                         ResultId = 0,
                         ResultMessage = "Invalid email or password.",
@@ -617,7 +668,16 @@ namespace CommUnityApp.Services
                     });
                 }
 
-                if (result.Status && !string.IsNullOrWhiteSpace(result.Logo))
+           
+                HttpContext.Session.SetString(
+                    "BusinessId",
+                    Convert.ToString(result.BusinessId) ?? "0");
+
+                HttpContext.Session.SetString(
+                    "BusinessAdminAuthenticated",
+                    "true");
+
+                if (!string.IsNullOrWhiteSpace(result.Logo))
                 {
                     string baseUrl = $"{Request.Scheme}://{Request.Host}";
 
@@ -630,14 +690,17 @@ namespace CommUnityApp.Services
             }
             catch (Exception ex)
             {
-                return Ok(new
+                _logger.LogError(ex, "Business login failed.");
+
+                return StatusCode(500, new
                 {
                     ResultId = 0,
-                    ResultMessage = ex.Message,
+                    ResultMessage = "An error occurred during business login.",
                     Status = false
                 });
             }
         }
+
 
         [HttpGet("GetBusinessPromotionRedemptions")]
         public async Task<IActionResult> GetBusinessPromotionRedemptions(long businessId)
