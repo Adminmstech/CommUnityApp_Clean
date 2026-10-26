@@ -117,7 +117,7 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
             using var con = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
 
             return await con.QueryAsync(
-                "sp_GetApplicationsByJob",
+                "sp_GetApplicationsByJob", 
                 new { JobId = jobId },
                 commandType: CommandType.StoredProcedure
             );
