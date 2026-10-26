@@ -369,14 +369,12 @@
 
                             <div class="d-flex gap-1">
 
-                                <button type="button"
-                                        class="btn btn-sm btn-primary"
-                                        onclick="EditJob(${item.jobId})"
-                                        title="Edit Job">
-
-                                    <i class="fa fa-edit"></i>
-
-                                </button>
+                                        <button type="button"
+                class="btn btn-sm btn-primary"
+                onclick="EditJob(${item.jobId})"
+                title="Edit Job">
+            <i class="fa fa-edit"></i> Edit
+        </button>
 
 
                                 <button type="button"
@@ -537,13 +535,16 @@
 
 
 
-    function EditJob(jobId) {
+        function EditJob(jobId) {
+            if (!jobId || jobId <= 0) {
+                Swal.fire("Error", "Invalid Job ID.", "error");
+                return;
+            }
 
-        window.location.href =
-            "/Business/Home/BusinessPostJob?jobId="
-            + jobId;
-
-    }
+            window.location.href =
+                "/Business/Home/BusinessPostJob?jobId=" +
+                encodeURIComponent(jobId);
+        }
 
 
     function DeleteJob(jobId) {

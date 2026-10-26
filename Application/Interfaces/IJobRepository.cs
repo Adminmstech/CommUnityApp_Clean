@@ -34,5 +34,8 @@ namespace CommUnityApp.ApplicationCore.Interfaces
         Task<JobApplicationsReceivedResponse> GetJobApplicationsReceivedByUser(Guid userId, int pageNumber, int pageSize);
 
         Task<(int ResultId, string ResultMessage)>UpdateApplicationStatusAsync(UpdateApplicationStatusModel model, long businessId);
+
+        Task<bool> UpdateJobAsync(EditJobModel model);
+        Task<BusinessJobPostModel?> GetBusinessJobPostById(int jobId,int businessId);
     }
 }

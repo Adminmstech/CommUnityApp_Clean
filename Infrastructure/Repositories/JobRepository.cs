@@ -373,7 +373,54 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
 
             return (response.ResultId, response.ResultMessage);
         }
+        public async Task<bool> UpdateJobAsync(EditJobModel model)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+            var parameters = new DynamicParameters();
 
+            parameters.Add("@JobId", model.JobId);
+            parameters.Add("@BusinessId", model.BusinessId);
+            parameters.Add("@GroupId", model.GroupId);
+            parameters.Add("@PostedBy", model.PostedBy);
+
+            parameters.Add("@JobTitle", model.JobTitle);
+            parameters.Add("@CompanyName", model.CompanyName);
+            parameters.Add("@Description", model.Description);
+            parameters.Add("@JobType", model.JobType);
+            parameters.Add("@Experience", model.Experience);
+
+            parameters.Add("@SalaryMin", model.SalaryMin);
+            parameters.Add("@SalaryMax", model.SalaryMax);
+            parameters.Add("@Location", model.Location);
+            parameters.Add("@Skills", model.Skills);
+            parameters.Add("@ContactEmail", model.ContactEmail);
+            parameters.Add("@ContactPhone", model.ContactPhone);
+            parameters.Add("@LastDateToApply", model.LastDateToApply);
+
+            var result = await con.QuerySingleAsync<int>(
+                "sp_UpdateJob",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+
+            return result == 1;
+        }
+
+        public async Task<BusinessJobPostModel?> GetBusinessJobPostById( int jobId,int businessId)
+        {
+            using var con = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            return await con.QueryFirstOrDefaultAsync<BusinessJobPostModel>(
+                "sp_GetBusinessJobPostById",
+                new
+                {
+                    JobId = jobId,
+                    BusinessId = businessId
+                },
+                commandType: CommandType.StoredProcedure);
+        }
         private class StatusUpdateResult
         {
             public int ResultId { get; set; }

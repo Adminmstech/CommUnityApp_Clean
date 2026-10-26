@@ -99,158 +99,288 @@
 
     </div>
 </div>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script>
+    $(document).ready(function () {
+        const params = new URLSearchParams(window.location.search);
+        const jobId = parseInt(params.get("jobId") || "0", 10);
 
-            <script>
-    function SaveJob() {
+        if (jobId > 0) {
+            // EDIT MODE
+            $("#JobId").val(jobId);
+            $("#pageTitle").text("Edit Job");
+            $("#submitButton, #btnSave").text("Update Job");
 
-        var model = {
+            GetJobDetails(jobId);
+        } else {
+            // ADD MODE
+            $("#JobId").val(0);
+            $("#pageTitle").text("Post New Job");
+            $("#submitButton, #btnSave").text("Post Job");
+        }
 
-            jobId: parseInt($("#JobId").val()) || 0,
+        // If the form uses a submit event, prevent a full-page refresh.
+        $("#jobForm").on("submit", function (e) {
+            e.preventDefault();
+            SaveJob();
+        });
 
-            businessId: parseInt($("#BusinessId").val()),
+        // Also supports a button using onclick="SaveJob()".
+    });
 
-            groupId: parseInt($("#GroupId").val()),
+  
+    function GetJobDetails(jobId) {
+        const businessId = parseInt($("#BusinessId").val(), 10) || 0;
 
-            postedBy: $("#PostedBy").val(),
+        if (jobId <= 0 || businessId <= 0) {
+            Swal.fire(
+                "Error",
+                "Valid Job ID and Business ID are required.",
+                "error"
+            );
+            return;
+        }
 
-            companyName: "",
-
-            jobTitle: $("#JobTitle").val(),
-
-            description: $("#Description").val(),
-
-            jobType: $("#JobType").val(),
-
-            experience: $("#Experience").val(),
-
-            salaryMin: parseFloat($("#SalaryMin").val()) || 0,
-
-            salaryMax: parseFloat($("#SalaryMax").val()) || 0,
-
-            location: $("#Location").val(),
-
-            isRemote: $("#IsRemote").is(":checked"),
-
-            skills: $("#Skills").val(),
-
-            contactEmail: $("#ContactEmail").val(),
-
-            contactPhone: $("#ContactPhone").val(),
-
-            lastDateToApply: $("#LastDateToApply").val()
-        };
-
-        console.log(model);
+        $("#submitButton, #btnSave").prop("disabled", true);
 
         $.ajax({
+            url: "/api/Job/GetBusinessJobPostById",
+            type: "GET",
+            data: {
+                jobId: jobId,
+                businessId: businessId
+            },
+            dataType: "json",
 
-            url: "/api/Job/BusinessPostJob",
-            type: "POST",
+            success: function (response) {
+                console.log("Job API response:", response);
 
-            type: "POST",
+                // Accept the API's actual response format.
+                const resultId = response?.resultId ?? response?.ResultId;
+                const job = response?.data ?? response?.Data;
 
-            contentType: "application/json",
+                if (Number(resultId) !== 1 || !job) {
+                    Swal.fire(
+                        "Error",
+                        response?.resultMessage ||
+                        response?.ResultMessage ||
+                        "Unable to load job details.",
+                        "error"
+                    );
+                    return;
+                }
 
-            data: JSON.stringify(model), 
-             
-            success: function (res) {
+                $("#JobId").val(job.jobId ?? job.JobId ?? jobId);
+                $("#JobTitle").val(job.jobTitle ?? job.JobTitle ?? "");
+                $("#Description").val(job.description ?? job.Description ?? "");
+                $("#JobType").val(job.jobType ?? job.JobType ?? "");
+                $("#Experience").val(job.experience ?? job.Experience ?? "");
 
-                Swal.fire({
+                $("#SalaryMin").val(job.salaryMin ?? job.SalaryMin ?? "");
+                $("#SalaryMax").val(job.salaryMax ?? job.SalaryMax ?? "");
 
-                    icon: "success",
+                $("#Location").val(job.location ?? job.Location ?? "");
+                $("#Skills").val(job.skills ?? job.Skills ?? "");
 
-                    title: res.resultMessage
+                $("#ContactEmail").val(
+                    job.contactEmail ?? job.ContactEmail ?? ""
+                );
 
-                });
+                $("#ContactPhone").val(
+                    job.contactPhone ?? job.ContactPhone ?? ""
+                );
 
-                ClearForm();
+                const isRemote = job.isRemote ?? job.IsRemote ?? false;
+                $("#IsRemote").prop(
+                    "checked",
+                    isRemote === true || isRemote === 1
+                );
+
+                const lastDate = job.lastDateToApply ?? job.LastDateToApply;
+
+                $("#LastDateToApply").val(
+                    lastDate ? String(lastDate).substring(0, 10) : ""
+                );
+
+                $("#pageTitle").text("Edit Job");
+                $("#submitButton, #btnSave").text("Update Job");
             },
 
             error: function (xhr) {
+                console.error(
+                    "GetJobDetails failed:",
+                    xhr.status,
+                    xhr.responseText
+                );
 
-                console.log(xhr.responseText);    
+                const message =
+                    xhr.responseJSON?.resultMessage ||
+                    xhr.responseJSON?.ResultMessage ||
+                    "Failed to retrieve job details.";
 
+                Swal.fire("Error", message, "error");
+            },
 
-                Swal.fire({
-
-                    icon: "error",
-
-                    title: xhr.responseText
-
-                });
-
+            complete: function () {
+                $("#submitButton, #btnSave").prop("disabled", false);
             }
-
         });
+    }
 
+    // ================================
+    // ADD OR UPDATE JOB
+    // ================================
+    function SaveJob() {
+        const jobId = parseInt($("#JobId").val(), 10) || 0;
+
+        const businessId = parseInt($("#BusinessId").val(), 10) || 0;
+        const groupId = parseInt($("#GroupId").val(), 10) || 0;
+
+        const model = {
+            jobId: jobId,
+            businessId: businessId,
+            groupId: groupId,
+            postedBy: $("#PostedBy").val() || "",
+            companyName: "",
+
+            jobTitle: $("#JobTitle").val()?.trim() || "",
+            description: $("#Description").val()?.trim() || "",
+            jobType: $("#JobType").val() || "",
+            experience: $("#Experience").val()?.trim() || "",
+
+            salaryMin: parseFloat($("#SalaryMin").val()) || 0,
+            salaryMax: parseFloat($("#SalaryMax").val()) || 0,
+
+            location: $("#Location").val()?.trim() || "",
+            isRemote: $("#IsRemote").is(":checked"),
+            skills: $("#Skills").val()?.trim() || "",
+            contactEmail: $("#ContactEmail").val()?.trim() || "",
+            contactPhone: $("#ContactPhone").val()?.trim() || "",
+            lastDateToApply: $("#LastDateToApply").val() || null
+        };
+
+        // Basic client-side validation
+        if (!model.jobTitle) {
+            ShowMessage("warning", "Validation", "Please enter a job title.");
+            return;
+        }
+
+        if (!model.description) {
+            ShowMessage("warning", "Validation", "Please enter a job description.");
+            return;
+        }
+
+        if (model.salaryMax > 0 && model.salaryMin > model.salaryMax) {
+            ShowMessage(
+                "warning",
+                "Validation",
+                "Minimum salary cannot be greater than maximum salary."
+            );
+            return;
+        }
+
+        console.log("Submitting job:", model);
+
+        const $saveButton = $("#submitButton, #btnSave");
+        $saveButton.prop("disabled", true);
+
+        $.ajax({
+            url: "/api/Job/BusinessPostJob",
+            type: "POST",
+            contentType: "application/json; charset=utf-8",
+            dataType: "json",
+            data: JSON.stringify(model),
+
+            success: function (response) {
+                console.log("Save job response:", response);
+
+                const resultId = response?.resultId ?? response?.ResultId;
+                const resultMessage =
+                    response?.resultMessage ??
+                    response?.ResultMessage ??
+                    (jobId > 0
+                        ? "Job updated successfully."
+                        : "Job posted successfully.");
+
+                if (resultId !== 1) {
+                    ShowMessage("error", "Unable to save job", resultMessage);
+                    return;
+                }
+
+                ShowMessage("success", "Success", resultMessage)
+                    .then(function () {
+                        window.location.href = "/Business/Home/BusinessJobList";
+                    });
+            },
+
+            error: function (xhr) {
+                console.error(
+                    "SaveJob error:",
+                    xhr.status,
+                    xhr.responseText
+                );
+
+                let message = "An error occurred while saving the job.";
+
+                if (xhr.responseJSON?.resultMessage) {
+                    message = xhr.responseJSON.resultMessage;
+                } else if (xhr.responseJSON?.ResultMessage) {
+                    message = xhr.responseJSON.ResultMessage;
+                } else if (xhr.responseText) {
+                    try {
+                        const parsed = JSON.parse(xhr.responseText);
+                        message =
+                            parsed.resultMessage ||
+                            parsed.ResultMessage ||
+                            message;
+                    } catch (e) {
+                        // Keep the default message for non-JSON responses.
+                    }
+                }
+
+                ShowMessage("error", "Save failed", message);
+            },
+
+            complete: function () {
+                $saveButton.prop("disabled", false);
+            }
+        });
     }
 
     function ClearForm() {
-
         $("#JobId").val(0);
 
         $("#JobTitle").val("");
-
         $("#Description").val("");
-
         $("#JobType").val("");
-
         $("#Experience").val("");
 
         $("#SalaryMin").val("");
-
         $("#SalaryMax").val("");
 
         $("#Location").val("");
-
         $("#Skills").val("");
-
         $("#ContactEmail").val("");
-
         $("#ContactPhone").val("");
-
         $("#LastDateToApply").val("");
 
         $("#IsRemote").prop("checked", false);
 
-        $("#btnSave").text("Post Job");
-
-        $("#pageTitle").text("Post Job");
+        $("#submitButton, #btnSave").text("Post Job");
+        $("#pageTitle").text("Post New Job");
     }
 
-    function EditJob(job) {
+  
+    function ShowMessage(icon, title, text) {
+        if (typeof Swal !== "undefined") {
+            return Swal.fire({
+                icon: icon,
+                title: title,
+                text: text
+            });
+        }
 
-        $("#JobId").val(job.jobId);
-
-        $("#JobTitle").val(job.jobTitle);
-
-        $("#Description").val(job.description);
-
-        $("#JobType").val(job.jobType);
-
-        $("#Experience").val(job.experience);
-
-        $("#SalaryMin").val(job.salaryMin);
-
-        $("#SalaryMax").val(job.salaryMax);
-
-        $("#Location").val(job.location);
-
-        $("#Skills").val(job.skills);
-
-        $("#ContactEmail").val(job.contactEmail);
-
-        $("#ContactPhone").val(job.contactPhone);
-
-        $("#LastDateToApply").val(job.lastDateToApply.substring(0, 10));
-
-        $("#IsRemote").prop("checked", job.isRemote);
-
-        $("#btnSave").text("Update Job");
-
-        $("#pageTitle").text("Update Job");
-
-        window.scrollTo({ top: 0, behavior: "smooth" });
+        alert(title + "\n" + text);
+        return Promise.resolve();
     }
-
-            </script>
+</script>
