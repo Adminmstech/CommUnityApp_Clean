@@ -345,9 +345,7 @@ namespace CommUnityApp.Areas.Business.Controllers
 
             return View();
         }
-        public IActionResult JobApplicantDetails(
-      int jobId,
-      int applicationId)
+        public IActionResult JobApplicantDetails(int jobId,int applicationId)
         {
             ViewBag.JobId = jobId;
             ViewBag.ApplicationId = applicationId;

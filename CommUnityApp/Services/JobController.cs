@@ -834,5 +834,111 @@ namespace CommUnityApp.Services
                 });
             }
         }
+
+        [HttpPost("EditJob")]
+        public async Task<IActionResult> EditJob(
+    [FromBody] EditJobModel model)
+        {
+            try
+            {
+                if (model == null || model.JobId <= 0)
+                {
+                    return BadRequest(new
+                    {
+                        resultId = 0,
+                        resultMessage = "Valid JobId is required."
+                    });
+                }
+
+                var updated = await _jobsRepository.UpdateJobAsync(model);
+
+                if (!updated)
+                {
+                    return NotFound(new
+                    {
+                        resultId = 0,
+                        resultMessage = "Job not found."
+                    });
+                }
+
+                return Ok(new
+                {
+                    resultId = 1,
+                    resultMessage = "Job updated successfully.",
+                    jobId = model.JobId
+                });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = ex.Message
+                });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new
+                {
+                    resultId = 0,
+                    resultMessage = "An error occurred while updating the job."
+                });
+            }
+        }
+        [HttpGet("GetBusinessJobPostById")]
+        public async Task<IActionResult> GetBusinessJobPostById(
+    [FromQuery] int jobId,
+    [FromQuery] int businessId)
+        {
+            if (jobId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid JobId is required."
+                });
+            }
+
+            if (businessId <= 0)
+            {
+                return BadRequest(new
+                {
+                    resultId = 0,
+                    resultMessage = "Valid BusinessId is required."
+                });
+            }
+
+            try
+            {
+                var job = await _jobsRepository.GetBusinessJobPostById(
+                    jobId,
+                    businessId);
+
+                if (job == null)
+                {
+                    return NotFound(new
+                    {
+                        resultId = 0,
+                        resultMessage = "Job not found for this business."
+                    });
+                }
+
+                return Ok(new
+                {
+                    resultId = 1,
+                    resultMessage = "Job details retrieved successfully.",
+                    data = job
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception in production rather than exposing details.
+                return StatusCode(500, new
+                {
+                    resultId = 0,
+                    resultMessage = "An error occurred while retrieving job details."
+                });
+            }
+        }
     }
 }

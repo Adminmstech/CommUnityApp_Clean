@@ -374,5 +374,28 @@ namespace CommUnityApp.ApplicationCore.Models
             public int ResultId { get; set; }
 
             public string ResultMessage { get; set; } = string.Empty;
-        }
+    }
+
+
+    public class EditJobModel
+    {
+        public int JobId { get; set; }
+        public int? BusinessId { get; set; }
+        public int? GroupId { get; set; }
+        public Guid? PostedBy { get; set; }
+        public string? JobTitle { get; set; }
+        public string? CompanyName { get; set; }
+        public string? Description { get; set; }
+        public string? JobType { get; set; }
+        public string? Experience { get; set; }
+        public decimal? SalaryMin { get; set; }
+        public decimal? SalaryMax { get; set; }
+        public string? Location { get; set; }
+        public string? Skills { get; set; }
+        public string? ContactEmail { get; set; }
+        public string? ContactPhone { get; set; }
+        public DateTime? LastDateToApply { get; set; }
+    }
+
+
 }
