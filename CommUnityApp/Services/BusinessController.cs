@@ -792,7 +792,7 @@ namespace CommUnityApp.Services
                             : baseUrl + "/" + item.QRCodeImage;
                     }
                 }
-
+                 
                 return Ok(new
                 {
                     ResultId = 1,
@@ -814,23 +814,42 @@ namespace CommUnityApp.Services
                 });
             }
         }
-
         [HttpPost("ConfirmPromotionRedemption")]
-        public async Task<IActionResult> ConfirmPromotionRedemption([FromBody] ConfirmPromotionRedemptionRequest request)
+        public async Task<IActionResult> ConfirmPromotionRedemption(
+            [FromBody] ConfirmPromotionRedemptionRequest request)
         {
             try
             {
-                if (request == null ||
-                    request.BusinessId <= 0 ||
-                    request.RedemptionId <= 0)
+                if (request == null || request.RedemptionId <= 0)
                 {
-                    return Ok(new
+                    return BadRequest(new
                     {
                         ResultId = 0,
-                        ResultMessage = "Invalid BusinessId or RedemptionId.",
+                        ResultMessage = "Valid RedemptionId is required.",
                         Status = false
                     });
                 }
+
+                // Get BusinessId from the logged-in business session.
+                if (!string.Equals(
+                    HttpContext.Session.GetString("BusinessAdminAuthenticated"),
+                    "true",
+                    StringComparison.OrdinalIgnoreCase) ||
+                    !long.TryParse(
+                        HttpContext.Session.GetString("BusinessId"),
+                        out long businessId) ||
+                    businessId <= 0)
+                {
+                    return Unauthorized(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Business login is required or the session has expired.",
+                        Status = false
+                    });
+                }
+
+                // Do not trust a BusinessId supplied by the browser.
+                request.BusinessId = businessId;
 
                 var result = await _unitOfWork.Business
                     .ConfirmPromotionRedemption(request);
@@ -839,10 +858,14 @@ namespace CommUnityApp.Services
             }
             catch (Exception ex)
             {
-                return Ok(new
+                _logger.LogError(
+                    ex,
+                    "Error confirming promotion redemption.");
+
+                return StatusCode(500, new
                 {
                     ResultId = 0,
-                    ResultMessage = ex.Message,
+                    ResultMessage = "An error occurred while confirming the redemption.",
                     Status = false
                 });
             }
@@ -863,12 +886,20 @@ namespace CommUnityApp.Services
                     });
                 }
 
-                if (model.BusinessId <= 0)
+                // Get BusinessId from the authenticated business session.
+                if (!string.Equals(
+                    HttpContext.Session.GetString("BusinessAdminAuthenticated"),
+                    "true",
+                    StringComparison.OrdinalIgnoreCase) ||
+                    !long.TryParse(
+                        HttpContext.Session.GetString("BusinessId"),
+                        out long businessId) ||
+                    businessId <= 0)
                 {
-                    return BadRequest(new
+                    return Unauthorized(new
                     {
                         ResultId = 0,
-                        ResultMessage = "Invalid BusinessId.",
+                        ResultMessage = "Business login is required or the session has expired.",
                         Status = false
                     });
                 }
@@ -885,8 +916,8 @@ namespace CommUnityApp.Services
 
                 var result = await _unitOfWork.Business
                     .ValidatePromotionRedemptionCode(
-                        model.BusinessId,
-                        model.RedemptionCode);
+                        businessId,
+                        model.RedemptionCode.Trim());
 
                 if (result == null)
                 {
@@ -902,10 +933,12 @@ namespace CommUnityApp.Services
             }
             catch (Exception ex)
             {
-                return BadRequest(new
+                _logger.LogError(ex, "Error validating promotion redemption code.");
+
+                return StatusCode(500, new
                 {
                     ResultId = 0,
-                    ResultMessage = ex.Message,
+                    ResultMessage = "An error occurred while validating the redemption code.",
                     Status = false
                 });
             }

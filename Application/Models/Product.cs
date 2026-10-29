@@ -638,6 +638,7 @@ namespace CommUnityApp.ApplicationCore.Models
         public long PromotionId { get; set; }
 
         public Guid UserId { get; set; }
+        public  Guid? shareToken { get; set; }
     }
 
     public class PromotionRedemptionSummary

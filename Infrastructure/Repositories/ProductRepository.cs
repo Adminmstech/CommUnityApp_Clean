@@ -494,18 +494,18 @@ namespace CommUnityApp.InfrastructureLayer.Repositories
                 commandType: CommandType.StoredProcedure);
         }
 
-        public async Task<PromotionRedemptionResult>RedeemPromotion(long promotionId,Guid userId)
+        public async Task<PromotionRedemptionResult> RedeemPromotion( long promotionId, Guid userId, Guid? shareToken = null)
         {
-            using var connection = new SqlConnection( _configuration.GetConnectionString("DefaultConnection"));
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
 
-            var result =
-                await connection.QueryFirstOrDefaultAsync<
-                    PromotionRedemptionResult>(
+            var result = await connection.QueryFirstOrDefaultAsync<PromotionRedemptionResult>(
                 "SP_RedeemPromotion",
                 new
                 {
                     PromotionId = promotionId,
-                    UserId = userId
+                    UserId = userId,
+                    ShareToken = shareToken
                 },
                 commandType: CommandType.StoredProcedure);
 
