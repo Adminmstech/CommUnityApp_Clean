@@ -33,7 +33,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<PromotionRedemptionSummary> GetPromotionRedemptionSummary(long promotionId,Guid userId);
 
-        Task<PromotionRedemptionResult> RedeemPromotion( long promotionId,Guid userId);
+        Task<PromotionRedemptionResult> RedeemPromotion( long promotionId,Guid userId, Guid? shareToken = null);
 
         Task<List<PromotionRedemptionModel>> GetMyPromotionRedemptions(Guid userId);
 

@@ -1,0 +1,722 @@
+﻿@* Views/BusinessPortal/Dashboard.cshtml *@
+
+@{
+    ViewData["Title"] = "Business Dashboard";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Business Dashboard</title>
+    <style>
+
+        :root {
+            --navy: #102344;
+            --blue: #315efb;
+            --ink: #18243b;
+            --muted: #7b879b;
+            --line: #e6ebf3;
+            --bg: #f4f7fc;
+            --green: #138657;
+            --red: #b42318
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            font-family: Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+            color: var(--ink)
+        }
+
+        button, input {
+            font: inherit
+        }
+
+        button {
+            cursor: pointer
+        }
+
+        .topbar, header {
+            background: #fff !important;
+            color: var(--ink) !important;
+            border-bottom: 1px solid var(--line);
+            padding: 18px clamp(18px,4vw,54px) !important;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 3px 18px #203d6505
+        }
+
+        main {
+            max-width: 1400px !important;
+            padding: clamp(22px,3vw,42px) !important;
+            margin: auto
+        }
+
+        .tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 24px 0
+        }
+
+        button {
+            border-radius: 10px !important;
+            font-weight: 750;
+            transition: transform .15s,box-shadow .15s
+        }
+
+            button:hover {
+                transform: translateY(-1px)
+            }
+
+        .tab {
+            background: #fff !important;
+            border: 1px solid var(--line) !important;
+            color: #64718a !important;
+            padding: 12px 17px !important
+        }
+
+            .tab.active, .primary {
+                background: linear-gradient(100deg,#315efb,#2449d6) !important;
+                color: #fff !important;
+                border: 0 !important;
+                box-shadow: 0 7px 15px #315efb20
+            }
+
+        .panel {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 17px !important;
+            padding: clamp(18px,2.5vw,28px) !important;
+            box-shadow: 0 6px 24px #203d6505 !important;
+            margin-bottom: 20px
+        }
+
+        h2, h3 {
+            letter-spacing: -.035em
+        }
+
+        h2 {
+            font-size: clamp(27px,3vw,36px);
+            margin: 8px 0
+        }
+
+        h3 {
+            font-size: 19px;
+            margin: 0 0 8px
+        }
+
+        main > p {
+            color: var(--muted);
+            font-size: 14px
+        }
+
+        .hidden {
+            display: none !important
+        }
+
+        input {
+            height: 46px;
+            padding: 0 14px !important;
+            border: 1px solid #dce4f0 !important;
+            border-radius: 10px !important;
+            background: #fbfcff;
+            outline: none
+        }
+
+            input:focus {
+                border-color: #6484ff !important;
+                box-shadow: 0 0 0 4px #315efb16
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            min-width: 650px
+        }
+
+        th {
+            background: #f8faff !important;
+            color: #7b879b;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: .06em
+        }
+
+        th, td {
+            padding: 14px 16px !important;
+            text-align: left;
+            border-bottom: 1px solid #edf0f6 !important;
+            font-size: 13px
+        }
+
+        tbody tr:hover {
+            background: #fbfcff
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow: auto;
+            border: 1px solid var(--line);
+            border-radius: 12px
+        }
+
+        .message {
+            font-size: 13px;
+            margin: 12px 0;
+            line-height: 1.5
+        }
+
+        .error {
+            color: var(--red);
+            background: #fff2f1;
+            border: 1px solid #ffd9d5;
+            padding: 10px 12px;
+            border-radius: 10px
+        }
+
+        .success {
+            color: #16794c;
+            background: #edfbf4;
+            border: 1px solid #c9f1db;
+            padding: 10px 12px;
+            border-radius: 10px
+        }
+
+        img {
+            max-width: 90px;
+            max-height: 90px;
+            object-fit: contain
+        }
+
+        .premium-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            gap: 16px
+        }
+
+        .eyebrow {
+            color: #315efb;
+            font-size: 11px;
+            letter-spacing: .14em;
+            text-transform: uppercase;
+            font-weight: 850
+        }
+
+        .stat-strip {
+            display: grid;
+            grid-template-columns: repeat(3,minmax(0,1fr));
+            gap: 14px;
+            margin: 22px 0
+        }
+
+        .stat-card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 15px;
+            padding: 18px
+        }
+
+            .stat-card small {
+                color: var(--muted);
+                font-weight: 700
+            }
+
+            .stat-card strong {
+                display: block;
+                font-size: 25px;
+                margin-top: 8px;
+                letter-spacing: -.04em
+            }
+
+        .product-name {
+            font-weight: 750;
+            color: #1c2941
+        }
+
+        .qr-thumb {
+            width: 58px;
+            height: 58px;
+            object-fit: contain;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 3px
+        }
+
+        .validate-grid {
+            display: grid;
+            grid-template-columns: minmax(0,1fr) minmax(280px,.85fr);
+            gap: 20px
+        }
+
+        .scan-card {
+            border: 1px dashed #bdc9df;
+            border-radius: 15px;
+            padding: 20px;
+            background: #fafbff
+        }
+
+            .scan-card p {
+                font-size: 12px;
+                color: var(--muted);
+                line-height: 1.6
+            }
+
+        .scan-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        .secondary {
+            border: 1px solid var(--line);
+            background: white;
+            color: #40506a;
+            padding: 10px 13px
+        }
+
+        .confirm-card {
+            margin-top: 16px;
+            padding: 17px;
+            border: 1px solid #d9e5ff;
+            background: #f7f9ff;
+            border-radius: 13px
+        }
+
+        #qr-reader {
+            width: 100%;
+            max-width: 420px;
+            margin: 15px auto 0;
+            overflow: hidden;
+            border-radius: 12px
+        }
+
+            #qr-reader video {
+                border-radius: 12px
+            }
+
+        @@media(max-width:760px) {
+            main {
+                padding: 20px 13px !important
+            }
+
+            .stat-strip {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .stat-card:last-child {
+                grid-column: 1/-1
+            }
+
+            .validate-grid {
+                grid-template-columns: 1fr
+            }
+
+            .premium-head {
+                align-items: flex-start;
+                flex-direction: column
+            }
+
+            .panel {
+                padding: 17px !important
+            }
+        }
+
+    </style>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+<body>
+    <header>
+        <strong>IndoCommunity Business Portal</strong>
+        <form method="post" action="/BusinessWebApp/Logout">
+            @Html.AntiForgeryToken()
+            <button type="submit">Logout</button>
+        </form>
+    </header>
+
+    <main>
+        <div class="premium-head">
+            <div>
+                <div class="eyebrow">Business overview</div><h2>Business dashboard</h2>
+                <p>Manage offers, scan redemption QR codes and track customer activity.</p>
+            </div>
+            <button class="primary" onclick="refreshCurrentPanel()">↻ Refresh data</button>
+        </div>
+        <div class="stat-strip">
+            <div class="stat-card"><small>Promotions loaded</small><strong id="promotionCount">—</strong></div>
+            <div class="stat-card"><small>Redemptions loaded</small><strong id="redemptionCount">—</strong></div>
+            <div class="stat-card"><small>Redemption tools</small><strong>Ready</strong></div>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" data-panel="promotions">My Promotions</button>
+            <button class="tab" data-panel="history">Redemption History</button>
+            <button class="tab" data-panel="validate">Validate Code</button>
+        </div>
+
+        <section id="promotions" class="panel">
+            <h3>My Promotions</h3>
+            <button class="primary" onclick="loadPromotions()">Refresh Promotions</button>
+            <div id="promotionsMessage" class="message"></div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>Promotion</th>
+                            <th>Price</th>
+                            <th>Reward Coins</th>
+                            <th>QR Code</th>
+                        </tr>
+                    </thead>
+                    <tbody id="promotionsBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="history" class="panel hidden">
+            <h3>Redemption History</h3>
+            <button class="primary" onclick="loadHistory()">Refresh History</button>
+            <div id="historyMessage" class="message"></div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Redemption ID</th>
+                            <th>Code</th>
+                            <th>Status</th>
+                            <th>Final Price</th>
+                            <th>Redeemed At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="validate" class="panel hidden">
+            <h3>Validate Promotion Redemption</h3>
+            <p>Scan the customer's QR code or enter the redemption code manually.</p>
+            <div class="validate-grid">
+                <div>
+                    <form id="validateForm">
+                        <label for="redemptionCode" style="display:block;font-size:12px;font-weight:800;margin-bottom:8px">Redemption code</label>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap">
+                            <input id="redemptionCode" maxlength="200" placeholder="Enter redemption code" required style="flex:1;min-width:180px" />
+                            <button class="primary" type="submit">Validate code</button>
+                        </div>
+                    </form>
+                    <div id="validateMessage" class="message"></div>
+                    <div id="confirmArea" class="hidden">
+                        <p id="validatedDetails"></p>
+                        <button id="confirmButton" class="primary" type="button">
+                            Confirm Redemption
+                        </button>
+                        <div id="confirmMessage" class="message"></div>
+                    </div>
+                    <div class="scan-card">
+                        <h3>Scan QR code</h3>
+                        <p>Allow camera access when prompted. Camera scanning requires HTTPS or localhost and a supported browser.</p>
+                        <div class="scan-actions">
+                            <button id="startScanButton" class="primary" type="button">▣ Start camera</button>
+                            <button id="stopScanButton" class="secondary" type="button" disabled>Stop camera</button>
+                        </div>
+                        <div id="scannerMessage" class="message"></div>
+                        <div id="qr-reader"></div>
+                    </div>
+                </div>
+        </section>
+    </main>
+
+    <script>
+        const businessId = @ViewBag.BusinessId;
+        // Update these URLs if your API controller has a different route prefix.
+        const api = {
+            promotions: `/api/Business/GetBusinessPromotions?businessId=${businessId}`,
+            history: `/api/Business/GetBusinessPromotionRedemptions?businessId=${businessId}`,
+            validate: "/api/Business/ValidatePromotionRedemptionCode",
+            confirm: "/api/Business/ConfirmPromotionRedemption"
+        };
+
+        let validatedRedemptionId = 0;
+
+        let html5QrCode = null;
+        let scannerRunning = false;
+        function extractRedemptionCode(raw) {
+            const value = String(raw || "").trim();
+            if (!value) return "";
+            try {
+                const url = new URL(value);
+                for (const key of ["redemptionCode", "code", "token"]) {
+                    const found = url.searchParams.get(key);
+                    if (found) return found.trim();
+                }
+                const last = decodeURIComponent(url.pathname.split("/").filter(Boolean).pop() || "");
+                if (last && !["promotion", "redeem", "redemption"].includes(last.toLowerCase())) return last.trim();
+            } catch (_) { }
+            return value;
+        }
+        async function startScanner() {
+            if (!window.Html5Qrcode) {
+                showMessage("scannerMessage", "QR scanner library failed to load. Check internet access or host html5-qrcode locally.", true);
+                return;
+            }
+            if (scannerRunning) return;
+            try {
+                html5QrCode = html5QrCode || new Html5Qrcode("qr-reader");
+                await html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 230, height: 230 }, aspectRatio: 1.0 },
+                    async decodedText => {
+                        if (validatedRedemptionId) return;
+                        document.getElementById("redemptionCode").value = extractRedemptionCode(decodedText);
+                        await stopScanner();
+                        showMessage("scannerMessage", "QR scanned. Checking redemption code…");
+                        document.getElementById("validateForm").requestSubmit();
+                    },
+                    () => { }
+                );
+                scannerRunning = true;
+                document.getElementById("startScanButton").disabled = true;
+                document.getElementById("stopScanButton").disabled = false;
+                showMessage("scannerMessage", "Camera active. Hold the QR code inside the frame.");
+            } catch (err) {
+                showMessage("scannerMessage", "Could not start camera. Allow camera permission and use HTTPS or localhost. " + (err.message || ""), true);
+            }
+        }
+        async function stopScanner() {
+            if (!html5QrCode || !scannerRunning) return;
+            try { await html5QrCode.stop(); } catch (_) { }
+            scannerRunning = false;
+            document.getElementById("startScanButton").disabled = false;
+            document.getElementById("stopScanButton").disabled = true;
+        }
+        document.getElementById("startScanButton").addEventListener("click", startScanner);
+        document.getElementById("stopScanButton").addEventListener("click", stopScanner);
+        function refreshCurrentPanel() {
+            const active = document.querySelector(".tab.active")?.dataset.panel;
+            if (active === "history") loadHistory();
+            else if (active === "validate") showMessage("scannerMessage", "Choose Start camera to scan a QR code.");
+            else loadPromotions();
+        }
+
+
+        async function apiRequest(url, options = {}) {
+            const response = await fetch(url, {
+                credentials: "same-origin",
+                ...options,
+                headers: {
+                    ...(options.body ? { "Content-Type": "application/json" } : {}),
+                    ...(options.headers || {})
+                }
+            });
+
+            if (response.status === 401 || response.status === 403) {
+                window.location.href = "/Business/BusinessWebApp/Login";
+                throw new Error("Your business session has expired. Please log in again.");
+            }
+
+            const result = await response.json();
+
+            if (!response.ok || result.status === false || result.Status === false) {
+                throw new Error(result.resultMessage || result.ResultMessage || "Request failed.");
+            }
+
+            return result;
+        }
+
+        function showMessage(id, message, isError = false) {
+            const el = document.getElementById(id);
+            el.textContent = message;
+            el.className = "message " + (isError ? "error" : "success");
+        }
+
+        function cell(row, value) {
+            const td = document.createElement("td");
+            td.textContent = value == null ? "" : String(value);
+            row.appendChild(td);
+            return td;
+        }
+
+        function addImageCell(row, url) {
+            const td = document.createElement("td");
+            if (url) {
+                const img = document.createElement("img");
+                img.src = url;
+                img.alt = "Promotion image";
+                img.onerror = () => { img.style.display = "none"; };
+                td.appendChild(img);
+            }
+            row.appendChild(td);
+        }
+
+        async function loadPromotions() {
+            const body = document.getElementById("promotionsBody");
+            body.replaceChildren();
+
+            try {
+                const result = await apiRequest(api.promotions);
+                const items = result.data || result.Data || [];
+
+                for (const item of items) {
+                    const row = document.createElement("tr");
+
+                    const title = String(item.promotionTitle || item.PromotionTitle || "Promotion").trim();
+                    const productCell = document.createElement("td");
+                    productCell.innerHTML = "";
+                    const productWrap = document.createElement("div");
+                    productWrap.style.cssText = "display:flex;align-items:center;gap:12px;min-width:190px";
+                    const productImg = document.createElement("img");
+                    productImg.src = item.promotionImage || "";
+                    productImg.alt = title;
+                    productImg.style.cssText = "width:48px;height:48px;max-width:48px;max-height:48px;border-radius:10px;object-fit:cover";
+                    productImg.onerror = () => { productImg.style.display = "none"; };
+                    const titleSpan = document.createElement("span");
+                    titleSpan.className = "product-name";
+                    titleSpan.textContent = title;
+                    productWrap.append(productImg, titleSpan);
+                    productCell.appendChild(productWrap);
+                    row.appendChild(productCell);
+
+                    cell(row, item.promotionalPrice == null ? "" : "$" + item.promotionalPrice);
+
+                    cell(row, item.indoCoinsEarned ?? "");
+
+                    const qrCell = document.createElement("td");
+
+                    if (item.qrCodeImage) {
+                        const img = document.createElement("img");
+                        img.src = item.qrCodeImage;
+                        img.alt = "Promotion QR code";
+                        img.style.width = "58px";
+                        img.className = "qr-thumb";
+                        img.onerror = () => {
+                            qrCell.textContent = "QR image unavailable";
+                        };
+                        qrCell.appendChild(img);
+                    }
+
+                    row.appendChild(qrCell);
+                    body.appendChild(row);
+                }
+
+                document.getElementById("promotionCount").textContent = items.length;
+                showMessage("promotionsMessage",
+                    items.length ? `${items.length} promotion(s) found.` : "No promotions found.");
+            } catch (e) {
+                showMessage("promotionsMessage", e.message, true);
+            }
+        }
+
+        async function loadHistory() {
+            const body = document.getElementById("historyBody");
+            body.replaceChildren();
+
+            try {
+                const result = await apiRequest(api.history);
+                const items = result.data || result.Data || [];
+
+                for (const item of items) {
+                    const row = document.createElement("tr");
+                    cell(row, item.redemptionId ?? item.RedemptionId);
+                    cell(row, item.redemptionCode || item.RedemptionCode || "");
+                    cell(row, item.redemptionStatus || item.RedemptionStatus || "");
+                    cell(row, item.finalPrice ?? item.FinalPrice ?? "");
+                    cell(row, item.redeemedAt || item.RedeemedAt || "");
+                    body.appendChild(row);
+                }
+
+                document.getElementById("redemptionCount").textContent = items.length;
+                showMessage("historyMessage",
+                    items.length ? `${items.length} redemption(s) found.` : "No redemptions found.");
+            } catch (e) {
+                showMessage("historyMessage", e.message, true);
+            }
+        }
+
+        document.getElementById("validateForm").addEventListener("submit", async e => {
+            e.preventDefault();
+            validatedRedemptionId = 0;
+            document.getElementById("confirmArea").classList.add("hidden");
+            showMessage("validateMessage", "Validating...");
+
+            try {
+                const result = await apiRequest(api.validate, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        redemptionCode: document.getElementById("redemptionCode").value.trim()
+                    })
+                });
+
+                const data = result.data || result.Data || result;
+                validatedRedemptionId = Number(data.redemptionId || data.RedemptionId || 0);
+
+                if (!validatedRedemptionId) {
+                    throw new Error("The API did not return a redemption ID. Check its response model.");
+                }
+
+                document.getElementById("validatedDetails").textContent =
+                    "Redemption code validated. ID: " + validatedRedemptionId;
+
+                document.getElementById("confirmArea").classList.remove("hidden");
+                showMessage("validateMessage",
+                    result.resultMessage || result.ResultMessage || "Code validated successfully.");
+            } catch (e) {
+                showMessage("validateMessage", e.message, true);
+            }
+        });
+
+        document.getElementById("confirmButton").addEventListener("click", async () => {
+            if (!validatedRedemptionId) return;
+
+            const button = document.getElementById("confirmButton");
+            button.disabled = true;
+            showMessage("confirmMessage", "Confirming redemption...");
+
+            try {
+                const result = await apiRequest(api.confirm, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        redemptionId: validatedRedemptionId
+                    })
+                });
+
+                showMessage("confirmMessage",
+                    result.resultMessage || result.ResultMessage || "Redemption confirmed.");
+
+                await loadHistory();
+            } catch (e) {
+                showMessage("confirmMessage", e.message, true);
+            } finally {
+                button.disabled = false;
+            }
+        });
+
+        document.querySelectorAll(".tab").forEach(button => {
+            button.addEventListener("click", () => {
+                document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+                document.querySelectorAll("main section").forEach(x => x.classList.add("hidden"));
+
+                button.classList.add("active");
+                document.getElementById(button.dataset.panel).classList.remove("hidden");
+                if (button.dataset.panel !== "validate") stopScanner();
+
+                if (button.dataset.panel === "promotions") loadPromotions();
+                if (button.dataset.panel === "history") loadHistory();
+            });
+        });
+
+        loadPromotions();
+    </script>
+</body>
+</html>
