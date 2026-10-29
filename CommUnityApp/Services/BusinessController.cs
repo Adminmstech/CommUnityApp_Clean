@@ -792,7 +792,7 @@ namespace CommUnityApp.Services
                             : baseUrl + "/" + item.QRCodeImage;
                     }
                 }
-
+                 
                 return Ok(new
                 {
                     ResultId = 1,
