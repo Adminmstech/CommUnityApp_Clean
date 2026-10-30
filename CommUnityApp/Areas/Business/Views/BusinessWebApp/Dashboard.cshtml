@@ -571,42 +571,83 @@
                 for (const item of items) {
                     const row = document.createElement("tr");
 
-                    const title = String(item.promotionTitle || item.PromotionTitle || "Promotion").trim();
-                    const productCell = document.createElement("td");
-                    productCell.innerHTML = "";
-                    const productWrap = document.createElement("div");
-                    productWrap.style.cssText = "display:flex;align-items:center;gap:12px;min-width:190px";
+                    const title = String(
+                        item.promotionTitle ||
+                        item.PromotionTitle ||
+                        "Promotion"
+                    ).trim();
+
+                    // 1. IMAGE COLUMN
+                    const imageCell = document.createElement("td");
+
                     const productImg = document.createElement("img");
                     productImg.src = item.promotionImage || "";
                     productImg.alt = title;
-                    productImg.style.cssText = "width:48px;height:48px;max-width:48px;max-height:48px;border-radius:10px;object-fit:cover";
-                    productImg.onerror = () => { productImg.style.display = "none"; };
+                    productImg.style.cssText = `
+                width:48px;
+                height:48px;
+                max-width:48px;
+                max-height:48px;
+                border-radius:10px;
+                object-fit:cover;
+            `;
+
+                    productImg.onerror = () => {
+                        productImg.style.display = "none";
+                    };
+
+                    imageCell.appendChild(productImg);
+                    row.appendChild(imageCell);
+
+                    // 2. PROMOTION NAME COLUMN
+                    const titleCell = document.createElement("td");
+
                     const titleSpan = document.createElement("span");
                     titleSpan.className = "product-name";
                     titleSpan.textContent = title;
-                    productWrap.append(productImg, titleSpan);
-                    productCell.appendChild(productWrap);
-                    row.appendChild(productCell);
 
-                    cell(row, item.promotionalPrice == null ? "" : "$" + item.promotionalPrice);
+                    titleCell.appendChild(titleSpan);
+                    row.appendChild(titleCell);
 
+                    // 3. PRICE COLUMN
+                    cell(
+                        row,
+                        item.promotionalPrice == null
+                            ? ""
+                            : "$" + item.promotionalPrice
+                    );
+
+                    // 4. REWARD COINS COLUMN
                     cell(row, item.indoCoinsEarned ?? "");
 
+                    // 5. QR CODE COLUMN
                     const qrCell = document.createElement("td");
 
                     if (item.qrCodeImage) {
                         const img = document.createElement("img");
+
                         img.src = item.qrCodeImage;
                         img.alt = "Promotion QR code";
-                        img.style.width = "58px";
+                        img.style.cssText = `
+                    width:58px;
+                    height:58px;
+                    object-fit:contain;
+                    border-radius:8px;
+                `;
+
                         img.className = "qr-thumb";
+
                         img.onerror = () => {
                             qrCell.textContent = "QR image unavailable";
                         };
+
                         qrCell.appendChild(img);
+                    } else {
+                        qrCell.textContent = "-"; 
                     }
 
                     row.appendChild(qrCell);
+                     
                     body.appendChild(row);
                 }
 
