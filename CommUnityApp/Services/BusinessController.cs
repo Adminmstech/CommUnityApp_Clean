@@ -815,44 +815,36 @@ namespace CommUnityApp.Services
             }
         }
         [HttpPost("ConfirmPromotionRedemption")]
-        public async Task<IActionResult> ConfirmPromotionRedemption(
-            [FromBody] ConfirmPromotionRedemptionRequest request)
+        public async Task<IActionResult> ConfirmPromotionRedemption([FromBody] ConfirmPromotionRedemptionRequest request)
         {
             try
             {
-                if (request == null || request.RedemptionId <= 0)
+                if (request == null ||
+                    request.RedemptionId <= 0 ||
+                    request.BusinessId <= 0)
                 {
                     return BadRequest(new
                     {
                         ResultId = 0,
-                        ResultMessage = "Valid RedemptionId is required.",
+                        ResultMessage = "Valid BusinessId and RedemptionId are required.",
                         Status = false
                     });
                 }
 
-                // Get BusinessId from the logged-in business session.
-                if (!string.Equals(
-                    HttpContext.Session.GetString("BusinessAdminAuthenticated"),
-                    "true",
-                    StringComparison.OrdinalIgnoreCase) ||
-                    !long.TryParse(
-                        HttpContext.Session.GetString("BusinessId"),
-                        out long businessId) ||
-                    businessId <= 0)
-                {
-                    return Unauthorized(new
-                    {
-                        ResultId = 0,
-                        ResultMessage = "Business login is required or the session has expired.",
-                        Status = false
-                    });
-                }
-
-                // Do not trust a BusinessId supplied by the browser.
-                request.BusinessId = businessId;
-
+                // BusinessId is supplied by the client.
+                // The stored procedure verifies ownership before confirming.
                 var result = await _unitOfWork.Business
                     .ConfirmPromotionRedemption(request);
+
+                if (result == null)
+                {
+                    return BadRequest(new
+                    {
+                        ResultId = 0,
+                        ResultMessage = "Unable to confirm redemption.",
+                        Status = false
+                    });
+                }
 
                 return Ok(result);
             }
@@ -865,7 +857,7 @@ namespace CommUnityApp.Services
                 return StatusCode(500, new
                 {
                     ResultId = 0,
-                    ResultMessage = "An error occurred while confirming the redemption.",
+                    ResultMessage = ex.Message,
                     Status = false
                 });
             }
