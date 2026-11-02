@@ -886,20 +886,12 @@ namespace CommUnityApp.Services
                     });
                 }
 
-                // Get BusinessId from the authenticated business session.
-                if (!string.Equals(
-                    HttpContext.Session.GetString("BusinessAdminAuthenticated"),
-                    "true",
-                    StringComparison.OrdinalIgnoreCase) ||
-                    !long.TryParse(
-                        HttpContext.Session.GetString("BusinessId"),
-                        out long businessId) ||
-                    businessId <= 0)
+                if (model.BusinessId <= 0)
                 {
-                    return Unauthorized(new
+                    return BadRequest(new
                     {
                         ResultId = 0,
-                        ResultMessage = "Business login is required or the session has expired.",
+                        ResultMessage = "Valid BusinessId is required.",
                         Status = false
                     });
                 }
@@ -916,8 +908,9 @@ namespace CommUnityApp.Services
 
                 var result = await _unitOfWork.Business
                     .ValidatePromotionRedemptionCode(
-                        businessId,
-                        model.RedemptionCode.Trim());
+                        model.BusinessId,
+                        model.RedemptionCode.Trim()
+                    );
 
                 if (result == null)
                 {
