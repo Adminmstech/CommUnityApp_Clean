@@ -1506,7 +1506,7 @@ public async Task<IActionResult> GetAllCharityItems(Guid userId)
                     resultId = 0,
                     resultMessage = "Username and password are required."
                 });
-            }
+            } 
 
             var login =
                 await _communityRepository.AdminAppLogin(request);
