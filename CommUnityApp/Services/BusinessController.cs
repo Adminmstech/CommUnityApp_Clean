@@ -847,7 +847,7 @@ namespace CommUnityApp.Services
                 }
 
                 return Ok(result);
-            }
+            } 
             catch (Exception ex)
             {
                 _logger.LogError(
