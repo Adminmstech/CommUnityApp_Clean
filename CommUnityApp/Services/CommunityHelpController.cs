@@ -3,6 +3,8 @@ using CommUnityApp.ApplicationCore.Models;
 using CommUnityApp.InfrastructureLayer.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using Stripe;
+using System.Security.Claims;
 
 namespace CommUnityApp.Services
 {
@@ -246,5 +248,212 @@ namespace CommUnityApp.Services
 
                 return Ok(result);
             }
+        private Guid GetLoggedInUserId()
+        {
+            string userId =
+                User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? User.FindFirstValue("UserId");
+
+            return Guid.TryParse(userId, out Guid id) ? id : Guid.Empty;
         }
+        [HttpPost("SendMessage")]
+        public async Task<IActionResult> SendMessage([FromBody] SendCommunityHelpMessageModel model)
+        {
+            if (model == null || model.ConnectionId <= 0)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = "Valid ConnectionId is required."
+                });
+            }
+
+            if (model.SenderUserId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = "Valid SenderUserId is required."
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Message))
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = "Message is required."
+                });
+            }
+
+            var result = await _repository.SendMessage(
+                model.ConnectionId,
+                model.SenderUserId,
+                model.Message.Trim());
+
+            if (result == null || (int)result.ResultId == 0)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = result?.ResultMessage
+                });
+            }
+
+            return Ok(new
+            {
+                status = true,
+                message = result.ResultMessage,
+                messageId = result.MessageId
+            });
+        }
+
+        // 2. GET CONVERSATION MESSAGES
+        [HttpGet("GetMessages")]
+        public async Task<IActionResult> GetMessages([FromQuery] long connectionId,[FromQuery] Guid userId)
+        {
+            if (connectionId <= 0)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = "Valid ConnectionId is required."
+                });
+            }
+
+            if (userId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = "Valid UserId is required."
+                });
+            }
+
+            var messages = await _repository.GetMessages(
+                connectionId,
+                userId);
+
+            return Ok(new
+            {
+                status = true,
+                message = "Messages retrieved successfully.",
+                data = messages
+            });
+        }
+
+        // 3. MARK MESSAGES AS READ
+        [HttpGet("MarkMessagesRead")]
+        public async Task<IActionResult> MarkMessagesRead([FromQuery] long connectionId,[FromQuery] Guid userId)
+        {
+            if (connectionId <= 0)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = "Valid ConnectionId is required."
+                });
+            }
+
+            if (userId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = "Valid UserId is required."
+                });
+            }
+
+            var result = await _repository.MarkMessagesRead(
+                connectionId,
+                userId);
+
+            return Ok(new
+            {
+                status = true,
+                message = result?.ResultMessage
+                    ?? "Messages marked as read."
+            });
+        }
+
+        [HttpGet("GetMyHelpConnections")]
+        public async Task<IActionResult> GetMyHelpConnections([FromQuery] Guid userId)
+        {
+            if (userId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = "Valid UserId is required."
+                });
+            }
+
+            var connections = await _repository.GetMyHelpConnections(userId);
+
+            return Ok(new
+            {
+                status = true,
+                message = "Help conversations retrieved successfully.",
+                data = connections
+            }); 
+        }
+
+        [HttpPost("UpdateHelpRequest")]
+        public async Task<IActionResult> UpdateHelpRequest([FromBody] UpdateCommunityHelpRequestModel model)
+        {
+            if (model == null || model.HelpRequestId <= 0)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = "Valid HelpRequestId is required."
+                });
+            }
+
+            if (model.RequestedByUserId == Guid.Empty)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = "Valid RequestedByUserId is required."
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(model.RequestTitle))
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = "Request title is required."
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(model.RequestDescription))
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = "Request description is required."
+                });
+            }
+
+            var result = await _repository.UpdateHelpRequest(model);
+
+            if (result == null || result.ResultId == 0)
+            {
+                return BadRequest(new
+                {
+                    status = false,
+                    message = result?.ResultMessage ?? "Unable to update help request."
+                });
+            }
+
+            return Ok(new
+            {
+                status = true,
+                message = result.ResultMessage,
+                helpRequestId = result.HelpRequestId
+            });
+        }
+    }
     }

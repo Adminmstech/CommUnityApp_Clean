@@ -226,4 +226,76 @@ namespace CommUnityApp.ApplicationCore.Models
         public DateTime? CompletedDate { get; set; }
     }
 
+
+    public class SendCommunityHelpMessageModel
+    {
+        public long ConnectionId { get; set; }
+        public Guid SenderUserId { get; set; }
+        public string Message { get; set; }
+    }
+
+    public class CommunityHelpMessageModel
+    {
+        public long MessageId { get; set; }
+        public long ConnectionId { get; set; }
+        public Guid SenderUserId { get; set; }
+        public Guid ReceiverUserId { get; set; }
+        public string Message { get; set; }
+        public bool IsRead { get; set; }
+        public DateTime CreatedDate { get; set; }
+    }
+
+    public class MyCommunityHelpConnectionModel
+    {
+        public long ConnectionId { get; set; }
+
+        public long HelpRequestId { get; set; }
+
+        public long HelpOfferId { get; set; }
+
+        public Guid RequesterUserId { get; set; }
+
+        public Guid HelperUserId { get; set; }
+
+        // Other participant's UserId
+        public Guid OtherUserId { get; set; }
+
+        // Requester or Helper
+        public string MyRole { get; set; }
+
+        public string ConnectionStatus { get; set; }
+
+        public DateTime? ConnectedDate { get; set; }
+
+        public DateTime? CompletedDate { get; set; }
+
+        public DateTime? ClosedDate { get; set; }
+
+        public string LastMessage { get; set; }
+
+        public Guid? LastMessageSenderId { get; set; }
+
+        public DateTime? LastMessageDate { get; set; }
+
+        public int UnreadCount { get; set; }
+    }
+
+    public class UpdateCommunityHelpRequestModel
+    {
+        public long HelpRequestId { get; set; }
+
+        public Guid RequestedByUserId { get; set; }
+
+        public string RequestTitle { get; set; } = string.Empty;
+
+        public string RequestDescription { get; set; } = string.Empty;
+
+        public string? Location { get; set; }
+
+        public decimal? Latitude { get; set; }
+
+        public decimal? Longitude { get; set; }
+
+        public bool IsUrgent { get; set; }
+    }
 }
