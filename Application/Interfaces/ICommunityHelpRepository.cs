@@ -33,6 +33,14 @@ namespace CommUnityApp.ApplicationCore.Interfaces
             Task<CommunityHelpResult> CloseHelpRequest( CloseCommunityHelpRequestModel model);
 
             Task<CommunityHelpResult> CancelHelpRequest(CancelCommunityHelpRequestModel model);
-        }
+
+            Task<dynamic> SendMessage(long connectionId,Guid senderUserId,string message);
+
+            Task<IEnumerable<CommunityHelpMessageModel>> GetMessages(long connectionId,Guid userId);
+
+            Task<dynamic> MarkMessagesRead(long connectionId,Guid userId);
+            Task<IEnumerable<MyCommunityHelpConnectionModel>> GetMyHelpConnections(Guid userId);
+        Task<CommunityHelpResult> UpdateHelpRequest(UpdateCommunityHelpRequestModel model);
+    }
     
 }

@@ -553,7 +553,7 @@ SELECT CASE WHEN @@ROWCOUNT > 0 THEN CAST(@PostId AS INT) ELSE 0 END AS ResultId
                 "sp_GetBusinessPromotionRedemptions",
                 new
                 {
-                    BusinessId = businessId
+                    BusinessId = businessId 
                 },
                 commandType: CommandType.StoredProcedure);
 
