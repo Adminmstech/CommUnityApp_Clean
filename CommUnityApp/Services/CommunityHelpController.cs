@@ -389,7 +389,7 @@ namespace CommUnityApp.Services
             }
 
             var connections = await _repository.GetMyHelpConnections(userId);
-
+             
             return Ok(new
             {
                 status = true,
