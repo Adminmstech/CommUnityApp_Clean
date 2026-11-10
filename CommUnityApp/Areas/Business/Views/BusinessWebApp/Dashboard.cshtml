@@ -438,9 +438,10 @@
         </section>
     </main>
 
+
     <script>
         const businessId = @ViewBag.BusinessId;
-        // Update these URLs if your API controller has a different route prefix.
+
         const api = {
             promotions: `/api/Business/GetBusinessPromotions?businessId=${businessId}`,
             history: `/api/Business/GetBusinessPromotionRedemptions?businessId=${businessId}`,
@@ -452,66 +453,160 @@
 
         let html5QrCode = null;
         let scannerRunning = false;
+
+        // EXTRACT REDEMPTION CODE FROM QR
         function extractRedemptionCode(raw) {
             const value = String(raw || "").trim();
+
             if (!value) return "";
+
+            // Handle JSON QR content
+            try {
+                const data = JSON.parse(value);
+
+                if (data.RedemptionCode || data.redemptionCode) {
+                    return String(
+                        data.RedemptionCode || data.redemptionCode
+                    ).trim();
+                }
+
+                if (data.code || data.token) {
+                    return String(data.code || data.token).trim();
+                }
+            } catch (_) { }
+
+            // Handle URL QR content
             try {
                 const url = new URL(value);
+
                 for (const key of ["redemptionCode", "code", "token"]) {
                     const found = url.searchParams.get(key);
                     if (found) return found.trim();
                 }
-                const last = decodeURIComponent(url.pathname.split("/").filter(Boolean).pop() || "");
-                if (last && !["promotion", "redeem", "redemption"].includes(last.toLowerCase())) return last.trim();
+
+                const last = decodeURIComponent(
+                    url.pathname.split("/").filter(Boolean).pop() || ""
+                );
+
+                if (last && !["promotion", "redeem", "redemption"].includes(last.toLowerCase())) {
+                    return last.trim();
+                }
             } catch (_) { }
+
             return value;
         }
+
+        // START QR SCANNER
         async function startScanner() {
+
             if (!window.Html5Qrcode) {
-                showMessage("scannerMessage", "QR scanner library failed to load. Check internet access or host html5-qrcode locally.", true);
+                showMessage(
+                    "scannerMessage",
+                    "QR scanner library failed to load. Check internet access or host html5-qrcode locally.",
+                    true
+                );
                 return;
             }
+
             if (scannerRunning) return;
+
             try {
                 html5QrCode = html5QrCode || new Html5Qrcode("qr-reader");
+
                 await html5QrCode.start(
                     { facingMode: "environment" },
-                    { fps: 10, qrbox: { width: 230, height: 230 }, aspectRatio: 1.0 },
+                    {
+                        fps: 10,
+                        qrbox: { width: 230, height: 230 },
+                        aspectRatio: 1.0
+                    },
                     async decodedText => {
+
                         if (validatedRedemptionId) return;
-                        document.getElementById("redemptionCode").value = extractRedemptionCode(decodedText);
+
+                        const redemptionCode = extractRedemptionCode(decodedText);
+
+                        document.getElementById("redemptionCode").value =
+                            redemptionCode;
+
                         await stopScanner();
-                        showMessage("scannerMessage", "QR scanned. Checking redemption code…");
+
+                        showMessage(
+                            "scannerMessage",
+                            "QR scanned. Checking redemption code..."
+                        );
+
                         document.getElementById("validateForm").requestSubmit();
                     },
                     () => { }
                 );
+
                 scannerRunning = true;
+
                 document.getElementById("startScanButton").disabled = true;
                 document.getElementById("stopScanButton").disabled = false;
-                showMessage("scannerMessage", "Camera active. Hold the QR code inside the frame.");
+
+                showMessage(
+                    "scannerMessage",
+                    "Camera active. Hold the QR code inside the frame."
+                );
+
             } catch (err) {
-                showMessage("scannerMessage", "Could not start camera. Allow camera permission and use HTTPS or localhost. " + (err.message || ""), true);
+
+                showMessage(
+                    "scannerMessage",
+                    "Could not start camera. Allow camera permission and use HTTPS or localhost. " +
+                    (err.message || ""),
+                    true
+                );
             }
         }
+
+        // STOP QR SCANNER
         async function stopScanner() {
+
             if (!html5QrCode || !scannerRunning) return;
-            try { await html5QrCode.stop(); } catch (_) { }
+
+            try {
+                await html5QrCode.stop();
+            } catch (_) { }
+
             scannerRunning = false;
+
             document.getElementById("startScanButton").disabled = false;
             document.getElementById("stopScanButton").disabled = true;
         }
-        document.getElementById("startScanButton").addEventListener("click", startScanner);
-        document.getElementById("stopScanButton").addEventListener("click", stopScanner);
+
+        document.getElementById("startScanButton")
+            .addEventListener("click", startScanner);
+
+        document.getElementById("stopScanButton")
+            .addEventListener("click", stopScanner);
+
+
+        // REFRESH CURRENT PANEL
         function refreshCurrentPanel() {
+
             const active = document.querySelector(".tab.active")?.dataset.panel;
-            if (active === "history") loadHistory();
-            else if (active === "validate") showMessage("scannerMessage", "Choose Start camera to scan a QR code.");
-            else loadPromotions();
+
+            if (active === "history") {
+                loadHistory();
+            }
+            else if (active === "validate") {
+                showMessage(
+                    "scannerMessage",
+                    "Choose Start camera to scan a QR code."
+                );
+            }
+            else {
+                loadPromotions();
+            }
         }
 
 
+        // COMMON API REQUEST
         async function apiRequest(url, options = {}) {
+
             const response = await fetch(url, {
                 credentials: "same-origin",
                 ...options,
@@ -523,52 +618,93 @@
 
             if (response.status === 401 || response.status === 403) {
                 window.location.href = "/Business/BusinessWebApp/Login";
-                throw new Error("Your business session has expired. Please log in again.");
+
+                throw new Error(
+                    "Your business session has expired. Please log in again."
+                );
             }
 
             const result = await response.json();
 
-            if (!response.ok || result.status === false || result.Status === false) {
-                throw new Error(result.resultMessage || result.ResultMessage || "Request failed.");
+            if (
+                !response.ok ||
+                result.status === false ||
+                result.Status === false
+            ) {
+                throw new Error(
+                    result.resultMessage ||
+                    result.ResultMessage ||
+                    result.message ||
+                    result.Message ||
+                    "Request failed."
+                );
             }
 
             return result;
         }
 
+
+        // DISPLAY MESSAGE
         function showMessage(id, message, isError = false) {
+
             const el = document.getElementById(id);
+
             el.textContent = message;
             el.className = "message " + (isError ? "error" : "success");
         }
 
+
+        // TABLE CELL
         function cell(row, value) {
+
             const td = document.createElement("td");
+
             td.textContent = value == null ? "" : String(value);
+
             row.appendChild(td);
+
             return td;
         }
 
+
+        // IMAGE CELL
         function addImageCell(row, url) {
+
             const td = document.createElement("td");
+
             if (url) {
+
                 const img = document.createElement("img");
+
                 img.src = url;
                 img.alt = "Promotion image";
-                img.onerror = () => { img.style.display = "none"; };
+
+                img.onerror = () => {
+                    img.style.display = "none";
+                };
+
                 td.appendChild(img);
             }
+
             row.appendChild(td);
         }
 
+
+        // LOAD PROMOTIONS
         async function loadPromotions() {
+
             const body = document.getElementById("promotionsBody");
+
             body.replaceChildren();
 
             try {
+
                 const result = await apiRequest(api.promotions);
+
                 const items = result.data || result.Data || [];
 
                 for (const item of items) {
+
                     const row = document.createElement("tr");
 
                     const title = String(
@@ -577,20 +713,22 @@
                         "Promotion"
                     ).trim();
 
-                    // 1. IMAGE COLUMN
+                    // IMAGE COLUMN
                     const imageCell = document.createElement("td");
 
                     const productImg = document.createElement("img");
+
                     productImg.src = item.promotionImage || "";
                     productImg.alt = title;
+
                     productImg.style.cssText = `
-                width:48px;
-                height:48px;
-                max-width:48px;
-                max-height:48px;
-                border-radius:10px;
-                object-fit:cover;
-            `;
+                            width:48px;
+                            height:48px;
+                            max-width:48px;
+                            max-height:48px;
+                            border-radius:10px;
+                            object-fit:cover;
+                        `;
 
                     productImg.onerror = () => {
                         productImg.style.display = "none";
@@ -599,17 +737,18 @@
                     imageCell.appendChild(productImg);
                     row.appendChild(imageCell);
 
-                    // 2. PROMOTION NAME COLUMN
+                    // PROMOTION NAME
                     const titleCell = document.createElement("td");
 
                     const titleSpan = document.createElement("span");
+
                     titleSpan.className = "product-name";
                     titleSpan.textContent = title;
 
                     titleCell.appendChild(titleSpan);
                     row.appendChild(titleCell);
 
-                    // 3. PRICE COLUMN
+                    // PRICE
                     cell(
                         row,
                         item.promotionalPrice == null
@@ -617,23 +756,25 @@
                             : "$" + item.promotionalPrice
                     );
 
-                    // 4. REWARD COINS COLUMN
+                    // REWARD COINS
                     cell(row, item.indoCoinsEarned ?? "");
 
-                    // 5. QR CODE COLUMN
+                    // QR CODE
                     const qrCell = document.createElement("td");
 
                     if (item.qrCodeImage) {
+
                         const img = document.createElement("img");
 
                         img.src = item.qrCodeImage;
                         img.alt = "Promotion QR code";
+
                         img.style.cssText = `
-                    width:58px;
-                    height:58px;
-                    object-fit:contain;
-                    border-radius:8px;
-                `;
+                                width:58px;
+                                height:58px;
+                                object-fit:contain;
+                                border-radius:8px;
+                            `;
 
                         img.className = "qr-thumb";
 
@@ -642,122 +783,287 @@
                         };
 
                         qrCell.appendChild(img);
+
                     } else {
-                        qrCell.textContent = "-"; 
+
+                        qrCell.textContent = "-";
                     }
 
                     row.appendChild(qrCell);
-                     
+
                     body.appendChild(row);
                 }
 
-                document.getElementById("promotionCount").textContent = items.length;
-                showMessage("promotionsMessage",
-                    items.length ? `${items.length} promotion(s) found.` : "No promotions found.");
+                document.getElementById("promotionCount").textContent =
+                    items.length;
+
+                showMessage(
+                    "promotionsMessage",
+                    items.length
+                        ? `${items.length} promotion(s) found.`
+                        : "No promotions found."
+                );
+
             } catch (e) {
+
                 showMessage("promotionsMessage", e.message, true);
             }
         }
 
+
+        // LOAD REDEMPTION HISTORY
         async function loadHistory() {
+
             const body = document.getElementById("historyBody");
+
             body.replaceChildren();
 
             try {
+
                 const result = await apiRequest(api.history);
+
                 const items = result.data || result.Data || [];
 
                 for (const item of items) {
+
                     const row = document.createElement("tr");
+
                     cell(row, item.redemptionId ?? item.RedemptionId);
-                    cell(row, item.redemptionCode || item.RedemptionCode || "");
-                    cell(row, item.redemptionStatus || item.RedemptionStatus || "");
-                    cell(row, item.finalPrice ?? item.FinalPrice ?? "");
-                    cell(row, item.redeemedAt || item.RedeemedAt || "");
+
+                    cell(
+                        row,
+                        item.redemptionCode ||
+                        item.RedemptionCode ||
+                        ""
+                    );
+
+                    cell(
+                        row,
+                        item.redemptionStatus ||
+                        item.RedemptionStatus ||
+                        ""
+                    );
+
+                    cell(
+                        row,
+                        item.finalPrice ??
+                        item.FinalPrice ??
+                        ""
+                    );
+
+                    cell(
+                        row,
+                        item.redeemedAt ||
+                        item.RedeemedAt ||
+                        ""
+                    );
+
                     body.appendChild(row);
                 }
 
-                document.getElementById("redemptionCount").textContent = items.length;
-                showMessage("historyMessage",
-                    items.length ? `${items.length} redemption(s) found.` : "No redemptions found.");
+                document.getElementById("redemptionCount").textContent =
+                    items.length;
+
+                showMessage(
+                    "historyMessage",
+                    items.length
+                        ? `${items.length} redemption(s) found.`
+                        : "No redemptions found."
+                );
+
             } catch (e) {
+
                 showMessage("historyMessage", e.message, true);
             }
         }
 
-        document.getElementById("validateForm").addEventListener("submit", async e => {
-            e.preventDefault();
-            validatedRedemptionId = 0;
-            document.getElementById("confirmArea").classList.add("hidden");
-            showMessage("validateMessage", "Validating...");
 
-            try {
-                const result = await apiRequest(api.validate, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        redemptionCode: document.getElementById("redemptionCode").value.trim()
-                    })
-                });
+        // VALIDATE REDEMPTION CODE
+        document.getElementById("validateForm")
+            .addEventListener("submit", async e => {
 
-                const data = result.data || result.Data || result;
-                validatedRedemptionId = Number(data.redemptionId || data.RedemptionId || 0);
+                e.preventDefault();
 
-                if (!validatedRedemptionId) {
-                    throw new Error("The API did not return a redemption ID. Check its response model.");
+                validatedRedemptionId = 0;
+
+                document.getElementById("confirmArea")
+                    .classList.add("hidden");
+
+                showMessage("confirmMessage", "");
+
+                showMessage("validateMessage", "Validating...");
+
+                const redemptionCode = document
+                    .getElementById("redemptionCode")
+                    .value
+                    .trim();
+
+                if (!businessId || Number(businessId) <= 0) {
+
+                    showMessage(
+                        "validateMessage",
+                        "Valid BusinessId is required.",
+                        true
+                    );
+
+                    return;
                 }
 
-                document.getElementById("validatedDetails").textContent =
-                    "Redemption code validated. ID: " + validatedRedemptionId;
+                if (!redemptionCode) {
 
-                document.getElementById("confirmArea").classList.remove("hidden");
-                showMessage("validateMessage",
-                    result.resultMessage || result.ResultMessage || "Code validated successfully.");
-            } catch (e) {
-                showMessage("validateMessage", e.message, true);
-            }
-        });
+                    showMessage(
+                        "validateMessage",
+                        "Please enter a redemption code.",
+                        true
+                    );
 
-        document.getElementById("confirmButton").addEventListener("click", async () => {
-            if (!validatedRedemptionId) return;
+                    return;
+                }
 
-            const button = document.getElementById("confirmButton");
-            button.disabled = true;
-            showMessage("confirmMessage", "Confirming redemption...");
+                try {
 
-            try {
-                const result = await apiRequest(api.confirm, {
-                    method: "POST",
-                    body: JSON.stringify({
-                        redemptionId: validatedRedemptionId
-                    })
+                    // IMPORTANT: VALIDATION API
+                    const result = await apiRequest(api.validate, {
+                        method: "POST",
+                        body: JSON.stringify({
+                            businessId: Number(businessId),
+                            redemptionCode: redemptionCode
+                        })
+                    });
+
+                    const data = result.data || result.Data || result;
+
+                    validatedRedemptionId = Number(
+                        data.redemptionId ||
+                        data.RedemptionId ||
+                        0
+                    );
+
+                    if (!validatedRedemptionId) {
+
+                        throw new Error(
+                            "The API did not return a redemption ID. Check its response model."
+                        );
+                    }
+
+                    document.getElementById("validatedDetails").textContent =
+                        "Redemption code validated. ID: " +
+                        validatedRedemptionId;
+
+                    document.getElementById("confirmArea")
+                        .classList.remove("hidden");
+
+                    showMessage(
+                        "validateMessage",
+                        result.resultMessage ||
+                        result.ResultMessage ||
+                        result.message ||
+                        result.Message ||
+                        "Redemption code is valid."
+                    );
+
+                } catch (e) {
+
+                    validatedRedemptionId = 0;
+
+                    showMessage("validateMessage", e.message, true);
+                }
+            });
+
+
+        // CONFIRM REDEMPTION
+        document.getElementById("confirmButton")
+            .addEventListener("click", async () => {
+
+                if (!validatedRedemptionId) return;
+
+                const button = document.getElementById("confirmButton");
+
+                button.disabled = true;
+
+                showMessage(
+                    "confirmMessage",
+                    "Confirming redemption..."
+                );
+
+                try {
+
+                    // IMPORTANT: CONFIRM API
+                    const result = await apiRequest(api.confirm, {
+                        method: "POST",
+                        body: JSON.stringify({
+                            businessId: Number(businessId),
+                            redemptionId: validatedRedemptionId
+                        })
+                    });
+
+                    showMessage(
+                        "confirmMessage",
+                        result.resultMessage ||
+                        result.ResultMessage ||
+                        result.message ||
+                        result.Message ||
+                        "Redemption confirmed successfully."
+                    );
+
+                    // Clear the validated ID after successful confirmation
+                    validatedRedemptionId = 0;
+
+                    document.getElementById("confirmArea")
+                        .classList.add("hidden");
+
+                    document.getElementById("redemptionCode").value = "";
+
+                    await loadHistory();
+
+                } catch (e) {
+
+                    showMessage("confirmMessage", e.message, true);
+
+                } finally {
+
+                    button.disabled = false;
+                }
+            });
+
+
+        // TAB SWITCHING
+        document.querySelectorAll(".tab").forEach(button => {
+
+            button.addEventListener("click", () => {
+
+                document.querySelectorAll(".tab").forEach(x => {
+                    x.classList.remove("active");
                 });
 
-                showMessage("confirmMessage",
-                    result.resultMessage || result.ResultMessage || "Redemption confirmed.");
-
-                await loadHistory();
-            } catch (e) {
-                showMessage("confirmMessage", e.message, true);
-            } finally {
-                button.disabled = false;
-            }
-        });
-
-        document.querySelectorAll(".tab").forEach(button => {
-            button.addEventListener("click", () => {
-                document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
-                document.querySelectorAll("main section").forEach(x => x.classList.add("hidden"));
+                document.querySelectorAll("main section").forEach(x => {
+                    x.classList.add("hidden");
+                });
 
                 button.classList.add("active");
-                document.getElementById(button.dataset.panel).classList.remove("hidden");
-                if (button.dataset.panel !== "validate") stopScanner();
 
-                if (button.dataset.panel === "promotions") loadPromotions();
-                if (button.dataset.panel === "history") loadHistory();
+                document.getElementById(button.dataset.panel)
+                    .classList.remove("hidden");
+
+                if (button.dataset.panel !== "validate") {
+                    stopScanner();
+                }
+
+                if (button.dataset.panel === "promotions") {
+                    loadPromotions();
+                }
+
+                if (button.dataset.panel === "history") {
+                    loadHistory();
+                }
             });
         });
 
+
+        // INITIAL LOAD
         loadPromotions();
+
     </script>
+
 </body>
 </html>
