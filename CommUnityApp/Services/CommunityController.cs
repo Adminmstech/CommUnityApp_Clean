@@ -1494,51 +1494,84 @@ public async Task<IActionResult> GetAllCharityItems(Guid userId)
                 data = community
             });
         }
+
         [HttpPost("AdminAppLogin")]
-        public async Task<IActionResult> AdminLogin([FromBody] AdminAppLoginRequest request)
+        public async Task<IActionResult> AdminLogin(
+            [FromBody] AdminAppLoginRequest request)
         {
-            if (request == null ||
-                string.IsNullOrWhiteSpace(request.UserName) ||
-                string.IsNullOrWhiteSpace(request.Password))
+            try
             {
-                return BadRequest(new
+                var login = await _communityRepository.AdminAppLogin(request);
+
+                if (login == null)
+                {
+                    return Unauthorized(new
+                    {
+                        resultId = 0,
+                        resultMessage = "Invalid username or password.",
+                        status = false
+                    });
+                }
+
+                // Community login
+                if (string.Equals(login.LoginType, "Community",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    if (login.CommunityId <= 0)
+                    {
+                        return BadRequest(new
+                        {
+                            resultId = 0,
+                            resultMessage = "Community ID not found.",
+                            status = false
+                        });
+                    }
+
+                    HttpContext.Session.SetString(
+                        "CommunityAdminAuthenticated", "true");
+
+                    HttpContext.Session.SetString(
+                        "CommunityId", login.CommunityId.ToString());
+                }
+                // Business login
+                else if (string.Equals(login.LoginType, "Business",
+                    StringComparison.OrdinalIgnoreCase))
+                {
+                    // Keep your existing Business login session logic here.
+                }
+                else
+                {
+                    return Unauthorized(new
+                    {
+                        resultId = 0,
+                        resultMessage = "Invalid login type.",
+                        status = false
+                    });
+                }
+
+                return Ok(new
+                {
+                    resultId = 1,
+                    resultMessage = "Login successful.",
+                    status = true,
+                    loginType = login.LoginType,
+                    data = login
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Admin Login Error: " + ex);
+
+                return StatusCode(500, new
                 {
                     resultId = 0,
-                    resultMessage = "Username and password are required."
-                });
-            } 
-
-            var login =
-                await _communityRepository.AdminAppLogin(request);
-
-            if (login == null)
-            {
-                return Unauthorized(new
-                {
-                    resultId = 0,
-                    resultMessage = "Invalid username or password."
+                    resultMessage = "Login failed.",
+                    error = ex.Message,
+                    status = false
                 });
             }
-
-            string message;
-
-            if (login.LoginType == "Business")
-            {
-                message = "Business login successful.";
-            }
-            else
-            {
-                message = "Community login successful.";
-            }
-
-            return Ok(new
-            {
-                resultId = 1,
-                resultMessage = message,
-                loginType = login.LoginType,
-                data = login
-            });
         }
+
 
 
 
