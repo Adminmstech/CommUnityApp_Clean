@@ -1,0 +1,1147 @@
+﻿@{
+    ViewData["Title"] = "Community Dashboard";
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>IndoCommunity - Community Dashboard</title>
+
+    <script src="https://unpkg.com/html5-qrcode"></script>
+
+    <style>
+        :root {
+            --blue: #315efb;
+            --ink: #18243b;
+            --muted: #7b879b;
+            --line: #e6ebf3;
+            --bg: #f4f7fc;
+            --green: #138657;
+            --red: #b42318;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            font-family: Inter, Arial, sans-serif;
+            color: var(--ink);
+        }
+
+        button, input, select {
+            font: inherit;
+        }
+
+        button {
+            cursor: pointer;
+        }
+
+        header {
+            background: white;
+            border-bottom: 1px solid var(--line);
+            padding: 18px 4%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        main {
+            max-width: 1400px;
+            padding: 30px;
+            margin: auto;
+        }
+
+        h2 {
+            margin: 8px 0;
+            font-size: 30px;
+        }
+
+        h3 {
+            margin: 0 0 12px;
+        }
+
+        .muted {
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .primary {
+            background: linear-gradient(100deg,#315efb,#2449d6);
+            color: white;
+            border: 0;
+            padding: 11px 17px;
+            border-radius: 9px;
+            font-weight: 700;
+        }
+
+        .secondary {
+            background: white;
+            border: 1px solid var(--line);
+            color: #40506a;
+            padding: 10px 14px;
+            border-radius: 9px;
+        }
+
+        button:disabled {
+            opacity: .5;
+            cursor: not-allowed;
+        }
+
+        .premium-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .eyebrow {
+            color: var(--blue);
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .stat-strip {
+            display: grid;
+            grid-template-columns: repeat(4,minmax(0,1fr));
+            gap: 15px;
+            margin: 24px 0;
+        }
+
+        .stat-card {
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+            .stat-card small {
+                color: var(--muted);
+                font-weight: 700;
+            }
+
+            .stat-card strong {
+                display: block;
+                font-size: 27px;
+                margin-top: 8px;
+            }
+
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 25px 0;
+        }
+
+        .tab {
+            background: white;
+            border: 1px solid var(--line);
+            color: #64718a;
+            padding: 12px 17px;
+            border-radius: 9px;
+            font-weight: 700;
+        }
+
+            .tab.active {
+                background: var(--blue);
+                color: white;
+                border-color: var(--blue);
+            }
+
+        .panel {
+            background: white;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            margin-top: 18px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 650px;
+        }
+
+        th {
+            background: #f8faff;
+            color: #7b879b;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        th, td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid #edf0f6;
+            font-size: 13px;
+        }
+
+        tbody tr:hover {
+            background: #fbfcff;
+        }
+
+        input, select {
+            height: 44px;
+            padding: 0 12px;
+            border: 1px solid #dce4f0;
+            border-radius: 9px;
+            background: #fbfcff;
+            width: 100%;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 15px 0;
+        }
+
+            .toolbar select {
+                max-width: 350px;
+            }
+
+        .message {
+            font-size: 13px;
+            margin: 12px 0;
+            line-height: 1.5;
+        }
+
+        .success {
+            color: #16794c;
+            background: #edfbf4;
+            border: 1px solid #c9f1db;
+            padding: 10px 12px;
+            border-radius: 9px;
+        }
+
+        .error {
+            color: var(--red);
+            background: #fff2f1;
+            border: 1px solid #ffd9d5;
+            padding: 10px 12px;
+            border-radius: 9px;
+        }
+
+        .scan-card {
+            border: 1px dashed #bdc9df;
+            border-radius: 15px;
+            padding: 20px;
+            background: #fafbff;
+            max-width: 600px;
+        }
+
+        #qr-reader {
+            width: 100%;
+            max-width: 420px;
+            margin: 15px auto;
+            overflow: hidden;
+        }
+
+        .details-card {
+            background: #f8faff;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 15px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 5px 9px;
+            background: #eaf0ff;
+            color: #315efb;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        @@media(max-width:760px) {
+            main {
+                padding: 18px 12px;
+            }
+
+            .stat-strip {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .premium-head {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .panel {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <strong>IndoCommunity Community Portal</strong>
+
+        <form method="post" action="/CommunityWebApp/Logout">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="secondary">Logout</button>
+        </form>
+    </header>
+
+    <main>
+
+        <div class="premium-head">
+            <div>
+                <div class="eyebrow">Community Administration</div>
+                <h2 id="communityName">Community Dashboard</h2>
+                <p class="muted">Manage your community events, bookings and ticket check-ins.</p>
+            </div>
+
+            <button class="primary" onclick="refreshDashboard()">
+                ↻ Refresh Dashboard
+            </button>
+        </div>
+
+        <!-- DASHBOARD COUNTS -->
+        <div class="stat-strip">
+            <div class="stat-card">
+                <small>Total Events</small>
+                <strong id="eventCount">0</strong>
+            </div>
+
+            <div class="stat-card">
+                <small>Event Bookings</small>
+                <strong id="bookingCount">0</strong>
+            </div>
+
+            <div class="stat-card">
+                <small>Tickets</small>
+                <strong id="ticketCount">0</strong>
+            </div>
+
+            <div class="stat-card">
+                <small>Tickets Scanned</small>
+                <strong id="scanCount">0</strong>
+            </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="tabs">
+            <button class="tab active" data-panel="events">My Events</button>
+            <button class="tab" data-panel="bookings">Event Bookings</button>
+            <button class="tab" data-panel="tickets">Event Tickets</button>
+            <button class="tab" data-panel="scanner">Ticket Scanning</button>
+            <button class="tab" data-panel="history">Scan History</button>
+        </div>
+
+        <!-- EVENTS -->
+        <section id="events" class="panel">
+
+            <h3>My Community Events</h3>
+
+            <div class="toolbar">
+                <button class="primary" onclick="loadEvents()">Refresh Events</button>
+            </div>
+
+            <div id="eventsMessage" class="message"></div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Event ID</th>
+                            <th>Event Name</th>
+                            <th>Event Date</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="eventsBody"></tbody>
+                </table>
+            </div>
+
+        </section>
+
+        <!-- BOOKINGS -->
+        <section id="bookings" class="panel hidden">
+
+            <h3>Event Bookings</h3>
+
+            <div class="toolbar">
+                <select id="bookingEventSelect">
+                    <option value="">Select Event</option>
+                </select>
+
+                <button class="primary" onclick="loadBookings()">Get Bookings</button>
+            </div>
+
+            <div id="bookingsMessage" class="message"></div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead id="bookingsHead"></thead>
+                    <tbody id="bookingsBody"></tbody>
+                </table>
+            </div>
+
+        </section>
+
+        <!-- TICKETS -->
+        <section id="tickets" class="panel hidden">
+
+            <h3>Event Tickets</h3>
+
+            <div class="toolbar">
+                <select id="ticketEventSelect">
+                    <option value="">Select Event</option>
+                </select>
+
+                <button class="primary" onclick="loadTickets()">Get Tickets</button>
+            </div>
+
+            <div id="ticketsMessage" class="message"></div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead id="ticketsHead"></thead>
+                    <tbody id="ticketsBody"></tbody>
+                </table>
+            </div>
+
+        </section>
+
+        <!-- QR SCANNER -->
+        <section id="scanner" class="panel hidden">
+
+            <h3>Event Ticket Check-In</h3>
+
+            <p class="muted">
+                Select an event and scan the customer's ticket QR code.
+            </p>
+
+            <div class="toolbar">
+                <select id="scanEventSelect">
+                    <option value="">Select Event</option>
+                </select>
+            </div>
+
+            <div class="scan-card">
+
+                <h3>Scan Ticket QR Code</h3>
+
+                <div class="toolbar">
+                    <button id="startScanButton" class="primary" type="button">
+                        ▣ Start Camera
+                    </button>
+
+                    <button id="stopScanButton" class="secondary" type="button" disabled>
+                        Stop Camera
+                    </button>
+                </div>
+
+                <div id="scannerMessage" class="message"></div>
+
+                <div id="qr-reader"></div>
+
+                <label>Scanned QR Content</label>
+                <input id="scannedTicketCode" readonly placeholder="Scanned ticket information will appear here" />
+
+                <div id="scannedTicketDetails" class="details-card hidden"></div>
+
+            </div>
+
+        </section>
+
+        <!-- SCAN HISTORY -->
+        <section id="history" class="panel hidden">
+
+            <h3>Event Ticket Scan History</h3>
+
+            <div class="toolbar">
+                <select id="historyEventSelect">
+                    <option value="">Select Event</option>
+                </select>
+
+                <button class="primary" onclick="loadScanHistory()">Get Scan History</button>
+            </div>
+
+            <div id="historyMessage" class="message"></div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead id="historyHead"></thead>
+                    <tbody id="historyBody"></tbody>
+                </table>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+
+        // COMMUNITY ID MUST BE SET BY YOUR MVC DASHBOARD ACTION
+        const communityId = Number(@(ViewBag.CommunityId ?? 0));
+
+        // Change this prefix only if your API controller has a different route.
+        const apiBase = "/api/Community";
+
+        const api = {
+            details: `${apiBase}/GetCommunityAppDetails?communityId=${communityId}`,
+            events: `${apiBase}/GetCommunityAppEvents?communityId=${communityId}`,
+            bookings: `${apiBase}/GetCommunityAppEventBookings`,
+            tickets: `${apiBase}/GetEventTickets`,
+            history: `${apiBase}/GetEventScanHistory`
+        };
+
+        let communityEvents = [];
+        let selectedEventId = 0;
+
+        let html5QrCode = null;
+        let scannerRunning = false;
+        let lastScannedText = "";
+
+        // COMMON API REQUEST
+        async function apiRequest(url, options = {}) {
+
+            const response = await fetch(url, {
+                credentials: "same-origin",
+                ...options,
+                headers: {
+                    ...(options.body ? { "Content-Type": "application/json" } : {}),
+                    ...(options.headers || {})
+                }
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || result.resultId === 0 || result.ResultId === 0) {
+                throw new Error(
+                    result.resultMessage ||
+                    result.ResultMessage ||
+                    result.message ||
+                    "Request failed."
+                );
+            }
+
+            return result;
+        }
+
+        // MESSAGE
+        function showMessage(id, message, isError = false) {
+
+            const element = document.getElementById(id);
+
+            element.textContent = message;
+
+            element.className =
+                "message " + (isError ? "error" : "success");
+        }
+
+        // GET PROPERTY SUPPORTING DIFFERENT C# CASING
+        function getValue(obj, ...names) {
+
+            for (const name of names) {
+
+                if (obj && obj[name] !== undefined && obj[name] !== null) {
+                    return obj[name];
+                }
+            }
+
+            return "";
+        }
+
+        // FORMAT DATE
+        function formatDate(value) {
+
+            if (!value) return "";
+
+            const date = new Date(value);
+
+            return isNaN(date.getTime())
+                ? value
+                : date.toLocaleString();
+        }
+
+        // CREATE TABLE CELL
+        function addCell(row, value) {
+
+            const td = document.createElement("td");
+
+            td.textContent = value == null ? "" : String(value);
+
+            row.appendChild(td);
+        }
+
+        // CREATE DYNAMIC TABLE
+        function renderDynamicTable(headId, bodyId, items, preferredColumns) {
+
+            const head = document.getElementById(headId);
+            const body = document.getElementById(bodyId);
+
+            head.replaceChildren();
+            body.replaceChildren();
+
+            if (!items || !items.length) {
+                body.innerHTML =
+                    '<tr><td colspan="15">No records found.</td></tr>';
+                return;
+            }
+
+            // Use properties returned by the actual API model.
+            const keys = Object.keys(items[0]);
+
+            const columns = preferredColumns
+                ? preferredColumns.filter(x => keys.includes(x.key))
+                : keys.map(key => ({
+                    key: key,
+                    label: key
+                }));
+
+            if (!columns.length) {
+                body.innerHTML =
+                    '<tr><td>No displayable columns found.</td></tr>';
+                return;
+            }
+
+            const headerRow = document.createElement("tr");
+
+            columns.forEach(column => {
+                const th = document.createElement("th");
+                th.textContent = column.label;
+                headerRow.appendChild(th);
+            });
+
+            head.appendChild(headerRow);
+
+            items.forEach(item => {
+
+                const row = document.createElement("tr");
+
+                columns.forEach(column => {
+                    addCell(row, item[column.key]);
+                });
+
+                body.appendChild(row);
+            });
+        }
+
+        // COMMUNITY DETAILS
+        async function loadCommunityDetails() {
+
+            try {
+
+                const result = await apiRequest(api.details);
+
+                const data = result.data || result.Data || {};
+
+                document.getElementById("communityName").textContent =
+                    getValue(data, "communityName", "CommunityName")
+                    || "Community Dashboard";
+
+            } catch (error) {
+
+                console.error("Community details:", error);
+            }
+        }
+
+        // LOAD COMMUNITY EVENTS
+        async function loadEvents() {
+
+            if (communityId <= 0) {
+                showMessage("eventsMessage", "Valid CommunityId is missing.", true);
+                return;
+            }
+
+            const body = document.getElementById("eventsBody");
+
+            body.replaceChildren();
+
+            try {
+
+                const result = await apiRequest(api.events);
+
+                communityEvents = result.data || result.Data || [];
+
+                const eventCount = communityEvents.length;
+
+                document.getElementById("eventCount").textContent = eventCount;
+
+                const selects = [
+                    "bookingEventSelect",
+                    "ticketEventSelect",
+                    "scanEventSelect",
+                    "historyEventSelect"
+                ];
+
+                selects.forEach(id => {
+
+                    const select = document.getElementById(id);
+
+                    const oldValue = select.value;
+
+                    select.innerHTML = '<option value="">Select Event</option>';
+
+                    communityEvents.forEach(event => {
+
+                        const eventId = getValue(
+                            event, "eventId", "EventId"
+                        );
+
+                        const eventName = getValue(
+                            event,
+                            "eventName", "EventName",
+                            "eventTitle", "EventTitle"
+                        );
+
+                        const option = document.createElement("option");
+
+                        option.value = eventId;
+                        option.textContent =
+                            `${eventName || "Event"} (#${eventId})`;
+
+                        select.appendChild(option);
+                    });
+
+                    if (oldValue && communityEvents.some(e =>
+                        String(getValue(e, "eventId", "EventId")) === oldValue
+                    )) {
+                        select.value = oldValue;
+                    }
+                });
+
+                if (!communityEvents.length) {
+
+                    body.innerHTML =
+                        '<tr><td colspan="6">No events found.</td></tr>';
+
+                    showMessage("eventsMessage", "No events found.");
+
+                    return;
+                }
+
+                communityEvents.forEach(event => {
+
+                    const row = document.createElement("tr");
+
+                    const eventId = getValue(event, "eventId", "EventId");
+
+                    const eventName = getValue(
+                        event,
+                        "eventName", "EventName",
+                        "eventTitle", "EventTitle"
+                    );
+
+                    addCell(row, eventId);
+                    addCell(row, eventName);
+
+                    addCell(
+                        row,
+                        formatDate(
+                            getValue(event, "eventDate", "EventDate",
+                                "startDate", "StartDate")
+                        )
+                    );
+
+                    addCell(
+                        row,
+                        getValue(event, "location", "Location",
+                            "eventLocation", "EventLocation")
+                    );
+
+                    addCell(row, getValue(event, "status", "Status"));
+
+                    const actionCell = document.createElement("td");
+
+                    const button = document.createElement("button");
+
+                    button.className = "primary";
+                    button.textContent = "View Bookings";
+
+                    button.addEventListener("click", () => {
+
+                        selectedEventId = Number(eventId);
+
+                        document.getElementById("bookingEventSelect").value =
+                            eventId;
+
+                        switchTab("bookings");
+
+                        loadBookings();
+                    });
+
+                    actionCell.appendChild(button);
+                    row.appendChild(actionCell);
+
+                    body.appendChild(row);
+                });
+
+                showMessage(
+                    "eventsMessage",
+                    `${eventCount} event(s) found.`
+                );
+
+            } catch (error) {
+
+                showMessage("eventsMessage", error.message, true);
+            }
+        }
+
+        // LOAD EVENT BOOKINGS
+        async function loadBookings() {
+
+            const eventId = Number(
+                document.getElementById("bookingEventSelect").value
+            );
+
+            if (!eventId) {
+                showMessage("bookingsMessage", "Please select an event.", true);
+                return;
+            }
+
+            try {
+
+                const result = await apiRequest(
+                    `${api.bookings}?communityId=${communityId}&eventId=${eventId}`
+                );
+
+                const items = result.data || result.Data || [];
+
+                document.getElementById("bookingCount").textContent =
+                    result.count ?? result.Count ?? items.length;
+
+                renderDynamicTable(
+                    "bookingsHead",
+                    "bookingsBody",
+                    items
+                );
+
+                showMessage(
+                    "bookingsMessage",
+                    `${items.length} booking(s) found.`
+                );
+
+            } catch (error) {
+
+                showMessage("bookingsMessage", error.message, true);
+            }
+        }
+
+        // LOAD EVENT TICKETS
+        async function loadTickets() {
+
+            const eventId = Number(
+                document.getElementById("ticketEventSelect").value
+            );
+
+            if (!eventId) {
+                showMessage("ticketsMessage", "Please select an event.", true);
+                return;
+            }
+
+            try {
+
+                const result = await apiRequest(
+                    `${api.tickets}?communityId=${communityId}&eventId=${eventId}`
+                );
+
+                const items = result.data || result.Data || [];
+
+                document.getElementById("ticketCount").textContent =
+                    result.count ?? result.Count ?? items.length;
+
+                renderDynamicTable(
+                    "ticketsHead",
+                    "ticketsBody",
+                    items
+                );
+
+                showMessage(
+                    "ticketsMessage",
+                    `${items.length} ticket(s) found.`
+                );
+
+            } catch (error) {
+
+                showMessage("ticketsMessage", error.message, true);
+            }
+        }
+
+        // LOAD TICKET SCAN HISTORY
+        async function loadScanHistory() {
+
+            const eventId = Number(
+                document.getElementById("historyEventSelect").value
+            );
+
+            if (!eventId) {
+                showMessage("historyMessage", "Please select an event.", true);
+                return;
+            }
+
+            try {
+
+                const result = await apiRequest(
+                    `${api.history}?communityId=${communityId}&eventId=${eventId}`
+                );
+
+                const items = result.data || result.Data || [];
+
+                document.getElementById("scanCount").textContent =
+                    result.count ?? result.Count ?? items.length;
+
+                renderDynamicTable(
+                    "historyHead",
+                    "historyBody",
+                    items
+                );
+
+                showMessage(
+                    "historyMessage",
+                    `${items.length} scan record(s) found.`
+                );
+
+            } catch (error) {
+
+                showMessage("historyMessage", error.message, true);
+            }
+        }
+
+        // EXTRACT TICKET CODE FROM QR
+        function extractTicketCode(raw) {
+
+            const value = String(raw || "").trim();
+
+            if (!value) return "";
+
+            try {
+
+                const data = JSON.parse(value);
+
+                return String(
+                    data.ticketCode ||
+                    data.TicketCode ||
+                    data.ticketId ||
+                    data.TicketId ||
+                    data.code ||
+                    data.Code ||
+                    value
+                );
+
+            } catch (_) { }
+
+            try {
+
+                const url = new URL(value);
+
+                for (const key of ["ticketCode", "code", "ticketId"]) {
+
+                    const found = url.searchParams.get(key);
+
+                    if (found) return found.trim();
+                }
+
+            } catch (_) { }
+
+            return value;
+        }
+
+        // START TICKET QR SCANNER
+        async function startScanner() {
+
+            const eventId = Number(
+                document.getElementById("scanEventSelect").value
+            );
+
+            if (!eventId) {
+                showMessage(
+                    "scannerMessage",
+                    "Please select an event before scanning.",
+                    true
+                );
+                return;
+            }
+
+            if (!window.Html5Qrcode) {
+                showMessage(
+                    "scannerMessage",
+                    "QR scanner library could not be loaded.",
+                    true
+                );
+                return;
+            }
+
+            if (scannerRunning) return;
+
+            try {
+
+                html5QrCode = html5QrCode ||
+                    new Html5Qrcode("qr-reader");
+
+                await html5QrCode.start(
+                    { facingMode: "environment" },
+                    {
+                        fps: 10,
+                        qrbox: { width: 230, height: 230 },
+                        aspectRatio: 1.0
+                    },
+                    async decodedText => {
+
+                        if (lastScannedText === decodedText) return;
+
+                        lastScannedText = decodedText;
+
+                        const ticketCode = extractTicketCode(decodedText);
+
+                        document.getElementById("scannedTicketCode").value =
+                            ticketCode;
+
+                        document.getElementById("scannedTicketDetails")
+                            .classList.remove("hidden");
+
+                        document.getElementById("scannedTicketDetails")
+                            .textContent =
+                            "Scanned ticket: " + ticketCode +
+                            ". QR reading completed. Ticket check-in has not yet been submitted.";
+
+                        await stopScanner();
+
+                        showMessage(
+                            "scannerMessage",
+                            "QR code scanned successfully. Please connect the ticket check-in API to complete validation."
+                        );
+                    },
+                    () => { }
+                );
+
+                scannerRunning = true;
+
+                document.getElementById("startScanButton").disabled = true;
+                document.getElementById("stopScanButton").disabled = false;
+
+                showMessage(
+                    "scannerMessage",
+                    "Camera active. Hold the ticket QR code inside the frame."
+                );
+
+            } catch (error) {
+
+                showMessage(
+                    "scannerMessage",
+                    "Unable to start camera. Check camera permission and HTTPS. " +
+                    (error.message || ""),
+                    true
+                );
+            }
+        } 
+
+        // STOP SCANNER
+        async function stopScanner() {
+
+            if (!html5QrCode || !scannerRunning) return;
+
+            try {
+                await html5QrCode.stop();
+            } catch (_) { }
+
+            scannerRunning = false;
+
+            document.getElementById("startScanButton").disabled = false;
+            document.getElementById("stopScanButton").disabled = true;
+        }
+
+        document.getElementById("startScanButton")
+            .addEventListener("click", startScanner);
+
+        document.getElementById("stopScanButton")
+            .addEventListener("click", stopScanner);
+
+        // TAB SWITCHING
+        function switchTab(panelName) {
+
+            document.querySelectorAll(".tab").forEach(button => {
+                button.classList.toggle(
+                    "active",
+                    button.dataset.panel === panelName
+                );
+            });
+
+            document.querySelectorAll("main section").forEach(section => {
+                section.classList.toggle(
+                    "hidden",
+                    section.id !== panelName
+                );
+            });
+
+            if (panelName !== "scanner") {
+                stopScanner();
+            }
+        }
+
+        document.querySelectorAll(".tab").forEach(button => {
+
+            button.addEventListener("click", () => {
+
+                switchTab(button.dataset.panel);
+            });
+        });
+
+        // REFRESH DASHBOARD
+        function refreshDashboard() {
+
+            const active = document.querySelector(".tab.active")?.dataset.panel;
+
+            if (active === "events") loadEvents();
+            else if (active === "bookings") loadBookings();
+            else if (active === "tickets") loadTickets();
+            else if (active === "history") loadScanHistory();
+            else {
+                showMessage(
+                    "scannerMessage",
+                    "Select an event and start the camera to scan."
+                );
+            }
+        }
+
+        // INITIAL LOAD
+        document.addEventListener("DOMContentLoaded", async () => {
+
+            if (communityId <= 0) {
+
+                showMessage(
+                    "eventsMessage",
+                    "CommunityId is missing. Please check your Community Dashboard MVC action.",
+                    true
+                );
+
+                return;
+            }
+
+            await loadCommunityDetails();
+            await loadEvents();
+        });
+
+    </script>
+
+</body>
+</html>
