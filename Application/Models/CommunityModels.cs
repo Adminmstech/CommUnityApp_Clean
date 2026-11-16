@@ -809,4 +809,17 @@ namespace CommUnityApp.ApplicationCore.Models
         public int EventId { get; set; }
         public string? EventName { get; set; }
     }
+
+
+    public class EventTicketCheckInResponse
+    {
+        public int Status { get; set; }
+        public string Message { get; set; }
+        public int ScanCount { get; set; }
+        public int RemainingScans { get; set; }
+    }
+    public class EventTicketCheckInRequest
+    {
+        public string TicketCode { get; set; }
+    }
 }
