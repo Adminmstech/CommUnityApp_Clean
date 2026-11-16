@@ -996,7 +996,24 @@ CommunityPostModel model)
 
             return result.ToList();
         }
-    
-}
+
+        public async Task<EventTicketCheckInResponse?> EventTicketCheckIn(
+            string ticketCode)
+        {
+            using var connection = new SqlConnection(
+                _configuration.GetConnectionString("DefaultConnection"));
+
+            var parameters = new DynamicParameters();
+
+            parameters.Add("@TicketCode", ticketCode);
+
+            return await connection.QueryFirstOrDefaultAsync<EventTicketCheckInResponse>(
+                "SP_EventTicketCheckIn",
+                parameters,
+                commandType: CommandType.StoredProcedure
+            );
+        }
+
+    }
 }
 

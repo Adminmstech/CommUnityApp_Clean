@@ -1754,6 +1754,70 @@ public async Task<IActionResult> GetAllCharityItems(Guid userId)
                 data = scans
             });
         }
+
+        [HttpPost("EventTicketCheckIn")]
+        public async Task<IActionResult> EventTicketCheckIn(
+    [FromBody] EventTicketCheckInRequest request)
+        {
+            try
+            {
+                if (request == null ||
+                    string.IsNullOrWhiteSpace(request.TicketCode))
+                {
+                    return BadRequest(new
+                    {
+                        resultId = 0,
+                        status = false,
+                        resultMessage = "Ticket code is required."
+                    });
+                }
+
+                var result = await _communityRepository.EventTicketCheckIn(
+                    request.TicketCode.Trim());
+
+                if (result == null)
+                {
+                    return BadRequest(new
+                    {
+                        resultId = 0,
+                        status = false,
+                        resultMessage = "No response received from ticket check-in."
+                    });
+                }
+
+                if (result.Status == 0)
+                {
+                    return BadRequest(new
+                    {
+                        resultId = 0,
+                        status = false,
+                        resultMessage = result.Message,
+                        scanCount = result.ScanCount,
+                        remainingScans = result.RemainingScans
+                    });
+                }
+
+                return Ok(new
+                {
+                    resultId = 1,
+                    status = true,
+                    resultMessage = result.Message,
+                    ticketCode = request.TicketCode,
+                    scanCount = result.ScanCount,
+                    remainingScans = result.RemainingScans
+                });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    resultId = 0,
+                    status = false,
+                    resultMessage = "Ticket check-in failed.",
+                    error = ex.Message
+                });
+            }
+        }
     }
 }
 

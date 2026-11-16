@@ -78,6 +78,7 @@ namespace CommUnityApp.ApplicationCore.Interfaces
 
         Task<List<CommunityEventScanModel>> GetEventScanHistory(int communityId,int eventId);
         Task<AdminAppLoginResponse?> AdminAppLogin(AdminAppLoginRequest request);
+        Task<EventTicketCheckInResponse?> EventTicketCheckIn(string ticketCode);
     }
 
 

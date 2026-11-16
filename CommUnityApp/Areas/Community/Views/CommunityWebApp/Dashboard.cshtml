@@ -10,8 +10,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>IndoCommunity - Community Dashboard</title>
 
-    <script src="https://unpkg.com/html5-qrcode"></script>
-
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
     <style>
         :root {
             --blue: #315efb;
@@ -252,10 +251,17 @@
 
         #qr-reader {
             width: 100%;
-            max-width: 420px;
+            max-width: 500px;
+            min-height: 300px;
             margin: 15px auto;
             overflow: hidden;
+            border-radius: 12px;
         }
+
+            #qr-reader video {
+                width: 100% !important;
+                object-fit: cover;
+            }
 
         .details-card {
             background: #f8faff;
@@ -520,6 +526,7 @@
         let html5QrCode = null;
         let scannerRunning = false;
         let lastScannedText = "";
+        let scanInProgress = false;
 
         // COMMON API REQUEST
         async function apiRequest(url, options = {}) {
@@ -914,7 +921,7 @@
                     "historyHead",
                     "historyBody",
                     items
-                );
+                ); 
 
                 showMessage(
                     "historyMessage",
@@ -967,6 +974,8 @@
         }
 
         // START TICKET QR SCANNER
+
+        // START TICKET QR SCANNER
         async function startScanner() {
 
             const eventId = Number(
@@ -982,10 +991,12 @@
                 return;
             }
 
-            if (!window.Html5Qrcode) {
+            if (!window.Html5Qrcode ||
+                !window.Html5QrcodeSupportedFormats) {
+
                 showMessage(
                     "scannerMessage",
-                    "QR scanner library could not be loaded.",
+                    "QR scanner library is not loaded. Please refresh the page.",
                     true
                 );
                 return;
@@ -993,45 +1004,186 @@
 
             if (scannerRunning) return;
 
+            scanInProgress = false;
+            lastScannedText = "";
+
             try {
 
-                html5QrCode = html5QrCode ||
-                    new Html5Qrcode("qr-reader");
+                showMessage("scannerMessage", "Checking available cameras...");
+
+                // Find available cameras
+                const cameras = await Html5Qrcode.getCameras();
+
+                if (!cameras || cameras.length === 0) {
+                    throw new Error("No camera detected.");
+                }
+
+                console.log("Available cameras:", cameras);
+
+                // Prefer the rear camera, otherwise use the first available camera
+                const selectedCamera =
+                    cameras.find(camera =>
+                        /back|rear|environment/i.test(camera.label)
+                    ) || cameras[0];
+
+                console.log("Selected camera:", selectedCamera);
+
+                // Initialize only once
+                if (!html5QrCode) {
+                    html5QrCode = new Html5Qrcode("qr-reader", {
+                        formatsToSupport: [
+                            Html5QrcodeSupportedFormats.QR_CODE
+                        ],
+                        verbose: true
+                    });
+                }
+
+                showMessage(
+                    "scannerMessage",
+                    "Starting camera. Please wait..."
+                );
 
                 await html5QrCode.start(
-                    { facingMode: "environment" },
+                    selectedCamera.id,
+
                     {
-                        fps: 10,
-                        qrbox: { width: 230, height: 230 },
-                        aspectRatio: 1.0
+                        fps: 15,
+
+                        qrbox: function (viewfinderWidth, viewfinderHeight) {
+
+                            const minSize = Math.min(
+                                viewfinderWidth,
+                                viewfinderHeight
+                            );
+
+                            const size = Math.min(
+                                300,
+                                Math.floor(minSize * 0.75)
+                            );
+
+                            return {
+                                width: size,
+                                height: size
+                            };
+                        },
+
+                        aspectRatio: 1.0,
+                        disableFlip: false
                     },
-                    async decodedText => {
 
-                        if (lastScannedText === decodedText) return;
 
-                        lastScannedText = decodedText;
+                    async function (decodedText, decodedResult) {
 
-                        const ticketCode = extractTicketCode(decodedText);
+                        if (scanInProgress) return;
 
-                        document.getElementById("scannedTicketCode").value =
-                            ticketCode;
+                        scanInProgress = true;
 
-                        document.getElementById("scannedTicketDetails")
-                            .classList.remove("hidden");
+                        try {
 
-                        document.getElementById("scannedTicketDetails")
-                            .textContent =
-                            "Scanned ticket: " + ticketCode +
-                            ". QR reading completed. Ticket check-in has not yet been submitted.";
+                            const ticketCode = extractTicketCode(decodedText);
 
-                        await stopScanner();
+                            if (!ticketCode) {
+                                throw new Error("Invalid ticket QR code.");
+                            }
 
-                        showMessage(
-                            "scannerMessage",
-                            "QR code scanned successfully. Please connect the ticket check-in API to complete validation."
-                        );
-                    },
-                    () => { }
+                            lastScannedText = decodedText;
+
+                            document.getElementById("scannedTicketCode").value =
+                                ticketCode;
+
+                            showMessage(
+                                "scannerMessage",
+                                "QR detected. Submitting ticket check-in..."
+                            );
+
+                            // Stop camera before submitting the ticket
+                            await stopScanner();
+
+                            // CALL CHECK-IN API
+                            const response = await fetch(
+                                "/api/Community/EventTicketCheckIn",
+                                {
+                                    method: "POST",
+                                    credentials: "same-origin",
+                                    headers: {
+                                        "Content-Type": "application/json"
+                                    },
+                                    body: JSON.stringify({
+                                        ticketCode: ticketCode
+                                    })
+                                }
+                            );
+
+                            const result = await response.json();
+
+                            const details = document.getElementById(
+                                "scannedTicketDetails"
+                            );
+
+                            details.classList.remove("hidden");
+
+                            if (!response.ok ||
+                                result.status === false ||
+                                result.resultId === 0) {
+
+                                details.textContent =
+                                    "Ticket Code: " + ticketCode +
+                                    " | " +
+                                    (result.resultMessage || "Check-in failed.");
+
+                                showMessage(
+                                    "scannerMessage",
+                                    result.resultMessage || "Ticket check-in failed.",
+                                    true
+                                );
+
+                                return;
+                            }
+
+                            // SUCCESS
+                            details.textContent =
+                                "Ticket Code: " + ticketCode +
+                                " | Scan Count: " + result.scanCount +
+                                " | Remaining Scans: " + result.remainingScans;
+
+                            showMessage(
+                                "scannerMessage",
+                                result.resultMessage +
+                                ". Scan Count: " + result.scanCount +
+                                ". Remaining Scans: " + result.remainingScans
+                            );
+
+                            // Refresh scan history for the selected event
+                            document.getElementById("historyEventSelect").value =
+                                document.getElementById("scanEventSelect").value;
+
+                            await loadScanHistory();
+
+                        }
+                        catch (error) {
+
+                            console.error("Ticket Check-in Error:", error);
+
+                            showMessage(
+                                "scannerMessage",
+                                error.message || "Unable to submit ticket.",
+                                true
+                            );
+
+                        }
+                        finally {
+
+                            scanInProgress = false;
+                        }
+                    }
+                    ,
+
+                    function (scanError) {
+
+                        // Normal scanning failures occur while searching.
+                        // Keep the scanner running.
+                        console.debug("QR frame:", scanError);
+                    }
                 );
 
                 scannerRunning = true;
@@ -1041,19 +1193,52 @@
 
                 showMessage(
                     "scannerMessage",
-                    "Camera active. Hold the ticket QR code inside the frame."
+                    "Camera is active. Place the complete QR code inside the scanning frame."
                 );
 
-            } catch (error) {
-                 
+            }
+            catch (error) {
+
+                console.error("Scanner startup error:", error);
+
+                scannerRunning = false;
+
+                document.getElementById("startScanButton").disabled = false;
+                document.getElementById("stopScanButton").disabled = true;
+
                 showMessage(
                     "scannerMessage",
-                    "Unable to start camera. Check camera permission and HTTPS. " +
-                    (error.message || ""),
+                    "Camera error: " + (error.message || String(error)),
                     true
                 );
             }
-        } 
+        }
+
+
+        // STOP TICKET QR SCANNER
+        async function stopScanner() {
+
+            if (!html5QrCode || !scannerRunning) return;
+
+            try {
+
+                await html5QrCode.stop();
+
+                console.log("QR scanner stopped.");
+
+            }
+            catch (error) {
+
+                console.error("Scanner stop error:", error);
+            }
+            finally {
+
+                scannerRunning = false;
+
+                document.getElementById("startScanButton").disabled = false;
+                document.getElementById("stopScanButton").disabled = true;
+            }
+        }
 
         // STOP SCANNER
         async function stopScanner() {
